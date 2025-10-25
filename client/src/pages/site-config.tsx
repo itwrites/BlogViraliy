@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +60,7 @@ export default function SiteConfig() {
     enabled: !isNewSite,
   });
 
-  useState(() => {
+  useEffect(() => {
     if (site) {
       setSiteData({
         domain: site.domain,
@@ -69,6 +69,9 @@ export default function SiteConfig() {
         siteType: site.siteType,
       });
     }
+  }, [site]);
+
+  useEffect(() => {
     if (existingAiConfig) {
       setAiConfig({
         enabled: existingAiConfig.enabled,
@@ -77,6 +80,9 @@ export default function SiteConfig() {
         keywords: existingAiConfig.keywords,
       });
     }
+  }, [existingAiConfig]);
+
+  useEffect(() => {
     if (existingRssConfig) {
       setRssConfig({
         enabled: existingRssConfig.enabled,
@@ -85,7 +91,7 @@ export default function SiteConfig() {
         articlesToFetch: existingRssConfig.articlesToFetch,
       });
     }
-  });
+  }, [existingRssConfig]);
 
   const handleSave = async () => {
     try {
@@ -159,10 +165,10 @@ export default function SiteConfig() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">
+              <h1 className="text-2xl font-semibold text-foreground" data-testid="text-page-title">
                 {isNewSite ? "Add New Site" : `Edit ${site?.title}`}
               </h1>
-              <p className="text-sm text-muted-foreground">Configure your multi-tenant website</p>
+              <p className="text-sm text-muted-foreground" data-testid="text-page-description">Configure your multi-tenant website</p>
             </div>
           </div>
           <Button onClick={handleSave} data-testid="button-save">
@@ -184,13 +190,13 @@ export default function SiteConfig() {
           <TabsContent value="general" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>Configure the basic information for your website</CardDescription>
+                <CardTitle data-testid="text-general-title">General Settings</CardTitle>
+                <CardDescription data-testid="text-general-description">Configure the basic information for your website</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="domain">Domain Name</Label>
+                    <Label htmlFor="domain" data-testid="label-domain">Domain Name</Label>
                     <Input
                       id="domain"
                       data-testid="input-domain"
@@ -198,11 +204,11 @@ export default function SiteConfig() {
                       value={siteData.domain}
                       onChange={(e) => setSiteData({ ...siteData, domain: e.target.value })}
                     />
-                    <p className="text-xs text-muted-foreground">The exact domain this site will respond to</p>
+                    <p className="text-xs text-muted-foreground" data-testid="text-domain-hint">The exact domain this site will respond to</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="title">Site Title</Label>
+                    <Label htmlFor="title" data-testid="label-title">Site Title</Label>
                     <Input
                       id="title"
                       data-testid="input-title"
@@ -213,7 +219,7 @@ export default function SiteConfig() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="logoUrl">Logo URL</Label>
+                    <Label htmlFor="logoUrl" data-testid="label-logo">Logo URL</Label>
                     <Input
                       id="logoUrl"
                       data-testid="input-logo"
@@ -224,7 +230,7 @@ export default function SiteConfig() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="siteType">Site Layout Type</Label>
+                    <Label htmlFor="siteType" data-testid="label-site-type">Site Layout Type</Label>
                     <Select
                       value={siteData.siteType}
                       onValueChange={(value) => setSiteData({ ...siteData, siteType: value })}
@@ -249,8 +255,8 @@ export default function SiteConfig() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>AI-Driven Content Generation</CardTitle>
-                    <CardDescription>Automatically generate posts using AI</CardDescription>
+                    <CardTitle data-testid="text-ai-title">AI-Driven Content Generation</CardTitle>
+                    <CardDescription data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
                   </div>
                   <Switch
                     checked={aiConfig.enabled}
@@ -261,7 +267,7 @@ export default function SiteConfig() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="aiSchedule">Posting Frequency</Label>
+                  <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Posting Frequency</Label>
                   <Select
                     value={aiConfig.schedule}
                     onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
@@ -279,7 +285,7 @@ export default function SiteConfig() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="masterPrompt">Master Prompt</Label>
+                  <Label htmlFor="masterPrompt" data-testid="label-master-prompt">Master Prompt</Label>
                   <Textarea
                     id="masterPrompt"
                     data-testid="textarea-master-prompt"
@@ -293,7 +299,7 @@ export default function SiteConfig() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Keywords / Topics</Label>
+                  <Label data-testid="label-keywords">Keywords / Topics</Label>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Enter a keyword"

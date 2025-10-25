@@ -122,8 +122,8 @@ export function PostsManager({ siteId }: PostsManagerProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Posts</CardTitle>
-              <CardDescription>Manage all posts for this site</CardDescription>
+              <CardTitle data-testid="text-posts-title">Posts</CardTitle>
+              <CardDescription data-testid="text-posts-description">Manage all posts for this site</CardDescription>
             </div>
             <Button onClick={() => openEditor()} data-testid="button-add-post">
               <Plus className="h-4 w-4 mr-2" />
@@ -147,10 +147,10 @@ export function PostsManager({ siteId }: PostsManagerProps) {
                   data-testid={`post-item-${post.id}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground mb-1">{post.title}</h4>
+                    <h4 className="font-semibold text-foreground mb-1" data-testid={`text-post-title-${post.id}`}>{post.title}</h4>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="font-mono">{new Date(post.createdAt).toLocaleDateString()}</span>
-                      <span className="capitalize">{post.source}</span>
+                      <span className="font-mono" data-testid={`text-post-date-${post.id}`}>{new Date(post.createdAt).toLocaleDateString()}</span>
+                      <span className="capitalize" data-testid={`text-post-source-${post.id}`}>{post.source}</span>
                       {post.tags.length > 0 && (
                         <div className="flex gap-1">
                           {post.tags.slice(0, 3).map((tag) => (

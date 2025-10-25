@@ -48,8 +48,8 @@ export function PublicNews({ site }: PublicNewsProps) {
                 />
               )}
               <div>
-                <h1 className="text-xl font-news font-bold text-foreground">{site.title}</h1>
-                <p className="text-xs text-muted-foreground">Breaking News & Updates</p>
+                <h1 className="text-xl font-news font-bold text-foreground" data-testid="text-site-title">{site.title}</h1>
+                <p className="text-xs text-muted-foreground" data-testid="text-site-tagline">Breaking News & Updates</p>
               </div>
             </div>
             <nav className="hidden md:flex items-center gap-1 overflow-x-auto max-w-2xl" data-testid="nav-main">
@@ -98,19 +98,19 @@ export function PublicNews({ site }: PublicNewsProps) {
                 <div className="aspect-video bg-muted" />
                 <CardContent className="p-6">
                   <div className="flex gap-2 mb-3">
-                    {featuredPost.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} className="text-xs font-news">
+                    {featuredPost.tags.slice(0, 2).map((tag, index) => (
+                      <Badge key={tag} className="text-xs font-news" data-testid={`badge-featured-tag-${index}`}>
                         {tag.toUpperCase()}
                       </Badge>
                     ))}
                   </div>
-                  <h2 className="text-2xl font-news font-bold mb-3 hover:underline">
+                  <h2 className="text-2xl font-news font-bold mb-3 hover:underline" data-testid={`text-featured-title-${featuredPost.id}`}>
                     {featuredPost.title}
                   </h2>
-                  <p className="text-muted-foreground mb-3 line-clamp-3">
+                  <p className="text-muted-foreground mb-3 line-clamp-3" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
                     {featuredPost.content.substring(0, 200)}...
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
                     {new Date(featuredPost.createdAt).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -133,10 +133,10 @@ export function PublicNews({ site }: PublicNewsProps) {
                   >
                     <div className="aspect-video bg-muted" />
                     <CardContent className="p-3">
-                      <Badge className="text-[10px] font-news mb-2">
+                      <Badge className="text-[10px] font-news mb-2" data-testid={`badge-secondary-tag-${post.id}`}>
                         {post.tags[0]?.toUpperCase() || "NEWS"}
                       </Badge>
-                      <h3 className="text-sm font-news font-semibold line-clamp-2 hover:underline">
+                      <h3 className="text-sm font-news font-semibold line-clamp-2 hover:underline" data-testid={`text-secondary-title-${post.id}`}>
                         {post.title}
                       </h3>
                     </CardContent>
@@ -148,7 +148,7 @@ export function PublicNews({ site }: PublicNewsProps) {
             {/* Latest News */}
             {latestPosts.length > 0 && (
               <div>
-                <h3 className="text-xl font-news font-bold mb-4 pb-2 border-b">LATEST NEWS</h3>
+                <h3 className="text-xl font-news font-bold mb-4 pb-2 border-b" data-testid="text-latest-news-title">LATEST NEWS</h3>
                 <div className="grid gap-4 md:grid-cols-3">
                   {latestPosts.map((post) => (
                     <Card
@@ -159,13 +159,13 @@ export function PublicNews({ site }: PublicNewsProps) {
                     >
                       <div className="aspect-video bg-muted" />
                       <CardContent className="p-4">
-                        <Badge className="text-xs font-news mb-2">
+                        <Badge className="text-xs font-news mb-2" data-testid={`badge-post-tag-${post.id}`}>
                           {post.tags[0]?.toUpperCase() || "NEWS"}
                         </Badge>
-                        <h3 className="text-base font-news font-semibold mb-2 line-clamp-2 hover:underline">
+                        <h3 className="text-base font-news font-semibold mb-2 line-clamp-2 hover:underline" data-testid={`text-post-title-${post.id}`}>
                           {post.title}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                           {new Date(post.createdAt).toLocaleString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -182,9 +182,9 @@ export function PublicNews({ site }: PublicNewsProps) {
           </>
         ) : (
           <div className="text-center py-24">
-            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-news font-bold mb-2">NO STORIES AVAILABLE</h2>
-            <p className="text-muted-foreground">Check back soon for breaking news</p>
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />
+            <h2 className="text-2xl font-news font-bold mb-2" data-testid="text-no-posts-title">NO STORIES AVAILABLE</h2>
+            <p className="text-muted-foreground" data-testid="text-no-posts-message">Check back soon for breaking news</p>
           </div>
         )}
       </main>
@@ -192,7 +192,7 @@ export function PublicNews({ site }: PublicNewsProps) {
       {/* Footer */}
       <footer className="border-t mt-12 py-6 bg-card">
         <div className="max-w-7xl mx-auto px-6 text-center text-xs text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
+          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
         </div>
       </footer>
     </div>

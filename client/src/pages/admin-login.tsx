@@ -37,13 +37,13 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-semibold">ChameleonWeb Admin</CardTitle>
-          <CardDescription>Enter your credentials to access the dashboard</CardDescription>
+          <CardTitle className="text-2xl font-semibold" data-testid="text-login-title">ChameleonWeb Admin</CardTitle>
+          <CardDescription data-testid="text-login-description">Enter your credentials to access the dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" data-testid="label-username">Username</Label>
               <Input
                 id="username"
                 data-testid="input-username"
@@ -55,7 +55,7 @@ export default function AdminLogin() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" data-testid="label-password">Password</Label>
               <Input
                 id="password"
                 data-testid="input-password"

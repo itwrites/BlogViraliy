@@ -43,9 +43,10 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
                 src={site.logoUrl}
                 alt={`${site.title} logo`}
                 className="h-8 w-8 object-cover rounded"
+                data-testid="img-site-logo"
               />
             )}
-            <h1 className={`text-xl font-semibold ${isBlog ? "font-blog" : "font-news"}`}>
+            <h1 className={`text-xl font-semibold ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-site-title">
               {site.title}
             </h1>
           </div>
@@ -57,11 +58,11 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-3">
             <Tag className="h-6 w-6 text-primary" />
-            <h1 className={`text-3xl md:text-4xl font-bold ${isBlog ? "font-blog" : "font-news"}`}>
+            <h1 className={`text-3xl md:text-4xl font-bold ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-tag-name">
               {decodedTag}
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground" data-testid="text-post-count">
             {isLoading ? "Loading posts..." : `${posts?.length || 0} articles tagged with "${decodedTag}"`}
           </p>
         </div>
@@ -85,19 +86,19 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
                 <div className="aspect-video bg-muted" />
                 <CardContent className="p-6">
                   <div className="flex gap-2 mb-3">
-                    {post.tags.slice(0, 2).map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs">
+                    {post.tags.slice(0, 2).map((t, index) => (
+                      <Badge key={t} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
                         {t}
                       </Badge>
                     ))}
                   </div>
-                  <h3 className={`text-lg font-semibold mb-2 line-clamp-2 ${isBlog ? "font-blog" : "font-news"}`}>
+                  <h3 className={`text-lg font-semibold mb-2 line-clamp-2 ${isBlog ? "font-blog" : "font-news"}`} data-testid={`text-post-title-${post.id}`}>
                     {post.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                  <p className="text-muted-foreground text-sm line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
                     {post.content.substring(0, 120)}...
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                     {new Date(post.createdAt).toLocaleDateString("en-US", {
                       month: "long",
                       day: "numeric",
@@ -110,14 +111,14 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
           </div>
         ) : (
           <div className="text-center py-24">
-            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className={`text-2xl font-semibold mb-2 ${isBlog ? "font-blog" : "font-news"}`}>
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />
+            <h2 className={`text-2xl font-semibold mb-2 ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-no-posts-title">
               No posts found
             </h2>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-4" data-testid="text-no-posts-message">
               There are no posts tagged with "{decodedTag}"
             </p>
-            <Button onClick={handleBack}>Go back home</Button>
+            <Button onClick={handleBack} data-testid="button-go-home">Go back home</Button>
           </div>
         )}
       </main>
@@ -125,7 +126,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
       {/* Footer */}
       <footer className="border-t mt-16 py-8 bg-card">
         <div className="max-w-7xl mx-auto px-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
+          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
         </div>
       </footer>
     </div>

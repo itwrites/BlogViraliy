@@ -86,8 +86,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
               <div className="absolute inset-0 flex items-end p-12 z-20">
                 <div className="max-w-3xl">
                   <div className="flex gap-2 mb-4">
-                    {featuredPost.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="bg-background/90">
+                    {featuredPost.tags.slice(0, 3).map((tag, index) => (
+                      <Badge key={tag} variant="secondary" className="bg-background/90" data-testid={`badge-featured-tag-${index}`}>
                         {tag}
                       </Badge>
                     ))}
@@ -124,8 +124,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
                       <div className="aspect-video bg-muted" />
                       <CardContent className="p-6">
                         <div className="flex gap-2 mb-3">
-                          {post.tags.slice(0, 2).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
+                          {post.tags.slice(0, 2).map((tag, index) => (
+                            <Badge key={tag} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
                               {tag}
                             </Badge>
                           ))}

@@ -51,9 +51,9 @@ export function PublicPost({ site }: PublicPostProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Post not found</h2>
-          <p className="text-muted-foreground mb-4">The post you're looking for doesn't exist</p>
-          <Button onClick={handleBack}>Go back home</Button>
+          <h2 className="text-2xl font-semibold mb-2" data-testid="text-not-found-title">Post not found</h2>
+          <p className="text-muted-foreground mb-4" data-testid="text-not-found-message">The post you're looking for doesn't exist</p>
+          <Button onClick={handleBack} data-testid="button-go-home">Go back home</Button>
         </div>
       </div>
     );
@@ -73,9 +73,10 @@ export function PublicPost({ site }: PublicPostProps) {
                 src={site.logoUrl}
                 alt={`${site.title} logo`}
                 className="h-8 w-8 object-cover rounded"
+                data-testid="img-site-logo"
               />
             )}
-            <h1 className={`text-xl font-semibold ${isBlog ? "font-blog" : "font-news"}`}>
+            <h1 className={`text-xl font-semibold ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-site-title">
               {site.title}
             </h1>
           </div>
@@ -99,12 +100,12 @@ export function PublicPost({ site }: PublicPostProps) {
                 </Badge>
               ))}
             </div>
-            <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isBlog ? "font-blog" : "font-news"}`}>
+            <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-post-title">
               {post.title}
             </h1>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              <time dateTime={post.createdAt.toString()}>
+              <time dateTime={post.createdAt.toString()} data-testid="text-post-date">
                 {new Date(post.createdAt).toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
@@ -116,7 +117,7 @@ export function PublicPost({ site }: PublicPostProps) {
 
           {/* Article Content */}
           <div className="prose prose-lg max-w-none">
-            <div className="whitespace-pre-wrap leading-relaxed text-foreground">
+            <div className="whitespace-pre-wrap leading-relaxed text-foreground" data-testid="text-post-content">
               {post.content}
             </div>
           </div>
@@ -125,7 +126,7 @@ export function PublicPost({ site }: PublicPostProps) {
         {/* Related Posts */}
         {relatedPosts && relatedPosts.length > 0 && (
           <div className="mt-16 pt-8 border-t">
-            <h2 className={`text-2xl font-semibold mb-6 ${isBlog ? "font-blog" : "font-news"}`}>
+            <h2 className={`text-2xl font-semibold mb-6 ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-related-title">
               Related Articles
             </h2>
             <div className="grid gap-4 md:grid-cols-3">
@@ -138,10 +139,10 @@ export function PublicPost({ site }: PublicPostProps) {
                 >
                   <div className="aspect-video bg-muted" />
                   <CardContent className="p-4">
-                    <Badge className="text-xs mb-2">
+                    <Badge className="text-xs mb-2" data-testid={`badge-related-tag-${relatedPost.id}`}>
                       {relatedPost.tags[0] || "Article"}
                     </Badge>
-                    <h3 className={`font-semibold line-clamp-2 ${isBlog ? "font-blog" : "font-news"}`}>
+                    <h3 className={`font-semibold line-clamp-2 ${isBlog ? "font-blog" : "font-news"}`} data-testid={`text-related-title-${relatedPost.id}`}>
                       {relatedPost.title}
                     </h3>
                   </CardContent>
@@ -155,7 +156,7 @@ export function PublicPost({ site }: PublicPostProps) {
       {/* Footer */}
       <footer className="border-t mt-16 py-8 bg-card">
         <div className="max-w-7xl mx-auto px-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
+          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
         </div>
       </footer>
     </div>

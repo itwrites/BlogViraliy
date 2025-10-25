@@ -6,12 +6,12 @@ export default function SiteNotFound() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="max-w-md w-full">
         <CardContent className="flex flex-col items-center justify-center py-16">
-          <Globe className="h-16 w-16 text-muted-foreground mb-6" />
-          <h1 className="text-3xl font-bold mb-3 text-foreground">Site Not Found</h1>
-          <p className="text-center text-muted-foreground mb-2">
+          <Globe className="h-16 w-16 text-muted-foreground mb-6" data-testid="icon-not-found" />
+          <h1 className="text-3xl font-bold mb-3 text-foreground" data-testid="text-not-found-title">Site Not Found</h1>
+          <p className="text-center text-muted-foreground mb-2" data-testid="text-not-found-message">
             The website you're trying to access is not registered in our system.
           </p>
-          <p className="text-center text-sm text-muted-foreground font-mono">
+          <p className="text-center text-sm text-muted-foreground font-mono" data-testid="text-domain-name">
             Domain: {window.location.hostname}
           </p>
         </CardContent>
