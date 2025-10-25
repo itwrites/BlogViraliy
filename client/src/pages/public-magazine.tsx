@@ -1,0 +1,187 @@
+import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import type { Site, Post } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
+
+interface PublicMagazineProps {
+  site: Site;
+}
+
+export function PublicMagazine({ site }: PublicMagazineProps) {
+  const [, setLocation] = useLocation();
+
+  const { data: posts, isLoading } = useQuery<Post[]>({
+    queryKey: ["/api/public/sites", site.id, "posts"],
+  });
+
+  const { data: topTags } = useQuery<string[]>({
+    queryKey: ["/api/public/sites", site.id, "top-tags"],
+  });
+
+  const handleTagClick = (tag: string) => {
+    setLocation(`/tag/${encodeURIComponent(tag)}`);
+  };
+
+  const handlePostClick = (slug: string) => {
+    setLocation(`/post/${slug}`);
+  };
+
+  const featuredPost = posts?.[0];
+  const secondaryPosts = posts?.slice(1, 3) || [];
+  const gridPosts = posts?.slice(3) || [];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="text-center mb-4">
+            {site.logoUrl && (
+              <img
+                src={site.logoUrl}
+                alt={`${site.title} logo`}
+                className="h-12 w-12 object-cover rounded mx-auto mb-3"
+                data-testid="img-site-logo"
+              />
+            )}
+            <h1 className="text-4xl font-bold tracking-tight text-foreground" data-testid="text-site-title" style={{ fontFamily: 'Georgia, serif' }}>
+              {site.title}
+            </h1>
+          </div>
+          <nav className="flex items-center justify-center gap-6 border-t border-b py-3" data-testid="nav-main">
+            {topTags?.slice(0, 8).map((tag) => (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag)}
+                className="text-sm font-semibold uppercase tracking-wide hover-elevate px-2 py-1 rounded text-foreground"
+                data-testid={`link-tag-${tag}`}
+              >
+                {tag}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {isLoading ? (
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="h-[400px] bg-muted animate-pulse rounded" />
+              <div className="space-y-6">
+                <div className="h-[190px] bg-muted animate-pulse rounded" />
+                <div className="h-[190px] bg-muted animate-pulse rounded" />
+              </div>
+            </div>
+          </div>
+        ) : featuredPost ? (
+          <>
+            {/* Featured Grid */}
+            <div className="grid gap-6 md:grid-cols-2 mb-8">
+              {/* Main Featured */}
+              <Card
+                className="cursor-pointer hover-elevate overflow-hidden md:row-span-2"
+                onClick={() => handlePostClick(featuredPost.slug)}
+                data-testid={`card-featured-post-${featuredPost.id}`}
+              >
+                <div className="aspect-[4/3] bg-muted" />
+                <CardContent className="p-6">
+                  <div className="flex gap-2 mb-3">
+                    {featuredPost.tags.slice(0, 2).map((tag, index) => (
+                      <Badge key={tag} className="text-xs uppercase" data-testid={`badge-featured-tag-${index}`}>
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h2 className="text-3xl font-bold mb-3 leading-tight" style={{ fontFamily: 'Georgia, serif' }} data-testid={`text-featured-title-${featuredPost.id}`}>
+                    {featuredPost.title}
+                  </h2>
+                  <p className="text-muted-foreground line-clamp-3 mb-3" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
+                    {featuredPost.content.substring(0, 150)}...
+                  </p>
+                  <p className="text-xs text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
+                    {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Secondary Posts */}
+              {secondaryPosts.map((post) => (
+                <Card
+                  key={post.id}
+                  className="cursor-pointer hover-elevate overflow-hidden"
+                  onClick={() => handlePostClick(post.slug)}
+                  data-testid={`card-secondary-post-${post.id}`}
+                >
+                  <div className="aspect-video bg-muted" />
+                  <CardContent className="p-4">
+                    <Badge className="text-xs uppercase mb-2" data-testid={`badge-secondary-tag-${post.id}`}>
+                      {post.tags[0] || "Article"}
+                    </Badge>
+                    <h3 className="font-bold text-lg line-clamp-2 mb-2" style={{ fontFamily: 'Georgia, serif' }} data-testid={`text-secondary-title-${post.id}`}>
+                      {post.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground" data-testid={`text-secondary-date-${post.id}`}>
+                      {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Latest Stories Grid */}
+            {gridPosts.length > 0 && (
+              <div>
+                <h3 className="text-2xl font-bold mb-6 pb-3 border-b uppercase tracking-wide" style={{ fontFamily: 'Georgia, serif' }} data-testid="text-latest-title">
+                  Latest Stories
+                </h3>
+                <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
+                  {gridPosts.map((post) => (
+                    <Card
+                      key={post.id}
+                      className="cursor-pointer hover-elevate overflow-hidden"
+                      onClick={() => handlePostClick(post.slug)}
+                      data-testid={`card-post-${post.id}`}
+                    >
+                      <div className="aspect-square bg-muted" />
+                      <CardContent className="p-4">
+                        <Badge variant="secondary" className="text-xs mb-2" data-testid={`badge-post-tag-${post.id}`}>
+                          {post.tags[0] || "Article"}
+                        </Badge>
+                        <h4 className="font-bold text-sm line-clamp-3 mb-2" style={{ fontFamily: 'Georgia, serif' }} data-testid={`text-post-title-${post.id}`}>
+                          {post.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
+                          {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-24">
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />
+            <h2 className="text-2xl font-semibold mb-2" data-testid="text-no-posts-title">No posts yet</h2>
+            <p className="text-muted-foreground" data-testid="text-no-posts-message">Check back soon for new content</p>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t mt-16 py-8 bg-card">
+        <div className="max-w-7xl mx-auto px-6 text-center text-sm text-muted-foreground">
+          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}

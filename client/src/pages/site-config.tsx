@@ -98,7 +98,8 @@ export default function SiteConfig() {
       let siteId = id;
       
       if (isNewSite) {
-        const newSite = await apiRequest("POST", "/api/sites", siteData);
+        const response = await apiRequest("POST", "/api/sites", siteData);
+        const newSite = await response.json();
         siteId = newSite.id;
       } else {
         await apiRequest("PUT", `/api/sites/${id}`, siteData);
@@ -229,21 +230,40 @@ export default function SiteConfig() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="siteType" data-testid="label-site-type">Site Layout Type</Label>
-                    <Select
-                      value={siteData.siteType}
-                      onValueChange={(value) => setSiteData({ ...siteData, siteType: value })}
-                    >
-                      <SelectTrigger id="siteType" data-testid="select-site-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="blog">Blog</SelectItem>
-                        <SelectItem value="news">News</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">Determines the visual layout template</p>
+                  <div className="space-y-3 md:col-span-2">
+                    <Label data-testid="label-site-type">Site Layout Type</Label>
+                    <p className="text-xs text-muted-foreground mb-3">Choose a visual template that best matches your content style</p>
+                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+                      {[
+                        { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
+                        { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
+                        { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
+                        { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
+                        { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
+                        { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
+                      ].map((layout) => (
+                        <Card
+                          key={layout.value}
+                          className={`cursor-pointer transition-all ${
+                            siteData.siteType === layout.value
+                              ? "ring-2 ring-primary"
+                              : "hover-elevate"
+                          }`}
+                          onClick={() => setSiteData({ ...siteData, siteType: layout.value })}
+                          data-testid={`card-layout-${layout.value}`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="aspect-video bg-muted rounded mb-3 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="text-2xl font-bold text-muted-foreground">{layout.label.substring(0, 1)}</div>
+                              </div>
+                            </div>
+                            <h4 className="font-semibold text-sm mb-1" data-testid={`text-layout-name-${layout.value}`}>{layout.label}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2" data-testid={`text-layout-desc-${layout.value}`}>{layout.desc}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </CardContent>

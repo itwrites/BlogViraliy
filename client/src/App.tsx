@@ -11,6 +11,10 @@ import SiteConfig from "@/pages/site-config";
 import SiteNotFound from "@/pages/site-not-found";
 import { PublicBlog } from "@/pages/public-blog";
 import { PublicNews } from "@/pages/public-news";
+import { PublicMagazine } from "@/pages/public-magazine";
+import { PublicPortfolio } from "@/pages/public-portfolio";
+import { PublicRestaurant } from "@/pages/public-restaurant";
+import { PublicCrypto } from "@/pages/public-crypto";
 import { PublicPost } from "@/pages/public-post";
 import { PublicTagArchive } from "@/pages/public-tag-archive";
 import type { Site } from "@shared/schema";
@@ -27,7 +31,16 @@ function AdminRouter() {
 }
 
 function PublicRouter({ site }: { site: Site }) {
-  const LayoutComponent = site.siteType === "news" ? PublicNews : PublicBlog;
+  const layoutComponents = {
+    blog: PublicBlog,
+    news: PublicNews,
+    magazine: PublicMagazine,
+    portfolio: PublicPortfolio,
+    restaurant: PublicRestaurant,
+    crypto: PublicCrypto,
+  };
+
+  const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlog;
 
   return (
     <Switch>

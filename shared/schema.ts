@@ -94,6 +94,8 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  siteType: z.enum(["blog", "news", "magazine", "portfolio", "restaurant", "crypto"]),
 });
 
 export const insertAiAutomationConfigSchema = createInsertSchema(aiAutomationConfigs).omit({
