@@ -11,17 +11,18 @@ ChameleonWeb is a sophisticated multi-tenant content management system (CMS) tha
 - **Complete Isolation**: Content, branding, and navigation are unique per domain
 
 ## Current State
-MVP is complete with all core features functional:
+Production-ready platform with all core features functional:
 - ✅ Admin dashboard with login and site management
 - ✅ Comprehensive site configuration (General, AI Automation, RSS Automation, Posts)
 - ✅ AI content generation using Replit AI Integrations (GPT-5)
 - ✅ RSS feed rewriting for unique content
 - ✅ Manual post editor with tag support
-- ✅ Blog and News layout templates for public sites
+- ✅ **Six unique layout templates** with visual previews (Blog, News, Magazine, Portfolio, Restaurant, Crypto)
 - ✅ Automatic navigation menu generation from top tags
 - ✅ Tag archive pages and related posts
 - ✅ Scheduled automation with node-cron
 - ✅ PostgreSQL database with full data persistence
+- ✅ 100% data-testid coverage for automated testing
 
 ## Project Architecture
 
@@ -94,6 +95,36 @@ The system detects the incoming domain name and:
 - Three-column latest news grid
 - Condensed fonts (Roboto Condensed) for information density
 
+**Magazine Layout**:
+- Multi-column grid layout (TIME/Newsweek style)
+- Featured post + secondary posts in asymmetric grid
+- Georgia serif fonts for editorial elegance
+- Uppercase category navigation
+- 4-column latest stories grid
+
+**Portfolio Layout**:
+- Minimal, clean design with large imagery
+- Light typography for professional presentation
+- Showcase-style 2-column grid
+- First post spans full width for emphasis
+- Perfect for creative work and case studies
+
+**Restaurant Layout**:
+- Food & dining themed with warm color palette
+- Playfair Display serif fonts for elegance
+- Gradient backgrounds (orange/amber tones)
+- Featured story hero with 3-column latest news
+- Rounded pill-style category tags
+
+**Crypto Layout**:
+- Data-heavy, tech-focused aesthetic
+- Monospace fonts throughout
+- "LIVE" status badge
+- Breaking news section with inline image
+- Numbered trending posts (01, 02, 03)
+- Compact latest updates with timestamps
+- Market data feel with green accent colors
+
 ### 5. Automatic Navigation
 - Top 10 most-used tags become navigation menu items
 - Tag archive pages list all posts with that tag
@@ -108,12 +139,18 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-10-25: **Extended layout templates to 6 unique designs**
+  - Added Magazine, Portfolio, Restaurant, and Crypto layouts
+  - Implemented visual card-based layout selector in admin config
+  - Each layout has distinct typography, colors, and structure
+  - All layouts include comprehensive data-testid coverage
 - 2025-10-25: Initial MVP implementation complete
-- Database schema with full relations
-- All admin and public UI components
-- Domain routing middleware
-- AI and RSS automation services
-- Session-based authentication
+  - Database schema with full relations
+  - All admin and public UI components
+  - Domain routing middleware
+  - AI and RSS automation services
+  - Session-based authentication
+  - Fixed state hydration bug in site config
 
 ## Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string
