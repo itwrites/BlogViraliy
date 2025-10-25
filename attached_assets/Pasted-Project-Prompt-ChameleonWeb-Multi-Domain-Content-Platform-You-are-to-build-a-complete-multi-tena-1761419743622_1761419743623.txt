@@ -1,0 +1,105 @@
+Project Prompt: ChameleonWeb - Multi-Domain Content Platform
+You are to build a complete, multi-tenant content management system (CMS) called ChameleonWeb. The system's core function is to run on a single Replit instance and serve entirely different websites (content, layout, and branding) based on the domain name the visitor is using.
+
+The system will have two parts: a central Admin Dashboard for managing all sites, and the Public-Facing Sites themselves, which are largely automated.
+
+Part 1: Core System & Domain Routing
+This is the most critical component of the platform.
+
+Domain-Based-Routing: The system must detect the host (domain name) of every incoming web request.
+
+Admin Domain: One specific domain (e.g., admin.chameleonweb.com) must be designated as the Admin Domain. All requests to this domain will load the secure Admin Dashboard.
+
+Public Domains: Any other domain (e.g., site-one.com, my-other-blog.org) that is registered in the system's database must load its corresponding public website.
+
+Site Context: When a public domain is loaded, all system functions (like fetching posts, logos, and layouts) must operate only within the context of that specific site. site-one.com must never show posts from my-other-blog.org.
+
+Unrecognized Domains: Any domain that is not the Admin Domain and is not registered in the database should show a simple "Site Not Found" error page.
+
+Part 2: The Admin Dashboard (Central Control)
+This is the human-facing control panel, accessible only via the Admin Domain.
+
+Secure Login: The Admin Dashboard must be protected by a secure username and password login system.
+
+Site Overview: The main dashboard page will display a list of all websites currently in the system. Each item in the list should show the site's title, its domain name, and provide "Edit" and "Delete" buttons.
+
+"Add New Site" Function: This is the primary action. Clicking it will take the user to a form to register a new website.
+
+Part 3: Site Configuration (The "Add/Edit Site" Page)
+When an admin clicks "Add New Site" or "Edit," they must be presented with a configuration page for that individual site. This page must include:
+
+General Settings
+Domain Name: A text field for the exact domain (e.g., my-cool-blog.com). This is the unique identifier.
+
+Site Title: The name of the website (e.g., "My Cool Blog").
+
+Logo URL: A text field to paste a URL for the site's logo.
+
+Site Type: A dropdown menu to select the visual layout. The options must include "Blog" and "News." (This will determine which UI template to load for the public).
+
+Automation Settings (Tab 1: AI-Driven Content)
+This section configures the AI-powered post generator.
+
+Enable/Disable Toggle: A switch to turn this mode on or off for the site.
+
+Schedule: A dropdown to select posting frequency (e.g., "1 post per day," "3 posts per day," "1 post per week").
+
+Master Prompt: A large text area for the site-specific AI prompt (e.g., "You are an expert food critic for budget restaurants. Write in a witty, informal tone...").
+
+Keyword List: A simple UI (e.g., a text box with an "Add" button) to manage a list of keywords or topics. The system will cycle through these keywords when generating new posts.
+
+Automation Settings (Tab 2: RSS Rewriter)
+This section configures the RSS-based content generator.
+
+Enable/Disable Toggle: A switch to turn this mode on or off for the site.
+
+Schedule: A dropdown to select how often to check feeds (e.g., "Every 1 hour," "Every 6 hours," "Once per day").
+
+RSS Feed URLs: A UI to manage a list of RSS feed URLs to monitor.
+
+Articles to Fetch: A number input for how many of the newest articles to take from each feed during a check (e.g., "3").
+
+Rewrite Logic: The system must be built to understand that when it fetches an article from an RSS feed, it must not post it directly. It must first send the article content to an AI with a prompt to "rewrite this article to be unique," and then post the rewritten version. This is to avoid duplicate content.
+
+Manual Content (Tab 3: Manage Posts)
+This section is for manual intervention.
+
+Post List: Show a list of all posts (manual, AI, RSS) for this site, with "Edit" and "Delete" buttons.
+
+"Add New Post" Button: This button will open a simple content editor.
+
+Manual Post Editor: This editor must provide fields for:
+
+Title
+
+Content (a Markdown or rich-text editor)
+
+Tags (a comma-separated list or a tag-input field)
+
+A "Publish" button.
+
+Part 4: The Public-Facing Websites
+This is what the end-user sees when they visit one of the public domains.
+
+Dynamic Layout: The system must load the correct UI template based on the "Site Type" setting (e.g., a 'Blog' layout might be a single-column feed, while a 'News' layout might be a multi-column grid).
+
+Branding: The site's "Logo URL" and "Site Title" must be dynamically inserted into the layout.
+
+Homepage: The homepage must display a list of the most recent posts published only for that site.
+
+Post Pages: Clicking on a post title must lead to a unique page (e.g., my-cool-blog.com/post-slug) displaying the full article.
+
+SEO & Tags:
+
+All posts (AI, RSS, or manual) must have tags associated with them. AI and RSS posts should have their tags generated automatically by the AI.
+
+All generated pages (homepage, post pages) must have correct <title> and <meta> tags for good SEO.
+
+Part 5: Automated Navigation & Menus
+To support 100s of sites without manual menu creation, the navigation must be automatic.
+
+Auto-Menu: The main navigation menu for each public site must be automatically generated.
+
+Menu Logic: The menu links shall be created from the Top 10 most-used Tags for that specific site.
+
+Tag Archive Pages: Clicking a tag in the menu (or on a post) must lead to an archive page that lists all posts associated with that tag.
