@@ -1,0 +1,127 @@
+import { sql } from "drizzle-orm";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Admin Users
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+});
+
+// Sites (multi-tenant websites)
+export const sites = pgTable("sites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  domain: text("domain").notNull().unique(),
+  title: text("title").notNull(),
+  logoUrl: text("logo_url"),
+  siteType: text("site_type").notNull().default("blog"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// AI Automation Configuration
+export const aiAutomationConfigs = pgTable("ai_automation_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  schedule: text("schedule").notNull().default("1_per_day"),
+  masterPrompt: text("master_prompt").notNull().default(""),
+  keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
+  lastKeywordIndex: integer("last_keyword_index").notNull().default(0),
+});
+
+// RSS Automation Configuration
+export const rssAutomationConfigs = pgTable("rss_automation_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  schedule: text("schedule").notNull().default("every_6_hours"),
+  feedUrls: text("feed_urls").array().notNull().default(sql`ARRAY[]::text[]`),
+  articlesToFetch: integer("articles_to_fetch").notNull().default(3),
+});
+
+// Posts
+export const posts = pgTable("posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  content: text("content").notNull(),
+  tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+  source: text("source").notNull().default("manual"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Relations
+export const sitesRelations = relations(sites, ({ many, one }) => ({
+  posts: many(posts),
+  aiAutomationConfig: one(aiAutomationConfigs),
+  rssAutomationConfig: one(rssAutomationConfigs),
+}));
+
+export const postsRelations = relations(posts, ({ one }) => ({
+  site: one(sites, {
+    fields: [posts.siteId],
+    references: [sites.id],
+  }),
+}));
+
+export const aiAutomationConfigsRelations = relations(aiAutomationConfigs, ({ one }) => ({
+  site: one(sites, {
+    fields: [aiAutomationConfigs.siteId],
+    references: [sites.id],
+  }),
+}));
+
+export const rssAutomationConfigsRelations = relations(rssAutomationConfigs, ({ one }) => ({
+  site: one(sites, {
+    fields: [rssAutomationConfigs.siteId],
+    references: [sites.id],
+  }),
+}));
+
+// Insert Schemas
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+});
+
+export const insertSiteSchema = createInsertSchema(sites).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiAutomationConfigSchema = createInsertSchema(aiAutomationConfigs).omit({
+  id: true,
+});
+
+export const insertRssAutomationConfigSchema = createInsertSchema(rssAutomationConfigs).omit({
+  id: true,
+});
+
+export const insertPostSchema = createInsertSchema(posts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+export type InsertSite = z.infer<typeof insertSiteSchema>;
+export type Site = typeof sites.$inferSelect;
+
+export type InsertAiAutomationConfig = z.infer<typeof insertAiAutomationConfigSchema>;
+export type AiAutomationConfig = typeof aiAutomationConfigs.$inferSelect;
+
+export type InsertRssAutomationConfig = z.infer<typeof insertRssAutomationConfigSchema>;
+export type RssAutomationConfig = typeof rssAutomationConfigs.$inferSelect;
+
+export type InsertPost = z.infer<typeof insertPostSchema>;
+export type Post = typeof posts.$inferSelect;
