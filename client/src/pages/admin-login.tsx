@@ -19,7 +19,8 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const result = await apiRequest("POST", "/api/auth/login", { username, password });
+      const response = await apiRequest("POST", "/api/auth/login", { username, password });
+      const result = await response.json();
       if (result.success) {
         toast({ title: "Login successful" });
         setLocation("/admin/dashboard");
