@@ -98,7 +98,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
               >
                 <CardContent className="p-6">
                   <div className="grid md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 flex flex-col">
                       <div className="flex gap-2 mb-3">
                         {breakingPost.tags.slice(0, 3).map((tag, index) => (
                           <Badge key={tag} variant="outline" className="text-xs font-mono uppercase border-green-500 text-green-500" data-testid={`badge-breaking-tag-${index}`}>
@@ -122,7 +122,9 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                         })}
                       </p>
                     </div>
-                    <div className="aspect-video md:aspect-square bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded" />
+                    <div className="aspect-video md:aspect-square bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded">
+                      {breakingPost.imageUrl && <img src={breakingPost.imageUrl} alt={breakingPost.title} className="w-full h-full object-cover rounded" />}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -182,7 +184,9 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start gap-4">
-                          <div className="w-24 h-24 bg-muted rounded flex-shrink-0" />
+                          <div className="w-24 h-24 bg-muted rounded flex-shrink-0">
+                            {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover rounded" />}
+                          </div>
                           <div className="flex-1">
                             <Badge variant="outline" className="text-xs font-mono mb-2" data-testid={`badge-post-tag-${post.id}`}>
                               {post.tags[0] || "UPDATE"}

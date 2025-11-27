@@ -88,6 +88,10 @@ export default {
         mono: ["var(--font-mono)"],
         blog: ["Merriweather", "serif"],
         news: ["Roboto Condensed", "sans-serif"],
+        magazine: ["Georgia", "serif"],
+        portfolio: ["Inter", "sans-serif"],
+        restaurant: ["Playfair Display", "serif"],
+        crypto: ["Fira Code", "monospace"],
       },
       maxWidth: {
         "3xl": "48rem",

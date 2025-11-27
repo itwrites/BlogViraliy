@@ -91,7 +91,9 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                 onClick={() => handlePostClick(featuredPost.slug)}
                 data-testid={`card-featured-post-${featuredPost.id}`}
               >
-                <div className="aspect-[21/9] bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950" />
+                <div className="aspect-[21/9] bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950">
+                  {featuredPost.imageUrl && <img src={featuredPost.imageUrl} alt={featuredPost.title} className="w-full h-full object-cover" />}
+                </div>
                 <CardContent className="p-8">
                   <div className="flex gap-2 mb-4">
                     {featuredPost.tags.slice(0, 3).map((tag, index) => (
@@ -131,7 +133,9 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                       onClick={() => handlePostClick(post.slug)}
                       data-testid={`card-post-${post.id}`}
                     >
-                      <div className="aspect-video bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950" />
+                      <div className="aspect-video bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950">
+                        {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
+                      </div>
                       <CardContent className="p-5">
                         <Badge variant="secondary" className="mb-3 text-xs" data-testid={`badge-post-tag-${post.id}`}>
                           {post.tags[0] || "News"}

@@ -86,7 +86,9 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                 onClick={() => handlePostClick(featuredPost.slug)}
                 data-testid={`card-featured-post-${featuredPost.id}`}
               >
-                <div className="aspect-[4/3] bg-muted" />
+                <div className="aspect-[4/3] bg-muted">
+                  {featuredPost.imageUrl && <img src={featuredPost.imageUrl} alt={featuredPost.title} className="w-full h-full object-cover" />}
+                </div>
                 <CardContent className="p-6">
                   <div className="flex gap-2 mb-3">
                     {featuredPost.tags.slice(0, 2).map((tag, index) => (
@@ -119,7 +121,9 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                   onClick={() => handlePostClick(post.slug)}
                   data-testid={`card-secondary-post-${post.id}`}
                 >
-                  <div className="aspect-video bg-muted" />
+                  <div className="aspect-video bg-muted">
+                    {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
+                  </div>
                   <CardContent className="p-4">
                     <Badge className="text-xs uppercase mb-2" data-testid={`badge-secondary-tag-${post.id}`}>
                       {post.tags[0] || "Article"}
@@ -149,7 +153,9 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                       onClick={() => handlePostClick(post.slug)}
                       data-testid={`card-post-${post.id}`}
                     >
-                      <div className="aspect-square bg-muted" />
+                      <div className="aspect-square bg-muted">
+                        {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
+                      </div>
                       <CardContent className="p-4">
                         <Badge variant="secondary" className="text-xs mb-2" data-testid={`badge-post-tag-${post.id}`}>
                           {post.tags[0] || "Article"}

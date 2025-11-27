@@ -83,6 +83,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                 data-testid={`card-post-${post.id}`}
               >
                 <div className={`${index === 0 ? 'aspect-[21/9]' : 'aspect-[4/3]'} bg-muted relative`}>
+                  {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                     <ExternalLink className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>

@@ -50,6 +50,7 @@ export const posts = pgTable("posts", {
   title: text("title").notNull(),
   slug: text("slug").notNull(),
   content: text("content").notNull(),
+  imageUrl: text("image_url"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   source: text("source").notNull().default("manual"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

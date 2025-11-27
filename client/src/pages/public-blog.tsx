@@ -82,6 +82,11 @@ export function PublicBlog({ site }: PublicBlogProps) {
               onClick={() => handlePostClick(featuredPost.slug)}
               data-testid={`card-featured-post-${featuredPost.id}`}
             >
+              {featuredPost.imageUrl ? (
+                <img src={featuredPost.imageUrl} alt={featuredPost.title} className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-muted" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-10" />
               <div className="absolute inset-0 flex items-end p-12 z-20">
                 <div className="max-w-3xl">
@@ -121,7 +126,9 @@ export function PublicBlog({ site }: PublicBlogProps) {
                       onClick={() => handlePostClick(post.slug)}
                       data-testid={`card-post-${post.id}`}
                     >
-                      <div className="aspect-video bg-muted" />
+                      <div className="aspect-video bg-muted">
+                        {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
+                      </div>
                       <CardContent className="p-6">
                         <div className="flex gap-2 mb-3">
                           {post.tags.slice(0, 2).map((tag, index) => (
