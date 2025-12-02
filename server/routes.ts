@@ -1,9 +1,11 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { insertSiteSchema, insertPostSchema } from "@shared/schema";
+import { pool } from "./db";
+import { insertSiteSchema, insertPostSchema, insertUserSchema, type User } from "@shared/schema";
 import { startAutomationSchedulers } from "./automation";
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
@@ -11,6 +13,7 @@ const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 declare module "express-session" {
   interface SessionData {
     userId?: string;
+    userRole?: string;
   }
 }
 
@@ -18,22 +21,33 @@ interface DomainRequest extends Request {
   siteId?: string;
 }
 
+interface AuthenticatedRequest extends Request {
+  user?: User;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Session middleware
   const isProduction = process.env.NODE_ENV === "production";
   
-  app.set("trust proxy", 1); // Trust first proxy for secure cookies behind reverse proxy
+  app.set("trust proxy", 1);
+  
+  // PostgreSQL session store for persistent sessions
+  const PgSession = connectPgSimple(session);
   
   app.use(
     session({
+      store: new PgSession({
+        pool: pool,
+        tableName: "session",
+        createTableIfMissing: true,
+      }),
       secret: process.env.SESSION_SECRET || "chameleonweb-secret",
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: isProduction, // Use secure cookies in production (HTTPS)
+        secure: isProduction,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: isProduction ? "none" : "lax", // Required for cross-site cookies in production
+        sameSite: isProduction ? "none" : "lax",
       },
     })
   );
@@ -42,10 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(async (req: DomainRequest, res: Response, next: NextFunction) => {
     const hostname = req.hostname;
     
-    // Check if hostname matches explicit admin domain
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
-    
-    // For production/testing: allow admin access on default replit domains unless a site is registered
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
     
     if (isExplicitAdminDomain) {
@@ -53,14 +64,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
 
-    // Check if site exists for this domain
     const site = await storage.getSiteByDomain(hostname);
     if (site) {
       req.siteId = site.id;
       return next();
     }
 
-    // If on default host and no site registered, allow admin access
     if (isReplitDefaultHost) {
       req.siteId = undefined;
     }
@@ -68,17 +77,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Authentication middleware
-  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  // Base authentication middleware
+  const requireAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.session.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: "Unauthorized - Please log in" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.status !== "active") {
+      req.session.destroy(() => {});
+      return res.status(401).json({ error: "Session expired or account inactive" });
+    }
+    
+    req.user = user;
+    next();
+  };
+
+  // Admin-only middleware
+  const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ error: "Admin access required" });
     }
     next();
   };
 
-  // === ADMIN ROUTES ===
+  // Site access middleware (for editors)
+  const requireSiteAccess = (paramName: string = "id") => {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Admins have access to all sites
+      if (req.user.role === "admin") {
+        return next();
+      }
+      
+      const siteId = req.params[paramName];
+      if (!siteId) {
+        return res.status(400).json({ error: "Site ID required" });
+      }
+      
+      const hasAccess = await storage.canUserAccessSite(req.user.id, siteId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "You don't have access to this site" });
+      }
+      
+      next();
+    };
+  };
 
-  // Auth routes
+  // === AUTH ROUTES ===
+
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
@@ -88,8 +138,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ success: false, message: "Invalid credentials" });
       }
 
-      req.session.userId = user.id;
-      res.json({ success: true });
+      if (user.status !== "active") {
+        return res.status(401).json({ success: false, message: "Account is not active" });
+      }
+
+      // Regenerate session to prevent session fixation attacks
+      req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Session error" });
+        }
+        
+        req.session.userId = user.id;
+        req.session.userRole = user.role;
+        
+        // Explicitly save the session before responding
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+          
+          res.json({ 
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              role: user.role,
+            }
+          });
+        });
+      });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
@@ -101,17 +179,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Sites CRUD
-  app.get("/api/sites", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/auth/me", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    res.json({
+      id: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+      role: req.user.role,
+      status: req.user.status,
+    });
+  });
+
+  // === USER MANAGEMENT ROUTES (Admin only) ===
+
+  app.get("/api/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-      const sites = await storage.getSites();
+      const users = await storage.getUsers();
+      // Don't return passwords
+      const safeUsers = users.map(u => ({
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
+      }));
+      res.json(safeUsers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { username, email, password, role, status } = req.body;
+      
+      // Check for duplicate username/email
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      
+      if (email) {
+        const existingEmail = await storage.getUserByEmail(email);
+        if (existingEmail) {
+          return res.status(400).json({ error: "Email already exists" });
+        }
+      }
+      
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        role: role || "editor",
+        status: status || "active",
+      });
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.put("/api/users/:id", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { username, email, password, role, status } = req.body;
+      
+      const updateData: any = {};
+      if (username) updateData.username = username;
+      if (email !== undefined) updateData.email = email;
+      if (role) updateData.role = role;
+      if (status) updateData.status = status;
+      if (password) {
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+      
+      const user = await storage.updateUser(req.params.id, updateData);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  app.delete("/api/users/:id", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // Prevent deleting yourself
+      if (req.user?.id === req.params.id) {
+        return res.status(400).json({ error: "Cannot delete your own account" });
+      }
+      
+      await storage.deleteUser(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // === USER-SITE ASSIGNMENT ROUTES ===
+
+  app.get("/api/users/:id/sites", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userSites = await storage.getUserSites(req.params.id);
+      res.json(userSites);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user sites" });
+    }
+  });
+
+  app.post("/api/users/:id/sites", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { siteId, permission } = req.body;
+      const userSite = await storage.addUserToSite({
+        userId: req.params.id,
+        siteId,
+        permission: permission || "edit",
+      });
+      res.json(userSite);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to assign site to user" });
+    }
+  });
+
+  app.delete("/api/users/:userId/sites/:siteId", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      await storage.removeUserFromSite(req.params.userId, req.params.siteId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove site from user" });
+    }
+  });
+
+  app.get("/api/sites/:id/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const siteUsers = await storage.getSiteUsers(req.params.id);
+      res.json(siteUsers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch site users" });
+    }
+  });
+
+  // === SITES CRUD ===
+
+  app.get("/api/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      let sites;
+      if (req.user?.role === "admin") {
+        sites = await storage.getSites();
+      } else {
+        sites = await storage.getSitesForUser(req.user!.id);
+      }
       res.json(sites);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch sites" });
     }
   });
 
-  app.get("/api/sites/:id", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/sites/:id", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const site = await storage.getSiteById(req.params.id);
       if (!site) {
@@ -123,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/sites", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const siteData = insertSiteSchema.parse(req.body);
       const site = await storage.createSite(siteData);
@@ -146,13 +390,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         articlesToFetch: 3,
       });
 
+      // If non-admin creates site, automatically assign them to it
+      if (req.user && req.user.role !== "admin") {
+        await storage.addUserToSite({
+          userId: req.user.id,
+          siteId: site.id,
+          permission: "manage",
+        });
+      }
+
       res.json(site);
     } catch (error) {
       res.status(500).json({ error: "Failed to create site" });
     }
   });
 
-  app.put("/api/sites/:id", requireAuth, async (req: Request, res: Response) => {
+  app.put("/api/sites/:id", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const site = await storage.updateSite(req.params.id, req.body);
       if (!site) {
@@ -164,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/sites/:id", requireAuth, async (req: Request, res: Response) => {
+  app.delete("/api/sites/:id", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       await storage.deleteSite(req.params.id);
       res.json({ success: true });
@@ -174,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Automation Config
-  app.get("/api/sites/:id/ai-config", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/sites/:id/ai-config", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const config = await storage.getAiConfigBySiteId(req.params.id);
       res.json(config || {});
@@ -183,7 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/sites/:id/ai-config", requireAuth, async (req: Request, res: Response) => {
+  app.put("/api/sites/:id/ai-config", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const config = await storage.createOrUpdateAiConfig({
         siteId: req.params.id,
@@ -196,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // RSS Automation Config
-  app.get("/api/sites/:id/rss-config", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/sites/:id/rss-config", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const config = await storage.getRssConfigBySiteId(req.params.id);
       res.json(config || {});
@@ -205,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/sites/:id/rss-config", requireAuth, async (req: Request, res: Response) => {
+  app.put("/api/sites/:id/rss-config", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const config = await storage.createOrUpdateRssConfig({
         siteId: req.params.id,
@@ -218,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Posts CRUD
-  app.get("/api/sites/:id/posts", requireAuth, async (req: Request, res: Response) => {
+  app.get("/api/sites/:id/posts", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const posts = await storage.getPostsBySiteId(req.params.id);
       res.json(posts);
@@ -227,9 +480,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/posts", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const postData = insertPostSchema.parse(req.body);
+      
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, postData.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this site" });
+        }
+      }
+      
       const post = await storage.createPost(postData);
       res.json(post);
     } catch (error) {
@@ -237,20 +499,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/posts/:id", requireAuth, async (req: Request, res: Response) => {
+  app.put("/api/posts/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const post = await storage.updatePost(req.params.id, req.body);
-      if (!post) {
+      const existingPost = await storage.getPostById(req.params.id);
+      if (!existingPost) {
         return res.status(404).json({ error: "Post not found" });
       }
+      
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, existingPost.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this site" });
+        }
+      }
+      
+      const post = await storage.updatePost(req.params.id, req.body);
       res.json(post);
     } catch (error) {
       res.status(500).json({ error: "Failed to update post" });
     }
   });
 
-  app.delete("/api/posts/:id", requireAuth, async (req: Request, res: Response) => {
+  app.delete("/api/posts/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      const existingPost = await storage.getPostById(req.params.id);
+      if (!existingPost) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, existingPost.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this site" });
+        }
+      }
+      
       await storage.deletePost(req.params.id);
       res.json({ success: true });
     } catch (error) {
@@ -260,17 +545,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === PUBLIC ROUTES ===
 
-  // Domain check - determines if request is admin or public site
   app.get("/api/domain-check", async (req: DomainRequest, res: Response) => {
     const hostname = req.hostname;
     
-    // Check for registered site first
     const site = await storage.getSiteByDomain(hostname);
     if (site) {
       return res.json({ isAdmin: false, site });
     }
 
-    // If no site registered, check if this is admin domain or default host
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
     
@@ -278,11 +560,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ isAdmin: true });
     }
 
-    // Unregistered non-admin domain
     res.json({ isAdmin: false, site: null });
   });
 
-  // Public posts for a site
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getPostsBySiteId(req.params.id);
@@ -292,7 +572,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single post by slug
   app.get("/api/public/sites/:id/posts/:slug", async (req: Request, res: Response) => {
     try {
       const post = await storage.getPostBySlug(req.params.id, req.params.slug);
@@ -305,7 +584,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get posts by tag
   app.get("/api/public/sites/:id/posts-by-tag/:tag", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getPostsByTag(req.params.id, decodeURIComponent(req.params.tag));
@@ -315,7 +593,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get top tags for navigation
   app.get("/api/public/sites/:id/top-tags", async (req: Request, res: Response) => {
     try {
       const tags = await storage.getTopTags(req.params.id, 10);
@@ -325,7 +602,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get related posts
   app.get("/api/public/sites/:id/related-posts/:postId", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getRelatedPosts(req.params.postId, req.params.id);
@@ -337,7 +613,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // Start automation schedulers
   startAutomationSchedulers();
 
   return httpServer;

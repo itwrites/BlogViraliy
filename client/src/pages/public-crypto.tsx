@@ -54,7 +54,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                 <h1 className="text-2xl font-bold tracking-tight font-mono" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
                   {site.title}
                 </h1>
-                <Badge className="bg-green-500 text-white text-xs" data-testid="badge-live-status">
+                <Badge className="bg-primary text-primary-foreground text-xs" data-testid="badge-live-status">
                   <Zap className="h-3 w-3 mr-1" />
                   LIVE
                 </Badge>
@@ -89,13 +89,13 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
             <>
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                   <h2 className="text-lg font-bold font-mono uppercase tracking-wide" data-testid="text-breaking-title">
                     Breaking News
                   </h2>
                 </div>
                 <Card
-                  className={`cursor-pointer hover-elevate overflow-hidden border-2 border-green-500/20 ${templateClasses.cardStyle}`}
+                  className={`cursor-pointer hover-elevate overflow-hidden border-2 border-primary/20 ${templateClasses.cardStyle}`}
                   onClick={() => handlePostClick(breakingPost.slug)}
                   data-testid={`card-breaking-post-${breakingPost.id}`}
                 >
@@ -104,7 +104,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                       <div className="md:col-span-2 flex flex-col">
                         <div className="flex gap-2 mb-3">
                           {breakingPost.tags.slice(0, 3).map((tag, index) => (
-                            <Badge key={tag} variant="outline" className="text-xs font-mono uppercase border-green-500 text-green-500" data-testid={`badge-breaking-tag-${index}`}>
+                            <Badge key={tag} variant="outline" className="text-xs font-mono uppercase border-primary text-primary" data-testid={`badge-breaking-tag-${index}`}>
                               {tag}
                             </Badge>
                           ))}
@@ -125,7 +125,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                           })}
                         </p>
                       </div>
-                      <div className="aspect-video md:aspect-square bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded">
+                      <div className="aspect-video md:aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 rounded">
                         {breakingPost.imageUrl && <img src={breakingPost.imageUrl} alt={breakingPost.title} className="w-full h-full object-cover rounded" />}
                       </div>
                     </div>

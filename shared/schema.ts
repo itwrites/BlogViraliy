@@ -4,11 +4,33 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User roles
+export const userRoleEnum = z.enum(["admin", "editor"]);
+export type UserRole = z.infer<typeof userRoleEnum>;
+
+// User status
+export const userStatusEnum = z.enum(["active", "inactive", "pending"]);
+export type UserStatus = z.infer<typeof userStatusEnum>;
+
 // Admin Users
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
+  email: text("email").unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("editor"), // 'admin' or 'editor'
+  status: text("status").notNull().default("active"), // 'active', 'inactive', 'pending'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// User-Site permissions (which users can access which sites)
+export const userSites = pgTable("user_sites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  permission: text("permission").notNull().default("edit"), // 'view', 'edit', 'manage'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Template Settings Type
@@ -118,11 +140,34 @@ export const posts = pgTable("posts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Sessions table for connect-pg-simple
+export const sessions = pgTable("session", {
+  sid: varchar("sid").primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
+});
+
 // Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  userSites: many(userSites),
+}));
+
+export const userSitesRelations = relations(userSites, ({ one }) => ({
+  user: one(users, {
+    fields: [userSites.userId],
+    references: [users.id],
+  }),
+  site: one(sites, {
+    fields: [userSites.siteId],
+    references: [sites.id],
+  }),
+}));
+
 export const sitesRelations = relations(sites, ({ many, one }) => ({
   posts: many(posts),
   aiAutomationConfig: one(aiAutomationConfigs),
   rssAutomationConfig: one(rssAutomationConfigs),
+  userSites: many(userSites),
 }));
 
 export const postsRelations = relations(posts, ({ one }) => ({
@@ -147,9 +192,20 @@ export const rssAutomationConfigsRelations = relations(rssAutomationConfigs, ({ 
 }));
 
 // Insert Schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  role: userRoleEnum.optional().default("editor"),
+  status: userStatusEnum.optional().default("active"),
+});
+
+export const insertUserSiteSchema = createInsertSchema(userSites).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  permission: z.enum(["view", "edit", "manage"]).optional().default("edit"),
 });
 
 export const insertSiteSchema = createInsertSchema(sites).omit({
@@ -178,6 +234,9 @@ export const insertPostSchema = createInsertSchema(posts).omit({
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertUserSite = z.infer<typeof insertUserSiteSchema>;
+export type UserSite = typeof userSites.$inferSelect;
 
 export type InsertSite = z.infer<typeof insertSiteSchema>;
 export type Site = typeof sites.$inferSelect;

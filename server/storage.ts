@@ -5,30 +5,46 @@ import {
   aiAutomationConfigs,
   rssAutomationConfigs,
   users,
+  userSites,
   type Site,
   type Post,
   type AiAutomationConfig,
   type RssAutomationConfig,
   type User,
+  type UserSite,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
   type InsertRssAutomationConfig,
   type InsertUser,
+  type InsertUserSite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: string): Promise<void>;
 
-  // Sites
+  // User-Site permissions
+  getUserSites(userId: string): Promise<UserSite[]>;
+  getSiteUsers(siteId: string): Promise<UserSite[]>;
+  addUserToSite(userSite: InsertUserSite): Promise<UserSite>;
+  removeUserFromSite(userId: string, siteId: string): Promise<void>;
+  updateUserSitePermission(userId: string, siteId: string, permission: string): Promise<UserSite | undefined>;
+
+  // Sites (with user permission filtering)
   getSites(): Promise<Site[]>;
+  getSitesForUser(userId: string): Promise<Site[]>;
   getSiteById(id: string): Promise<Site | undefined>;
   getSiteByDomain(domain: string): Promise<Site | undefined>;
+  canUserAccessSite(userId: string, siteId: string): Promise<boolean>;
   createSite(site: InsertSite): Promise<Site>;
   updateSite(id: string, site: Partial<InsertSite>): Promise<Site | undefined>;
   deleteSite(id: string): Promise<void>;
@@ -65,14 +81,81 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
+  async updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ ...user, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  // User-Site permissions
+  async getUserSites(userId: string): Promise<UserSite[]> {
+    return await db.select().from(userSites).where(eq(userSites.userId, userId));
+  }
+
+  async getSiteUsers(siteId: string): Promise<UserSite[]> {
+    return await db.select().from(userSites).where(eq(userSites.siteId, siteId));
+  }
+
+  async addUserToSite(userSite: InsertUserSite): Promise<UserSite> {
+    const [created] = await db.insert(userSites).values(userSite).returning();
+    return created;
+  }
+
+  async removeUserFromSite(userId: string, siteId: string): Promise<void> {
+    await db.delete(userSites).where(
+      and(eq(userSites.userId, userId), eq(userSites.siteId, siteId))
+    );
+  }
+
+  async updateUserSitePermission(userId: string, siteId: string, permission: string): Promise<UserSite | undefined> {
+    const [updated] = await db
+      .update(userSites)
+      .set({ permission })
+      .where(and(eq(userSites.userId, userId), eq(userSites.siteId, siteId)))
+      .returning();
+    return updated || undefined;
+  }
+
   // Sites
   async getSites(): Promise<Site[]> {
     return await db.select().from(sites).orderBy(desc(sites.createdAt));
+  }
+
+  async getSitesForUser(userId: string): Promise<Site[]> {
+    // Get site IDs the user has access to
+    const userSiteRecords = await db.select().from(userSites).where(eq(userSites.userId, userId));
+    const siteIds = userSiteRecords.map(us => us.siteId);
+    
+    if (siteIds.length === 0) {
+      return [];
+    }
+    
+    return await db
+      .select()
+      .from(sites)
+      .where(inArray(sites.id, siteIds))
+      .orderBy(desc(sites.createdAt));
   }
 
   async getSiteById(id: string): Promise<Site | undefined> {
@@ -83,6 +166,14 @@ export class DatabaseStorage implements IStorage {
   async getSiteByDomain(domain: string): Promise<Site | undefined> {
     const [site] = await db.select().from(sites).where(eq(sites.domain, domain));
     return site || undefined;
+  }
+
+  async canUserAccessSite(userId: string, siteId: string): Promise<boolean> {
+    const [record] = await db
+      .select()
+      .from(userSites)
+      .where(and(eq(userSites.userId, userId), eq(userSites.siteId, siteId)));
+    return !!record;
   }
 
   async createSite(site: InsertSite): Promise<Site> {

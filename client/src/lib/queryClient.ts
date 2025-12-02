@@ -19,6 +19,14 @@ export async function apiRequest(
     credentials: "include",
   });
 
+  // Handle 401 globally - redirect to login
+  if (res.status === 401) {
+    // Clear any cached auth state
+    queryClient.setQueryData(["/api/auth/me"], null);
+    // Dispatch custom event for auth handling
+    window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+  }
+
   await throwIfResNotOk(res);
   return res;
 }
@@ -33,8 +41,16 @@ export const getQueryFn: <T>(options: {
       credentials: "include",
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    if (res.status === 401) {
+      // Clear any cached auth state
+      queryClient.setQueryData(["/api/auth/me"], null);
+      
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      
+      // Dispatch custom event for auth handling
+      window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     }
 
     await throwIfResNotOk(res);

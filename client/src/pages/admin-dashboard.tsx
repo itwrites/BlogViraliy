@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit, Globe } from "lucide-react";
+import { Plus, Trash2, Edit, Globe, Users, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import type { Site } from "@shared/schema";
 import {
   AlertDialog,
@@ -16,16 +17,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAuthenticated, isAdmin, logout, isLoading: authLoading } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation("/");
+    }
+  }, [authLoading, isAuthenticated, setLocation]);
+
   const { data: sites, isLoading } = useQuery<Site[]>({
     queryKey: ["/api/sites"],
+    enabled: isAuthenticated,
   });
 
   const handleDelete = async () => {
@@ -42,10 +52,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setLocation("/");
+    } catch (error) {
+      toast({ title: "Failed to logout", variant: "destructive" });
+    }
+  };
+
   const openDeleteDialog = (site: Site) => {
     setSiteToDelete(site);
     setDeleteDialogOpen(true);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,20 +85,51 @@ export default function AdminDashboard() {
             <h1 className="text-2xl font-semibold text-foreground" data-testid="text-app-title">ChameleonWeb</h1>
             <p className="text-sm text-muted-foreground" data-testid="text-app-subtitle">Multi-Domain Content Platform</p>
           </div>
-          <Button
-            onClick={() => setLocation("/admin/sites/new")}
-            data-testid="button-add-site"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Site
-          </Button>
+          <div className="flex items-center gap-4">
+            {user && (
+              <div className="text-sm text-muted-foreground" data-testid="text-user-info">
+                Logged in as <span className="font-medium text-foreground">{user.username}</span>
+                {isAdmin && <span className="ml-1 text-primary">(Admin)</span>}
+              </div>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/admin/users")}
+                data-testid="button-manage-users"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Users
+              </Button>
+            )}
+            <Button
+              onClick={() => setLocation("/admin/sites/new")}
+              data-testid="button-add-site"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Site
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2" data-testid="text-section-title">Your Websites</h2>
-          <p className="text-muted-foreground" data-testid="text-section-description">Manage all your multi-tenant websites from one dashboard</p>
+          <p className="text-muted-foreground" data-testid="text-section-description">
+            {isAdmin 
+              ? "Manage all multi-tenant websites from one dashboard"
+              : "Manage the websites you have access to"
+            }
+          </p>
         </div>
 
         {isLoading ? (
@@ -120,16 +181,18 @@ export default function AdminDashboard() {
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => openDeleteDialog(site)}
-                      data-testid={`button-delete-${site.id}`}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => openDeleteDialog(site)}
+                        data-testid={`button-delete-${site.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -141,7 +204,10 @@ export default function AdminDashboard() {
               <Globe className="h-12 w-12 text-muted-foreground mb-4" data-testid="icon-empty-state" />
               <h3 className="text-lg font-semibold mb-2" data-testid="text-empty-state-title">No websites yet</h3>
               <p className="text-muted-foreground text-center mb-4" data-testid="text-empty-state-description">
-                Get started by creating your first multi-tenant website
+                {isAdmin 
+                  ? "Get started by creating your first multi-tenant website"
+                  : "You don't have access to any websites yet. Contact an admin to get access."
+                }
               </p>
               <Button onClick={() => setLocation("/admin/sites/new")} data-testid="button-add-first-site">
                 <Plus className="h-4 w-4 mr-2" />

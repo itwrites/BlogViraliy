@@ -4,10 +4,12 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
+import UserManagement from "@/pages/user-management";
 import SiteNotFound from "@/pages/site-not-found";
 import { PublicBlog } from "@/pages/public-blog";
 import { PublicNews } from "@/pages/public-news";
@@ -25,6 +27,7 @@ function AdminRouter() {
       <Route path="/" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={SiteConfig} />
+      <Route path="/admin/users" component={UserManagement} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -93,8 +96,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <RouterSwitch />
+        <AuthProvider>
+          <Toaster />
+          <RouterSwitch />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

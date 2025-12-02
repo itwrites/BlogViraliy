@@ -123,7 +123,7 @@ The system detects the incoming domain name and:
 - Breaking news section with inline image
 - Numbered trending posts (01, 02, 03)
 - Compact latest updates with timestamps
-- Market data feel with green accent colors
+- Market data feel with theme-based accent colors
 
 ### 5. Automatic Navigation
 - Top 10 most-used tags become navigation menu items
@@ -139,6 +139,15 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **Multi-user authentication and session fixes**
+  - Implemented multi-user role-based access control (RBAC) with admin and editor roles
+  - Extended users table with email, role, and status fields
+  - Created user_sites junction table for managing user-to-site assignments
+  - Fixed session persistence by adding session.regenerate() and session.save() callbacks in login route
+  - Fixed crypto template hard-coded colors (now uses theme-based primary/secondary colors)
+  - Built AuthProvider and useAuth hook for frontend auth state management
+  - Created User Management page (admin-only) for managing users
+  - Protected admin routes with requireAuth and requireSiteAccess middleware
 - 2025-12-02: **Template customization and SEO implementation**
   - Created PublicThemeProvider component for runtime CSS variable-based theming
   - Created SeoHead component with proper cleanup for meta tags (title, description, OG tags, canonical, favicon, analytics)
