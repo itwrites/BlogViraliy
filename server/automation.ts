@@ -32,7 +32,7 @@ export async function processAIAutomation() {
 
       console.log(`[AI] Generating post for ${site.domain} with keyword: ${keyword}`);
       
-      const { title, content, tags } = await generateAIPost(aiConfig.masterPrompt, keyword);
+      const { title, content, tags, imageUrl } = await generateAIPost(aiConfig.masterPrompt, keyword);
       const slug = createSlug(title);
 
       await storage.createPost({
@@ -41,6 +41,7 @@ export async function processAIAutomation() {
         content,
         slug,
         tags,
+        imageUrl,
         source: "ai",
       });
 
@@ -86,7 +87,7 @@ export async function processRSSAutomation() {
             const originalContent = item.contentSnippet || item.content || "";
 
             console.log(`[RSS] Rewriting article: ${originalTitle}`);
-            const { title, content, tags } = await rewriteArticle(originalContent, originalTitle);
+            const { title, content, tags, imageUrl } = await rewriteArticle(originalContent, originalTitle);
             const slug = createSlug(title);
 
             await storage.createPost({
@@ -95,6 +96,7 @@ export async function processRSSAutomation() {
               content,
               slug,
               tags,
+              imageUrl,
               source: "rss",
             });
 

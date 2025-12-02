@@ -42,6 +42,7 @@ export function PostsManager({ siteId }: PostsManagerProps) {
     title: "",
     content: "",
     tags: "",
+    imageUrl: "",
   });
 
   const { data: posts, isLoading } = useQuery<Post[]>({
@@ -55,10 +56,11 @@ export function PostsManager({ siteId }: PostsManagerProps) {
         title: post.title,
         content: post.content,
         tags: post.tags.join(", "),
+        imageUrl: post.imageUrl || "",
       });
     } else {
       setCurrentPost(null);
-      setFormData({ title: "", content: "", tags: "" });
+      setFormData({ title: "", content: "", tags: "", imageUrl: "" });
     }
     setEditorOpen(true);
   };
@@ -236,6 +238,23 @@ export function PostsManager({ siteId }: PostsManagerProps) {
                 value={formData.tags}
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="postImage">Image URL (Optional)</Label>
+              <Input
+                id="postImage"
+                data-testid="input-post-image"
+                placeholder="https://example.com/image.jpg"
+                value={formData.imageUrl}
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              />
+              {formData.imageUrl && (
+                <div className="mt-2 rounded-md overflow-hidden border">
+                  <img src={formData.imageUrl} alt="Preview" className="w-full h-32 object-cover" onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }} />
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditorOpen(false)} data-testid="button-cancel-post">
