@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Tag, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -83,7 +84,9 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
                 onClick={() => handlePostClick(post.slug)}
                 data-testid={`card-post-${post.id}`}
               >
-                <div className="aspect-video bg-muted" />
+                <div className="aspect-video bg-muted">
+                  {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
+                </div>
                 <CardContent className="p-6">
                   <div className="flex gap-2 mb-3">
                     {post.tags.slice(0, 2).map((t, index) => (
@@ -96,7 +99,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
                     {post.title}
                   </h3>
                   <p className="text-muted-foreground text-sm line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                    {post.content.substring(0, 120)}...
+                    {stripMarkdown(post.content, 120)}
                   </p>
                   <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                     {new Date(post.createdAt).toLocaleDateString("en-US", {

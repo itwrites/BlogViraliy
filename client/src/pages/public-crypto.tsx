@@ -7,6 +7,7 @@ import { FileText, TrendingUp, Zap, Twitter, Facebook, Instagram, Linkedin } fro
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { MobileNav } from "@/components/mobile-nav";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicCryptoProps {
   site: Site;
@@ -121,7 +122,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                           {breakingPost.title}
                         </h3>
                         <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 text-sm" data-testid={`text-breaking-excerpt-${breakingPost.id}`}>
-                          {breakingPost.content.substring(0, 180)}...
+                          {stripMarkdown(breakingPost.content, 180)}
                         </p>
                         <p className="text-xs text-muted-foreground font-mono" data-testid={`text-breaking-date-${breakingPost.id}`}>
                           {new Date(breakingPost.createdAt).toLocaleDateString("en-US", {
@@ -204,7 +205,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                                 {post.title}
                               </h4>
                               <p className="text-sm text-muted-foreground line-clamp-1 mb-2" data-testid={`text-post-excerpt-${post.id}`}>
-                                {post.content.substring(0, 100)}...
+                                {stripMarkdown(post.content, 100)}
                               </p>
                               <p className="text-xs text-muted-foreground font-mono" data-testid={`text-post-date-${post.id}`}>
                                 {new Date(post.createdAt).toLocaleDateString("en-US", {
@@ -245,7 +246,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                           {post.title}
                         </h4>
                         <p className="text-sm text-muted-foreground line-clamp-1 mb-2" data-testid={`text-post-excerpt-${post.id}`}>
-                          {post.content.substring(0, 100)}...
+                          {stripMarkdown(post.content, 100)}
                         </p>
                         <p className="text-xs text-muted-foreground font-mono" data-testid={`text-post-date-${post.id}`}>
                           {new Date(post.createdAt).toLocaleDateString("en-US", {

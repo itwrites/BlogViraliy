@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Post } from "@shared/schema";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { stripMarkdown } from "@/lib/strip-markdown";
 import {
   Dialog,
   DialogContent,
@@ -173,11 +174,14 @@ export function PostsManager({ siteId }: PostsManagerProps) {
                 >
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-foreground mb-1" data-testid={`text-post-title-${post.id}`}>{post.title}</h4>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground line-clamp-1 mb-2" data-testid={`text-post-excerpt-${post.id}`}>
+                      {stripMarkdown(post.content, 100)}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span className="font-mono" data-testid={`text-post-date-${post.id}`}>{new Date(post.createdAt).toLocaleDateString()}</span>
                       <span className="capitalize" data-testid={`text-post-source-${post.id}`}>{post.source}</span>
                       {post.tags.length > 0 && (
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap gap-1">
                           {post.tags.slice(0, 3).map((tag) => (
                             <span key={tag} className="px-2 py-0.5 bg-accent rounded-full text-accent-foreground">
                               {tag}

@@ -7,6 +7,7 @@ import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { MobileNav } from "@/components/mobile-nav";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicMagazineProps {
   site: Site;
@@ -114,7 +115,7 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                       {featuredPost.title}
                     </h2>
                     <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3 mb-2 sm:mb-3 text-sm" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
-                      {featuredPost.content.substring(0, 150)}...
+                      {stripMarkdown(featuredPost.content, 150)}
                     </p>
                     <p className="text-xs text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
                       {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {

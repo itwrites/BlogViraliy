@@ -7,6 +7,7 @@ import { FileText, ExternalLink, Twitter, Facebook, Instagram, Linkedin } from "
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { MobileNav } from "@/components/mobile-nav";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicPortfolioProps {
   site: Site;
@@ -112,7 +113,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                       {post.title}
                     </h3>
                     <p className="text-muted-foreground line-clamp-2 mb-3 sm:mb-4 text-sm" data-testid={`text-post-excerpt-${post.id}`}>
-                      {post.content.substring(0, 120)}...
+                      {stripMarkdown(post.content, 120)}
                     </p>
                     <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                       {new Date(post.createdAt).toLocaleDateString("en-US", {

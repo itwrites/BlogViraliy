@@ -7,6 +7,7 @@ import { FileText, UtensilsCrossed, Twitter, Facebook, Instagram, Linkedin } fro
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { MobileNav } from "@/components/mobile-nav";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicRestaurantProps {
   site: Site;
@@ -102,13 +103,13 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                   onClick={() => handlePostClick(featuredPost.slug)}
                   data-testid={`card-featured-post-${featuredPost.id}`}
                 >
-                  <div className="aspect-[16/9] md:aspect-[21/9] bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950">
+                  <div className="aspect-[16/9] md:aspect-[21/9] bg-gradient-to-br from-primary/10 to-secondary/10">
                     {featuredPost.imageUrl && <img src={featuredPost.imageUrl} alt={featuredPost.title} className="w-full h-full object-cover" />}
                   </div>
                   <CardContent className="p-5 sm:p-8">
                     <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                       {featuredPost.tags.slice(0, 3).map((tag, index) => (
-                        <Badge key={tag} className="bg-orange-500 text-white hover:bg-orange-600 text-xs" data-testid={`badge-featured-tag-${index}`}>
+                        <Badge key={tag} className="bg-primary text-primary-foreground text-xs" data-testid={`badge-featured-tag-${index}`}>
                           {tag}
                         </Badge>
                       ))}
@@ -117,7 +118,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                       {featuredPost.title}
                     </h2>
                     <p className="text-sm sm:text-lg text-muted-foreground mb-3 sm:mb-4 line-clamp-2" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
-                      {featuredPost.content.substring(0, 200)}...
+                      {stripMarkdown(featuredPost.content, 200)}
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
                       {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {
@@ -143,7 +144,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                         onClick={() => handlePostClick(post.slug)}
                         data-testid={`card-post-${post.id}`}
                       >
-                        <div className="aspect-video bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950">
+                        <div className="aspect-video bg-gradient-to-br from-primary/5 to-secondary/5">
                           {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
                         </div>
                         <CardContent className="p-5">
@@ -154,7 +155,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                             {post.title}
                           </h4>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                            {post.content.substring(0, 100)}...
+                            {stripMarkdown(post.content, 100)}
                           </p>
                           <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                             {new Date(post.createdAt).toLocaleDateString("en-US", {
@@ -178,7 +179,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                   onClick={() => handlePostClick(post.slug)}
                   data-testid={`card-post-${post.id}`}
                 >
-                  <div className="aspect-video bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950">
+                  <div className="aspect-video bg-gradient-to-br from-primary/5 to-secondary/5">
                     {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
                   </div>
                   <CardContent className="p-5">
@@ -189,7 +190,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                       {post.title}
                     </h4>
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                      {post.content.substring(0, 100)}...
+                      {stripMarkdown(post.content, 100)}
                     </p>
                     <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                       {new Date(post.createdAt).toLocaleDateString("en-US", {

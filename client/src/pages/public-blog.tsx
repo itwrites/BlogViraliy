@@ -7,6 +7,7 @@ import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { MobileNav } from "@/components/mobile-nav";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface PublicBlogProps {
   site: Site;
@@ -114,7 +115,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                     {featuredPost.title}
                   </h2>
                   <p className="text-sm sm:text-lg text-white/90 line-clamp-2 hidden sm:block" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
-                    {featuredPost.content.substring(0, 200)}...
+                    {stripMarkdown(featuredPost.content, 200)}
                   </p>
                   <p className="text-xs sm:text-sm text-white/70 mt-2 sm:mt-4" data-testid={`text-featured-date-${featuredPost.id}`}>
                     {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {
@@ -154,7 +155,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                           {post.title}
                         </h3>
                         <p className="text-muted-foreground text-sm line-clamp-2 mb-2 sm:mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                          {post.content.substring(0, 150)}...
+                          {stripMarkdown(post.content, 150)}
                         </p>
                         <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
                           {new Date(post.createdAt).toLocaleDateString("en-US", {
