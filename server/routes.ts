@@ -20,15 +20,20 @@ interface DomainRequest extends Request {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware
+  const isProduction = process.env.NODE_ENV === "production";
+  
+  app.set("trust proxy", 1); // Trust first proxy for secure cookies behind reverse proxy
+  
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "chameleonweb-secret",
       resave: false,
       saveUninitialized: false,
       cookie: {
-        secure: false,
+        secure: isProduction, // Use secure cookies in production (HTTPS)
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: isProduction ? "none" : "lax", // Required for cross-site cookies in production
       },
     })
   );
