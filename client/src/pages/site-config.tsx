@@ -16,6 +16,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings } from "@shared/schema";
 import { defaultTemplateSettings } from "@shared/schema";
 import { PostsManager } from "@/components/posts-manager";
+import { BulkGeneration } from "@/components/bulk-generation";
 
 export default function SiteConfig() {
   const { id } = useParams();
@@ -204,12 +205,13 @@ export default function SiteConfig() {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full max-w-4xl grid-cols-6">
+          <TabsList className="grid w-full max-w-5xl grid-cols-7">
             <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
             <TabsTrigger value="design" data-testid="tab-design">Design</TabsTrigger>
             <TabsTrigger value="seo" data-testid="tab-seo">SEO</TabsTrigger>
             <TabsTrigger value="ai" data-testid="tab-ai">AI Content</TabsTrigger>
             <TabsTrigger value="rss" data-testid="tab-rss">RSS Feeds</TabsTrigger>
+            <TabsTrigger value="bulk" data-testid="tab-bulk" disabled={isNewSite}>Bulk Generate</TabsTrigger>
             <TabsTrigger value="posts" data-testid="tab-posts" disabled={isNewSite}>Posts</TabsTrigger>
           </TabsList>
 
@@ -910,6 +912,10 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="bulk" className="space-y-6">
+            {!isNewSite && id && <BulkGeneration siteId={id} />}
           </TabsContent>
 
           <TabsContent value="posts" className="space-y-6">

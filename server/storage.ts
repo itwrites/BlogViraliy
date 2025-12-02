@@ -6,21 +6,27 @@ import {
   rssAutomationConfigs,
   users,
   userSites,
+  keywordBatches,
+  keywordJobs,
   type Site,
   type Post,
   type AiAutomationConfig,
   type RssAutomationConfig,
   type User,
   type UserSite,
+  type KeywordBatch,
+  type KeywordJob,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
   type InsertRssAutomationConfig,
   type InsertUser,
   type InsertUserSite,
+  type InsertKeywordBatch,
+  type InsertKeywordJob,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -67,6 +73,25 @@ export interface IStorage {
   // RSS Automation Config
   getRssConfigBySiteId(siteId: string): Promise<RssAutomationConfig | undefined>;
   createOrUpdateRssConfig(config: InsertRssAutomationConfig): Promise<RssAutomationConfig>;
+
+  // Keyword Batches
+  getKeywordBatchesBySiteId(siteId: string): Promise<KeywordBatch[]>;
+  getKeywordBatchById(id: string): Promise<KeywordBatch | undefined>;
+  createKeywordBatch(batch: InsertKeywordBatch): Promise<KeywordBatch>;
+  updateKeywordBatch(id: string, batch: Partial<InsertKeywordBatch>): Promise<KeywordBatch | undefined>;
+  deleteKeywordBatch(id: string): Promise<void>;
+  getPendingBatches(): Promise<KeywordBatch[]>;
+
+  // Keyword Jobs
+  getKeywordJobsByBatchId(batchId: string): Promise<KeywordJob[]>;
+  getKeywordJobById(id: string): Promise<KeywordJob | undefined>;
+  createKeywordJob(job: InsertKeywordJob): Promise<KeywordJob>;
+  updateKeywordJob(id: string, job: Partial<InsertKeywordJob>): Promise<KeywordJob | undefined>;
+  getNextPendingJob(batchId: string): Promise<KeywordJob | undefined>;
+  cancelPendingJobsByBatchId(batchId: string): Promise<void>;
+
+  // Sitemap helpers
+  getPublishedPostsBySiteId(siteId: string): Promise<Post[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -331,6 +356,127 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Keyword Batches
+  async getKeywordBatchesBySiteId(siteId: string): Promise<KeywordBatch[]> {
+    return await db
+      .select()
+      .from(keywordBatches)
+      .where(eq(keywordBatches.siteId, siteId))
+      .orderBy(desc(keywordBatches.createdAt));
+  }
+
+  async getKeywordBatchById(id: string): Promise<KeywordBatch | undefined> {
+    const [batch] = await db
+      .select()
+      .from(keywordBatches)
+      .where(eq(keywordBatches.id, id));
+    return batch || undefined;
+  }
+
+  async createKeywordBatch(batch: InsertKeywordBatch): Promise<KeywordBatch> {
+    const [created] = await db.insert(keywordBatches).values(batch).returning();
+    return created;
+  }
+
+  async updateKeywordBatch(id: string, batch: Partial<InsertKeywordBatch>): Promise<KeywordBatch | undefined> {
+    const [updated] = await db
+      .update(keywordBatches)
+      .set(batch)
+      .where(eq(keywordBatches.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteKeywordBatch(id: string): Promise<void> {
+    await db.delete(keywordBatches).where(eq(keywordBatches.id, id));
+  }
+
+  async getPendingBatches(): Promise<KeywordBatch[]> {
+    return await db
+      .select()
+      .from(keywordBatches)
+      .where(
+        sql`${keywordBatches.status} IN ('pending', 'processing')`
+      )
+      .orderBy(asc(keywordBatches.createdAt));
+  }
+
+  // Keyword Jobs
+  async getKeywordJobsByBatchId(batchId: string): Promise<KeywordJob[]> {
+    return await db
+      .select()
+      .from(keywordJobs)
+      .where(eq(keywordJobs.batchId, batchId))
+      .orderBy(asc(keywordJobs.queuedAt));
+  }
+
+  async getKeywordJobById(id: string): Promise<KeywordJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(keywordJobs)
+      .where(eq(keywordJobs.id, id));
+    return job || undefined;
+  }
+
+  async createKeywordJob(job: InsertKeywordJob): Promise<KeywordJob> {
+    const [created] = await db.insert(keywordJobs).values(job).returning();
+    return created;
+  }
+
+  async updateKeywordJob(id: string, job: Partial<InsertKeywordJob>): Promise<KeywordJob | undefined> {
+    const updateData: Record<string, unknown> = { ...job };
+    if (job.status === "completed" || job.status === "failed") {
+      updateData.processedAt = new Date();
+    }
+    const [updated] = await db
+      .update(keywordJobs)
+      .set(updateData)
+      .where(eq(keywordJobs.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getNextPendingJob(batchId: string): Promise<KeywordJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(keywordJobs)
+      .where(
+        and(
+          eq(keywordJobs.batchId, batchId),
+          eq(keywordJobs.status, "queued")
+        )
+      )
+      .orderBy(asc(keywordJobs.queuedAt))
+      .limit(1);
+    return job || undefined;
+  }
+
+  async cancelPendingJobsByBatchId(batchId: string): Promise<void> {
+    await db
+      .update(keywordJobs)
+      .set({ status: "cancelled", processedAt: new Date() })
+      .where(
+        and(
+          eq(keywordJobs.batchId, batchId),
+          sql`${keywordJobs.status} IN ('queued', 'processing')`
+        )
+      );
+  }
+
+  // Sitemap helpers
+  async getPublishedPostsBySiteId(siteId: string): Promise<Post[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(
+        and(
+          eq(posts.siteId, siteId),
+          sql`COALESCE(${posts.noindex}, false) = false`
+        )
+      )
+      .orderBy(desc(posts.updatedAt));
   }
 }
 

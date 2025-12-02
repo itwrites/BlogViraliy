@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { pool } from "./db";
 import { insertSiteSchema, insertPostSchema, insertUserSchema, type User } from "@shared/schema";
 import { startAutomationSchedulers } from "./automation";
+import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
@@ -470,6 +471,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Keyword Batch Routes (Bulk AI Post Generation)
+  app.get("/api/sites/:id/keyword-batches", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const batches = await storage.getKeywordBatchesBySiteId(req.params.id);
+      // For each batch, get job counts
+      const batchesWithJobs = await Promise.all(
+        batches.map(async (batch) => {
+          const jobs = await storage.getKeywordJobsByBatchId(batch.id);
+          return {
+            ...batch,
+            jobs: jobs.map(j => ({ id: j.id, keyword: j.keyword, status: j.status, postId: j.postId, error: j.error })),
+          };
+        })
+      );
+      res.json(batchesWithJobs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch keyword batches" });
+    }
+  });
+
+  app.post("/api/sites/:id/keyword-batches", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const { keywords, masterPrompt } = req.body;
+      
+      if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
+        return res.status(400).json({ error: "Keywords array is required" });
+      }
+
+      // Filter out empty keywords
+      const validKeywords = keywords.map((k: string) => k.trim()).filter((k: string) => k.length > 0);
+      
+      if (validKeywords.length === 0) {
+        return res.status(400).json({ error: "At least one valid keyword is required" });
+      }
+
+      // Create the batch
+      const batch = await storage.createKeywordBatch({
+        siteId: req.params.id,
+        totalKeywords: validKeywords.length,
+        masterPrompt: masterPrompt || null,
+        status: "pending",
+        processedCount: 0,
+        successCount: 0,
+        failedCount: 0,
+      });
+
+      // Create individual jobs for each keyword
+      await Promise.all(
+        validKeywords.map((keyword: string) =>
+          storage.createKeywordJob({
+            batchId: batch.id,
+            keyword,
+            status: "queued",
+          })
+        )
+      );
+
+      // Fetch the batch with jobs
+      const jobs = await storage.getKeywordJobsByBatchId(batch.id);
+      
+      res.json({
+        ...batch,
+        jobs: jobs.map(j => ({ id: j.id, keyword: j.keyword, status: j.status })),
+      });
+    } catch (error) {
+      console.error("Error creating keyword batch:", error);
+      res.status(500).json({ error: "Failed to create keyword batch" });
+    }
+  });
+
+  app.get("/api/keyword-batches/:batchId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const batch = await storage.getKeywordBatchById(req.params.batchId);
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, batch.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this batch" });
+        }
+      }
+
+      const jobs = await storage.getKeywordJobsByBatchId(batch.id);
+      res.json({
+        ...batch,
+        jobs,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch keyword batch" });
+    }
+  });
+
+  app.post("/api/keyword-batches/:batchId/cancel", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const batch = await storage.getKeywordBatchById(req.params.batchId);
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, batch.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this batch" });
+        }
+      }
+
+      // Cancel all pending jobs
+      await storage.cancelPendingJobsByBatchId(batch.id);
+
+      // Update batch status
+      const updatedBatch = await storage.updateKeywordBatch(batch.id, {
+        status: "cancelled",
+      });
+
+      res.json(updatedBatch);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to cancel batch" });
+    }
+  });
+
+  app.delete("/api/keyword-batches/:batchId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const batch = await storage.getKeywordBatchById(req.params.batchId);
+      if (!batch) {
+        return res.status(404).json({ error: "Batch not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, batch.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this batch" });
+        }
+      }
+
+      await storage.deleteKeywordBatch(batch.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete batch" });
+    }
+  });
+
   // Posts CRUD
   app.get("/api/sites/:id/posts", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
@@ -608,6 +755,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch related posts" });
+    }
+  });
+
+  // Sitemap Routes
+  // Public sitemap.xml - served based on domain
+  app.get("/sitemap.xml", async (req: DomainRequest, res: Response) => {
+    try {
+      // Get site from domain
+      const hostname = req.hostname;
+      let site = null;
+      
+      // If siteId is already set by middleware, use that
+      if (req.siteId) {
+        site = await storage.getSiteById(req.siteId);
+      } else {
+        // Try to get site by domain
+        site = await storage.getSiteByDomain(hostname);
+      }
+      
+      if (!site) {
+        return res.status(404).send("Site not found");
+      }
+
+      // Construct base URL
+      const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+      const baseUrl = `${protocol}://${hostname}`;
+      
+      const xml = await generateSitemap(site, baseUrl);
+      
+      res.set("Content-Type", "application/xml");
+      res.set("Cache-Control", "public, max-age=900"); // 15 minutes
+      res.send(xml);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // Admin API to get sitemap stats
+  app.get("/api/sites/:id/sitemap/stats", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const stats = await getSitemapStats(req.params.id);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch sitemap stats" });
+    }
+  });
+
+  // Admin API to regenerate sitemap cache
+  app.post("/api/sites/:id/sitemap/regenerate", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      invalidateSitemapCache(req.params.id);
+      
+      const site = await storage.getSiteById(req.params.id);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      // Generate with a placeholder base URL (actual URL comes from request)
+      const baseUrl = `https://${site.domain}`;
+      await generateSitemap(site, baseUrl);
+      
+      const stats = await getSitemapStats(req.params.id);
+      res.json({ success: true, stats });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to regenerate sitemap" });
+    }
+  });
+
+  // Preview sitemap XML for a site (admin)
+  app.get("/api/sites/:id/sitemap/preview", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const site = await storage.getSiteById(req.params.id);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      const baseUrl = `https://${site.domain}`;
+      const xml = await generateSitemap(site, baseUrl);
+      
+      res.set("Content-Type", "application/xml");
+      res.send(xml);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate sitemap preview" });
     }
   });
 

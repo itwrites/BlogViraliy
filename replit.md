@@ -16,13 +16,15 @@ Production-ready platform with all core features functional:
 - ✅ Comprehensive site configuration (General, AI Automation, RSS Automation, Posts)
 - ✅ AI content generation using Replit AI Integrations (GPT-5)
 - ✅ RSS feed rewriting for unique content
-- ✅ Manual post editor with tag support
+- ✅ Manual post editor with markdown support and live preview
 - ✅ **Six unique layout templates** with visual previews (Blog, News, Magazine, Portfolio, Restaurant, Crypto)
 - ✅ Automatic navigation menu generation from top tags
 - ✅ Tag archive pages and related posts
 - ✅ Scheduled automation with node-cron
 - ✅ PostgreSQL database with full data persistence
 - ✅ 100% data-testid coverage for automated testing
+- ✅ **Bulk keyword generation** - Upload a list of keywords to automatically generate posts
+- ✅ **Dynamic sitemap.xml** - Each site has its own sitemap for SEO
 
 ## Project Architecture
 
@@ -48,6 +50,8 @@ Production-ready platform with all core features functional:
 - **posts**: Content with tags, slugs, and source tracking
 - **aiAutomationConfigs**: AI generation settings per site
 - **rssAutomationConfigs**: RSS feed settings per site
+- **keywordBatches**: Bulk generation job tracking (status, progress, counts)
+- **keywordJobs**: Individual keyword jobs within a batch
 
 ## Key Features
 
@@ -139,6 +143,14 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **Bulk keyword generation and sitemap**
+  - Added keywordBatches and keywordJobs tables for bulk generation tracking
+  - Created background worker to process keyword batches (runs every minute)
+  - Built Bulk Generate tab in site config with keyword upload (textarea/CSV)
+  - Progress dashboard showing batch status, job counts, and per-keyword status
+  - Implemented sitemap.xml generation with 15-minute caching
+  - Dynamic sitemap includes homepage, all posts, and top tag archive pages
+  - Added admin sitemap preview and regeneration endpoints
 - 2025-12-02: **Multi-user authentication and session fixes**
   - Implemented multi-user role-based access control (RBAC) with admin and editor roles
   - Extended users table with email, role, and status fields
@@ -193,6 +205,13 @@ The system detects the incoming domain name and:
 - POST `/api/posts` - Create post
 - PUT `/api/posts/:id` - Update post
 - DELETE `/api/posts/:id` - Delete post
+- GET/POST `/api/sites/:id/keyword-batches` - List/create bulk generation batches
+- GET `/api/keyword-batches/:batchId` - Get batch details with jobs
+- POST `/api/keyword-batches/:batchId/cancel` - Cancel a pending batch
+- DELETE `/api/keyword-batches/:batchId` - Delete a batch
+- GET `/api/sites/:id/sitemap/stats` - Get sitemap statistics
+- POST `/api/sites/:id/sitemap/regenerate` - Force regenerate sitemap
+- GET `/api/sites/:id/sitemap/preview` - Preview sitemap XML
 
 ### Public Routes (no auth required)
 - GET `/api/domain-check` - Determine if domain is admin or public site
@@ -201,6 +220,7 @@ The system detects the incoming domain name and:
 - GET `/api/public/sites/:id/posts-by-tag/:tag` - Filter by tag
 - GET `/api/public/sites/:id/top-tags` - Get navigation tags
 - GET `/api/public/sites/:id/related-posts/:postId` - Get related posts
+- GET `/sitemap.xml` - Dynamic sitemap based on domain
 
 ## Testing Multi-Domain Setup
 On Replit, all domains will route to the admin dashboard by default. To test multi-domain features:

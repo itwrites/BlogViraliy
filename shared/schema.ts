@@ -149,6 +149,40 @@ export const sessions = pgTable("session", {
   expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
+// Keyword batch status enum
+export const batchStatusEnum = z.enum(["pending", "processing", "completed", "cancelled", "failed"]);
+export type BatchStatus = z.infer<typeof batchStatusEnum>;
+
+// Job status enum
+export const jobStatusEnum = z.enum(["queued", "processing", "completed", "failed", "cancelled"]);
+export type JobStatus = z.infer<typeof jobStatusEnum>;
+
+// Keyword Batches (for bulk AI post generation)
+export const keywordBatches = pgTable("keyword_batches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // pending, processing, completed, cancelled, failed
+  totalKeywords: integer("total_keywords").notNull().default(0),
+  processedCount: integer("processed_count").notNull().default(0),
+  successCount: integer("success_count").notNull().default(0),
+  failedCount: integer("failed_count").notNull().default(0),
+  masterPrompt: text("master_prompt"), // Optional override for this batch
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Keyword Jobs (individual keywords within a batch)
+export const keywordJobs = pgTable("keyword_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  batchId: varchar("batch_id").notNull().references(() => keywordBatches.id, { onDelete: "cascade" }),
+  keyword: text("keyword").notNull(),
+  status: text("status").notNull().default("queued"), // queued, processing, completed, failed, cancelled
+  postId: varchar("post_id").references(() => posts.id, { onDelete: "set null" }),
+  error: text("error"),
+  queuedAt: timestamp("queued_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userSites: many(userSites),
@@ -193,6 +227,25 @@ export const rssAutomationConfigsRelations = relations(rssAutomationConfigs, ({ 
   }),
 }));
 
+export const keywordBatchesRelations = relations(keywordBatches, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [keywordBatches.siteId],
+    references: [sites.id],
+  }),
+  jobs: many(keywordJobs),
+}));
+
+export const keywordJobsRelations = relations(keywordJobs, ({ one }) => ({
+  batch: one(keywordBatches, {
+    fields: [keywordJobs.batchId],
+    references: [keywordBatches.id],
+  }),
+  post: one(posts, {
+    fields: [keywordJobs.postId],
+    references: [posts.id],
+  }),
+}));
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -233,6 +286,22 @@ export const insertPostSchema = createInsertSchema(posts).omit({
   updatedAt: true,
 });
 
+export const insertKeywordBatchSchema = createInsertSchema(keywordBatches).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+}).extend({
+  status: batchStatusEnum.optional().default("pending"),
+});
+
+export const insertKeywordJobSchema = createInsertSchema(keywordJobs).omit({
+  id: true,
+  queuedAt: true,
+  processedAt: true,
+}).extend({
+  status: jobStatusEnum.optional().default("queued"),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -251,3 +320,9 @@ export type RssAutomationConfig = typeof rssAutomationConfigs.$inferSelect;
 
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Post = typeof posts.$inferSelect;
+
+export type InsertKeywordBatch = z.infer<typeof insertKeywordBatchSchema>;
+export type KeywordBatch = typeof keywordBatches.$inferSelect;
+
+export type InsertKeywordJob = z.infer<typeof insertKeywordJobSchema>;
+export type KeywordJob = typeof keywordJobs.$inferSelect;
