@@ -10,8 +10,8 @@ import remarkGfm from "remark-gfm";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { MobileNav } from "@/components/mobile-nav";
-import { motion } from "framer-motion";
+import { PublicHeader } from "@/components/public-header";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface PublicPostProps {
   site: Site;
@@ -21,6 +21,7 @@ export function PublicPost({ site }: PublicPostProps) {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const prefersReducedMotion = useReducedMotion();
 
   const { data: post, isLoading } = useQuery<Post>({
     queryKey: ["/api/public/sites", site.id, "posts", slug],
@@ -101,69 +102,19 @@ export function PublicPost({ site }: PublicPostProps) {
     <PublicThemeProvider settings={site.templateSettings}>
       <SeoHead site={site} post={post} />
       <div className="min-h-screen bg-background text-foreground">
-        <motion.header 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="border-b bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80 sticky top-0 z-50"
-        >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between h-14">
-              <div className="flex items-center gap-3">
-                <MobileNav 
-                  tags={topTags || []} 
-                  onTagClick={handleTagClick} 
-                  siteTitle={site.title} 
-                />
-                {site.logoUrl && (
-                  <img
-                    src={site.logoUrl}
-                    alt={`${site.title} logo`}
-                    style={templateClasses.logoSize.style}
-                    className="object-cover rounded cursor-pointer"
-                    onClick={handleBack}
-                    data-testid="img-site-logo"
-                  />
-                )}
-                <span 
-                  className="text-base font-semibold cursor-pointer hover:text-primary transition-colors" 
-                  style={{ fontFamily: "var(--public-heading-font)" }}
-                  onClick={handleBack}
-                  data-testid="text-site-title"
-                >
-                  {site.title}
-                </span>
-              </div>
-              <motion.nav 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-                className="hidden md:flex items-center gap-1"
-                data-testid="nav-main"
-              >
-                {topTags?.slice(0, 6).map((tag, index) => (
-                  <motion.button
-                    key={tag}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + index * 0.05 }}
-                    onClick={() => handleTagClick(tag)}
-                    className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                    data-testid={`link-tag-${tag}`}
-                  >
-                    {tag}
-                  </motion.button>
-                ))}
-              </motion.nav>
-            </div>
-          </div>
-        </motion.header>
+        <PublicHeader
+          site={site}
+          topTags={topTags || []}
+          onTagClick={handleTagClick}
+          onLogoClick={handleBack}
+          templateClasses={templateClasses}
+        />
 
         {post.imageUrl && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={prefersReducedMotion ? false : { opacity: 1 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.5 }}
             className="relative w-full h-[35vh] sm:h-[45vh] md:h-[55vh] overflow-hidden"
           >
             <img
@@ -179,9 +130,9 @@ export function PublicPost({ site }: PublicPostProps) {
         <main className={`${post.imageUrl ? '-mt-32 relative z-10' : 'pt-8'}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
             <motion.article 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? {} : { delay: 0.2, duration: 0.4 }}
               data-testid={`article-${post.id}`}
             >
               <div className={`${post.imageUrl ? 'bg-card rounded-2xl p-6 sm:p-10 shadow-xl border' : 'pb-8'}`}>
@@ -189,9 +140,9 @@ export function PublicPost({ site }: PublicPostProps) {
                   {post.tags.map((tag, index) => (
                     <motion.div
                       key={tag}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.05 }}
+                      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
+                      animate={prefersReducedMotion ? false : { opacity: 1, scale: 1 }}
+                      transition={prefersReducedMotion ? {} : { delay: 0.3 + index * 0.05 }}
                     >
                       <Badge
                         variant="secondary"
@@ -236,9 +187,9 @@ export function PublicPost({ site }: PublicPostProps) {
                     prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
                     prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
                     prose-p:text-base prose-p:leading-relaxed prose-p:text-foreground/90
-                    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                    prose-a:text-foreground prose-a:underline prose-a:underline-offset-2 hover:prose-a:opacity-70
                     prose-strong:text-foreground prose-strong:font-semibold
-                    prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-md
+                    prose-blockquote:border-l-accent prose-blockquote:bg-muted/50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-md
                     prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
                     prose-pre:bg-muted prose-pre:border
                     prose-img:rounded-lg prose-img:shadow-md
@@ -280,7 +231,7 @@ export function PublicPost({ site }: PublicPostProps) {
               >
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     <h3 
                       className="font-semibold"
                       style={{ fontFamily: "var(--public-heading-font)" }}
@@ -321,7 +272,7 @@ export function PublicPost({ site }: PublicPostProps) {
                         </div>
                       )}
                       <h4 
-                        className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors"
+                        className="font-medium text-sm line-clamp-2 group-hover:opacity-70 transition-opacity"
                         style={{ fontFamily: "var(--public-heading-font)" }}
                       >
                         {latestPost.title}
@@ -388,7 +339,7 @@ export function PublicPost({ site }: PublicPostProps) {
                             </Badge>
                           )}
                           <h3 
-                            className="font-semibold line-clamp-2 group-hover:text-primary transition-colors"
+                            className="font-semibold line-clamp-2 group-hover:opacity-70 transition-opacity"
                             style={{ fontFamily: "var(--public-heading-font)" }}
                             data-testid={`text-related-title-${relatedPost.id}`}
                           >

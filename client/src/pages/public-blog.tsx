@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
-import { MobileNav } from "@/components/mobile-nav";
+import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface PublicBlogProps {
   site: Site;
@@ -35,49 +36,45 @@ export function PublicBlog({ site }: PublicBlogProps) {
 
   const featuredPost = posts?.[0];
   const recentPosts = posts?.slice(1) || [];
+  const prefersReducedMotion = useReducedMotion();
+
+  const containerAnimation = prefersReducedMotion ? {} : {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+    },
+  };
+
+  const cardAnimation = prefersReducedMotion ? {} : {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+  };
+
+  const heroAnimation = prefersReducedMotion ? {} : {
+    hidden: { opacity: 0, scale: 1.02 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { duration: 0.7, ease: "easeOut" }
+    },
+  };
 
   return (
     <PublicThemeProvider settings={site.templateSettings}>
       <SeoHead site={site} />
       <div className="min-h-screen bg-background text-foreground">
-        {/* Header */}
-        <header className={`${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''} border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80`}>
-          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-4`}>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <MobileNav 
-                  tags={topTags || []} 
-                  onTagClick={handleTagClick} 
-                  siteTitle={site.title} 
-                />
-                {site.logoUrl && (
-                  <img
-                    src={site.logoUrl}
-                    alt={`${site.title} logo`}
-                    style={templateClasses.logoSize.style}
-                    className="object-cover rounded"
-                    data-testid="img-site-logo"
-                  />
-                )}
-                {(!templateClasses.hideLogoText || !site.logoUrl) && (
-                  <h1 className="text-xl sm:text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
-                )}
-              </div>
-              <nav className="hidden md:flex items-center gap-1 overflow-x-auto" data-testid="nav-main">
-                {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => handleTagClick(tag)}
-                    className="px-3 py-2 text-sm hover-elevate rounded-md whitespace-nowrap"
-                    data-testid={`link-tag-${tag}`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-        </header>
+        <PublicHeader
+          site={site}
+          topTags={topTags || []}
+          onTagClick={handleTagClick}
+          onLogoClick={() => setLocation("/")}
+          templateClasses={templateClasses}
+        />
 
         <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-12`}>
           {isLoading ? (
@@ -91,28 +88,51 @@ export function PublicBlog({ site }: PublicBlogProps) {
             </div>
           ) : featuredPost && templateClasses.showHero ? (
           <>
-            {/* Featured Post Hero */}
-            <div
-              className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-lg overflow-hidden mb-8 sm:mb-12 cursor-pointer group"
+            <motion.div
+              initial={prefersReducedMotion ? false : "hidden"}
+              animate={prefersReducedMotion ? false : "visible"}
+              variants={heroAnimation}
+              className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-xl overflow-hidden mb-8 sm:mb-12 cursor-pointer group"
               onClick={() => handlePostClick(featuredPost.slug)}
               data-testid={`card-featured-post-${featuredPost.id}`}
+              whileHover={prefersReducedMotion ? {} : { scale: 1.005 }}
+              transition={prefersReducedMotion ? {} : { duration: 0.3 }}
             >
               {featuredPost.imageUrl ? (
-                <img src={featuredPost.imageUrl} alt={featuredPost.title} className="absolute inset-0 w-full h-full object-cover" />
+                <motion.img 
+                  src={featuredPost.imageUrl} 
+                  alt={featuredPost.title} 
+                  className="absolute inset-0 w-full h-full object-cover"
+                  initial={prefersReducedMotion ? false : { scale: 1.1 }}
+                  animate={prefersReducedMotion ? false : { scale: 1 }}
+                  transition={prefersReducedMotion ? {} : { duration: 1.2, ease: "easeOut" }}
+                />
               ) : (
                 <div className="absolute inset-0 bg-muted" />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-10" />
-              <div className="absolute inset-0 flex items-end p-6 sm:p-8 md:p-12 z-20">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10 z-10" />
+              <motion.div 
+                className="absolute inset-0 flex items-end p-6 sm:p-8 md:p-12 z-20"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+                animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+                transition={prefersReducedMotion ? {} : { delay: 0.3, duration: 0.5 }}
+              >
                 <div className="max-w-3xl">
-                  <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+                  <motion.div 
+                    className="flex flex-wrap gap-2 mb-3 sm:mb-4"
+                    initial={prefersReducedMotion ? false : "hidden"}
+                    animate={prefersReducedMotion ? false : "visible"}
+                    variants={containerAnimation}
+                  >
                     {featuredPost.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={tag} className="bg-white/20 backdrop-blur-md text-white border-white/30 text-xs sm:text-sm" data-testid={`badge-featured-tag-${index}`}>
-                        {tag}
-                      </Badge>
+                      <motion.div key={tag} variants={cardAnimation}>
+                        <Badge className="bg-white/20 backdrop-blur-md text-white border-white/30 text-xs sm:text-sm" data-testid={`badge-featured-tag-${index}`}>
+                          {tag}
+                        </Badge>
+                      </motion.div>
                     ))}
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl md:text-5xl font-blog font-bold text-white mb-2 sm:mb-4 group-hover:underline line-clamp-3" data-testid={`text-featured-title-${featuredPost.id}`}>
+                  </motion.div>
+                  <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold text-white mb-2 sm:mb-4 group-hover:underline decoration-2 underline-offset-4 line-clamp-3" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-featured-title-${featuredPost.id}`}>
                     {featuredPost.title}
                   </h2>
                   <p className="text-sm sm:text-lg text-white/90 line-clamp-2 hidden sm:block" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
@@ -126,50 +146,74 @@ export function PublicBlog({ site }: PublicBlogProps) {
                     })}
                   </p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
-            {/* Recent Posts Grid */}
             {recentPosts.length > 0 && (
-              <div>
-                <h3 className="text-xl sm:text-2xl font-blog font-semibold mb-4 sm:mb-6" data-testid="text-recent-posts-title">Recent Posts</h3>
-                <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2">
+              <motion.div
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                animate={prefersReducedMotion ? false : { opacity: 1 }}
+                transition={prefersReducedMotion ? {} : { delay: 0.4 }}
+              >
+                <motion.h3 
+                  className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6" 
+                  style={{ fontFamily: "var(--public-heading-font)" }}
+                  data-testid="text-recent-posts-title"
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
+                  animate={prefersReducedMotion ? false : { opacity: 1, x: 0 }}
+                  transition={prefersReducedMotion ? {} : { delay: 0.5 }}
+                >
+                  Recent Posts
+                </motion.h3>
+                <motion.div 
+                  className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2"
+                  initial={prefersReducedMotion ? false : "hidden"}
+                  animate={prefersReducedMotion ? false : "visible"}
+                  variants={containerAnimation}
+                >
                   {recentPosts.map((post) => (
-                    <Card
-                      key={post.id}
-                      className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle}`}
-                      onClick={() => handlePostClick(post.slug)}
-                      data-testid={`card-post-${post.id}`}
-                    >
-                      <div className="aspect-video bg-muted">
-                        {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
-                      </div>
-                      <CardContent className="p-4 sm:p-6">
-                        <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
-                          {post.tags.slice(0, 2).map((tag, index) => (
-                            <Badge key={tag} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
-                              {tag}
-                            </Badge>
-                          ))}
+                    <motion.div key={post.id} variants={cardAnimation}>
+                      <Card
+                        className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle}`}
+                        onClick={() => handlePostClick(post.slug)}
+                        data-testid={`card-post-${post.id}`}
+                      >
+                        <div className="aspect-video bg-muted overflow-hidden">
+                          {post.imageUrl && (
+                            <img 
+                              src={post.imageUrl} 
+                              alt={post.title} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                            />
+                          )}
                         </div>
-                        <h3 className="text-lg sm:text-xl font-blog font-semibold mb-2 line-clamp-2 group-hover:underline" data-testid={`text-post-title-${post.id}`}>
-                          {post.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-2 sm:mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                          {stripMarkdown(post.content, 150)}
-                        </p>
-                        <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
-                          {new Date(post.createdAt).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </CardContent>
-                    </Card>
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
+                            {post.tags.slice(0, 2).map((tag, index) => (
+                              <Badge key={tag} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-semibold mb-2 line-clamp-2 group-hover:text-muted-foreground transition-colors" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
+                            {post.title}
+                          </h3>
+                          <p className="text-muted-foreground text-sm line-clamp-2 mb-2 sm:mb-3" data-testid={`text-post-excerpt-${post.id}`}>
+                            {stripMarkdown(post.content, 150)}
+                          </p>
+                          <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
+                            {new Date(post.createdAt).toLocaleDateString("en-US", {
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   ))}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             )}
           </>
         ) : (
