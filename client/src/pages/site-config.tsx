@@ -255,6 +255,31 @@ export default function SiteConfig() {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="favicon" data-testid="label-favicon">Favicon URL</Label>
+                    <Input
+                      id="favicon"
+                      data-testid="input-favicon"
+                      placeholder="https://example.com/favicon.ico"
+                      value={siteData.favicon}
+                      onChange={(e) => setSiteData({ ...siteData, favicon: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground" data-testid="text-favicon-hint">Browser tab icon (32x32 or 64x64 recommended)</p>
+                  </div>
+
+                  <div className="flex items-center justify-between space-x-4">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="hideLogoText" data-testid="label-hide-logo-text">Hide Logo Text</Label>
+                      <p className="text-xs text-muted-foreground">Only show logo image when present, hide site title</p>
+                    </div>
+                    <Switch
+                      id="hideLogoText"
+                      checked={templateSettings.hideLogoText}
+                      onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, hideLogoText: checked })}
+                      data-testid="switch-hide-logo-text"
+                    />
+                  </div>
+
                   <div className="space-y-3 md:col-span-2">
                     <Label data-testid="label-site-type">Site Layout Type</Label>
                     <p className="text-xs text-muted-foreground mb-3">Choose a visual template that best matches your content style</p>

@@ -51,9 +51,11 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                     data-testid="img-site-logo"
                   />
                 )}
-                <h1 className="text-2xl font-bold tracking-tight font-mono" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
-                  {site.title}
-                </h1>
+                {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                  <h1 className="text-2xl font-bold tracking-tight font-mono" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                    {site.title}
+                  </h1>
+                )}
                 <Badge className="bg-primary text-primary-foreground text-xs" data-testid="badge-live-status">
                   <Zap className="h-3 w-3 mr-1" />
                   LIVE

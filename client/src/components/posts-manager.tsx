@@ -11,6 +11,7 @@ import { Plus, Edit, Trash2, FileText, ChevronDown, Search } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Post } from "@shared/schema";
+import { MarkdownEditor } from "@/components/markdown-editor";
 import {
   Dialog,
   DialogContent,
@@ -241,14 +242,12 @@ export function PostsManager({ siteId }: PostsManagerProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="postContent">Content</Label>
-              <Textarea
-                id="postContent"
-                data-testid="textarea-post-content"
-                placeholder="Write your post content here..."
+              <Label htmlFor="postContent">Content (Markdown)</Label>
+              <MarkdownEditor
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                rows={12}
+                onChange={(value) => setFormData({ ...formData, content: value })}
+                placeholder="Write your post content in markdown..."
+                minHeight="300px"
               />
             </div>
             <div className="space-y-2">

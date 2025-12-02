@@ -210,6 +210,7 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
 
   return {
     logoSize: logoSizes[s.logoSize] || logoSizes.medium,
+    hideLogoText: s.hideLogoText || false,
     contentWidth: contentWidths[s.contentWidth] || contentWidths.medium,
     cardStyle: cardStyles[s.cardStyle] || cardStyles.rounded,
     isHeaderSticky: s.headerStyle === "standard" || s.headerStyle === "full",

@@ -50,9 +50,11 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                   data-testid="img-site-logo"
                 />
               )}
-              <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
-                {site.title}
-              </h1>
+              {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                <h1 className="text-4xl font-bold tracking-tight" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                  {site.title}
+                </h1>
+              )}
             </div>
             <nav className="flex items-center justify-center gap-6 border-t border-b py-3" data-testid="nav-main">
               {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (

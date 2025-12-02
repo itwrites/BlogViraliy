@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface PublicPostProps {
   site: Site;
@@ -116,10 +118,10 @@ export function PublicPost({ site }: PublicPostProps) {
           </div>
 
           {/* Article Content */}
-          <div className="prose prose-lg max-w-none">
-            <div className="whitespace-pre-wrap leading-relaxed text-foreground" data-testid="text-post-content">
+          <div className="prose prose-lg dark:prose-invert max-w-none" data-testid="text-post-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {post.content}
-            </div>
+            </ReactMarkdown>
           </div>
         </article>
 

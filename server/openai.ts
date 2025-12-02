@@ -9,8 +9,38 @@ const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
 });
 
-export async function generateAIPost(masterPrompt: string, keyword: string): Promise<{ title: string; content: string; tags: string[]; imageUrl?: string }> {
-  const prompt = `${masterPrompt}\n\nWrite a compelling blog post about: ${keyword}\n\nProvide the response in JSON format with the following structure:\n{\n  "title": "The post title",\n  "content": "The full post content",\n  "tags": ["tag1", "tag2", "tag3"]\n}`;
+interface AIPostResult {
+  title: string;
+  content: string;
+  tags: string[];
+  imageUrl?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+}
+
+export async function generateAIPost(masterPrompt: string, keyword: string): Promise<AIPostResult> {
+  const prompt = `${masterPrompt}
+
+Write a compelling blog post about: ${keyword}
+
+IMPORTANT: Write the content in Markdown format with proper formatting:
+- Use # for main headings, ## for subheadings, ### for smaller sections
+- Use **bold** for emphasis and *italics* where appropriate
+- Use bullet points (-) or numbered lists (1.) for lists
+- Use > for blockquotes
+- Use \`code\` for inline code if relevant
+- Use paragraphs with blank lines between them
+
+Also generate SEO-optimized metadata for this post.
+
+Provide the response in JSON format with the following structure:
+{
+  "title": "The post title (compelling and SEO-friendly)",
+  "content": "The full post content in Markdown format",
+  "tags": ["tag1", "tag2", "tag3"],
+  "metaTitle": "SEO title (50-60 characters, keyword-rich)",
+  "metaDescription": "SEO description (150-160 characters, compelling call-to-action)"
+}`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5",
@@ -30,11 +60,37 @@ export async function generateAIPost(masterPrompt: string, keyword: string): Pro
     content: result.content || "",
     tags: Array.isArray(result.tags) ? result.tags : [keyword],
     imageUrl: imageUrl || undefined,
+    metaTitle: result.metaTitle || title,
+    metaDescription: result.metaDescription || undefined,
   };
 }
 
-export async function rewriteArticle(originalContent: string, originalTitle: string): Promise<{ title: string; content: string; tags: string[]; imageUrl?: string }> {
-  const prompt = `Rewrite the following article to make it completely unique while preserving the key information. Make it engaging and well-written.\n\nOriginal Title: ${originalTitle}\n\nOriginal Content:\n${originalContent}\n\nProvide the response in JSON format with the following structure:\n{\n  "title": "The rewritten title",\n  "content": "The rewritten content",\n  "tags": ["tag1", "tag2", "tag3"]\n}`;
+export async function rewriteArticle(originalContent: string, originalTitle: string): Promise<AIPostResult> {
+  const prompt = `Rewrite the following article to make it completely unique while preserving the key information. Make it engaging and well-written.
+
+Original Title: ${originalTitle}
+
+Original Content:
+${originalContent}
+
+IMPORTANT: Write the rewritten content in Markdown format with proper formatting:
+- Use # for main headings, ## for subheadings, ### for smaller sections
+- Use **bold** for emphasis and *italics* where appropriate
+- Use bullet points (-) or numbered lists (1.) for lists
+- Use > for blockquotes
+- Use \`code\` for inline code if relevant
+- Use paragraphs with blank lines between them
+
+Also generate SEO-optimized metadata for this rewritten post.
+
+Provide the response in JSON format with the following structure:
+{
+  "title": "The rewritten title (compelling and SEO-friendly)",
+  "content": "The rewritten content in Markdown format",
+  "tags": ["tag1", "tag2", "tag3"],
+  "metaTitle": "SEO title (50-60 characters, keyword-rich)",
+  "metaDescription": "SEO description (150-160 characters, compelling call-to-action)"
+}`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5",
@@ -54,5 +110,7 @@ export async function rewriteArticle(originalContent: string, originalTitle: str
     content: result.content || originalContent,
     tags: Array.isArray(result.tags) ? result.tags : [],
     imageUrl: imageUrl || undefined,
+    metaTitle: result.metaTitle || title,
+    metaDescription: result.metaDescription || undefined,
   };
 }

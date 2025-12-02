@@ -47,12 +47,14 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                     data-testid="img-site-logo"
                   />
                 )}
-                <div>
-                  <h1 className="text-3xl font-light tracking-wide" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
-                    {site.title}
-                  </h1>
-                  <p className="text-sm text-muted-foreground mt-1">Portfolio & Work</p>
-                </div>
+                {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                  <div>
+                    <h1 className="text-3xl font-light tracking-wide" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                      {site.title}
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">Portfolio & Work</p>
+                  </div>
+                )}
               </div>
               <nav className="hidden md:flex items-center gap-4" data-testid="nav-main">
                 {topTags?.slice(0, Math.min(templateClasses.maxNavItems, 5)).map((tag) => (

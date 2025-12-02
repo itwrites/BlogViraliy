@@ -51,10 +51,12 @@ export function PublicNews({ site }: PublicNewsProps) {
                     data-testid="img-site-logo"
                   />
                 )}
-                <div>
-                  <h1 className="text-xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
-                  <p className="text-xs text-muted-foreground" data-testid="text-site-tagline">Breaking News & Updates</p>
-                </div>
+                {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                  <div>
+                    <h1 className="text-xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+                    <p className="text-xs text-muted-foreground" data-testid="text-site-tagline">Breaking News & Updates</p>
+                  </div>
+                )}
               </div>
               <nav className="hidden md:flex items-center gap-1 overflow-x-auto max-w-2xl" data-testid="nav-main">
                 {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (

@@ -50,15 +50,17 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                     data-testid="img-site-logo"
                   />
                 )}
-                <div>
-                  <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
-                    {site.title}
-                  </h1>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                    <UtensilsCrossed className="h-4 w-4" />
-                    Food & Dining News
-                  </p>
-                </div>
+                {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                  <div>
+                    <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                      {site.title}
+                    </h1>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                      <UtensilsCrossed className="h-4 w-4" />
+                      Food & Dining News
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <nav className="flex items-center gap-4 overflow-x-auto pb-2" data-testid="nav-main">

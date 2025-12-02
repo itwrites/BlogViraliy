@@ -51,7 +51,9 @@ export function PublicBlog({ site }: PublicBlogProps) {
                     data-testid="img-site-logo"
                   />
                 )}
-                <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+                {(!templateClasses.hideLogoText || !site.logoUrl) && (
+                  <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+                )}
               </div>
               <nav className="hidden md:flex items-center gap-1 overflow-x-auto" data-testid="nav-main">
                 {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (

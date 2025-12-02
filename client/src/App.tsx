@@ -25,6 +25,7 @@ function AdminRouter() {
   return (
     <Switch>
       <Route path="/" component={AdminLogin} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={SiteConfig} />
       <Route path="/admin/users" component={UserManagement} />
