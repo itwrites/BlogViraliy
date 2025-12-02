@@ -7,9 +7,10 @@ interface MobileNavProps {
   tags: string[];
   onTagClick: (tag: string) => void;
   siteTitle: string;
+  currentTag?: string | null;
 }
 
-export function MobileNav({ tags, onTagClick, siteTitle }: MobileNavProps) {
+export function MobileNav({ tags, onTagClick, siteTitle, currentTag }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   const handleTagClick = (tag: string) => {
@@ -45,16 +46,25 @@ export function MobileNav({ tags, onTagClick, siteTitle }: MobileNavProps) {
           </SheetClose>
         </div>
         <nav className="flex flex-col gap-1" data-testid="nav-mobile">
-          {tags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => handleTagClick(tag)}
-              className="text-left px-3 py-3 rounded-md hover-elevate text-base transition-colors"
-              data-testid={`link-mobile-tag-${tag}`}
-            >
-              {tag}
-            </button>
-          ))}
+          {tags.map((tag) => {
+            const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
+            return (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag)}
+                className={`text-left px-3 py-3 rounded-md text-base transition-colors ${
+                  isActive 
+                    ? 'bg-primary/10 font-medium' 
+                    : 'hover-elevate text-foreground/70 hover:text-primary'
+                }`}
+                style={isActive ? { color: 'hsl(var(--primary))' } : undefined}
+                data-testid={`link-mobile-tag-${tag}`}
+                data-active={isActive}
+              >
+                {tag}
+              </button>
+            );
+          })}
         </nav>
       </SheetContent>
     </Sheet>

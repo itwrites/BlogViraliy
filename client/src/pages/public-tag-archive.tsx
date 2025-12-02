@@ -8,7 +8,7 @@ import { stripMarkdown } from "@/lib/strip-markdown";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicHeader } from "@/components/public-header";
 import { SeoHead } from "@/components/seo-head";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, Variants } from "framer-motion";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -42,7 +42,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
 
   const prefersReducedMotion = useReducedMotion();
 
-  const containerAnimation = prefersReducedMotion ? {} : {
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -50,7 +50,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
     },
   };
 
-  const cardAnimation = prefersReducedMotion ? {} : {
+  const cardAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, y: 30 },
     visible: { 
       opacity: 1, 
@@ -68,15 +68,16 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
           topTags={topTags || []}
           onTagClick={handleTagClick}
           onLogoClick={handleBack}
+          currentTag={decodedTag}
           templateClasses={templateClasses}
         />
 
         <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-12`}>
           <motion.div 
             className="mb-8"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+            animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.4 }}
           >
             <div className="flex items-center gap-2 mb-3">
               <Tag className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
@@ -98,8 +99,8 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
           ) : posts && posts.length > 0 ? (
             <motion.div 
               className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-              initial="hidden"
-              animate="visible"
+              initial={prefersReducedMotion ? false : "hidden"}
+              animate={prefersReducedMotion ? false : "visible"}
               variants={containerAnimation}
             >
               {posts.map((post) => (

@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, Variants } from "framer-motion";
 import { MobileNav } from "@/components/mobile-nav";
 import type { Site } from "@shared/schema";
 
@@ -7,6 +7,7 @@ interface PublicHeaderProps {
   topTags: string[];
   onTagClick: (tag: string) => void;
   onLogoClick: () => void;
+  currentTag?: string | null;
   templateClasses: {
     contentWidth: string;
     logoSize: { style: { width: number; height: number } };
@@ -22,12 +23,13 @@ export function PublicHeader({
   topTags, 
   onTagClick, 
   onLogoClick, 
+  currentTag,
   templateClasses,
   variant = "default"
 }: PublicHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  const containerAnimation = prefersReducedMotion ? {} : {
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -38,7 +40,7 @@ export function PublicHeader({
     },
   };
 
-  const itemAnimation = prefersReducedMotion ? {} : {
+  const itemAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, y: -8 },
     visible: { 
       opacity: 1, 
@@ -47,7 +49,7 @@ export function PublicHeader({
     },
   };
 
-  const logoAnimation = prefersReducedMotion ? {} : {
+  const logoAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, scale: 0.9 },
     visible: { 
       opacity: 1, 
@@ -66,6 +68,8 @@ export function PublicHeader({
 
   const hasTags = topTags && topTags.length > 0;
 
+  const isSvg = site.logoUrl?.toLowerCase().endsWith('.svg');
+
   return (
     <motion.header 
       {...headerAnimation}
@@ -83,19 +87,24 @@ export function PublicHeader({
               <MobileNav 
                 tags={topTags} 
                 onTagClick={onTagClick} 
-                siteTitle={site.title} 
+                siteTitle={site.title}
+                currentTag={currentTag}
               />
             )}
             {site.logoUrl && (
-              <motion.img
+              <motion.div
                 variants={logoAnimation}
-                src={site.logoUrl}
-                alt={`${site.title} logo`}
                 style={templateClasses.logoSize.style}
-                className="object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={onLogoClick}
                 data-testid="img-site-logo"
-              />
+              >
+                <img
+                  src={site.logoUrl}
+                  alt={`${site.title} logo`}
+                  className={`w-full h-full ${isSvg ? 'object-contain' : 'object-cover rounded'}`}
+                />
+              </motion.div>
             )}
             {(!templateClasses.hideLogoText || !site.logoUrl) && (
               <motion.h1 
@@ -119,19 +128,28 @@ export function PublicHeader({
               data-testid="nav-main"
             >
               <div className="flex items-center gap-1">
-                {topTags.slice(0, templateClasses.maxNavItems).map((tag) => (
-                  <motion.button
-                    key={tag}
-                    variants={itemAnimation}
-                    onClick={() => onTagClick(tag)}
-                    className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-all duration-200 whitespace-nowrap"
-                    data-testid={`link-tag-${tag}`}
-                    whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                    whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-                  >
-                    {tag}
-                  </motion.button>
-                ))}
+                {topTags.slice(0, templateClasses.maxNavItems).map((tag) => {
+                  const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
+                  return (
+                    <motion.button
+                      key={tag}
+                      variants={itemAnimation}
+                      onClick={() => onTagClick(tag)}
+                      className={`px-3 py-2 text-sm rounded-md transition-all duration-200 whitespace-nowrap ${
+                        isActive 
+                          ? 'bg-primary/10 text-primary font-medium' 
+                          : 'text-foreground/70 hover:text-primary hover:bg-primary/5'
+                      }`}
+                      style={isActive ? { color: 'hsl(var(--primary))' } : undefined}
+                      data-testid={`link-tag-${tag}`}
+                      data-active={isActive}
+                      whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    >
+                      {tag}
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.nav>
           )}
