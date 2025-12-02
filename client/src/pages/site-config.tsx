@@ -624,6 +624,26 @@ export default function SiteConfig() {
                       />
                     </div>
                   </div>
+                  <div className="pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="menuActiveStyle" data-testid="label-menu-style">Menu Selected Style</Label>
+                      <Select
+                        value={templateSettings.menuActiveStyle || "underline"}
+                        onValueChange={(value: "underline" | "background" | "pill" | "bold") => setTemplateSettings({ ...templateSettings, menuActiveStyle: value })}
+                      >
+                        <SelectTrigger id="menuActiveStyle" data-testid="select-menu-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="underline">Underline (thick line below)</SelectItem>
+                          <SelectItem value="background">Background Highlight</SelectItem>
+                          <SelectItem value="pill">Pill (filled rounded)</SelectItem>
+                          <SelectItem value="bold">Bold Text</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Choose how selected menu items appear</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4">

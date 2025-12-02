@@ -1,20 +1,63 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet";
+
+type MenuActiveStyle = "underline" | "background" | "pill" | "bold";
 
 interface MobileNavProps {
   tags: string[];
   onTagClick: (tag: string) => void;
+  onHomeClick: () => void;
   siteTitle: string;
   currentTag?: string | null;
+  menuActiveStyle?: MenuActiveStyle;
 }
 
-export function MobileNav({ tags, onTagClick, siteTitle, currentTag }: MobileNavProps) {
+function getMobileMenuItemClasses(isActive: boolean, style: MenuActiveStyle) {
+  const baseClasses = "text-left px-4 py-3 text-base font-medium uppercase tracking-wide transition-all duration-200 flex items-center gap-3";
+  
+  switch (style) {
+    case "underline":
+      return `${baseClasses} rounded-md ${
+        isActive 
+          ? 'border-l-4 border-primary text-primary bg-primary/5 pl-3' 
+          : 'text-foreground/70 hover:text-primary hover:bg-muted'
+      }`;
+    case "background":
+      return `${baseClasses} rounded-md ${
+        isActive 
+          ? 'bg-primary/10 text-primary' 
+          : 'text-foreground/70 hover:text-primary hover:bg-primary/5'
+      }`;
+    case "pill":
+      return `${baseClasses} rounded-full ${
+        isActive 
+          ? 'bg-primary text-primary-foreground' 
+          : 'text-foreground/70 hover:text-primary hover:bg-muted'
+      }`;
+    case "bold":
+      return `${baseClasses} rounded-md ${
+        isActive 
+          ? 'text-primary font-bold' 
+          : 'text-foreground/70 hover:text-primary font-medium hover:bg-muted'
+      }`;
+    default:
+      return baseClasses;
+  }
+}
+
+export function MobileNav({ tags, onTagClick, onHomeClick, siteTitle, currentTag, menuActiveStyle = "underline" }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const isHome = !currentTag;
 
   const handleTagClick = (tag: string) => {
     onTagClick(tag);
+    setOpen(false);
+  };
+
+  const handleHomeClick = () => {
+    onHomeClick();
     setOpen(false);
   };
 
@@ -46,22 +89,27 @@ export function MobileNav({ tags, onTagClick, siteTitle, currentTag }: MobileNav
           </SheetClose>
         </div>
         <nav className="flex flex-col gap-1" data-testid="nav-mobile">
+          <button
+            onClick={handleHomeClick}
+            className={getMobileMenuItemClasses(isHome, menuActiveStyle)}
+            data-testid="link-mobile-home"
+            data-active={isHome}
+          >
+            <Home className="h-5 w-5" />
+            HOME
+          </button>
+          
           {tags.map((tag) => {
             const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
             return (
               <button
                 key={tag}
                 onClick={() => handleTagClick(tag)}
-                className={`text-left px-3 py-3 rounded-md text-base transition-colors ${
-                  isActive 
-                    ? 'bg-primary/10 font-medium' 
-                    : 'hover-elevate text-foreground/70 hover:text-primary'
-                }`}
-                style={isActive ? { color: 'hsl(var(--primary))' } : undefined}
+                className={getMobileMenuItemClasses(isActive, menuActiveStyle)}
                 data-testid={`link-mobile-tag-${tag}`}
                 data-active={isActive}
               >
-                {tag}
+                {tag.toUpperCase()}
               </button>
             );
           })}

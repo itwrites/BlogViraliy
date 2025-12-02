@@ -227,6 +227,7 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     showHero: s.showFeaturedHero,
     showSearch: s.showSearch,
     maxNavItems: s.maxNavItems,
+    menuActiveStyle: s.menuActiveStyle || "underline",
     footerText: s.footerText || "",
     hasSocials,
     socials: {

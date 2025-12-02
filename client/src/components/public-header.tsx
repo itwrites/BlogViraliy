@@ -1,6 +1,9 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { MobileNav } from "@/components/mobile-nav";
 import type { Site } from "@shared/schema";
+import { Home } from "lucide-react";
+
+type MenuActiveStyle = "underline" | "background" | "pill" | "bold";
 
 interface PublicHeaderProps {
   site: Site;
@@ -14,8 +17,46 @@ interface PublicHeaderProps {
     isHeaderSticky: boolean;
     maxNavItems: number;
     hideLogoText?: boolean;
+    menuActiveStyle?: MenuActiveStyle;
   };
   variant?: "default" | "compact";
+}
+
+function getMenuItemClasses(isActive: boolean, isHome: boolean, style: MenuActiveStyle) {
+  const baseClasses = "relative px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-200 whitespace-nowrap";
+  
+  if (isHome && !isActive) {
+    return `${baseClasses} text-foreground/70 hover:text-primary`;
+  }
+  
+  switch (style) {
+    case "underline":
+      return `${baseClasses} ${
+        isActive 
+          ? 'text-primary after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[3px] after:bg-primary after:rounded-full' 
+          : 'text-foreground/70 hover:text-primary'
+      }`;
+    case "background":
+      return `${baseClasses} rounded-md ${
+        isActive 
+          ? 'bg-primary/10 text-primary' 
+          : 'text-foreground/70 hover:text-primary hover:bg-primary/5'
+      }`;
+    case "pill":
+      return `${baseClasses} rounded-full ${
+        isActive 
+          ? 'bg-primary text-primary-foreground' 
+          : 'text-foreground/70 hover:text-primary hover:bg-muted'
+      }`;
+    case "bold":
+      return `${baseClasses} ${
+        isActive 
+          ? 'text-primary font-bold' 
+          : 'text-foreground/70 hover:text-primary font-medium'
+      }`;
+    default:
+      return baseClasses;
+  }
 }
 
 export function PublicHeader({ 
@@ -28,6 +69,8 @@ export function PublicHeader({
   variant = "default"
 }: PublicHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
+  const menuActiveStyle = templateClasses.menuActiveStyle || "underline";
+  const isHome = !currentTag;
 
   const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
@@ -76,7 +119,7 @@ export function PublicHeader({
       className={`${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''} border-b bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80`}
     >
       <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6`}>
-        <div className={`flex items-center justify-between gap-4 ${variant === "compact" ? "h-14" : "py-4"}`}>
+        <div className={`flex items-center justify-between gap-6 ${variant === "compact" ? "h-14" : "py-4"}`}>
           <motion.div 
             className="flex items-center gap-3 sm:gap-4"
             initial={prefersReducedMotion ? false : "hidden"}
@@ -87,8 +130,10 @@ export function PublicHeader({
               <MobileNav 
                 tags={topTags} 
                 onTagClick={onTagClick} 
+                onHomeClick={onLogoClick}
                 siteTitle={site.title}
                 currentTag={currentTag}
+                menuActiveStyle={menuActiveStyle}
               />
             )}
             {site.logoUrl && (
@@ -119,40 +164,48 @@ export function PublicHeader({
             )}
           </motion.div>
 
-          {hasTags && (
-            <motion.nav 
-              className="hidden md:flex items-center"
-              initial={prefersReducedMotion ? false : "hidden"}
-              animate={prefersReducedMotion ? false : "visible"}
-              variants={containerAnimation}
-              data-testid="nav-main"
-            >
-              <div className="flex items-center gap-1">
-                {topTags.slice(0, templateClasses.maxNavItems).map((tag) => {
-                  const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
-                  return (
-                    <motion.button
-                      key={tag}
-                      variants={itemAnimation}
-                      onClick={() => onTagClick(tag)}
-                      className={`px-3 py-2 text-sm rounded-md transition-all duration-200 whitespace-nowrap ${
-                        isActive 
-                          ? 'bg-primary/10 text-primary font-medium' 
-                          : 'text-foreground/70 hover:text-primary hover:bg-primary/5'
-                      }`}
-                      style={isActive ? { color: 'hsl(var(--primary))' } : undefined}
-                      data-testid={`link-tag-${tag}`}
-                      data-active={isActive}
-                      whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
-                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                    >
-                      {tag}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.nav>
-          )}
+          <motion.nav 
+            className="hidden md:flex items-center"
+            initial={prefersReducedMotion ? false : "hidden"}
+            animate={prefersReducedMotion ? false : "visible"}
+            variants={containerAnimation}
+            data-testid="nav-main"
+          >
+            <div className="flex items-center gap-1">
+              <motion.button
+                variants={itemAnimation}
+                onClick={onLogoClick}
+                className={getMenuItemClasses(isHome, true, menuActiveStyle)}
+                data-testid="link-home"
+                data-active={isHome}
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Home className="h-4 w-4" />
+                  HOME
+                </span>
+              </motion.button>
+              
+              {hasTags && topTags.slice(0, templateClasses.maxNavItems - 1).map((tag) => {
+                const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
+                return (
+                  <motion.button
+                    key={tag}
+                    variants={itemAnimation}
+                    onClick={() => onTagClick(tag)}
+                    className={getMenuItemClasses(isActive, false, menuActiveStyle)}
+                    data-testid={`link-tag-${tag}`}
+                    data-active={isActive}
+                    whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  >
+                    {tag.toUpperCase()}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.nav>
         </div>
       </div>
     </motion.header>
