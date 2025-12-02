@@ -39,8 +39,11 @@ const cardStyles: Record<string, string> = {
   borderless: "border-0 shadow-none",
 };
 
-function hexToHsl(hex: string): string {
+function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+  if (!hex || typeof hex !== 'string') return null;
   hex = hex.replace(/^#/, '');
+  if (!/^[0-9A-Fa-f]{6}$/.test(hex)) return null;
+
   const r = parseInt(hex.substring(0, 2), 16) / 255;
   const g = parseInt(hex.substring(2, 4), 16) / 255;
   const b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -60,14 +63,24 @@ function hexToHsl(hex: string): string {
     }
   }
 
-  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
 }
 
-function adjustLightness(hsl: string, amount: number): string {
-  const [h, s, l] = hsl.split(' ');
-  const lVal = parseFloat(l);
-  const newL = Math.max(0, Math.min(100, lVal + amount));
-  return `${h} ${s} ${newL}%`;
+function hslToString(hsl: { h: number; s: number; l: number }): string {
+  return `${hsl.h} ${hsl.s}% ${hsl.l}%`;
+}
+
+function adjustLightness(hsl: { h: number; s: number; l: number }, amount: number): string {
+  const newL = Math.max(0, Math.min(100, hsl.l + amount));
+  return `${hsl.h} ${hsl.s}% ${newL}%`;
+}
+
+function getContrastForeground(hsl: { h: number; s: number; l: number }): string {
+  return hsl.l > 50 ? "0 0% 12%" : "0 0% 98%";
 }
 
 export function PublicThemeProvider({ settings, children }: PublicThemeProviderProps) {
@@ -78,6 +91,21 @@ export function PublicThemeProvider({ settings, children }: PublicThemeProviderP
   useEffect(() => {
     const root = document.documentElement;
     const style = root.style;
+
+    const cleanup = () => {
+      appliedVars.current.forEach(prop => {
+        const original = originalValues.current.get(prop);
+        if (original !== undefined) {
+          if (original) {
+            style.setProperty(prop, original);
+          } else {
+            style.removeProperty(prop);
+          }
+        }
+      });
+      originalValues.current.clear();
+      appliedVars.current = [];
+    };
 
     const saveAndSet = (prop: string, value: string) => {
       if (!originalValues.current.has(prop)) {
@@ -94,48 +122,77 @@ export function PublicThemeProvider({ settings, children }: PublicThemeProviderP
     const primaryHsl = hexToHsl(s.primaryColor);
     const secondaryHsl = hexToHsl(s.secondaryColor);
 
-    saveAndSet('--background', bgHsl);
-    saveAndSet('--foreground', textHsl);
-    saveAndSet('--card', adjustLightness(bgHsl, -2));
-    saveAndSet('--card-foreground', textHsl);
-    saveAndSet('--primary', primaryHsl);
-    saveAndSet('--primary-foreground', '0 0% 98%');
-    saveAndSet('--secondary', secondaryHsl);
-    saveAndSet('--secondary-foreground', '0 0% 98%');
-    saveAndSet('--muted', adjustLightness(bgHsl, -8));
-    saveAndSet('--muted-foreground', adjustLightness(textHsl, 30));
-    saveAndSet('--accent', adjustLightness(primaryHsl, 35));
-    saveAndSet('--accent-foreground', textHsl);
-    saveAndSet('--border', adjustLightness(bgHsl, -12));
-    saveAndSet('--popover', adjustLightness(bgHsl, -4));
-    saveAndSet('--popover-foreground', textHsl);
+    if (!bgHsl || !textHsl || !primaryHsl || !secondaryHsl) {
+      return cleanup;
+    }
 
-    saveAndSet('--public-heading-font', fontFamilies[s.headingFont] || fontFamilies.modern);
-    saveAndSet('--public-body-font', fontFamilies[s.bodyFont] || fontFamilies.modern);
-    saveAndSet('--public-font-base', fontScales[s.fontScale]?.base || fontScales.normal.base);
-    saveAndSet('--public-font-heading', fontScales[s.fontScale]?.heading || fontScales.normal.heading);
-    saveAndSet('--public-font-hero', fontScales[s.fontScale]?.hero || fontScales.normal.hero);
+    const isLight = bgHsl.l > 50;
+    const adjust = (amount: number) => isLight ? -amount : amount;
 
-    return () => {
-      appliedVars.current.forEach(prop => {
-        const original = originalValues.current.get(prop);
-        if (original !== undefined) {
-          if (original) {
-            style.setProperty(prop, original);
-          } else {
-            style.removeProperty(prop);
-          }
-        }
-      });
-      originalValues.current.clear();
-      appliedVars.current = [];
-    };
+    saveAndSet('--background', hslToString(bgHsl));
+    saveAndSet('--foreground', hslToString(textHsl));
+
+    saveAndSet('--card', adjustLightness(bgHsl, adjust(4)));
+    saveAndSet('--card-foreground', hslToString(textHsl));
+    saveAndSet('--card-border', adjustLightness(bgHsl, adjust(12)));
+
+    saveAndSet('--popover', adjustLightness(bgHsl, adjust(6)));
+    saveAndSet('--popover-foreground', hslToString(textHsl));
+    saveAndSet('--popover-border', adjustLightness(bgHsl, adjust(14)));
+
+    saveAndSet('--primary', hslToString(primaryHsl));
+    saveAndSet('--primary-foreground', getContrastForeground(primaryHsl));
+    saveAndSet('--primary-border', adjustLightness(primaryHsl, -10));
+
+    saveAndSet('--secondary', hslToString(secondaryHsl));
+    saveAndSet('--secondary-foreground', getContrastForeground(secondaryHsl));
+
+    saveAndSet('--muted', adjustLightness(bgHsl, adjust(10)));
+    saveAndSet('--muted-foreground', adjustLightness(textHsl, isLight ? 30 : -30));
+
+    const accentL = primaryHsl.l > 50 ? -10 : 30;
+    saveAndSet('--accent', adjustLightness(primaryHsl, accentL));
+    saveAndSet('--accent-foreground', getContrastForeground(primaryHsl));
+    saveAndSet('--accent-border', adjustLightness(primaryHsl, accentL - 10));
+
+    saveAndSet('--border', adjustLightness(bgHsl, adjust(12)));
+    saveAndSet('--input', adjustLightness(bgHsl, adjust(20)));
+    saveAndSet('--ring', hslToString(primaryHsl));
+
+    saveAndSet('--destructive', '0 84% 42%');
+    saveAndSet('--destructive-foreground', '0 0% 98%');
+
+    saveAndSet('--sidebar', adjustLightness(bgHsl, adjust(6)));
+    saveAndSet('--sidebar-foreground', hslToString(textHsl));
+    saveAndSet('--sidebar-border', adjustLightness(bgHsl, adjust(12)));
+    saveAndSet('--sidebar-primary', hslToString(primaryHsl));
+    saveAndSet('--sidebar-primary-foreground', getContrastForeground(primaryHsl));
+    saveAndSet('--sidebar-accent', adjustLightness(primaryHsl, 30));
+    saveAndSet('--sidebar-accent-foreground', getContrastForeground(primaryHsl));
+    saveAndSet('--sidebar-ring', hslToString(primaryHsl));
+
+    saveAndSet('--font-sans', fontFamilies[s.bodyFont] || fontFamilies.modern);
+
+    return cleanup;
   }, [s.backgroundColor, s.textColor, s.primaryColor, s.secondaryColor, s.headingFont, s.bodyFont, s.fontScale]);
 
+  const headingFont = fontFamilies[s.headingFont] || fontFamilies.modern;
   const bodyFont = fontFamilies[s.bodyFont] || fontFamilies.modern;
+  const fontSize = fontScales[s.fontScale]?.base || fontScales.normal.base;
 
   return (
-    <div style={{ fontFamily: bodyFont }} className="public-theme">
+    <div
+      style={{
+        fontFamily: bodyFont,
+        fontSize,
+        '--public-heading-font': headingFont,
+        '--public-body-font': bodyFont,
+        '--public-font-base': fontSize,
+        '--public-font-heading': fontScales[s.fontScale]?.heading || fontScales.normal.heading,
+        '--public-font-hero': fontScales[s.fontScale]?.hero || fontScales.normal.hero,
+      } as React.CSSProperties}
+      className="public-theme"
+    >
       {children}
     </div>
   );
