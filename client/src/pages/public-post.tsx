@@ -10,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicPostProps {
   site: Site;
@@ -31,6 +32,10 @@ export function PublicPost({ site }: PublicPostProps) {
 
   const { data: allPosts } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
+  });
+
+  const { data: topTags } = useQuery<string[]>({
+    queryKey: ["/api/public/sites", site.id, "top-tags"],
   });
 
   const handleTagClick = (tag: string) => {
@@ -101,7 +106,12 @@ export function PublicPost({ site }: PublicPostProps) {
           <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-3`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" onClick={handleBack} data-testid="button-back">
+                <MobileNav 
+                  tags={topTags || []} 
+                  onTagClick={handleTagClick} 
+                  siteTitle={site.title} 
+                />
+                <Button variant="ghost" size="icon" onClick={handleBack} className="hidden md:flex" data-testid="button-back">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 {site.logoUrl && (
@@ -109,7 +119,8 @@ export function PublicPost({ site }: PublicPostProps) {
                     src={site.logoUrl}
                     alt={`${site.title} logo`}
                     style={templateClasses.logoSize.style}
-                    className="object-cover rounded"
+                    className="object-cover rounded cursor-pointer"
+                    onClick={handleBack}
                     data-testid="img-site-logo"
                   />
                 )}
@@ -123,10 +134,10 @@ export function PublicPost({ site }: PublicPostProps) {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" data-testid="button-share">
+                <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-share">
                   <Share2 className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" data-testid="button-bookmark">
+                <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-bookmark">
                   <Bookmark className="h-4 w-4" />
                 </Button>
               </div>

@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Tag, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -15,51 +17,71 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
   const { tag } = useParams();
   const [, setLocation] = useLocation();
   const decodedTag = decodeURIComponent(tag || "");
+  const templateClasses = useTemplateClasses(site.templateSettings);
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts-by-tag", decodedTag],
+  });
+
+  const { data: topTags } = useQuery<string[]>({
+    queryKey: ["/api/public/sites", site.id, "top-tags"],
   });
 
   const handlePostClick = (slug: string) => {
     setLocation(`/post/${slug}`);
   };
 
+  const handleTagClick = (tagName: string) => {
+    setLocation(`/tag/${encodeURIComponent(tagName)}`);
+  };
+
   const handleBack = () => {
     setLocation("/");
   };
 
-  const isBlog = site.siteType === "blog";
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack} data-testid="button-back">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            {site.logoUrl && (
-              <img
-                src={site.logoUrl}
-                alt={`${site.title} logo`}
-                className="h-8 w-8 object-cover rounded"
-                data-testid="img-site-logo"
+    <PublicThemeProvider settings={site.templateSettings}>
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Header */}
+        <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 sticky top-0 z-50">
+          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-4`}>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <MobileNav 
+                tags={topTags || []} 
+                onTagClick={handleTagClick} 
+                siteTitle={site.title} 
               />
-            )}
-            <h1 className={`text-xl font-semibold ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-site-title">
-              {site.title}
-            </h1>
+              <Button variant="ghost" size="icon" onClick={handleBack} className="hidden md:flex" data-testid="button-back">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              {site.logoUrl && (
+                <img
+                  src={site.logoUrl}
+                  alt={`${site.title} logo`}
+                  style={templateClasses.logoSize.style}
+                  className="object-cover rounded cursor-pointer"
+                  onClick={handleBack}
+                  data-testid="img-site-logo"
+                />
+              )}
+              <h1 
+                className="text-lg sm:text-xl font-semibold cursor-pointer" 
+                style={{ fontFamily: "var(--public-heading-font)" }}
+                onClick={handleBack}
+                data-testid="text-site-title"
+              >
+                {site.title}
+              </h1>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-3">
             <Tag className="h-6 w-6 text-primary" />
-            <h1 className={`text-3xl md:text-4xl font-bold ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-tag-name">
+            <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-tag-name">
               {decodedTag}
             </h1>
           </div>
@@ -95,7 +117,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
                       </Badge>
                     ))}
                   </div>
-                  <h3 className={`text-lg font-semibold mb-2 line-clamp-2 ${isBlog ? "font-blog" : "font-news"}`} data-testid={`text-post-title-${post.id}`}>
+                  <h3 className="text-lg font-semibold mb-2 line-clamp-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
                     {post.title}
                   </h3>
                   <p className="text-muted-foreground text-sm line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
@@ -115,7 +137,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
         ) : (
           <div className="text-center py-24">
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />
-            <h2 className={`text-2xl font-semibold mb-2 ${isBlog ? "font-blog" : "font-news"}`} data-testid="text-no-posts-title">
+            <h2 className="text-2xl font-semibold mb-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-no-posts-title">
               No posts found
             </h2>
             <p className="text-muted-foreground mb-4" data-testid="text-no-posts-message">
@@ -132,6 +154,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
           <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
         </div>
       </footer>
-    </div>
+      </div>
+    </PublicThemeProvider>
   );
 }
