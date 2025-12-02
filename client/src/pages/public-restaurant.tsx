@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, UtensilsCrossed, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicRestaurantProps {
   site: Site;
@@ -39,9 +40,14 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
       <SeoHead site={site} />
       <div className="min-h-screen bg-background text-foreground">
         <header className={`bg-card border-b ${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''}`}>
-          <div className={`${templateClasses.contentWidth} mx-auto px-6 py-6`}>
+          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-4 sm:py-6`}>
             <div className="flex items-center justify-between mb-4 gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <MobileNav 
+                  tags={topTags || []} 
+                  onTagClick={handleTagClick} 
+                  siteTitle={site.title} 
+                />
                 {site.logoUrl && (
                   <img
                     src={site.logoUrl}
@@ -52,10 +58,10 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                 )}
                 {(!templateClasses.hideLogoText || !site.logoUrl) && (
                   <div>
-                    <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                    <h1 className="text-2xl sm:text-3xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
                       {site.title}
                     </h1>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                    <p className="text-sm text-muted-foreground items-center gap-2 mt-1 hidden sm:flex">
                       <UtensilsCrossed className="h-4 w-4" />
                       Food & Dining News
                     </p>
@@ -63,7 +69,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                 )}
               </div>
             </div>
-            <nav className="flex items-center gap-4 overflow-x-auto pb-2" data-testid="nav-main">
+            <nav className="hidden md:flex items-center gap-4 overflow-x-auto pb-2" data-testid="nav-main">
               {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (
                 <button
                   key={tag}
@@ -78,42 +84,42 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
           </div>
         </header>
 
-        <main className={`${templateClasses.contentWidth} mx-auto px-6 py-10`}>
+        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-10`}>
           {isLoading ? (
-            <div className="space-y-8">
-              <div className="h-[450px] bg-muted animate-pulse rounded-xl" />
-              <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="h-[300px] sm:h-[450px] bg-muted animate-pulse rounded-xl" />
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-80 bg-muted animate-pulse rounded-xl" />
+                  <div key={i} className="h-60 sm:h-80 bg-muted animate-pulse rounded-xl" />
                 ))}
               </div>
             </div>
           ) : featuredPost && templateClasses.showHero ? (
             <>
-              <div className="mb-10">
+              <div className="mb-8 sm:mb-10">
                 <Card
                   className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle}`}
                   onClick={() => handlePostClick(featuredPost.slug)}
                   data-testid={`card-featured-post-${featuredPost.id}`}
                 >
-                  <div className="aspect-[21/9] bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950">
+                  <div className="aspect-[16/9] md:aspect-[21/9] bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950">
                     {featuredPost.imageUrl && <img src={featuredPost.imageUrl} alt={featuredPost.title} className="w-full h-full object-cover" />}
                   </div>
-                  <CardContent className="p-8">
-                    <div className="flex gap-2 mb-4">
+                  <CardContent className="p-5 sm:p-8">
+                    <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                       {featuredPost.tags.slice(0, 3).map((tag, index) => (
-                        <Badge key={tag} className="bg-orange-500 text-white hover:bg-orange-600" data-testid={`badge-featured-tag-${index}`}>
+                        <Badge key={tag} className="bg-orange-500 text-white hover:bg-orange-600 text-xs" data-testid={`badge-featured-tag-${index}`}>
                           {tag}
                         </Badge>
                       ))}
                     </div>
-                    <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-featured-title-${featuredPost.id}`}>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 line-clamp-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-featured-title-${featuredPost.id}`}>
                       {featuredPost.title}
                     </h2>
-                    <p className="text-lg text-muted-foreground mb-4 line-clamp-2" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
+                    <p className="text-sm sm:text-lg text-muted-foreground mb-3 sm:mb-4 line-clamp-2" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
                       {featuredPost.content.substring(0, 200)}...
                     </p>
-                    <p className="text-sm text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
+                    <p className="text-xs sm:text-sm text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
                       {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {
                         month: "long",
                         day: "numeric",
@@ -126,10 +132,10 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
 
               {latestPosts.length > 0 && (
                 <div>
-                  <h3 className="text-2xl font-bold mb-6" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-latest-title">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-latest-title">
                     Latest News
                   </h3>
-                  <div className="grid gap-6 md:grid-cols-3">
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                     {latestPosts.map((post) => (
                       <Card
                         key={post.id}

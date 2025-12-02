@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicNewsProps {
   site: Site;
@@ -40,9 +41,14 @@ export function PublicNews({ site }: PublicNewsProps) {
       <SeoHead site={site} />
       <div className="min-h-screen bg-background text-foreground">
         <header className={`border-b bg-card ${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''}`}>
-          <div className={`${templateClasses.contentWidth} mx-auto px-6 py-3`}>
+          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-3`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
+                <MobileNav 
+                  tags={topTags || []} 
+                  onTagClick={handleTagClick} 
+                  siteTitle={site.title} 
+                />
                 {site.logoUrl && (
                   <img
                     src={site.logoUrl}
@@ -53,8 +59,8 @@ export function PublicNews({ site }: PublicNewsProps) {
                 )}
                 {(!templateClasses.hideLogoText || !site.logoUrl) && (
                   <div>
-                    <h1 className="text-xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
-                    <p className="text-xs text-muted-foreground" data-testid="text-site-tagline">Breaking News & Updates</p>
+                    <h1 className="text-lg sm:text-xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+                    <p className="text-xs text-muted-foreground hidden sm:block" data-testid="text-site-tagline">Breaking News & Updates</p>
                   </div>
                 )}
               </div>
@@ -74,18 +80,18 @@ export function PublicNews({ site }: PublicNewsProps) {
           </div>
         </header>
 
-        <main className={`${templateClasses.contentWidth} mx-auto px-6 py-8`}>
+        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-6 sm:py-8`}>
           {isLoading ? (
             <div className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="h-80 bg-muted animate-pulse rounded" />
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <div className="h-60 sm:h-80 bg-muted animate-pulse rounded" />
                 <div className="grid gap-4 grid-cols-2">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-36 bg-muted animate-pulse rounded" />
+                    <div key={i} className="h-32 sm:h-36 bg-muted animate-pulse rounded" />
                   ))}
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="h-48 bg-muted animate-pulse rounded" />
                 ))}
@@ -93,7 +99,7 @@ export function PublicNews({ site }: PublicNewsProps) {
             </div>
           ) : featuredPost && templateClasses.showHero ? (
             <>
-              <div className="grid gap-4 md:grid-cols-2 mb-8">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 mb-6 sm:mb-8">
                 <Card
                   className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle}`}
                   onClick={() => handlePostClick(featuredPost.slug)}
@@ -102,18 +108,18 @@ export function PublicNews({ site }: PublicNewsProps) {
                   <div className="aspect-video bg-muted">
                     {featuredPost.imageUrl && <img src={featuredPost.imageUrl} alt={featuredPost.title} className="w-full h-full object-cover" />}
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex gap-2 mb-3">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
                       {featuredPost.tags.slice(0, 2).map((tag, index) => (
                         <Badge key={tag} className="text-xs" data-testid={`badge-featured-tag-${index}`}>
                           {tag.toUpperCase()}
                         </Badge>
                       ))}
                     </div>
-                    <h2 className="text-2xl font-bold mb-3 hover:underline" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-featured-title-${featuredPost.id}`}>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 hover:underline line-clamp-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-featured-title-${featuredPost.id}`}>
                       {featuredPost.title}
                     </h2>
-                    <p className="text-muted-foreground mb-3 line-clamp-3" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
+                    <p className="text-muted-foreground mb-2 sm:mb-3 line-clamp-2 sm:line-clamp-3 text-sm" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
                       {featuredPost.content.substring(0, 200)}...
                     </p>
                     <p className="text-xs text-muted-foreground" data-testid={`text-featured-date-${featuredPost.id}`}>
@@ -128,7 +134,7 @@ export function PublicNews({ site }: PublicNewsProps) {
                   </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {secondaryPosts.map((post) => (
                     <Card
                       key={post.id}
@@ -154,8 +160,8 @@ export function PublicNews({ site }: PublicNewsProps) {
 
               {latestPosts.length > 0 && (
                 <div>
-                  <h3 className="text-xl font-bold mb-4 pb-2 border-b" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-latest-news-title">LATEST NEWS</h3>
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 pb-2 border-b" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-latest-news-title">LATEST NEWS</h3>
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                     {latestPosts.map((post) => (
                       <Card
                         key={post.id}

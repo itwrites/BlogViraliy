@@ -143,6 +143,15 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **Mobile-responsive layouts with hamburger navigation**
+  - Created reusable MobileNav component with hamburger menu (client/src/components/mobile-nav.tsx)
+  - Added MobileNav to all 6 layout templates for mobile-first navigation
+  - Updated all layouts with responsive padding (px-4 sm:px-6)
+  - Added responsive font sizes throughout (text-xl sm:text-2xl md:text-3xl pattern)
+  - Improved hero section heights on mobile (h-[300px] sm:h-[400px] md:h-[500px])
+  - Added responsive grid layouts (grid-cols-1 sm:grid-cols-2 md:grid-cols-3)
+  - Hidden desktop navigation on mobile (hidden md:flex)
+  - Improved card padding and spacing for mobile devices
 - 2025-12-02: **Bulk keyword generation and sitemap**
   - Added keywordBatches and keywordJobs tables for bulk generation tracking
   - Created background worker to process keyword batches (runs every minute)

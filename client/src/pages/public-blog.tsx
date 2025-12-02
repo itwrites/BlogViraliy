@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicBlogProps {
   site: Site;
@@ -40,9 +41,14 @@ export function PublicBlog({ site }: PublicBlogProps) {
       <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
         <header className={`${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''} border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80`}>
-          <div className={`${templateClasses.contentWidth} mx-auto px-6 py-4`}>
+          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-4`}>
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <MobileNav 
+                  tags={topTags || []} 
+                  onTagClick={handleTagClick} 
+                  siteTitle={site.title} 
+                />
                 {site.logoUrl && (
                   <img
                     src={site.logoUrl}
@@ -52,7 +58,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                   />
                 )}
                 {(!templateClasses.hideLogoText || !site.logoUrl) && (
-                  <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+                  <h1 className="text-xl sm:text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
                 )}
               </div>
               <nav className="hidden md:flex items-center gap-1 overflow-x-auto" data-testid="nav-main">
@@ -71,11 +77,11 @@ export function PublicBlog({ site }: PublicBlogProps) {
           </div>
         </header>
 
-        <main className={`${templateClasses.contentWidth} mx-auto px-6 py-12`}>
+        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-12`}>
           {isLoading ? (
             <div className="space-y-8">
-              <div className="h-[500px] bg-muted animate-pulse rounded-lg" />
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="h-[300px] sm:h-[500px] bg-muted animate-pulse rounded-lg" />
+              <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
                 ))}
@@ -85,7 +91,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
           <>
             {/* Featured Post Hero */}
             <div
-              className="relative h-[500px] rounded-lg overflow-hidden mb-12 cursor-pointer group"
+              className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-lg overflow-hidden mb-8 sm:mb-12 cursor-pointer group"
               onClick={() => handlePostClick(featuredPost.slug)}
               data-testid={`card-featured-post-${featuredPost.id}`}
             >
@@ -95,22 +101,22 @@ export function PublicBlog({ site }: PublicBlogProps) {
                 <div className="absolute inset-0 bg-muted" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-10" />
-              <div className="absolute inset-0 flex items-end p-12 z-20">
+              <div className="absolute inset-0 flex items-end p-6 sm:p-8 md:p-12 z-20">
                 <div className="max-w-3xl">
-                  <div className="flex gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                     {featuredPost.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={tag} variant="secondary" className="bg-background/90" data-testid={`badge-featured-tag-${index}`}>
+                      <Badge key={tag} variant="secondary" className="bg-background/90 text-xs sm:text-sm" data-testid={`badge-featured-tag-${index}`}>
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  <h2 className="text-5xl font-blog font-bold text-white mb-4 group-hover:underline" data-testid={`text-featured-title-${featuredPost.id}`}>
+                  <h2 className="text-2xl sm:text-3xl md:text-5xl font-blog font-bold text-white mb-2 sm:mb-4 group-hover:underline line-clamp-3" data-testid={`text-featured-title-${featuredPost.id}`}>
                     {featuredPost.title}
                   </h2>
-                  <p className="text-lg text-white/90" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
+                  <p className="text-sm sm:text-lg text-white/90 line-clamp-2 hidden sm:block" data-testid={`text-featured-excerpt-${featuredPost.id}`}>
                     {featuredPost.content.substring(0, 200)}...
                   </p>
-                  <p className="text-sm text-white/70 mt-4" data-testid={`text-featured-date-${featuredPost.id}`}>
+                  <p className="text-xs sm:text-sm text-white/70 mt-2 sm:mt-4" data-testid={`text-featured-date-${featuredPost.id}`}>
                     {new Date(featuredPost.createdAt).toLocaleDateString("en-US", {
                       month: "long",
                       day: "numeric",
@@ -124,8 +130,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
             {/* Recent Posts Grid */}
             {recentPosts.length > 0 && (
               <div>
-                <h3 className="text-2xl font-blog font-semibold mb-6" data-testid="text-recent-posts-title">Recent Posts</h3>
-                <div className="grid gap-8 md:grid-cols-2">
+                <h3 className="text-xl sm:text-2xl font-blog font-semibold mb-4 sm:mb-6" data-testid="text-recent-posts-title">Recent Posts</h3>
+                <div className="grid gap-4 sm:gap-8 grid-cols-1 sm:grid-cols-2">
                   {recentPosts.map((post) => (
                     <Card
                       key={post.id}
@@ -136,18 +142,18 @@ export function PublicBlog({ site }: PublicBlogProps) {
                       <div className="aspect-video bg-muted">
                         {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />}
                       </div>
-                      <CardContent className="p-6">
-                        <div className="flex gap-2 mb-3">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
                           {post.tags.slice(0, 2).map((tag, index) => (
                             <Badge key={tag} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
                               {tag}
                             </Badge>
                           ))}
                         </div>
-                        <h3 className="text-xl font-blog font-semibold mb-2 line-clamp-2 group-hover:underline" data-testid={`text-post-title-${post.id}`}>
+                        <h3 className="text-lg sm:text-xl font-blog font-semibold mb-2 line-clamp-2 group-hover:underline" data-testid={`text-post-title-${post.id}`}>
                           {post.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-3" data-testid={`text-post-excerpt-${post.id}`}>
+                        <p className="text-muted-foreground text-sm line-clamp-2 mb-2 sm:mb-3" data-testid={`text-post-excerpt-${post.id}`}>
                           {post.content.substring(0, 150)}...
                         </p>
                         <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>

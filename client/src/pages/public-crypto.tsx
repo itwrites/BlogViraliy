@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, TrendingUp, Zap, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface PublicCryptoProps {
   site: Site;
@@ -40,9 +41,14 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
       <SeoHead site={site} />
       <div className="min-h-screen bg-background text-foreground">
         <header className={`bg-card border-b ${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''}`}>
-          <div className={`${templateClasses.contentWidth} mx-auto px-6 py-4`}>
+          <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-4`}>
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <MobileNav 
+                  tags={topTags || []} 
+                  onTagClick={handleTagClick} 
+                  siteTitle={site.title} 
+                />
                 {site.logoUrl && (
                   <img
                     src={site.logoUrl}
@@ -52,7 +58,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                   />
                 )}
                 {(!templateClasses.hideLogoText || !site.logoUrl) && (
-                  <h1 className="text-2xl font-bold tracking-tight font-mono" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight font-mono" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">
                     {site.title}
                   </h1>
                 )}
@@ -62,7 +68,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                 </Badge>
               </div>
             </div>
-            <nav className="flex items-center gap-2 mt-4 overflow-x-auto" data-testid="nav-main">
+            <nav className="hidden md:flex items-center gap-2 mt-4 overflow-x-auto" data-testid="nav-main">
               {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (
                 <button
                   key={tag}
@@ -77,22 +83,22 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
           </div>
         </header>
 
-        <main className={`${templateClasses.contentWidth} mx-auto px-6 py-8`}>
+        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-6 sm:py-8`}>
           {isLoading ? (
             <div className="space-y-6">
-              <div className="h-[300px] bg-muted animate-pulse rounded" />
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="h-[250px] sm:h-[300px] bg-muted animate-pulse rounded" />
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-48 bg-muted animate-pulse rounded" />
+                  <div key={i} className="h-40 sm:h-48 bg-muted animate-pulse rounded" />
                 ))}
               </div>
             </div>
           ) : breakingPost && templateClasses.showHero ? (
             <>
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-bold font-mono uppercase tracking-wide" data-testid="text-breaking-title">
+              <div className="mb-6 sm:mb-8">
+                <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  <h2 className="text-base sm:text-lg font-bold font-mono uppercase tracking-wide" data-testid="text-breaking-title">
                     Breaking News
                   </h2>
                 </div>
@@ -101,20 +107,20 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                   onClick={() => handlePostClick(breakingPost.slug)}
                   data-testid={`card-breaking-post-${breakingPost.id}`}
                 >
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div className="md:col-span-2 flex flex-col">
-                        <div className="flex gap-2 mb-3">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                      <div className="md:col-span-2 flex flex-col order-2 md:order-1">
+                        <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
                           {breakingPost.tags.slice(0, 3).map((tag, index) => (
                             <Badge key={tag} variant="outline" className="text-xs font-mono uppercase border-primary text-primary" data-testid={`badge-breaking-tag-${index}`}>
                               {tag}
                             </Badge>
                           ))}
                         </div>
-                        <h3 className="text-3xl font-bold mb-3 font-mono" data-testid={`text-breaking-post-title-${breakingPost.id}`}>
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 font-mono line-clamp-2" data-testid={`text-breaking-post-title-${breakingPost.id}`}>
                           {breakingPost.title}
                         </h3>
-                        <p className="text-muted-foreground mb-4 line-clamp-2" data-testid={`text-breaking-excerpt-${breakingPost.id}`}>
+                        <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 text-sm" data-testid={`text-breaking-excerpt-${breakingPost.id}`}>
                           {breakingPost.content.substring(0, 180)}...
                         </p>
                         <p className="text-xs text-muted-foreground font-mono" data-testid={`text-breaking-date-${breakingPost.id}`}>
@@ -127,7 +133,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                           })}
                         </p>
                       </div>
-                      <div className="aspect-video md:aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 rounded">
+                      <div className="aspect-video md:aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 rounded order-1 md:order-2">
                         {breakingPost.imageUrl && <img src={breakingPost.imageUrl} alt={breakingPost.title} className="w-full h-full object-cover rounded" />}
                       </div>
                     </div>
@@ -136,11 +142,11 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
               </div>
 
               {trendingPosts.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-lg font-bold font-mono uppercase tracking-wide mb-4" data-testid="text-trending-title">
+                <div className="mb-6 sm:mb-8">
+                  <h3 className="text-base sm:text-lg font-bold font-mono uppercase tracking-wide mb-3 sm:mb-4" data-testid="text-trending-title">
                     Trending Now
                   </h3>
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                     {trendingPosts.map((post, index) => (
                       <Card
                         key={post.id}
