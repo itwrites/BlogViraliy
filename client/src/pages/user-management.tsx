@@ -39,7 +39,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, ArrowLeft, Users, Globe, UserPlus } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowLeft, Users, Globe, UserPlus, Shield } from "lucide-react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -241,8 +242,13 @@ export default function UserManagement() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
+      >
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -252,17 +258,22 @@ export default function UserManagement() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground" data-testid="text-page-title">User Management</h1>
-              <p className="text-sm text-muted-foreground">Manage admin users and their site permissions</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <Shield className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">User Management</h1>
+                <p className="text-xs text-muted-foreground">Manage users and permissions</p>
+              </div>
             </div>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} data-testid="button-add-user">
+          <Button size="sm" onClick={() => setShowCreateDialog(true)} data-testid="button-add-user">
             <Plus className="h-4 w-4 mr-2" />
             Add User
           </Button>
         </div>
-      </header>
+      </motion.header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Card>

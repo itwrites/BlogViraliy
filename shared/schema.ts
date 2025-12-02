@@ -41,7 +41,8 @@ export const userSites = pgTable("user_sites", {
 
 // Template Settings Type
 export const templateSettingsSchema = z.object({
-  logoSize: z.enum(["small", "medium", "large"]).default("medium"),
+  logoSize: z.enum(["small", "medium", "large", "custom"]).default("medium"),
+  logoSizeCustom: z.number().min(20).max(200).default(48),
   hideLogoText: z.boolean().default(false),
   primaryColor: z.string().default("#3b82f6"),
   secondaryColor: z.string().default("#8b5cf6"),
@@ -67,6 +68,7 @@ export type TemplateSettings = z.infer<typeof templateSettingsSchema>;
 
 export const defaultTemplateSettings: TemplateSettings = {
   logoSize: "medium",
+  logoSizeCustom: 48,
   hideLogoText: false,
   primaryColor: "#3b82f6",
   secondaryColor: "#8b5cf6",

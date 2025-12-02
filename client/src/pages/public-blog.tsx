@@ -54,7 +54,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
                   <img
                     src={site.logoUrl}
                     alt={`${site.title} logo`}
-                    className={`${templateClasses.logoSize} object-cover rounded`}
+                    style={templateClasses.logoSize.style}
+                    className="object-cover rounded"
                     data-testid="img-site-logo"
                   />
                 )}

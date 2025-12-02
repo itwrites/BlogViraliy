@@ -50,7 +50,8 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                   <img
                     src={site.logoUrl}
                     alt={`${site.title} logo`}
-                    className={`${templateClasses.logoSize} object-cover rounded-full`}
+                    style={templateClasses.logoSize.style}
+                    className="object-cover rounded-full"
                     data-testid="img-site-logo"
                   />
                 )}

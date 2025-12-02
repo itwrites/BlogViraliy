@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings } from "lucide-react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings } from "@shared/schema";
@@ -178,8 +179,13 @@ export default function SiteConfig() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
+      >
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -189,19 +195,26 @@ export default function SiteConfig() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground" data-testid="text-page-title">
-                {isNewSite ? "Add New Site" : `Edit ${site?.title}`}
-              </h1>
-              <p className="text-sm text-muted-foreground" data-testid="text-page-description">Configure your multi-tenant website</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <Settings className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">
+                  {isNewSite ? "Add New Site" : site?.title}
+                </h1>
+                <p className="text-xs text-muted-foreground" data-testid="text-page-description">
+                  {isNewSite ? "Create a new multi-tenant website" : "Site Configuration"}
+                </p>
+              </div>
             </div>
           </div>
-          <Button onClick={handleSave} data-testid="button-save">
+          <Button onClick={handleSave} size="sm" data-testid="button-save">
             <Save className="h-4 w-4 mr-2" />
-            Save Changes
+            Save
           </Button>
         </div>
-      </header>
+      </motion.header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
@@ -491,7 +504,7 @@ export default function SiteConfig() {
                       <Label htmlFor="logoSize" data-testid="label-logo-size">Logo Size</Label>
                       <Select
                         value={templateSettings.logoSize}
-                        onValueChange={(value: "small" | "medium" | "large") => 
+                        onValueChange={(value: "small" | "medium" | "large" | "custom") => 
                           setTemplateSettings({ ...templateSettings, logoSize: value })
                         }
                       >
@@ -499,11 +512,29 @@ export default function SiteConfig() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="small">Small</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="large">Large</SelectItem>
+                          <SelectItem value="small">Small (32px)</SelectItem>
+                          <SelectItem value="medium">Medium (48px)</SelectItem>
+                          <SelectItem value="large">Large (56px)</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
+                      {templateSettings.logoSize === "custom" && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Input
+                            type="number"
+                            min={20}
+                            max={200}
+                            value={templateSettings.logoSizeCustom || 48}
+                            onChange={(e) => setTemplateSettings({ 
+                              ...templateSettings, 
+                              logoSizeCustom: parseInt(e.target.value) || 48 
+                            })}
+                            className="w-20"
+                            data-testid="input-logo-size-custom"
+                          />
+                          <span className="text-sm text-muted-foreground">px</span>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="headerStyle" data-testid="label-header-style">Header Style</Label>

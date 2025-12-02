@@ -143,6 +143,15 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **macOS-inspired admin UI and enhanced post pages**
+  - Applied glassmorphism headers with backdrop blur to all admin pages (dashboard, site-config, user-management)
+  - Added Framer Motion animations for smooth page transitions and card staggering
+  - Implemented gradient icon badges in headers for visual consistency
+  - Enhanced public post page with sidebar (Latest Posts, Explore Topics sections)
+  - Increased related posts from 3 to 6 with excerpts
+  - Added custom logo size option (20-200px) in template settings
+  - Updated all 6 layout templates to use style-based logo sizing
+  - Consistent iOS-style shadows and rounded corners throughout admin
 - 2025-12-02: **Clean post excerpts with markdown stripping**
   - Created stripMarkdown utility function (client/src/lib/strip-markdown.ts)
   - Strips headers, bold, italic, links, images, code blocks, blockquotes, and list markers

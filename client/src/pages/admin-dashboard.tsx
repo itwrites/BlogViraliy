@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit, Globe, Users, LogOut } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Edit, Globe, Users, LogOut, Settings, ChevronRight, LayoutGrid } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,6 +21,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06
+    }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
+
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -26,7 +43,6 @@ export default function AdminDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       setLocation("/");
@@ -79,142 +95,191 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground" data-testid="text-app-title">ChameleonWeb</h1>
-            <p className="text-sm text-muted-foreground" data-testid="text-app-subtitle">Multi-Domain Content Platform</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="text-sm text-muted-foreground" data-testid="text-user-info">
-                Logged in as <span className="font-medium text-foreground">{user.username}</span>
-                {isAdmin && <span className="ml-1 text-primary">(Admin)</span>}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
+      >
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <LayoutGrid className="w-5 h-5 text-primary-foreground" />
               </div>
-            )}
-            {isAdmin && (
+              <div>
+                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-app-title">ChameleonWeb</h1>
+                <p className="text-xs text-muted-foreground" data-testid="text-app-subtitle">Admin Dashboard</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {user && (
+                <span className="text-sm text-muted-foreground hidden md:block">
+                  {user.username}
+                  {isAdmin && <Badge variant="secondary" className="ml-2 text-xs">Admin</Badge>}
+                </span>
+              )}
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/admin/users")}
+                  className="gap-2"
+                  data-testid="button-manage-users"
+                >
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Users</span>
+                </Button>
+              )}
               <Button
-                variant="outline"
-                onClick={() => setLocation("/admin/users")}
-                data-testid="button-manage-users"
+                size="sm"
+                onClick={() => setLocation("/admin/sites/new")}
+                className="gap-2"
+                data-testid="button-add-site"
               >
-                <Users className="h-4 w-4 mr-2" />
-                Users
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Site</span>
               </Button>
-            )}
-            <Button
-              onClick={() => setLocation("/admin/sites/new")}
-              data-testid="button-add-site"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Site
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2" data-testid="text-section-title">Your Websites</h2>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <h2 className="text-2xl font-semibold tracking-tight mb-1" data-testid="text-section-title">Your Websites</h2>
           <p className="text-muted-foreground" data-testid="text-section-description">
             {isAdmin 
               ? "Manage all multi-tenant websites from one dashboard"
               : "Manage the websites you have access to"
             }
           </p>
-        </div>
+        </motion.div>
 
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="pb-3">
-                  <div className="h-6 bg-muted rounded w-3/4 mb-2" />
-                  <div className="h-4 bg-muted rounded w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-4 bg-muted rounded w-full" />
-                </CardContent>
-              </Card>
+              <div key={i} className="h-44 bg-muted animate-pulse rounded-xl" />
             ))}
           </div>
         ) : sites && sites.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {sites.map((site) => (
-              <Card key={site.id} data-testid={`card-site-${site.id}`} className="hover-elevate">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate" data-testid={`text-site-title-${site.id}`}>{site.title}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-1">
-                        <Globe className="h-3 w-3" />
-                        <span className="font-mono text-xs truncate" data-testid={`text-site-domain-${site.id}`}>{site.domain}</span>
-                      </CardDescription>
+              <motion.div key={site.id} variants={item}>
+                <Card 
+                  data-testid={`card-site-${site.id}`} 
+                  className="hover-elevate group transition-all duration-200 ios-shadow cursor-pointer"
+                  onClick={() => setLocation(`/admin/sites/${site.id}`)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {site.logoUrl ? (
+                          <img 
+                            src={site.logoUrl} 
+                            alt={`${site.title} logo`} 
+                            className="h-12 w-12 rounded-xl object-cover flex-shrink-0"
+                            data-testid={`img-site-logo-${site.id}`}
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Globe className="h-6 w-6 text-primary" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <CardTitle className="text-base truncate" data-testid={`text-site-title-${site.id}`}>
+                            {site.title}
+                          </CardTitle>
+                          <CardDescription className="font-mono text-xs truncate mt-0.5" data-testid={`text-site-domain-${site.id}`}>
+                            {site.domain}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                     </div>
-                    {site.logoUrl && (
-                      <img 
-                        src={site.logoUrl} 
-                        alt={`${site.title} logo`} 
-                        className="h-10 w-10 rounded object-cover flex-shrink-0"
-                        data-testid={`img-site-logo-${site.id}`}
-                      />
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setLocation(`/admin/sites/${site.id}`)}
-                      data-testid={`button-edit-${site.id}`}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    {isAdmin && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => openDeleteDialog(site)}
-                        data-testid={`button-delete-${site.id}`}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {site.siteType}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation(`/admin/sites/${site.id}`);
+                          }}
+                          data-testid={`button-edit-${site.id}`}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog(site);
+                            }}
+                            data-testid={`button-delete-${site.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Globe className="h-12 w-12 text-muted-foreground mb-4" data-testid="icon-empty-state" />
-              <h3 className="text-lg font-semibold mb-2" data-testid="text-empty-state-title">No websites yet</h3>
-              <p className="text-muted-foreground text-center mb-4" data-testid="text-empty-state-description">
-                {isAdmin 
-                  ? "Get started by creating your first multi-tenant website"
-                  : "You don't have access to any websites yet. Contact an admin to get access."
-                }
-              </p>
-              <Button onClick={() => setLocation("/admin/sites/new")} data-testid="button-add-first-site">
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Site
-              </Button>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
+              <Globe className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2" data-testid="text-empty-state-title">No websites yet</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-6" data-testid="text-empty-state-description">
+              {isAdmin 
+                ? "Get started by creating your first multi-tenant website"
+                : "You don't have access to any websites yet. Contact an admin to get access."
+              }
+            </p>
+            <Button onClick={() => setLocation("/admin/sites/new")} size="lg" data-testid="button-add-first-site">
+              <Plus className="h-5 w-5 mr-2" />
+              Add New Site
+            </Button>
+          </motion.div>
         )}
       </main>
 

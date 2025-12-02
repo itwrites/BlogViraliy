@@ -21,10 +21,11 @@ const fontScales: Record<string, { base: string; heading: string; hero: string }
   spacious: { base: "1.125rem", heading: "2.25rem", hero: "3.5rem" },
 };
 
-const logoSizes: Record<string, string> = {
-  small: "h-8 w-8",
-  medium: "h-10 w-10",
-  large: "h-14 w-14",
+const logoSizes: Record<string, { class: string; px: number }> = {
+  small: { class: "h-8 w-8", px: 32 },
+  medium: { class: "h-10 w-10", px: 48 },
+  large: { class: "h-14 w-14", px: 56 },
+  custom: { class: "", px: 48 },
 };
 
 const contentWidths: Record<string, string> = {
@@ -208,8 +209,17 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     (s.socialLinkedin && s.socialLinkedin.trim())
   );
 
+  const getLogoSize = () => {
+    if (s.logoSize === "custom") {
+      const px = s.logoSizeCustom || 48;
+      return { class: "", px, style: { width: px, height: px } };
+    }
+    const size = logoSizes[s.logoSize] || logoSizes.medium;
+    return { class: size.class, px: size.px, style: { width: size.px, height: size.px } };
+  };
+
   return {
-    logoSize: logoSizes[s.logoSize] || logoSizes.medium,
+    logoSize: getLogoSize(),
     hideLogoText: s.hideLogoText || false,
     contentWidth: contentWidths[s.contentWidth] || contentWidths.medium,
     cardStyle: cardStyles[s.cardStyle] || cardStyles.rounded,

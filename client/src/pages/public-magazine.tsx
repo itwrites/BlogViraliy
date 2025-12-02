@@ -54,7 +54,8 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                   <img
                     src={site.logoUrl}
                     alt={`${site.title} logo`}
-                    className={`${templateClasses.logoSize} object-cover rounded mx-auto mb-2 sm:mb-3`}
+                    style={templateClasses.logoSize.style}
+                    className="object-cover rounded mx-auto mb-2 sm:mb-3"
                     data-testid="img-site-logo"
                   />
                 )}

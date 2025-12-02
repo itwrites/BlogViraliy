@@ -53,7 +53,8 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                   <img
                     src={site.logoUrl}
                     alt={`${site.title} logo`}
-                    className={`${templateClasses.logoSize} object-cover rounded`}
+                    style={templateClasses.logoSize.style}
+                    className="object-cover rounded"
                     data-testid="img-site-logo"
                   />
                 )}
