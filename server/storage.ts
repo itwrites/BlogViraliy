@@ -41,6 +41,7 @@ export interface IStorage {
   // User-Site permissions
   getUserSites(userId: string): Promise<UserSite[]>;
   getSiteUsers(siteId: string): Promise<UserSite[]>;
+  getUserSitePermission(userId: string, siteId: string): Promise<string | undefined>;
   addUserToSite(userSite: InsertUserSite): Promise<UserSite>;
   removeUserFromSite(userId: string, siteId: string): Promise<void>;
   updateUserSitePermission(userId: string, siteId: string, permission: string): Promise<UserSite | undefined>;
@@ -48,6 +49,7 @@ export interface IStorage {
   // Sites (with user permission filtering)
   getSites(): Promise<Site[]>;
   getSitesForUser(userId: string): Promise<Site[]>;
+  getSitesForUserWithPermission(userId: string): Promise<Array<Site & { permission: string }>>;
   getSiteById(id: string): Promise<Site | undefined>;
   getSiteByDomain(domain: string): Promise<Site | undefined>;
   canUserAccessSite(userId: string, siteId: string): Promise<boolean>;
@@ -163,6 +165,14 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
+  async getUserSitePermission(userId: string, siteId: string): Promise<string | undefined> {
+    const [record] = await db
+      .select()
+      .from(userSites)
+      .where(and(eq(userSites.userId, userId), eq(userSites.siteId, siteId)));
+    return record?.permission;
+  }
+
   // Sites
   async getSites(): Promise<Site[]> {
     return await db.select().from(sites).orderBy(desc(sites.createdAt));
@@ -182,6 +192,31 @@ export class DatabaseStorage implements IStorage {
       .from(sites)
       .where(inArray(sites.id, siteIds))
       .orderBy(desc(sites.createdAt));
+  }
+
+  async getSitesForUserWithPermission(userId: string): Promise<Array<Site & { permission: string }>> {
+    // Get user site records with permissions
+    const userSiteRecords = await db.select().from(userSites).where(eq(userSites.userId, userId));
+    
+    if (userSiteRecords.length === 0) {
+      return [];
+    }
+    
+    const siteIds = userSiteRecords.map(us => us.siteId);
+    const sitesList = await db
+      .select()
+      .from(sites)
+      .where(inArray(sites.id, siteIds))
+      .orderBy(desc(sites.createdAt));
+    
+    // Combine sites with their permissions
+    return sitesList.map(site => {
+      const userSite = userSiteRecords.find(us => us.siteId === site.id);
+      return {
+        ...site,
+        permission: userSite?.permission || 'view',
+      };
+    });
   }
 
   async getSiteById(id: string): Promise<Site | undefined> {

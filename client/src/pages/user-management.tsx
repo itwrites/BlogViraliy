@@ -173,6 +173,22 @@ export default function UserManagement() {
     },
   });
 
+  const updatePermissionMutation = useMutation({
+    mutationFn: async (data: { userId: string; siteId: string; permission: string }) => {
+      const res = await apiRequest("PUT", `/api/users/${data.userId}/sites/${data.siteId}`, {
+        permission: data.permission,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Permission updated successfully" });
+      refetchUserSites();
+    },
+    onError: () => {
+      toast({ title: "Failed to update permission", variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       username: "",
@@ -565,10 +581,29 @@ export default function UserManagement() {
                           <span className="text-sm text-muted-foreground">{site?.domain}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline">{us.permission}</Badge>
+                          <Select
+                            value={us.permission}
+                            onValueChange={(permission) => {
+                              updatePermissionMutation.mutate({
+                                userId: selectedUser!.id,
+                                siteId: us.siteId,
+                                permission,
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-[130px]" data-testid={`select-permission-${us.siteId}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="posts_only">Posts Only</SelectItem>
+                              <SelectItem value="edit">Editor</SelectItem>
+                              <SelectItem value="manage">Manager</SelectItem>
+                              <SelectItem value="view">View Only</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={() => removeUserFromSiteMutation.mutate({
                               userId: selectedUser!.id,
                               siteId: us.siteId,
@@ -603,19 +638,28 @@ export default function UserManagement() {
                         <span className="font-medium">{site.title}</span>
                         <span className="text-sm text-muted-foreground">{site.domain}</span>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addUserToSiteMutation.mutate({
-                          userId: selectedUser!.id,
-                          siteId: site.id,
-                          permission: "edit",
-                        })}
-                        data-testid={`button-add-site-${site.id}`}
-                      >
-                        <UserPlus className="h-4 w-4 mr-1" />
-                        Add
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          defaultValue="posts_only"
+                          onValueChange={(permission) => {
+                            addUserToSiteMutation.mutate({
+                              userId: selectedUser!.id,
+                              siteId: site.id,
+                              permission,
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="w-[140px]" data-testid={`select-permission-${site.id}`}>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="posts_only">Posts Only</SelectItem>
+                            <SelectItem value="edit">Editor</SelectItem>
+                            <SelectItem value="manage">Manager</SelectItem>
+                            <SelectItem value="view">View Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -102,8 +102,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  // Site access middleware (for editors)
-  const requireSiteAccess = (paramName: string = "id") => {
+  // Permission levels hierarchy (higher index = more permissions)
+  const PERMISSION_LEVELS = ["view", "posts_only", "edit", "manage"];
+  
+  const hasMinimumPermission = (userPermission: string, requiredPermission: string): boolean => {
+    const userLevel = PERMISSION_LEVELS.indexOf(userPermission);
+    const requiredLevel = PERMISSION_LEVELS.indexOf(requiredPermission);
+    return userLevel >= requiredLevel;
+  };
+
+  // Site access middleware (for editors) with permission level enforcement
+  const requireSiteAccess = (paramName: string = "id", minPermission: string = "view") => {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
       if (!req.user) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -119,9 +128,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Site ID required" });
       }
       
-      const hasAccess = await storage.canUserAccessSite(req.user.id, siteId);
-      if (!hasAccess) {
+      const permission = await storage.getUserSitePermission(req.user.id, siteId);
+      if (!permission) {
         return res.status(403).json({ error: "You don't have access to this site" });
+      }
+      
+      if (!hasMinimumPermission(permission, minPermission)) {
+        return res.status(403).json({ error: `Insufficient permissions. Required: ${minPermission}` });
       }
       
       next();
@@ -297,6 +310,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === EDITOR API ROUTES (for users with posts_only permission) ===
+
+  app.get("/api/editor/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      // Return sites with permissions for editors
+      const sitesWithPermission = await storage.getSitesForUserWithPermission(req.user.id);
+      res.json(sitesWithPermission);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch sites" });
+    }
+  });
+
+  app.get("/api/editor/sites/:id", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const site = await storage.getSiteById(req.params.id);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      res.json(site);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch site" });
+    }
+  });
+
+  app.get("/api/editor/sites/:id/posts", requireAuth, requireSiteAccess("id", "view"), async (req: Request, res: Response) => {
+    try {
+      const posts = await storage.getPostsBySiteId(req.params.id);
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch posts" });
+    }
+  });
+
+  app.post("/api/editor/sites/:id/posts", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+    try {
+      const postData = insertPostSchema.parse({
+        ...req.body,
+        siteId: req.params.id,
+      });
+      const post = await storage.createPost(postData);
+      res.json(post);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create post" });
+    }
+  });
+
+  app.put("/api/editor/posts/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const post = await storage.getPostById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Check site access with minimum permission level
+      if (req.user?.role !== "admin") {
+        const permission = await storage.getUserSitePermission(req.user!.id, post.siteId);
+        if (!permission) {
+          return res.status(403).json({ error: "You don't have access to this post" });
+        }
+        if (!hasMinimumPermission(permission, "posts_only")) {
+          return res.status(403).json({ error: "Insufficient permissions to edit posts" });
+        }
+      }
+      
+      const updated = await storage.updatePost(req.params.id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update post" });
+    }
+  });
+
+  app.delete("/api/editor/posts/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const post = await storage.getPostById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      
+      // Check site access with minimum permission level
+      if (req.user?.role !== "admin") {
+        const permission = await storage.getUserSitePermission(req.user!.id, post.siteId);
+        if (!permission) {
+          return res.status(403).json({ error: "You don't have access to this post" });
+        }
+        if (!hasMinimumPermission(permission, "posts_only")) {
+          return res.status(403).json({ error: "Insufficient permissions to delete posts" });
+        }
+      }
+      
+      await storage.deletePost(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
   // === USER-SITE ASSIGNMENT ROUTES ===
 
   app.get("/api/users/:id/sites", requireAuth, requireAdmin, async (req: Request, res: Response) => {
@@ -311,14 +424,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:id/sites", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { siteId, permission } = req.body;
+      
+      // Validate permission level
+      const validPermissions = ["view", "posts_only", "edit", "manage"];
+      if (permission && !validPermissions.includes(permission)) {
+        return res.status(400).json({ error: "Invalid permission level" });
+      }
+      
       const userSite = await storage.addUserToSite({
         userId: req.params.id,
         siteId,
-        permission: permission || "edit",
+        permission: permission || "posts_only",
       });
       res.json(userSite);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle duplicate assignment
+      if (error?.code === "23505") {
+        return res.status(400).json({ error: "User already has access to this site" });
+      }
       res.status(500).json({ error: "Failed to assign site to user" });
+    }
+  });
+  
+  app.put("/api/users/:userId/sites/:siteId", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { permission } = req.body;
+      
+      // Validate permission level
+      const validPermissions = ["view", "posts_only", "edit", "manage"];
+      if (!validPermissions.includes(permission)) {
+        return res.status(400).json({ error: "Invalid permission level" });
+      }
+      
+      const updated = await storage.updateUserSitePermission(req.params.userId, req.params.siteId, permission);
+      if (!updated) {
+        return res.status(404).json({ error: "User site assignment not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update permission" });
     }
   });
 

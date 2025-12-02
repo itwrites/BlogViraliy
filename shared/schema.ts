@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -11,6 +11,10 @@ export type UserRole = z.infer<typeof userRoleEnum>;
 // User status
 export const userStatusEnum = z.enum(["active", "inactive", "pending"]);
 export type UserStatus = z.infer<typeof userStatusEnum>;
+
+// Site permission levels for editors
+export const sitePermissionEnum = z.enum(["view", "posts_only", "edit", "manage"]);
+export type SitePermission = z.infer<typeof sitePermissionEnum>;
 
 // Admin Users
 export const users = pgTable("users", {
@@ -29,9 +33,11 @@ export const userSites = pgTable("user_sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
-  permission: text("permission").notNull().default("edit"), // 'view', 'edit', 'manage'
+  permission: text("permission").notNull().default("posts_only"), // 'view', 'posts_only', 'edit', 'manage'
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  userSiteUnique: unique().on(table.userId, table.siteId),
+}));
 
 // Template Settings Type
 export const templateSettingsSchema = z.object({
@@ -261,7 +267,7 @@ export const insertUserSiteSchema = createInsertSchema(userSites).omit({
   id: true,
   createdAt: true,
 }).extend({
-  permission: z.enum(["view", "edit", "manage"]).optional().default("edit"),
+  permission: sitePermissionEnum.optional().default("posts_only"),
 });
 
 export const insertSiteSchema = createInsertSchema(sites).omit({

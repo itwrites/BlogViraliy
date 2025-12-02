@@ -182,6 +182,16 @@ The system detects the incoming domain name and:
   - Updated all 6 layout templates to use theme provider and SEO components
   - Added hasSocials guard to prevent rendering empty social links
   - Template settings apply: colors, fonts, logo size, content width, sticky header, card styles, footer text, social links
+- 2025-12-02: **Editor control panel with permission-based access**
+  - Created dedicated editor dashboard (client/src/pages/editor-dashboard.tsx) with iOS/macOS styling
+  - Created editor posts management page (client/src/pages/editor-posts.tsx) with Framer Motion animations
+  - Added editor API routes (/api/editor/sites, /api/editor/sites/:id/posts, /api/editor/posts/:id)
+  - Implemented permission levels: view, posts_only, edit, manage
+  - Permission enforcement on editor routes - requires minimum permission level for write operations
+  - Updated admin-login to redirect editors to /editor dashboard, admins to /admin/dashboard
+  - Enhanced user-management page with permission selection dropdowns when assigning sites
+  - Added ability to update user permissions after assignment
+  - iOS/macOS-inspired UI with glassmorphism header, soft shadows, and Framer Motion animations
   - Added SEO fields to post editor: metaTitle, metaDescription, ogImage, canonicalUrl, noindex
 - 2025-10-25: **Extended layout templates to 6 unique designs**
   - Added Magazine, Portfolio, Restaurant, and Crypto layouts

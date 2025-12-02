@@ -10,6 +10,8 @@ import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
+import EditorDashboard from "@/pages/editor-dashboard";
+import EditorPosts from "@/pages/editor-posts";
 import SiteNotFound from "@/pages/site-not-found";
 import { PublicBlog } from "@/pages/public-blog";
 import { PublicNews } from "@/pages/public-news";
@@ -29,6 +31,8 @@ function AdminRouter() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={SiteConfig} />
       <Route path="/admin/users" component={UserManagement} />
+      <Route path="/editor" component={EditorDashboard} />
+      <Route path="/editor/sites/:id/posts" component={EditorPosts} />
       <Route component={NotFound} />
     </Switch>
   );

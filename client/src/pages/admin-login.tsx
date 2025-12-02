@@ -23,7 +23,11 @@ export default function AdminLogin() {
       const result = await response.json();
       if (result.success) {
         toast({ title: "Login successful" });
-        setLocation("/admin/dashboard");
+        if (result.user?.role === "admin") {
+          setLocation("/admin/dashboard");
+        } else {
+          setLocation("/editor");
+        }
       } else {
         toast({ title: "Login failed", description: result.message, variant: "destructive" });
       }
