@@ -107,7 +107,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                 <div className="max-w-3xl">
                   <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                     {featuredPost.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={tag} variant="secondary" className="bg-background/90 text-xs sm:text-sm" data-testid={`badge-featured-tag-${index}`}>
+                      <Badge key={tag} className="bg-white/20 backdrop-blur-md text-white border-white/30 text-xs sm:text-sm" data-testid={`badge-featured-tag-${index}`}>
                         {tag}
                       </Badge>
                     ))}
