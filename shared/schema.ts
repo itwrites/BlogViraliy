@@ -11,6 +11,53 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
+// Template Settings Type
+export const templateSettingsSchema = z.object({
+  logoSize: z.enum(["small", "medium", "large"]).default("medium"),
+  primaryColor: z.string().default("#3b82f6"),
+  secondaryColor: z.string().default("#8b5cf6"),
+  backgroundColor: z.string().default("#ffffff"),
+  textColor: z.string().default("#1f2937"),
+  headingFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
+  bodyFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
+  fontScale: z.enum(["compact", "normal", "spacious"]).default("normal"),
+  headerStyle: z.enum(["minimal", "standard", "full"]).default("standard"),
+  cardStyle: z.enum(["rounded", "sharp", "borderless"]).default("rounded"),
+  contentWidth: z.enum(["narrow", "medium", "wide"]).default("medium"),
+  showFeaturedHero: z.boolean().default(true),
+  showSearch: z.boolean().default(true),
+  maxNavItems: z.number().min(3).max(10).default(7),
+  footerText: z.string().default(""),
+  socialTwitter: z.string().default(""),
+  socialFacebook: z.string().default(""),
+  socialInstagram: z.string().default(""),
+  socialLinkedin: z.string().default(""),
+});
+
+export type TemplateSettings = z.infer<typeof templateSettingsSchema>;
+
+export const defaultTemplateSettings: TemplateSettings = {
+  logoSize: "medium",
+  primaryColor: "#3b82f6",
+  secondaryColor: "#8b5cf6",
+  backgroundColor: "#ffffff",
+  textColor: "#1f2937",
+  headingFont: "modern",
+  bodyFont: "modern",
+  fontScale: "normal",
+  headerStyle: "standard",
+  cardStyle: "rounded",
+  contentWidth: "medium",
+  showFeaturedHero: true,
+  showSearch: true,
+  maxNavItems: 7,
+  footerText: "",
+  socialTwitter: "",
+  socialFacebook: "",
+  socialInstagram: "",
+  socialLinkedin: "",
+};
+
 // Sites (multi-tenant websites)
 export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -18,6 +65,14 @@ export const sites = pgTable("sites", {
   title: text("title").notNull(),
   logoUrl: text("logo_url"),
   siteType: text("site_type").notNull().default("blog"),
+  // Template customization settings
+  templateSettings: jsonb("template_settings").$type<TemplateSettings>().default(defaultTemplateSettings),
+  // SEO settings
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  ogImage: text("og_image"),
+  favicon: text("favicon"),
+  analyticsId: text("analytics_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -53,6 +108,12 @@ export const posts = pgTable("posts", {
   imageUrl: text("image_url"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   source: text("source").notNull().default("manual"),
+  // SEO settings for individual posts
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  ogImage: text("og_image"),
+  canonicalUrl: text("canonical_url"),
+  noindex: boolean("noindex").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -97,6 +158,7 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
   updatedAt: true,
 }).extend({
   siteType: z.enum(["blog", "news", "magazine", "portfolio", "restaurant", "crypto"]),
+  templateSettings: templateSettingsSchema.optional(),
 });
 
 export const insertAiAutomationConfigSchema = createInsertSchema(aiAutomationConfigs).omit({
