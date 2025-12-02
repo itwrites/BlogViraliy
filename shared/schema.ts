@@ -132,6 +132,7 @@ export const posts = pgTable("posts", {
   imageUrl: text("image_url"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   source: text("source").notNull().default("manual"),
+  sourceUrl: text("source_url"), // Original article URL for RSS posts (used for duplicate detection)
   // SEO settings for individual posts
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),

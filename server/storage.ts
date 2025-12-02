@@ -59,6 +59,7 @@ export interface IStorage {
   getPostsBySiteId(siteId: string): Promise<Post[]>;
   getPostById(id: string): Promise<Post | undefined>;
   getPostBySlug(siteId: string, slug: string): Promise<Post | undefined>;
+  getPostBySourceUrl(siteId: string, sourceUrl: string): Promise<Post | undefined>;
   getPostsByTag(siteId: string, tag: string): Promise<Post[]>;
   getRelatedPosts(postId: string, siteId: string): Promise<Post[]>;
   createPost(post: InsertPost): Promise<Post>;
@@ -238,6 +239,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(posts)
       .where(and(eq(posts.siteId, siteId), eq(posts.slug, slug)));
+    return post || undefined;
+  }
+
+  async getPostBySourceUrl(siteId: string, sourceUrl: string): Promise<Post | undefined> {
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(and(eq(posts.siteId, siteId), eq(posts.sourceUrl, sourceUrl)));
     return post || undefined;
   }
 

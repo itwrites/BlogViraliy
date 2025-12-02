@@ -5,7 +5,6 @@ import { generateAIPost, rewriteArticle } from "./openai";
 import type { Site } from "@shared/schema";
 
 const parser = new Parser();
-const processedArticles = new Set<string>();
 
 function createSlug(title: string): string {
   return title
@@ -79,9 +78,17 @@ export async function processRSSAutomation() {
           const items = feed.items.slice(0, rssConfig.articlesToFetch);
 
           for (const item of items) {
-            const articleId = `${site.id}-${item.link || item.guid}`;
+            const sourceUrl = item.link || item.guid || "";
             
-            if (processedArticles.has(articleId)) {
+            if (!sourceUrl) {
+              console.log(`[RSS] Skipping article without URL: ${item.title}`);
+              continue;
+            }
+            
+            // Check database for existing post with this source URL (persistent duplicate detection)
+            const existingPost = await storage.getPostBySourceUrl(site.id, sourceUrl);
+            if (existingPost) {
+              console.log(`[RSS] Skipping already processed article: ${item.title}`);
               continue;
             }
 
@@ -102,9 +109,9 @@ export async function processRSSAutomation() {
               metaTitle,
               metaDescription,
               source: "rss",
+              sourceUrl, // Store original URL for future duplicate detection
             });
 
-            processedArticles.add(articleId);
             console.log(`[RSS] Created post "${title}" for ${site.domain}`);
           }
         } catch (error) {
