@@ -114,9 +114,9 @@ The system detects the incoming domain name and:
 - Perfect for creative work and case studies
 
 **Restaurant Layout**:
-- Food & dining themed with warm color palette
+- Food & dining themed with theme-based color palette
 - Playfair Display serif fonts for elegance
-- Gradient backgrounds (orange/amber tones)
+- Gradient backgrounds using primary/secondary theme colors
 - Featured story hero with 3-column latest news
 - Rounded pill-style category tags
 
@@ -143,6 +143,13 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **Clean post excerpts with markdown stripping**
+  - Created stripMarkdown utility function (client/src/lib/strip-markdown.ts)
+  - Strips headers, bold, italic, links, images, code blocks, blockquotes, and list markers
+  - Updated all 6 layout templates to use stripMarkdown for excerpts
+  - Updated tag archive page to use stripMarkdown and display post images
+  - Added post excerpt preview to admin dashboard posts list
+  - Fixed Restaurant layout to use theme-based colors instead of hardcoded orange/amber
 - 2025-12-02: **Mobile-responsive layouts with hamburger navigation**
   - Created reusable MobileNav component with hamburger menu (client/src/components/mobile-nav.tsx)
   - Added MobileNav to all 6 layout templates for mobile-first navigation
