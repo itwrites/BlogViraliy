@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
+import { FileText, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
+import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
+import { SeoHead } from "@/components/seo-head";
 
 interface PublicBlogProps {
   site: Site;
@@ -11,6 +13,7 @@ interface PublicBlogProps {
 
 export function PublicBlog({ site }: PublicBlogProps) {
   const [, setLocation] = useLocation();
+  const templateClasses = useTemplateClasses(site.templateSettings);
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
@@ -32,49 +35,51 @@ export function PublicBlog({ site }: PublicBlogProps) {
   const recentPosts = posts?.slice(1) || [];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {site.logoUrl && (
-                <img
-                  src={site.logoUrl}
-                  alt={`${site.title} logo`}
-                  className="h-10 w-10 object-cover rounded"
-                  data-testid="img-site-logo"
-                />
-              )}
-              <h1 className="text-2xl font-blog font-semibold text-foreground" data-testid="text-site-title">{site.title}</h1>
+    <PublicThemeProvider settings={site.templateSettings}>
+      <SeoHead site={site} />
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Header */}
+        <header className={`${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''} border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80`}>
+          <div className={`${templateClasses.contentWidth} mx-auto px-6 py-4`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {site.logoUrl && (
+                  <img
+                    src={site.logoUrl}
+                    alt={`${site.title} logo`}
+                    className={`${templateClasses.logoSize} object-cover rounded`}
+                    data-testid="img-site-logo"
+                  />
+                )}
+                <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-site-title">{site.title}</h1>
+              </div>
+              <nav className="hidden md:flex items-center gap-1 overflow-x-auto" data-testid="nav-main">
+                {topTags?.slice(0, templateClasses.maxNavItems).map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    className="px-3 py-2 text-sm hover-elevate rounded-md whitespace-nowrap"
+                    data-testid={`link-tag-${tag}`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </nav>
             </div>
-            <nav className="hidden md:flex items-center gap-1 overflow-x-auto" data-testid="nav-main">
-              {topTags?.slice(0, 10).map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleTagClick(tag)}
-                  className="px-3 py-2 text-sm hover-elevate rounded-md text-foreground whitespace-nowrap"
-                  data-testid={`link-tag-${tag}`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </nav>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {isLoading ? (
-          <div className="space-y-8">
-            <div className="h-[500px] bg-muted animate-pulse rounded-lg" />
-            <div className="grid gap-8 md:grid-cols-2">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
-              ))}
+        <main className={`${templateClasses.contentWidth} mx-auto px-6 py-12`}>
+          {isLoading ? (
+            <div className="space-y-8">
+              <div className="h-[500px] bg-muted animate-pulse rounded-lg" />
+              <div className="grid gap-8 md:grid-cols-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+                ))}
+              </div>
             </div>
-          </div>
-        ) : featuredPost ? (
+          ) : featuredPost && templateClasses.showHero ? (
           <>
             {/* Featured Post Hero */}
             <div
@@ -122,7 +127,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                   {recentPosts.map((post) => (
                     <Card
                       key={post.id}
-                      className="cursor-pointer hover-elevate overflow-hidden"
+                      className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle}`}
                       onClick={() => handlePostClick(post.slug)}
                       data-testid={`card-post-${post.id}`}
                     >
@@ -166,12 +171,41 @@ export function PublicBlog({ site }: PublicBlogProps) {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t mt-24 py-8 bg-card">
-        <div className="max-w-7xl mx-auto px-6 text-center text-sm text-muted-foreground">
-          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <footer className="border-t mt-24 py-8 bg-card">
+          <div className={`${templateClasses.contentWidth} mx-auto px-6`}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground" data-testid="text-footer-copyright">
+                {templateClasses.footerText || `\u00A9 ${new Date().getFullYear()} ${site.title}. All rights reserved.`}
+              </p>
+              {templateClasses.hasSocials && (
+                <div className="flex items-center gap-3">
+                  {templateClasses.socials.twitter && (
+                    <a href={templateClasses.socials.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground" data-testid="link-social-twitter">
+                      <Twitter className="h-5 w-5" />
+                    </a>
+                  )}
+                  {templateClasses.socials.facebook && (
+                    <a href={templateClasses.socials.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground" data-testid="link-social-facebook">
+                      <Facebook className="h-5 w-5" />
+                    </a>
+                  )}
+                  {templateClasses.socials.instagram && (
+                    <a href={templateClasses.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground" data-testid="link-social-instagram">
+                      <Instagram className="h-5 w-5" />
+                    </a>
+                  )}
+                  {templateClasses.socials.linkedin && (
+                    <a href={templateClasses.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground" data-testid="link-social-linkedin">
+                      <Linkedin className="h-5 w-5" />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </footer>
+      </div>
+    </PublicThemeProvider>
   );
 }

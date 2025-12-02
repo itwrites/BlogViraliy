@@ -9,10 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, X, Save } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Site, AiAutomationConfig, RssAutomationConfig, Post } from "@shared/schema";
+import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings } from "@shared/schema";
+import { defaultTemplateSettings } from "@shared/schema";
 import { PostsManager } from "@/components/posts-manager";
 
 export default function SiteConfig() {
@@ -26,7 +28,14 @@ export default function SiteConfig() {
     title: "",
     logoUrl: "",
     siteType: "blog",
+    metaTitle: "",
+    metaDescription: "",
+    ogImage: "",
+    favicon: "",
+    analyticsId: "",
   });
+
+  const [templateSettings, setTemplateSettings] = useState<TemplateSettings>(defaultTemplateSettings);
 
   const [aiConfig, setAiConfig] = useState({
     enabled: false,
@@ -67,7 +76,15 @@ export default function SiteConfig() {
         title: site.title,
         logoUrl: site.logoUrl || "",
         siteType: site.siteType,
+        metaTitle: site.metaTitle || "",
+        metaDescription: site.metaDescription || "",
+        ogImage: site.ogImage || "",
+        favicon: site.favicon || "",
+        analyticsId: site.analyticsId || "",
       });
+      if (site.templateSettings) {
+        setTemplateSettings({ ...defaultTemplateSettings, ...site.templateSettings });
+      }
     }
   }, [site]);
 
@@ -97,12 +114,17 @@ export default function SiteConfig() {
     try {
       let siteId = id;
       
+      const fullSiteData = {
+        ...siteData,
+        templateSettings,
+      };
+      
       if (isNewSite) {
-        const response = await apiRequest("POST", "/api/sites", siteData);
+        const response = await apiRequest("POST", "/api/sites", fullSiteData);
         const newSite = await response.json();
         siteId = newSite.id;
       } else {
-        await apiRequest("PUT", `/api/sites/${id}`, siteData);
+        await apiRequest("PUT", `/api/sites/${id}`, fullSiteData);
       }
 
       await apiRequest("PUT", `/api/sites/${siteId}/ai-config`, aiConfig);
@@ -110,6 +132,7 @@ export default function SiteConfig() {
 
       toast({ title: isNewSite ? "Site created successfully" : "Site updated successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", id] });
       
       if (isNewSite) {
         setLocation(`/admin/sites/${siteId}`);
@@ -181,8 +204,10 @@ export default function SiteConfig() {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+          <TabsList className="grid w-full max-w-4xl grid-cols-6">
             <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
+            <TabsTrigger value="design" data-testid="tab-design">Design</TabsTrigger>
+            <TabsTrigger value="seo" data-testid="tab-seo">SEO</TabsTrigger>
             <TabsTrigger value="ai" data-testid="tab-ai">AI Content</TabsTrigger>
             <TabsTrigger value="rss" data-testid="tab-rss">RSS Feeds</TabsTrigger>
             <TabsTrigger value="posts" data-testid="tab-posts" disabled={isNewSite}>Posts</TabsTrigger>
@@ -264,6 +289,414 @@ export default function SiteConfig() {
                         </Card>
                       ))}
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="design" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle data-testid="text-design-title">Template Design Settings</CardTitle>
+                <CardDescription data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Colors</h3>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="primaryColor" data-testid="label-primary-color">Primary Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="primaryColor"
+                          type="color"
+                          value={templateSettings.primaryColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, primaryColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-primary-color"
+                        />
+                        <Input
+                          value={templateSettings.primaryColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, primaryColor: e.target.value })}
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-primary-color-hex"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="secondaryColor" data-testid="label-secondary-color">Secondary Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="secondaryColor"
+                          type="color"
+                          value={templateSettings.secondaryColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, secondaryColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-secondary-color"
+                        />
+                        <Input
+                          value={templateSettings.secondaryColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, secondaryColor: e.target.value })}
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-secondary-color-hex"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="backgroundColor" data-testid="label-background-color">Background Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="backgroundColor"
+                          type="color"
+                          value={templateSettings.backgroundColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, backgroundColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-background-color"
+                        />
+                        <Input
+                          value={templateSettings.backgroundColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, backgroundColor: e.target.value })}
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-background-color-hex"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="textColor" data-testid="label-text-color">Text Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="textColor"
+                          type="color"
+                          value={templateSettings.textColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, textColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-text-color"
+                        />
+                        <Input
+                          value={templateSettings.textColor}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, textColor: e.target.value })}
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-text-color-hex"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Type className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Typography</h3>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="headingFont" data-testid="label-heading-font">Heading Font</Label>
+                      <Select
+                        value={templateSettings.headingFont}
+                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant") => 
+                          setTemplateSettings({ ...templateSettings, headingFont: value })
+                        }
+                      >
+                        <SelectTrigger id="headingFont" data-testid="select-heading-font">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="modern">Modern (Inter)</SelectItem>
+                          <SelectItem value="classic">Classic (Georgia)</SelectItem>
+                          <SelectItem value="editorial">Editorial (Merriweather)</SelectItem>
+                          <SelectItem value="tech">Tech (JetBrains Mono)</SelectItem>
+                          <SelectItem value="elegant">Elegant (Playfair Display)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bodyFont" data-testid="label-body-font">Body Font</Label>
+                      <Select
+                        value={templateSettings.bodyFont}
+                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant") => 
+                          setTemplateSettings({ ...templateSettings, bodyFont: value })
+                        }
+                      >
+                        <SelectTrigger id="bodyFont" data-testid="select-body-font">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="modern">Modern (Inter)</SelectItem>
+                          <SelectItem value="classic">Classic (Georgia)</SelectItem>
+                          <SelectItem value="editorial">Editorial (Source Serif)</SelectItem>
+                          <SelectItem value="tech">Tech (IBM Plex Sans)</SelectItem>
+                          <SelectItem value="elegant">Elegant (Lora)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fontScale" data-testid="label-font-scale">Font Size Scale</Label>
+                      <Select
+                        value={templateSettings.fontScale}
+                        onValueChange={(value: "compact" | "normal" | "spacious") => 
+                          setTemplateSettings({ ...templateSettings, fontScale: value })
+                        }
+                      >
+                        <SelectTrigger id="fontScale" data-testid="select-font-scale">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="compact">Compact</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="spacious">Spacious</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Layout className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Layout & Style</h3>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="logoSize" data-testid="label-logo-size">Logo Size</Label>
+                      <Select
+                        value={templateSettings.logoSize}
+                        onValueChange={(value: "small" | "medium" | "large") => 
+                          setTemplateSettings({ ...templateSettings, logoSize: value })
+                        }
+                      >
+                        <SelectTrigger id="logoSize" data-testid="select-logo-size">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Small</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="large">Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="headerStyle" data-testid="label-header-style">Header Style</Label>
+                      <Select
+                        value={templateSettings.headerStyle}
+                        onValueChange={(value: "minimal" | "standard" | "full") => 
+                          setTemplateSettings({ ...templateSettings, headerStyle: value })
+                        }
+                      >
+                        <SelectTrigger id="headerStyle" data-testid="select-header-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="minimal">Minimal</SelectItem>
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="full">Full</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cardStyle" data-testid="label-card-style">Card Style</Label>
+                      <Select
+                        value={templateSettings.cardStyle}
+                        onValueChange={(value: "rounded" | "sharp" | "borderless") => 
+                          setTemplateSettings({ ...templateSettings, cardStyle: value })
+                        }
+                      >
+                        <SelectTrigger id="cardStyle" data-testid="select-card-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="rounded">Rounded</SelectItem>
+                          <SelectItem value="sharp">Sharp</SelectItem>
+                          <SelectItem value="borderless">Borderless</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contentWidth" data-testid="label-content-width">Content Width</Label>
+                      <Select
+                        value={templateSettings.contentWidth}
+                        onValueChange={(value: "narrow" | "medium" | "wide") => 
+                          setTemplateSettings({ ...templateSettings, contentWidth: value })
+                        }
+                      >
+                        <SelectTrigger id="contentWidth" data-testid="select-content-width">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="narrow">Narrow (768px)</SelectItem>
+                          <SelectItem value="medium">Medium (1024px)</SelectItem>
+                          <SelectItem value="wide">Wide (1280px)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3 pt-4">
+                    <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                      <Label htmlFor="showFeaturedHero" className="cursor-pointer" data-testid="label-show-hero">Show Featured Hero</Label>
+                      <Switch
+                        id="showFeaturedHero"
+                        checked={templateSettings.showFeaturedHero}
+                        onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, showFeaturedHero: checked })}
+                        data-testid="switch-show-hero"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                      <Label htmlFor="showSearch" className="cursor-pointer" data-testid="label-show-search">Show Search</Label>
+                      <Switch
+                        id="showSearch"
+                        checked={templateSettings.showSearch}
+                        onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, showSearch: checked })}
+                        data-testid="switch-show-search"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="maxNavItems" data-testid="label-max-nav">Max Nav Items: {templateSettings.maxNavItems}</Label>
+                      <Slider
+                        id="maxNavItems"
+                        min={3}
+                        max={10}
+                        step={1}
+                        value={[templateSettings.maxNavItems]}
+                        onValueChange={([value]) => setTemplateSettings({ ...templateSettings, maxNavItems: value })}
+                        className="py-2"
+                        data-testid="slider-max-nav"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Footer & Social Links</h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="footerText" data-testid="label-footer-text">Footer Text</Label>
+                      <Input
+                        id="footerText"
+                        placeholder="© 2025 Your Company. All rights reserved."
+                        value={templateSettings.footerText}
+                        onChange={(e) => setTemplateSettings({ ...templateSettings, footerText: e.target.value })}
+                        data-testid="input-footer-text"
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="socialTwitter" data-testid="label-twitter">Twitter / X URL</Label>
+                        <Input
+                          id="socialTwitter"
+                          placeholder="https://twitter.com/yourhandle"
+                          value={templateSettings.socialTwitter}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, socialTwitter: e.target.value })}
+                          data-testid="input-twitter"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="socialFacebook" data-testid="label-facebook">Facebook URL</Label>
+                        <Input
+                          id="socialFacebook"
+                          placeholder="https://facebook.com/yourpage"
+                          value={templateSettings.socialFacebook}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, socialFacebook: e.target.value })}
+                          data-testid="input-facebook"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="socialInstagram" data-testid="label-instagram">Instagram URL</Label>
+                        <Input
+                          id="socialInstagram"
+                          placeholder="https://instagram.com/yourhandle"
+                          value={templateSettings.socialInstagram}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, socialInstagram: e.target.value })}
+                          data-testid="input-instagram"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="socialLinkedin" data-testid="label-linkedin">LinkedIn URL</Label>
+                        <Input
+                          id="socialLinkedin"
+                          placeholder="https://linkedin.com/company/yourcompany"
+                          value={templateSettings.socialLinkedin}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, socialLinkedin: e.target.value })}
+                          data-testid="input-linkedin"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="seo" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle data-testid="text-seo-title">SEO Settings</CardTitle>
+                <CardDescription data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="metaTitle" data-testid="label-meta-title">Meta Title</Label>
+                    <Input
+                      id="metaTitle"
+                      placeholder="Your Site Title | Brand Name"
+                      value={siteData.metaTitle}
+                      onChange={(e) => setSiteData({ ...siteData, metaTitle: e.target.value })}
+                      data-testid="input-meta-title"
+                    />
+                    <p className="text-xs text-muted-foreground">The title that appears in search results and browser tabs (50-60 characters recommended)</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="metaDescription" data-testid="label-meta-description">Meta Description</Label>
+                    <Textarea
+                      id="metaDescription"
+                      placeholder="A compelling description of your website that appears in search results..."
+                      value={siteData.metaDescription}
+                      onChange={(e) => setSiteData({ ...siteData, metaDescription: e.target.value })}
+                      rows={3}
+                      data-testid="input-meta-description"
+                    />
+                    <p className="text-xs text-muted-foreground">Description shown in search results (150-160 characters recommended)</p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="ogImage" data-testid="label-og-image">Social Share Image (OG Image)</Label>
+                      <Input
+                        id="ogImage"
+                        placeholder="https://example.com/og-image.jpg"
+                        value={siteData.ogImage}
+                        onChange={(e) => setSiteData({ ...siteData, ogImage: e.target.value })}
+                        data-testid="input-og-image"
+                      />
+                      <p className="text-xs text-muted-foreground">Image shown when shared on social media (1200x630px recommended)</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="favicon" data-testid="label-favicon">Favicon URL</Label>
+                      <Input
+                        id="favicon"
+                        placeholder="https://example.com/favicon.ico"
+                        value={siteData.favicon}
+                        onChange={(e) => setSiteData({ ...siteData, favicon: e.target.value })}
+                        data-testid="input-favicon"
+                      />
+                      <p className="text-xs text-muted-foreground">Small icon shown in browser tabs (32x32px recommended)</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="analyticsId" data-testid="label-analytics">Google Analytics ID</Label>
+                    <Input
+                      id="analyticsId"
+                      placeholder="G-XXXXXXXXXX or UA-XXXXXX-X"
+                      value={siteData.analyticsId}
+                      onChange={(e) => setSiteData({ ...siteData, analyticsId: e.target.value })}
+                      data-testid="input-analytics"
+                    />
+                    <p className="text-xs text-muted-foreground">Your Google Analytics tracking ID for visitor analytics</p>
                   </div>
                 </div>
               </CardContent>

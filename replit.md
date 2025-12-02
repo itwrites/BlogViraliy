@@ -139,6 +139,13 @@ The system detects the incoming domain name and:
 - Hover interactions with elevation effects
 
 ## Recent Changes
+- 2025-12-02: **Template customization and SEO implementation**
+  - Created PublicThemeProvider component for runtime CSS variable-based theming
+  - Created SeoHead component with proper cleanup for meta tags (title, description, OG tags, canonical, favicon, analytics)
+  - Updated all 6 layout templates to use theme provider and SEO components
+  - Added hasSocials guard to prevent rendering empty social links
+  - Template settings apply: colors, fonts, logo size, content width, sticky header, card styles, footer text, social links
+  - Added SEO fields to post editor: metaTitle, metaDescription, ogImage, canonicalUrl, noindex
 - 2025-10-25: **Extended layout templates to 6 unique designs**
   - Added Magazine, Portfolio, Restaurant, and Crypto layouts
   - Implemented visual card-based layout selector in admin config
@@ -193,11 +200,10 @@ On Replit, all domains will route to the admin dashboard by default. To test mul
 3. In production, configure DNS to point domains to your deployment
 
 ## Next Steps / Future Enhancements
-- Add more layout templates (Magazine, Portfolio, E-commerce)
 - Implement analytics dashboard with post performance metrics
-- Add visual theme customization per site
 - Implement content calendar for scheduled posts
 - Add bulk site management operations
 - Support custom domain verification
 - Add image upload and management
 - Implement full-text search across posts
+- Add E-commerce layout template

@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, FileText } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, Edit, Trash2, FileText, ChevronDown, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Post } from "@shared/schema";
@@ -43,7 +45,14 @@ export function PostsManager({ siteId }: PostsManagerProps) {
     content: "",
     tags: "",
     imageUrl: "",
+    metaTitle: "",
+    metaDescription: "",
+    ogImage: "",
+    canonicalUrl: "",
+    noindex: false,
   });
+  
+  const [seoOpen, setSeoOpen] = useState(false);
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/sites", siteId, "posts"],
@@ -57,11 +66,17 @@ export function PostsManager({ siteId }: PostsManagerProps) {
         content: post.content,
         tags: post.tags.join(", "),
         imageUrl: post.imageUrl || "",
+        metaTitle: post.metaTitle || "",
+        metaDescription: post.metaDescription || "",
+        ogImage: post.ogImage || "",
+        canonicalUrl: post.canonicalUrl || "",
+        noindex: post.noindex || false,
       });
     } else {
       setCurrentPost(null);
-      setFormData({ title: "", content: "", tags: "", imageUrl: "" });
+      setFormData({ title: "", content: "", tags: "", imageUrl: "", metaTitle: "", metaDescription: "", ogImage: "", canonicalUrl: "", noindex: false });
     }
+    setSeoOpen(false);
     setEditorOpen(true);
   };
 
@@ -77,7 +92,14 @@ export function PostsManager({ siteId }: PostsManagerProps) {
       .replace(/(^-|-$)/g, "");
 
     const postData = {
-      ...formData,
+      title: formData.title,
+      content: formData.content,
+      imageUrl: formData.imageUrl || null,
+      metaTitle: formData.metaTitle || null,
+      metaDescription: formData.metaDescription || null,
+      ogImage: formData.ogImage || null,
+      canonicalUrl: formData.canonicalUrl || null,
+      noindex: formData.noindex,
       tags,
       slug,
       siteId,
@@ -256,6 +278,77 @@ export function PostsManager({ siteId }: PostsManagerProps) {
                 </div>
               )}
             </div>
+            
+            <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-3 border rounded-md" data-testid="button-toggle-seo">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    <span className="font-medium">SEO Settings</span>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${seoOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="metaTitle">Meta Title</Label>
+                  <Input
+                    id="metaTitle"
+                    data-testid="input-meta-title"
+                    placeholder="Custom title for search engines (defaults to post title)"
+                    value={formData.metaTitle}
+                    onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Recommended: 50-60 characters</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="metaDescription">Meta Description</Label>
+                  <Textarea
+                    id="metaDescription"
+                    data-testid="textarea-meta-description"
+                    placeholder="Brief description for search engine results"
+                    value={formData.metaDescription}
+                    onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">Recommended: 150-160 characters</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ogImage">Social Share Image URL</Label>
+                  <Input
+                    id="ogImage"
+                    data-testid="input-og-image"
+                    placeholder="https://example.com/social-image.jpg"
+                    value={formData.ogImage}
+                    onChange={(e) => setFormData({ ...formData, ogImage: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Recommended: 1200x630 pixels for optimal social sharing</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                  <Input
+                    id="canonicalUrl"
+                    data-testid="input-canonical-url"
+                    placeholder="https://example.com/original-post (if republishing)"
+                    value={formData.canonicalUrl}
+                    onChange={(e) => setFormData({ ...formData, canonicalUrl: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">Use if this content originally appeared elsewhere</p>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="space-y-0.5">
+                    <Label>Hide from Search Engines</Label>
+                    <p className="text-xs text-muted-foreground">Add noindex meta tag to prevent search engine indexing</p>
+                  </div>
+                  <Switch
+                    data-testid="switch-noindex"
+                    checked={formData.noindex}
+                    onCheckedChange={(checked) => setFormData({ ...formData, noindex: checked })}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditorOpen(false)} data-testid="button-cancel-post">
                 Cancel
