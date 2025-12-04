@@ -771,6 +771,45 @@ export default function SiteConfig() {
                         />
                       </div>
                     </div>
+                    
+                    <div className="pt-4 border-t space-y-4">
+                      <h4 className="text-sm font-medium text-muted-foreground">Footer Logo Options</h4>
+                      <div className="space-y-2">
+                        <Label htmlFor="footerLogoUrl" data-testid="label-footer-logo-url">Custom Footer Logo URL</Label>
+                        <Input
+                          id="footerLogoUrl"
+                          placeholder="Leave empty to use site logo"
+                          value={templateSettings.footerLogoUrl || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, footerLogoUrl: e.target.value })}
+                          data-testid="input-footer-logo-url"
+                        />
+                        <p className="text-xs text-muted-foreground">Use a different logo in the footer (e.g., white version for dark backgrounds)</p>
+                      </div>
+                      <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                        <div>
+                          <Label htmlFor="footerLogoInvertColors" className="cursor-pointer" data-testid="label-footer-logo-invert">Invert Logo Colors</Label>
+                          <p className="text-xs text-muted-foreground">Flip logo colors for better visibility on dark footer backgrounds</p>
+                        </div>
+                        <Switch
+                          id="footerLogoInvertColors"
+                          checked={templateSettings.footerLogoInvertColors || false}
+                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, footerLogoInvertColors: checked })}
+                          data-testid="switch-footer-logo-invert"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                        <div>
+                          <Label htmlFor="footerShowPoweredBy" className="cursor-pointer" data-testid="label-footer-powered-by">Show "Powered by Blog Virality"</Label>
+                          <p className="text-xs text-muted-foreground">Display attribution text in the footer</p>
+                        </div>
+                        <Switch
+                          id="footerShowPoweredBy"
+                          checked={templateSettings.footerShowPoweredBy !== false}
+                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, footerShowPoweredBy: checked })}
+                          data-testid="switch-footer-powered-by"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 

@@ -20,9 +20,12 @@ export function PublicFooter({ site, topTags = [], onTagClick }: PublicFooterPro
   const textColor = settings?.footerTextColor || "#9ca3af";
   const linkColor = settings?.footerLinkColor || "#ffffff";
   const showLogo = settings?.footerShowLogo !== false;
+  const footerLogoUrl = settings?.footerLogoUrl || "";
+  const footerLogoInvertColors = settings?.footerLogoInvertColors || false;
   const aboutText = settings?.footerAboutText || "";
   const showNavLinks = settings?.footerShowNavLinks !== false;
   const showSocialIcons = settings?.footerShowSocialIcons !== false;
+  const showPoweredBy = settings?.footerShowPoweredBy !== false;
   const copyrightText = settings?.footerCopyrightText || "";
   const footerText = settings?.footerText || "";
 
@@ -40,7 +43,8 @@ export function PublicFooter({ site, topTags = [], onTagClick }: PublicFooterPro
   const hasSocials = Object.values(socials).some(v => v.trim());
   const displayTags = topTags.slice(0, 6);
   const logoSizePx = templateClasses.logoSize?.px || 40;
-  const isSvg = site.logoUrl?.toLowerCase().endsWith('.svg');
+  const displayLogoUrl = footerLogoUrl || site.logoUrl;
+  const isSvg = displayLogoUrl?.toLowerCase().endsWith('.svg');
 
   const containerVariants: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
@@ -171,14 +175,15 @@ export function PublicFooter({ site, topTags = [], onTagClick }: PublicFooterPro
 
     return (
       <div className="flex items-center gap-3">
-        {site.logoUrl && (
+        {displayLogoUrl && (
           <img 
-            src={site.logoUrl} 
+            src={displayLogoUrl} 
             alt={site.title}
             style={{ 
               height: `${logoSizePx}px`,
               width: isSvg ? 'auto' : `${logoSizePx}px`,
-              objectFit: 'contain'
+              objectFit: 'contain',
+              filter: footerLogoInvertColors ? 'invert(1) brightness(2)' : undefined
             }}
             className="flex-shrink-0"
             data-testid="img-footer-logo"
@@ -385,9 +390,11 @@ export function PublicFooter({ site, topTags = [], onTagClick }: PublicFooterPro
           style={{ borderColor: `${textColor}20` }}
         >
           {renderCopyright()}
-          <p className="text-xs" style={{ color: textColor }}>
-            Powered by ChameleonWeb
-          </p>
+          {showPoweredBy && (
+            <p className="text-xs" style={{ color: textColor }}>
+              Powered by Blog Virality
+            </p>
+          )}
         </motion.div>
       </div>
     </motion.footer>

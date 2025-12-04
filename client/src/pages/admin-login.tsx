@@ -42,7 +42,7 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-semibold" data-testid="text-login-title">ChameleonWeb Admin</CardTitle>
+          <CardTitle className="text-2xl font-semibold" data-testid="text-login-title">Blog Virality Admin</CardTitle>
           <CardDescription data-testid="text-login-description">Enter your credentials to access the dashboard</CardDescription>
         </CardHeader>
         <CardContent>

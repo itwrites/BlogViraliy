@@ -1,7 +1,7 @@
-# ChameleonWeb - Multi-Domain Content Platform
+# Blog Virality - Multi-Domain Content Platform
 
 ## Overview
-ChameleonWeb is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible layout templates (Blog, News, Magazine, Portfolio, Restaurant, Crypto).
+Blog Virality is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible layout templates (Blog, News, Magazine, Portfolio, Restaurant, Crypto).
 
 ## User Preferences
 - Clean, modern UI with consistent spacing

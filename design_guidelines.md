@@ -1,4 +1,4 @@
-# ChameleonWeb Design Guidelines
+# Blog Virality Design Guidelines
 
 ## Design Approach
 

@@ -85,9 +85,12 @@ export const templateSettingsSchema = z.object({
   footerTextColor: z.string().default("#9ca3af"),
   footerLinkColor: z.string().default("#ffffff"),
   footerShowLogo: z.boolean().default(true),
+  footerLogoUrl: z.string().default(""), // Custom logo URL for footer (empty = use site logo)
+  footerLogoInvertColors: z.boolean().default(false), // Invert/flip logo colors for dark backgrounds
   footerAboutText: z.string().default(""),
   footerShowNavLinks: z.boolean().default(true),
   footerShowSocialIcons: z.boolean().default(true),
+  footerShowPoweredBy: z.boolean().default(true), // Show "Powered by Blog Virality" text
   footerCopyrightText: z.string().default(""),
   // Additional social links for footer
   socialYoutube: z.string().default(""),
@@ -143,9 +146,12 @@ export const defaultTemplateSettings: TemplateSettings = {
   footerTextColor: "#9ca3af",
   footerLinkColor: "#ffffff",
   footerShowLogo: true,
+  footerLogoUrl: "",
+  footerLogoInvertColors: false,
   footerAboutText: "",
   footerShowNavLinks: true,
   footerShowSocialIcons: true,
+  footerShowPoweredBy: true,
   footerCopyrightText: "",
   // Additional social links
   socialYoutube: "",
