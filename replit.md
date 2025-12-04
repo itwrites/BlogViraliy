@@ -18,6 +18,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
 
 **Technical Implementations:**
 - **Domain-Based Routing**: Automatically routes requests to the admin dashboard or the appropriate public site based on the domain. Supports domain aliases allowing multiple URLs to point to the same site.
+- **Optional Base Path Support**: Enables reverse proxy deployments where the blog runs under a subdirectory (e.g., WordPress at ax.com with Blog Virality proxied at ax.com/blog). Configured per-site with automatic normalization (strips trailing slashes, ensures leading slash).
 - **Admin Dashboard**: Provides secure login, site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.
