@@ -79,6 +79,21 @@ export const templateSettingsSchema = z.object({
   gdprBannerDeclineText: z.string().default("Decline"),
   gdprBannerBackgroundColor: z.string().default("#1f2937"),
   gdprBannerTextColor: z.string().default("#ffffff"),
+  // Footer settings
+  footerLayout: z.enum(["simple", "columns", "centered"]).default("columns"),
+  footerBackgroundColor: z.string().default("#1f2937"),
+  footerTextColor: z.string().default("#9ca3af"),
+  footerLinkColor: z.string().default("#ffffff"),
+  footerShowLogo: z.boolean().default(true),
+  footerAboutText: z.string().default(""),
+  footerShowNavLinks: z.boolean().default(true),
+  footerShowSocialIcons: z.boolean().default(true),
+  footerCopyrightText: z.string().default(""),
+  // Additional social links for footer
+  socialYoutube: z.string().default(""),
+  socialTiktok: z.string().default(""),
+  socialPinterest: z.string().default(""),
+  socialGithub: z.string().default(""),
 });
 
 export type TemplateSettings = z.infer<typeof templateSettingsSchema>;
@@ -122,6 +137,21 @@ export const defaultTemplateSettings: TemplateSettings = {
   gdprBannerDeclineText: "Decline",
   gdprBannerBackgroundColor: "#1f2937",
   gdprBannerTextColor: "#ffffff",
+  // Footer settings
+  footerLayout: "columns",
+  footerBackgroundColor: "#1f2937",
+  footerTextColor: "#9ca3af",
+  footerLinkColor: "#ffffff",
+  footerShowLogo: true,
+  footerAboutText: "",
+  footerShowNavLinks: true,
+  footerShowSocialIcons: true,
+  footerCopyrightText: "",
+  // Additional social links
+  socialYoutube: "",
+  socialTiktok: "",
+  socialPinterest: "",
+  socialGithub: "",
 };
 
 // Sites (multi-tenant websites)

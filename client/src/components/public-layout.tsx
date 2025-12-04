@@ -3,15 +3,31 @@ import { PublicThemeProvider, useTemplateClasses } from "@/components/public-the
 import { SeoHead } from "@/components/seo-head";
 import { TopBanner } from "@/components/top-banner";
 import { GdprBanner } from "@/components/gdpr-banner";
+import { PublicFooter } from "@/components/public-footer";
 import type { Post } from "@shared/schema";
 
 interface PublicLayoutProps {
   site: Site;
   post?: Post;
+  topTags?: string[];
+  onTagClick?: (tag: string) => void;
   children: React.ReactNode;
+  hideFooter?: boolean;
 }
 
-function LayoutContent({ site, children }: { site: Site; children: React.ReactNode }) {
+function LayoutContent({ 
+  site, 
+  topTags, 
+  onTagClick, 
+  hideFooter,
+  children 
+}: { 
+  site: Site; 
+  topTags?: string[]; 
+  onTagClick?: (tag: string) => void;
+  hideFooter?: boolean;
+  children: React.ReactNode;
+}) {
   const settings = site.templateSettings;
   
   return (
@@ -29,6 +45,14 @@ function LayoutContent({ site, children }: { site: Site; children: React.ReactNo
       
       {children}
       
+      {!hideFooter && (
+        <PublicFooter 
+          site={site} 
+          topTags={topTags} 
+          onTagClick={onTagClick} 
+        />
+      )}
+      
       {settings?.gdprBannerEnabled && (
         <GdprBanner
           message={settings.gdprBannerMessage || "We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies."}
@@ -44,11 +68,11 @@ function LayoutContent({ site, children }: { site: Site; children: React.ReactNo
   );
 }
 
-export function PublicLayout({ site, post, children }: PublicLayoutProps) {
+export function PublicLayout({ site, post, topTags, onTagClick, hideFooter, children }: PublicLayoutProps) {
   return (
     <PublicThemeProvider settings={site.templateSettings}>
       <SeoHead site={site} post={post} />
-      <LayoutContent site={site}>
+      <LayoutContent site={site} topTags={topTags} onTagClick={onTagClick} hideFooter={hideFooter}>
         {children}
       </LayoutContent>
     </PublicThemeProvider>

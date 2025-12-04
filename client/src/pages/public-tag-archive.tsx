@@ -60,7 +60,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
   };
 
   return (
-    <PublicLayout site={site}>
+    <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -161,12 +161,6 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
             </motion.div>
           )}
         </main>
-
-        <footer className="border-t mt-16 py-8 bg-card">
-          <div className={`${templateClasses.contentWidth} mx-auto px-6 text-center text-sm text-muted-foreground`}>
-            <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
-          </div>
-        </footer>
       </div>
     </PublicLayout>
   );

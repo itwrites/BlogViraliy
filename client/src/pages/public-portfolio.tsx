@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ExternalLink, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
+import { FileText, ExternalLink } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
@@ -54,7 +54,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
   };
 
   return (
-    <PublicLayout site={site}>
+    <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -134,40 +134,6 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
             </div>
           )}
         </main>
-
-        <footer className="border-t mt-24 py-12 bg-card">
-          <div className={`${templateClasses.contentWidth} mx-auto px-6`}>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground" data-testid="text-footer-copyright">
-                {templateClasses.footerText || `© ${new Date().getFullYear()} ${site.title}`}
-              </p>
-              {templateClasses.hasSocials && (
-                <div className="flex items-center gap-3">
-                  {templateClasses.socials.twitter && (
-                    <a href={templateClasses.socials.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-social-twitter">
-                      <Twitter className="h-5 w-5" />
-                    </a>
-                  )}
-                  {templateClasses.socials.facebook && (
-                    <a href={templateClasses.socials.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-social-facebook">
-                      <Facebook className="h-5 w-5" />
-                    </a>
-                  )}
-                  {templateClasses.socials.instagram && (
-                    <a href={templateClasses.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-social-instagram">
-                      <Instagram className="h-5 w-5" />
-                    </a>
-                  )}
-                  {templateClasses.socials.linkedin && (
-                    <a href={templateClasses.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-social-linkedin">
-                      <Linkedin className="h-5 w-5" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </footer>
       </div>
     </PublicLayout>
   );

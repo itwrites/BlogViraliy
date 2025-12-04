@@ -58,7 +58,7 @@ export function PublicPost({ site }: PublicPostProps) {
 
   if (isLoading) {
     return (
-      <PublicLayout site={site}>
+      <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
         <div className="min-h-screen bg-background">
           <div className="animate-pulse">
             <div className="h-14 bg-card border-b" />
@@ -84,7 +84,7 @@ export function PublicPost({ site }: PublicPostProps) {
 
   if (!post) {
     return (
-      <PublicLayout site={site}>
+      <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center px-6">
             <h2 className="text-2xl font-semibold mb-2" data-testid="text-not-found-title">Post not found</h2>
@@ -99,7 +99,7 @@ export function PublicPost({ site }: PublicPostProps) {
   const readingTime = estimateReadingTime(post.content);
 
   return (
-    <PublicLayout site={site} post={post}>
+    <PublicLayout site={site} post={post} topTags={topTags || []} onTagClick={handleTagClick}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -356,12 +356,6 @@ export function PublicPost({ site }: PublicPostProps) {
             </motion.div>
           )}
         </main>
-
-        <footer className="border-t py-8 bg-card mt-12">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center text-sm text-muted-foreground">
-            <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} {site.title}. All rights reserved.</p>
-          </div>
-        </footer>
       </div>
     </PublicLayout>
   );
