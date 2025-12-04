@@ -996,10 +996,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === PUBLIC ROUTES ===
 
   app.get("/api/domain-check", async (req: DomainRequest, res: Response) => {
-    const hostname = req.hostname;
+    // Use hostname from query parameter (sent by frontend) if available
+    // This supports reverse proxy scenarios where the backend sees a different hostname
+    const hostnameParam = req.query.hostname as string | undefined;
+    const hostname = hostnameParam || req.hostname;
+    
+    console.log(`[domain-check] Query hostname=${hostnameParam}, req.hostname=${req.hostname}, using=${hostname}`);
     
     const site = await storage.getSiteByDomain(hostname);
     if (site) {
+      console.log(`[domain-check] Found site: ${site.domain} for hostname=${hostname}`);
       return res.json({ isAdmin: false, site });
     }
 
@@ -1010,6 +1016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ isAdmin: true });
     }
 
+    console.log(`[domain-check] No site found for hostname=${hostname}`);
     res.json({ isAdmin: false, site: null });
   });
 
