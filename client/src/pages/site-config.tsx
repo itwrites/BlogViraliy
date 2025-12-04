@@ -97,7 +97,27 @@ export default function SiteConfig() {
   }, [site]);
 
   const addDomainAlias = () => {
-    const alias = newDomainAlias.trim().toLowerCase();
+    let alias = newDomainAlias.trim().toLowerCase();
+    
+    // Extract domain from URL if user enters a full URL
+    // Handles: https://example.com/path, http://example.com, //example.com, example.com/path
+    try {
+      // Check if it looks like a URL (has protocol or starts with //)
+      if (alias.includes("://") || alias.startsWith("//")) {
+        const url = new URL(alias.startsWith("//") ? `https:${alias}` : alias);
+        alias = url.hostname;
+      } else if (alias.includes("/")) {
+        // Handle case like "example.com/path" without protocol
+        alias = alias.split("/")[0];
+      }
+    } catch {
+      // If URL parsing fails, try to extract domain manually
+      alias = alias.replace(/^(https?:)?\/\//, "").split("/")[0];
+    }
+    
+    // Remove any remaining path, query string, or port
+    alias = alias.split(":")[0].split("?")[0].split("#")[0];
+    
     if (alias && !siteData.domainAliases.includes(alias) && alias !== siteData.domain) {
       setSiteData({ ...siteData, domainAliases: [...siteData.domainAliases, alias] });
       setNewDomainAlias("");
