@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
