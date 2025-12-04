@@ -1,0 +1,118 @@
+Ultra-Clear Layout & UI Description for Bolt.new
+
+The theme is designed as a clean, modern magazine homepage with a strong visual hierarchy. It uses large images, structured grids, and lots of white space to create a premium reading experience.
+
+🔷 PAGE STRUCTURE
+1. Header
+
+A full-width top bar, white background.
+
+Left: Logo.
+
+Center or left-aligned: Navigation links arranged horizontally.
+
+Right: Search icon and a small “Sign in” button.
+
+Thin bottom separator line to distinguish the header from the content.
+
+2. Hero Section (Top Featured Area)
+
+A two-column layout occupying the full width of the main content area.
+
+Left Side (Main Feature)
+
+A large rectangular image that takes up roughly 65% of the width.
+
+Below the image:
+
+Category label (small, uppercase).
+
+Large headline (2–3 lines max).
+
+Short descriptive text (1–2 lines).
+
+Right Side (Secondary Features)
+
+A vertical column showing three smaller feature cards stacked top to bottom.
+
+Each card contains:
+
+A medium-sized image at the top.
+
+Category label.
+
+Short title (1 line).
+
+Cards are evenly spaced with consistent padding.
+
+This entire section should feel like the front page of a digital magazine.
+
+3. Category Section (e.g., “Electronics”)
+
+Below the hero section, each category is displayed in a structured block.
+
+Top of the Category Block
+
+Left: Category title (bold).
+
+Right: A small “View all” link.
+
+Article Grid
+
+A row of four article cards, evenly spaced.
+
+Each card includes:
+
+A medium rectangular image at the top.
+
+The article title (2 lines max).
+
+A small piece of metadata below (for example: date).
+
+Card style:
+
+Slightly rounded corners.
+
+Soft shadow.
+
+Uniform spacing around all four cards.
+
+4. Additional Categories (e.g., “Trends”)
+
+Each category repeats the exact same structure:
+
+Title row
+
+Four-card grid
+
+Spacing between sections is generous so each block feels well-defined.
+
+🔷 CARD DESIGN (Consistent Across the Site)
+
+Every article card follows the same rules:
+
+Image at the top, full width of the card.
+
+Rounded corners.
+
+Below the image:
+
+Title in medium-weight text.
+
+Metadata in smaller, lighter text.
+
+Cards have a clean, minimalistic feel with plenty of padding.
+
+Hover state: subtle lift or shadow increase.
+
+🔷 OVERALL UI STYLE
+
+Very clean and modern, similar to online technology magazines.
+
+Large, high-quality images dominate the layout.
+
+Lots of white space so the content feels breathable.
+
+Simple, readable text, no clutter.
+
+Clear hierarchy: big feature → category sections → article grids.
