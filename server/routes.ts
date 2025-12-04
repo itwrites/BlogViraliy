@@ -9,6 +9,7 @@ import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchem
 import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 import { normalizeBasePath } from "./utils";
+import { rewriteHtmlForBasePath } from "./html-rewriter";
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
@@ -21,6 +22,7 @@ declare module "express-session" {
 
 interface DomainRequest extends Request {
   siteId?: string;
+  siteBasePath?: string;
 }
 
 interface AuthenticatedRequest extends Request {
@@ -63,19 +65,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     if (isExplicitAdminDomain) {
       req.siteId = undefined;
+      req.siteBasePath = "";
       return next();
     }
 
     const site = await storage.getSiteByDomain(hostname);
     if (site) {
       req.siteId = site.id;
+      req.siteBasePath = normalizeBasePath(site.basePath);
       return next();
     }
 
     if (isReplitDefaultHost) {
       req.siteId = undefined;
+      req.siteBasePath = "";
     }
     
+    next();
+  });
+
+  // Strip basePath from incoming URLs for sites with basePath configured
+  // This allows asset requests like /blog/assets/* to be served from /assets/*
+  app.use((req: DomainRequest, res: Response, next: NextFunction) => {
+    const basePath = req.siteBasePath;
+    // Skip if no basePath or if basePath is just "/" (shouldn't happen with normalizer)
+    if (!basePath || basePath === "/") return next();
+    
+    // If the request path starts with the basePath, strip it so assets can be served
+    if (req.path.startsWith(basePath + "/") || req.path === basePath) {
+      let strippedUrl = req.url.substring(basePath.length);
+      // Ensure we always have a leading slash
+      if (!strippedUrl.startsWith("/")) {
+        strippedUrl = "/" + strippedUrl;
+      }
+      // Only modify req.url - Express will recalculate req.path from it
+      req.url = strippedUrl || "/";
+    }
+    next();
+  });
+
+  // Base path asset URL rewriting middleware for reverse proxy support
+  // This rewrites asset paths in HTML responses to include the basePath
+  app.use((req: DomainRequest, res: Response, next: NextFunction) => {
+    const basePath = req.siteBasePath;
+    
+    // Skip if no basePath configured or if it's an API/asset request
+    if (!basePath || req.path.startsWith("/api/") || req.path.startsWith("/assets/") || req.path.startsWith("/src/")) {
+      return next();
+    }
+
+    // Collect response chunks for HTML rewriting
+    let chunks: Buffer[] = [];
+    let isHtmlResponse = false;
+    
+    // Store original methods
+    const originalWrite = res.write.bind(res);
+    const originalEnd = res.end.bind(res);
+    const originalSetHeader = res.setHeader.bind(res);
+
+    // Track if this is an HTML response
+    res.setHeader = function(name: string, value: string | number | readonly string[]): Response {
+      if (name.toLowerCase() === 'content-type' && String(value).includes('text/html')) {
+        isHtmlResponse = true;
+      }
+      return originalSetHeader(name, value);
+    };
+
+    // Intercept write to collect chunks
+    (res as any).write = function(chunk: any, encodingOrCallback?: BufferEncoding | ((error: Error | null | undefined) => void), callback?: (error: Error | null | undefined) => void): boolean {
+      // Check content type on first write
+      const contentType = res.get("Content-Type") || "";
+      if (contentType.includes("text/html")) {
+        isHtmlResponse = true;
+      }
+      
+      if (isHtmlResponse && chunk) {
+        if (Buffer.isBuffer(chunk)) {
+          chunks.push(chunk);
+        } else if (typeof chunk === "string") {
+          chunks.push(Buffer.from(chunk, typeof encodingOrCallback === "string" ? encodingOrCallback : "utf-8"));
+        }
+        // Return true to indicate write was "successful" - we'll send the actual data in end()
+        if (typeof encodingOrCallback === "function") {
+          encodingOrCallback(null);
+        } else if (callback) {
+          callback(null);
+        }
+        return true;
+      }
+      
+      // For non-HTML responses, pass through normally
+      if (typeof encodingOrCallback === "function") {
+        return originalWrite(chunk, encodingOrCallback);
+      }
+      if (encodingOrCallback) {
+        return originalWrite(chunk, encodingOrCallback, callback);
+      }
+      return originalWrite(chunk, callback);
+    };
+
+    // Intercept end to rewrite and send HTML
+    (res as any).end = function(chunk?: any, encodingOrCallback?: BufferEncoding | (() => void), callback?: () => void): Response {
+      // Check content type
+      const contentType = res.get("Content-Type") || "";
+      if (contentType.includes("text/html")) {
+        isHtmlResponse = true;
+      }
+      
+      if (isHtmlResponse) {
+        // Collect final chunk if provided
+        if (chunk) {
+          if (Buffer.isBuffer(chunk)) {
+            chunks.push(chunk);
+          } else if (typeof chunk === "string") {
+            chunks.push(Buffer.from(chunk, typeof encodingOrCallback === "string" ? encodingOrCallback : "utf-8"));
+          }
+        }
+        
+        // Combine all chunks and rewrite using DOM-based HTML parser
+        if (chunks.length > 0) {
+          const html = Buffer.concat(chunks).toString("utf-8");
+          const rewrittenHtml = rewriteHtmlForBasePath(html, basePath);
+          
+          // Update content-length header
+          res.setHeader("Content-Length", Buffer.byteLength(rewrittenHtml));
+          
+          // Send rewritten HTML
+          originalWrite(rewrittenHtml, "utf-8");
+        }
+        
+        // Call original end without chunk (already sent via write)
+        if (typeof encodingOrCallback === "function") {
+          return originalEnd(encodingOrCallback);
+        }
+        return originalEnd(callback);
+      }
+      
+      // For non-HTML responses, pass through normally
+      if (typeof encodingOrCallback === "function") {
+        return originalEnd(chunk, encodingOrCallback);
+      }
+      if (encodingOrCallback) {
+        return originalEnd(chunk, encodingOrCallback, callback);
+      }
+      return originalEnd(chunk, callback);
+    };
+
     next();
   });
 
