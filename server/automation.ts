@@ -2,6 +2,7 @@ import cron from "node-cron";
 import Parser from "rss-parser";
 import { storage } from "./storage";
 import { generateAIPost, rewriteArticle } from "./openai";
+import { processNextPillarArticle } from "./topical-authority";
 import type { Site } from "@shared/schema";
 
 const parser = new Parser();
@@ -240,6 +241,59 @@ export async function processKeywordBatches() {
   }
 }
 
+// Lock to prevent concurrent processing of the same pillar
+const pillarProcessingLocks = new Set<string>();
+let isPillarGenerationRunning = false;
+
+async function processPillarGeneration() {
+  // Prevent concurrent runs of the entire scheduler
+  if (isPillarGenerationRunning) {
+    console.log("[Pillar] Previous run still in progress, skipping...");
+    return;
+  }
+  
+  isPillarGenerationRunning = true;
+  
+  try {
+    const activePillars = await storage.getActivePillars();
+    
+    for (const pillar of activePillars) {
+      if (pillar.status !== "generating") {
+        continue;
+      }
+
+      // Check if this pillar is already being processed
+      if (pillarProcessingLocks.has(pillar.id)) {
+        console.log(`[Pillar] Pillar "${pillar.name}" is already being processed, skipping...`);
+        continue;
+      }
+
+      // Acquire lock for this pillar
+      pillarProcessingLocks.add(pillar.id);
+
+      try {
+        console.log(`[Pillar] Processing next article for pillar: ${pillar.name}`);
+        const result = await processNextPillarArticle(pillar);
+        
+        if (result.success && result.postId) {
+          console.log(`[Pillar] Generated article for pillar "${pillar.name}"`);
+        } else if (result.success && !result.postId) {
+          console.log(`[Pillar] Pillar "${pillar.name}" completed - all articles generated`);
+        } else {
+          console.error(`[Pillar] Error generating article for pillar "${pillar.name}": ${result.error}`);
+        }
+      } catch (error) {
+        console.error(`[Pillar] Error processing pillar ${pillar.name}:`, error);
+      } finally {
+        // Release lock for this pillar
+        pillarProcessingLocks.delete(pillar.id);
+      }
+    }
+  } finally {
+    isPillarGenerationRunning = false;
+  }
+}
+
 export function startAutomationSchedulers() {
   // AI Content Generation - runs multiple times per day based on site configs
   cron.schedule("0 */8 * * *", processAIAutomation);
@@ -249,6 +303,9 @@ export function startAutomationSchedulers() {
 
   // Keyword Batch Processing - runs every minute to process queued jobs
   cron.schedule("* * * * *", processKeywordBatches);
+
+  // Pillar Content Generation - runs every minute to process generating pillars
+  cron.schedule("* * * * *", processPillarGeneration);
 
   console.log("[Automation] Schedulers started");
 }

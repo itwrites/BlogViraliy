@@ -262,6 +262,68 @@ export const keywordJobs = pgTable("keyword_jobs", {
   processedAt: timestamp("processed_at"),
 });
 
+// ========================================
+// TOPICAL AUTHORITY SYSTEM
+// ========================================
+
+// Pillar status enum
+export const pillarStatusEnum = z.enum(["draft", "mapping", "mapped", "generating", "completed", "paused", "failed"]);
+export type PillarStatus = z.infer<typeof pillarStatusEnum>;
+
+// Article generation status enum
+export const articleStatusEnum = z.enum(["pending", "generating", "completed", "failed", "skipped"]);
+export type ArticleStatus = z.infer<typeof articleStatusEnum>;
+
+// Pillars (main topics for topical authority)
+export const pillars = pgTable("pillars", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // e.g., "Hospitality", "Real Estate"
+  description: text("description"), // Optional description of the pillar topic
+  status: text("status").notNull().default("draft"), // draft, mapping, mapped, generating, completed, paused, failed
+  masterPrompt: text("master_prompt"), // Custom AI prompt for this pillar's content
+  targetArticleCount: integer("target_article_count").notNull().default(50), // Target number of articles (50-200)
+  generatedCount: integer("generated_count").notNull().default(0), // Articles successfully generated
+  failedCount: integer("failed_count").notNull().default(0), // Articles that failed generation
+  publishSchedule: text("publish_schedule").default("1_per_day"), // Publishing frequency
+  nextPublishAt: timestamp("next_publish_at"), // Next scheduled publish time
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Clusters (categories under pillars, e.g., "Hotel Marketing", "Restaurant Operations")
+export const clusters = pgTable("clusters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pillarId: varchar("pillar_id").notNull().references(() => pillars.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // e.g., "Hotel SEO", "Guest Experience"
+  description: text("description"), // Brief description of this cluster
+  sortOrder: integer("sort_order").notNull().default(0), // Order within the pillar
+  articleCount: integer("article_count").notNull().default(0), // Number of articles in this cluster
+  generatedCount: integer("generated_count").notNull().default(0), // Articles successfully generated
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Pillar Articles (articles in the topical authority hierarchy)
+export const pillarArticles = pgTable("pillar_articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pillarId: varchar("pillar_id").notNull().references(() => pillars.id, { onDelete: "cascade" }),
+  clusterId: varchar("cluster_id").references(() => clusters.id, { onDelete: "cascade" }), // null for pillar article itself
+  title: text("title").notNull(), // Article title / long-tail keyword
+  slug: text("slug").notNull(), // URL slug
+  keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`), // Target keywords
+  articleType: text("article_type").notNull().default("subtopic"), // "pillar", "category", "subtopic"
+  status: text("status").notNull().default("pending"), // pending, generating, completed, failed, skipped
+  sortOrder: integer("sort_order").notNull().default(0), // Order within cluster
+  postId: varchar("post_id").references(() => posts.id, { onDelete: "set null" }), // Link to generated post
+  internalLinks: text("internal_links").array().default(sql`ARRAY[]::text[]`), // IDs of articles to link to
+  error: text("error"), // Error message if generation failed
+  retryCount: integer("retry_count").notNull().default(0), // Number of generation retry attempts
+  generatedAt: timestamp("generated_at"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userSites: many(userSites),
@@ -321,6 +383,39 @@ export const keywordJobsRelations = relations(keywordJobs, ({ one }) => ({
   }),
   post: one(posts, {
     fields: [keywordJobs.postId],
+    references: [posts.id],
+  }),
+}));
+
+// Pillar Relations
+export const pillarsRelations = relations(pillars, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [pillars.siteId],
+    references: [sites.id],
+  }),
+  clusters: many(clusters),
+  articles: many(pillarArticles),
+}));
+
+export const clustersRelations = relations(clusters, ({ one, many }) => ({
+  pillar: one(pillars, {
+    fields: [clusters.pillarId],
+    references: [pillars.id],
+  }),
+  articles: many(pillarArticles),
+}));
+
+export const pillarArticlesRelations = relations(pillarArticles, ({ one }) => ({
+  pillar: one(pillars, {
+    fields: [pillarArticles.pillarId],
+    references: [pillars.id],
+  }),
+  cluster: one(clusters, {
+    fields: [pillarArticles.clusterId],
+    references: [clusters.id],
+  }),
+  post: one(posts, {
+    fields: [pillarArticles.postId],
     references: [posts.id],
   }),
 }));
@@ -405,3 +500,39 @@ export type KeywordBatch = typeof keywordBatches.$inferSelect;
 
 export type InsertKeywordJob = z.infer<typeof insertKeywordJobSchema>;
 export type KeywordJob = typeof keywordJobs.$inferSelect;
+
+// Topical Authority Insert Schemas
+export const insertPillarSchema = createInsertSchema(pillars).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+}).extend({
+  status: pillarStatusEnum.optional().default("draft"),
+  targetArticleCount: z.number().min(10).max(500).optional().default(50),
+});
+
+export const insertClusterSchema = createInsertSchema(clusters).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPillarArticleSchema = createInsertSchema(pillarArticles).omit({
+  id: true,
+  createdAt: true,
+  generatedAt: true,
+  publishedAt: true,
+}).extend({
+  status: articleStatusEnum.optional().default("pending"),
+  articleType: z.enum(["pillar", "category", "subtopic"]).optional().default("subtopic"),
+});
+
+// Topical Authority Types
+export type InsertPillar = z.infer<typeof insertPillarSchema>;
+export type Pillar = typeof pillars.$inferSelect;
+
+export type InsertCluster = z.infer<typeof insertClusterSchema>;
+export type Cluster = typeof clusters.$inferSelect;
+
+export type InsertPillarArticle = z.infer<typeof insertPillarArticleSchema>;
+export type PillarArticle = typeof pillarArticles.$inferSelect;

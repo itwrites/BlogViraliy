@@ -8,6 +8,9 @@ import {
   userSites,
   keywordBatches,
   keywordJobs,
+  pillars,
+  clusters,
+  pillarArticles,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -16,6 +19,9 @@ import {
   type UserSite,
   type KeywordBatch,
   type KeywordJob,
+  type Pillar,
+  type Cluster,
+  type PillarArticle,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -24,6 +30,9 @@ import {
   type InsertUserSite,
   type InsertKeywordBatch,
   type InsertKeywordJob,
+  type InsertPillar,
+  type InsertCluster,
+  type InsertPillarArticle,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -95,6 +104,32 @@ export interface IStorage {
 
   // Sitemap helpers
   getPublishedPostsBySiteId(siteId: string): Promise<Post[]>;
+
+  // Pillars (Topical Authority)
+  getPillarsBySiteId(siteId: string): Promise<Pillar[]>;
+  getPillarById(id: string): Promise<Pillar | undefined>;
+  createPillar(pillar: InsertPillar): Promise<Pillar>;
+  updatePillar(id: string, pillar: Partial<InsertPillar> & { completedAt?: Date }): Promise<Pillar | undefined>;
+  deletePillar(id: string): Promise<void>;
+  getActivePillars(): Promise<Pillar[]>;
+
+  // Clusters
+  getClustersByPillarId(pillarId: string): Promise<Cluster[]>;
+  getClusterById(id: string): Promise<Cluster | undefined>;
+  createCluster(cluster: InsertCluster): Promise<Cluster>;
+  updateCluster(id: string, cluster: Partial<InsertCluster>): Promise<Cluster | undefined>;
+  deleteClustersByPillarId(pillarId: string): Promise<void>;
+
+  // Pillar Articles
+  getPillarArticlesByPillarId(pillarId: string): Promise<PillarArticle[]>;
+  getPillarArticlesByClusterId(clusterId: string): Promise<PillarArticle[]>;
+  getPillarArticleById(id: string): Promise<PillarArticle | undefined>;
+  createPillarArticle(article: InsertPillarArticle): Promise<PillarArticle>;
+  createPillarArticles(articles: InsertPillarArticle[]): Promise<PillarArticle[]>;
+  updatePillarArticle(id: string, article: Partial<InsertPillarArticle> & { generatedAt?: Date; publishedAt?: Date }): Promise<PillarArticle | undefined>;
+  deletePillarArticlesByPillarId(pillarId: string): Promise<void>;
+  getNextPendingPillarArticle(pillarId: string): Promise<PillarArticle | undefined>;
+  getPillarArticleStats(pillarId: string): Promise<{ total: number; pending: number; completed: number; failed: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -521,6 +556,162 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(posts.updatedAt));
+  }
+
+  // ========================================
+  // PILLARS (Topical Authority)
+  // ========================================
+
+  async getPillarsBySiteId(siteId: string): Promise<Pillar[]> {
+    return await db
+      .select()
+      .from(pillars)
+      .where(eq(pillars.siteId, siteId))
+      .orderBy(desc(pillars.createdAt));
+  }
+
+  async getPillarById(id: string): Promise<Pillar | undefined> {
+    const [pillar] = await db.select().from(pillars).where(eq(pillars.id, id));
+    return pillar || undefined;
+  }
+
+  async createPillar(insertPillar: InsertPillar): Promise<Pillar> {
+    const [pillar] = await db.insert(pillars).values(insertPillar).returning();
+    return pillar;
+  }
+
+  async updatePillar(id: string, pillar: Partial<InsertPillar> & { completedAt?: Date }): Promise<Pillar | undefined> {
+    const [updated] = await db
+      .update(pillars)
+      .set({ ...pillar, updatedAt: new Date() })
+      .where(eq(pillars.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deletePillar(id: string): Promise<void> {
+    await db.delete(pillars).where(eq(pillars.id, id));
+  }
+
+  async getActivePillars(): Promise<Pillar[]> {
+    return await db
+      .select()
+      .from(pillars)
+      .where(sql`${pillars.status} IN ('generating', 'mapped')`)
+      .orderBy(asc(pillars.nextPublishAt));
+  }
+
+  // ========================================
+  // CLUSTERS
+  // ========================================
+
+  async getClustersByPillarId(pillarId: string): Promise<Cluster[]> {
+    return await db
+      .select()
+      .from(clusters)
+      .where(eq(clusters.pillarId, pillarId))
+      .orderBy(asc(clusters.sortOrder));
+  }
+
+  async getClusterById(id: string): Promise<Cluster | undefined> {
+    const [cluster] = await db.select().from(clusters).where(eq(clusters.id, id));
+    return cluster || undefined;
+  }
+
+  async createCluster(insertCluster: InsertCluster): Promise<Cluster> {
+    const [cluster] = await db.insert(clusters).values(insertCluster).returning();
+    return cluster;
+  }
+
+  async updateCluster(id: string, cluster: Partial<InsertCluster>): Promise<Cluster | undefined> {
+    const [updated] = await db
+      .update(clusters)
+      .set(cluster)
+      .where(eq(clusters.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteClustersByPillarId(pillarId: string): Promise<void> {
+    await db.delete(clusters).where(eq(clusters.pillarId, pillarId));
+  }
+
+  // ========================================
+  // PILLAR ARTICLES
+  // ========================================
+
+  async getPillarArticlesByPillarId(pillarId: string): Promise<PillarArticle[]> {
+    return await db
+      .select()
+      .from(pillarArticles)
+      .where(eq(pillarArticles.pillarId, pillarId))
+      .orderBy(asc(pillarArticles.sortOrder));
+  }
+
+  async getPillarArticlesByClusterId(clusterId: string): Promise<PillarArticle[]> {
+    return await db
+      .select()
+      .from(pillarArticles)
+      .where(eq(pillarArticles.clusterId, clusterId))
+      .orderBy(asc(pillarArticles.sortOrder));
+  }
+
+  async getPillarArticleById(id: string): Promise<PillarArticle | undefined> {
+    const [article] = await db.select().from(pillarArticles).where(eq(pillarArticles.id, id));
+    return article || undefined;
+  }
+
+  async createPillarArticle(insertArticle: InsertPillarArticle): Promise<PillarArticle> {
+    const [article] = await db.insert(pillarArticles).values(insertArticle).returning();
+    return article;
+  }
+
+  async createPillarArticles(insertArticles: InsertPillarArticle[]): Promise<PillarArticle[]> {
+    if (insertArticles.length === 0) return [];
+    const articles = await db.insert(pillarArticles).values(insertArticles).returning();
+    return articles;
+  }
+
+  async updatePillarArticle(id: string, article: Partial<InsertPillarArticle> & { generatedAt?: Date; publishedAt?: Date }): Promise<PillarArticle | undefined> {
+    const [updated] = await db
+      .update(pillarArticles)
+      .set(article)
+      .where(eq(pillarArticles.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deletePillarArticlesByPillarId(pillarId: string): Promise<void> {
+    await db.delete(pillarArticles).where(eq(pillarArticles.pillarId, pillarId));
+  }
+
+  async getNextPendingPillarArticle(pillarId: string): Promise<PillarArticle | undefined> {
+    const [article] = await db
+      .select()
+      .from(pillarArticles)
+      .where(
+        and(
+          eq(pillarArticles.pillarId, pillarId),
+          eq(pillarArticles.status, "pending")
+        )
+      )
+      .orderBy(asc(pillarArticles.sortOrder))
+      .limit(1);
+    return article || undefined;
+  }
+
+  async getPillarArticleStats(pillarId: string): Promise<{ total: number; pending: number; completed: number; failed: number }> {
+    const allArticles = await db
+      .select()
+      .from(pillarArticles)
+      .where(eq(pillarArticles.pillarId, pillarId));
+    
+    return {
+      total: allArticles.length,
+      pending: allArticles.filter(a => a.status === "pending").length,
+      completed: allArticles.filter(a => a.status === "completed").length,
+      failed: allArticles.filter(a => a.status === "failed").length,
+    };
   }
 }
 

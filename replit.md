@@ -25,6 +25,12 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Public Site Templates**: Six distinct layouts (Blog, News, Magazine, Portfolio, Restaurant, Crypto) with customizable themes, fonts, logo sizing, and content width.
 - **Automatic Navigation**: Generates navigation menus from the top 10 most-used tags, creating tag archive pages and related post sections dynamically.
 - **Bulk Keyword Generation**: Supports uploading keyword lists for automated post generation, with a dashboard to track progress.
+- **Topical Authority System**: Automated SEO content generation using the Pillar-Cluster model:
+    - **Pillars**: Main topic entities with configurable subtopic counts (50-200 articles)
+    - **Clusters**: AI-generated categories (3-8 per pillar) organizing content thematically
+    - **Automatic Internal Linking**: Context-aware links between pillar, cluster, and article content
+    - **Scheduled Generation**: Articles are generated automatically via cron scheduler
+    - **Status Workflow**: draft → mapping → mapped → generating → completed/paused/failed
 - **Dynamic Sitemap**: Generates and caches `sitemap.xml` for each site, including posts and tag archives.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles, and site-specific permissions.
 - **SEO Implementation**: Includes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.

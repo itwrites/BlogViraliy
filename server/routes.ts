@@ -5,7 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { insertSiteSchema, insertPostSchema, insertUserSchema, type User } from "@shared/schema";
+import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User } from "@shared/schema";
 import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 
@@ -983,6 +983,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(xml);
     } catch (error) {
       res.status(500).json({ error: "Failed to generate sitemap preview" });
+    }
+  });
+
+  // ========================================
+  // TOPICAL AUTHORITY ROUTES
+  // ========================================
+
+  // Get all pillars for a site
+  app.get("/api/sites/:id/pillars", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const pillars = await storage.getPillarsBySiteId(req.params.id);
+      // Get stats for each pillar
+      const pillarsWithStats = await Promise.all(
+        pillars.map(async (pillar) => {
+          const stats = await storage.getPillarArticleStats(pillar.id);
+          const clusters = await storage.getClustersByPillarId(pillar.id);
+          return {
+            ...pillar,
+            stats,
+            clusterCount: clusters.length,
+          };
+        })
+      );
+      res.json(pillarsWithStats);
+    } catch (error) {
+      console.error("Error fetching pillars:", error);
+      res.status(500).json({ error: "Failed to fetch pillars" });
+    }
+  });
+
+  // Create a new pillar
+  app.post("/api/sites/:id/pillars", requireAuth, requireSiteAccess("id", "edit"), async (req: Request, res: Response) => {
+    try {
+      const parsed = insertPillarSchema.safeParse({
+        ...req.body,
+        siteId: req.params.id,
+      });
+      
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid pillar data", details: parsed.error.errors });
+      }
+
+      const pillar = await storage.createPillar(parsed.data);
+      res.status(201).json(pillar);
+    } catch (error) {
+      console.error("Error creating pillar:", error);
+      res.status(500).json({ error: "Failed to create pillar" });
+    }
+  });
+
+  // Get a specific pillar with full details
+  app.get("/api/pillars/:pillarId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      // Get clusters and articles
+      const clusters = await storage.getClustersByPillarId(pillar.id);
+      const articles = await storage.getPillarArticlesByPillarId(pillar.id);
+      const stats = await storage.getPillarArticleStats(pillar.id);
+
+      res.json({
+        ...pillar,
+        clusters: clusters.map(cluster => ({
+          ...cluster,
+          articles: articles.filter(a => a.clusterId === cluster.id),
+        })),
+        pillarArticle: articles.find(a => a.articleType === "pillar"),
+        stats,
+      });
+    } catch (error) {
+      console.error("Error fetching pillar:", error);
+      res.status(500).json({ error: "Failed to fetch pillar" });
+    }
+  });
+
+  // Update a pillar
+  app.patch("/api/pillars/:pillarId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      const updated = await storage.updatePillar(req.params.pillarId, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating pillar:", error);
+      res.status(500).json({ error: "Failed to update pillar" });
+    }
+  });
+
+  // Delete a pillar
+  app.delete("/api/pillars/:pillarId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      await storage.deletePillar(req.params.pillarId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting pillar:", error);
+      res.status(500).json({ error: "Failed to delete pillar" });
+    }
+  });
+
+  // Generate topical map for a pillar (AI-powered)
+  app.post("/api/pillars/:pillarId/generate-map", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      // Validate workflow - can only generate map from draft, failed, or mapped (with force flag) status
+      const allowedStatuses = ["draft", "failed", "mapped"];
+      const { force } = req.body;
+      
+      if (!allowedStatuses.includes(pillar.status)) {
+        return res.status(400).json({ 
+          error: `Cannot generate map: pillar is currently ${pillar.status}. Must be in 'draft', 'failed', or 'mapped' status.`
+        });
+      }
+      
+      // Require force flag to regenerate from mapped status (will clear existing clusters/articles)
+      if (pillar.status === "mapped" && !force) {
+        return res.status(400).json({
+          error: "Pillar already has a topical map. Use force=true to regenerate (this will clear existing articles)."
+        });
+      }
+
+      // Update status to mapping
+      await storage.updatePillar(pillar.id, { status: "mapping" });
+
+      // Import and call the topical map generator
+      const { generateTopicalMap } = await import("./topical-authority");
+      const result = await generateTopicalMap(pillar);
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating topical map:", error);
+      // Reset status on error
+      await storage.updatePillar(req.params.pillarId, { status: "failed" });
+      res.status(500).json({ error: "Failed to generate topical map" });
+    }
+  });
+
+  // Start content generation for a pillar
+  app.post("/api/pillars/:pillarId/start-generation", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      if (pillar.status !== "mapped" && pillar.status !== "paused") {
+        return res.status(400).json({ error: "Pillar must be mapped or paused to start generation" });
+      }
+
+      // Update status to generating
+      await storage.updatePillar(pillar.id, { 
+        status: "generating",
+        nextPublishAt: new Date(),
+      });
+
+      res.json({ success: true, message: "Content generation started" });
+    } catch (error) {
+      console.error("Error starting generation:", error);
+      res.status(500).json({ error: "Failed to start generation" });
+    }
+  });
+
+  // Pause content generation for a pillar
+  app.post("/api/pillars/:pillarId/pause-generation", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const pillar = await storage.getPillarById(req.params.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this pillar" });
+        }
+      }
+
+      if (pillar.status !== "generating") {
+        return res.status(400).json({ error: "Pillar must be generating to pause" });
+      }
+
+      await storage.updatePillar(pillar.id, { status: "paused" });
+      res.json({ success: true, message: "Content generation paused" });
+    } catch (error) {
+      console.error("Error pausing generation:", error);
+      res.status(500).json({ error: "Failed to pause generation" });
+    }
+  });
+
+  // Get pillar article details
+  app.get("/api/pillar-articles/:articleId", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const article = await storage.getPillarArticleById(req.params.articleId);
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      const pillar = await storage.getPillarById(article.pillarId);
+      if (!pillar) {
+        return res.status(404).json({ error: "Pillar not found" });
+      }
+
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, pillar.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this article" });
+        }
+      }
+
+      // Get the linked post if exists
+      let post = null;
+      if (article.postId) {
+        post = await storage.getPostById(article.postId);
+      }
+
+      res.json({ ...article, post });
+    } catch (error) {
+      console.error("Error fetching pillar article:", error);
+      res.status(500).json({ error: "Failed to fetch article" });
     }
   });
 

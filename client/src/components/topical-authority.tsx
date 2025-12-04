@@ -1,0 +1,527 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { 
+  Plus, 
+  Trash2, 
+  Play, 
+  Pause, 
+  Map, 
+  ChevronDown, 
+  ChevronRight,
+  FileText,
+  Folder,
+  Target,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  LayoutGrid
+} from "lucide-react";
+import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
+
+interface PillarWithStats extends Pillar {
+  stats: {
+    total: number;
+    pending: number;
+    completed: number;
+    failed: number;
+  };
+  clusterCount: number;
+}
+
+interface ClusterWithArticles extends Cluster {
+  articles: PillarArticle[];
+}
+
+interface PillarDetails extends Pillar {
+  clusters: ClusterWithArticles[];
+  pillarArticle?: PillarArticle;
+  stats: {
+    total: number;
+    pending: number;
+    completed: number;
+    failed: number;
+  };
+}
+
+interface TopicalAuthorityProps {
+  siteId: string;
+}
+
+const statusColors: Record<string, string> = {
+  draft: "bg-gray-500",
+  mapping: "bg-blue-500",
+  mapped: "bg-purple-500",
+  generating: "bg-yellow-500",
+  completed: "bg-green-500",
+  paused: "bg-orange-500",
+  failed: "bg-red-500",
+};
+
+const articleStatusIcons: Record<string, JSX.Element> = {
+  pending: <Clock className="h-3 w-3 text-muted-foreground" />,
+  generating: <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />,
+  completed: <CheckCircle className="h-3 w-3 text-green-500" />,
+  failed: <XCircle className="h-3 w-3 text-red-500" />,
+  skipped: <XCircle className="h-3 w-3 text-muted-foreground" />,
+};
+
+export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
+  const { toast } = useToast();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
+  const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
+  
+  const [newPillar, setNewPillar] = useState({
+    name: "",
+    description: "",
+    masterPrompt: "",
+    targetArticleCount: 50,
+    publishSchedule: "1_per_day",
+  });
+
+  const { data: pillars, isLoading: pillarsLoading } = useQuery<PillarWithStats[]>({
+    queryKey: ["/api/sites", siteId, "pillars"],
+    refetchInterval: 10000,
+  });
+
+  const { data: pillarDetails, isLoading: detailsLoading } = useQuery<PillarDetails>({
+    queryKey: ["/api/pillars", selectedPillar],
+    enabled: !!selectedPillar,
+    refetchInterval: 5000,
+  });
+
+  const createPillarMutation = useMutation({
+    mutationFn: async (data: typeof newPillar) => {
+      const res = await apiRequest("POST", `/api/sites/${siteId}/pillars`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Pillar created", description: "Your topic pillar has been created." });
+      setIsCreateOpen(false);
+      setNewPillar({
+        name: "",
+        description: "",
+        masterPrompt: "",
+        targetArticleCount: 50,
+        publishSchedule: "1_per_day",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Failed to create pillar", variant: "destructive" });
+    },
+  });
+
+  const deletePillarMutation = useMutation({
+    mutationFn: async (pillarId: string) => {
+      const res = await apiRequest("DELETE", `/api/pillars/${pillarId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Pillar deleted" });
+      setSelectedPillar(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const generateMapMutation = useMutation({
+    mutationFn: async (pillarId: string) => {
+      const res = await apiRequest("POST", `/api/pillars/${pillarId}/generate-map`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Topical map generated", 
+        description: `Created ${data.categories} categories with ${data.totalArticles} total articles.` 
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Failed to generate map", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+    },
+  });
+
+  const startGenerationMutation = useMutation({
+    mutationFn: async (pillarId: string) => {
+      const res = await apiRequest("POST", `/api/pillars/${pillarId}/start-generation`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Generation started", description: "Content generation has begun." });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const pauseGenerationMutation = useMutation({
+    mutationFn: async (pillarId: string) => {
+      const res = await apiRequest("POST", `/api/pillars/${pillarId}/pause-generation`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Generation paused" });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const toggleCluster = (clusterId: string) => {
+    setExpandedClusters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(clusterId)) {
+        newSet.delete(clusterId);
+      } else {
+        newSet.add(clusterId);
+      }
+      return newSet;
+    });
+  };
+
+  const getProgressPercentage = (stats: { total: number; completed: number }) => {
+    if (stats.total === 0) return 0;
+    return Math.round((stats.completed / stats.total) * 100);
+  };
+
+  if (pillarsLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle data-testid="text-topical-authority-title">Topical Authority</CardTitle>
+              <CardDescription data-testid="text-topical-authority-description">
+                Build SEO authority with pillar-cluster content strategy
+              </CardDescription>
+            </div>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" data-testid="button-create-pillar">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Pillar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Create Topic Pillar</DialogTitle>
+                  <DialogDescription>
+                    Define a main topic. AI will generate a complete topical map with categories and articles.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pillar-name">Topic Name</Label>
+                    <Input
+                      id="pillar-name"
+                      placeholder="e.g., Hospitality, Real Estate, Meditation"
+                      value={newPillar.name}
+                      onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
+                      data-testid="input-pillar-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pillar-description">Description (optional)</Label>
+                    <Textarea
+                      id="pillar-description"
+                      placeholder="Brief description of your topic focus..."
+                      value={newPillar.description}
+                      onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
+                      data-testid="input-pillar-description"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pillar-prompt">Master Prompt (optional)</Label>
+                    <Textarea
+                      id="pillar-prompt"
+                      placeholder="Custom instructions for AI content generation..."
+                      value={newPillar.masterPrompt}
+                      onChange={(e) => setNewPillar({ ...newPillar, masterPrompt: e.target.value })}
+                      rows={3}
+                      data-testid="input-pillar-prompt"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Target Articles: {newPillar.targetArticleCount}</Label>
+                    <Slider
+                      value={[newPillar.targetArticleCount]}
+                      onValueChange={(value) => setNewPillar({ ...newPillar, targetArticleCount: value[0] })}
+                      min={10}
+                      max={200}
+                      step={10}
+                      data-testid="slider-article-count"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Recommended: 50-100 articles for strong topical authority
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Publishing Schedule</Label>
+                    <Select
+                      value={newPillar.publishSchedule}
+                      onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
+                    >
+                      <SelectTrigger data-testid="select-publish-schedule">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1_per_hour">1 per hour</SelectItem>
+                        <SelectItem value="2_per_day">2 per day</SelectItem>
+                        <SelectItem value="1_per_day">1 per day</SelectItem>
+                        <SelectItem value="3_per_week">3 per week</SelectItem>
+                        <SelectItem value="1_per_week">1 per week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => createPillarMutation.mutate(newPillar)}
+                    disabled={!newPillar.name.trim() || createPillarMutation.isPending}
+                    data-testid="button-submit-pillar"
+                  >
+                    {createPillarMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Create Pillar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!pillars || pillars.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2">No pillars yet</p>
+              <p className="text-sm">Create your first topic pillar to start building topical authority.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pillars.map((pillar) => (
+                <Card 
+                  key={pillar.id}
+                  className={`cursor-pointer transition-all ${selectedPillar === pillar.id ? 'ring-2 ring-primary' : 'hover-elevate'}`}
+                  onClick={() => setSelectedPillar(selectedPillar === pillar.id ? null : pillar.id)}
+                  data-testid={`card-pillar-${pillar.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <LayoutGrid className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium" data-testid={`text-pillar-name-${pillar.id}`}>{pillar.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{pillar.clusterCount} categories</span>
+                            <span>•</span>
+                            <span>{pillar.stats.total} articles</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={`${statusColors[pillar.status]} text-white`} data-testid={`badge-pillar-status-${pillar.id}`}>
+                          {pillar.status}
+                        </Badge>
+                        {pillar.stats.total > 0 && (
+                          <div className="w-24">
+                            <Progress value={getProgressPercentage(pillar.stats)} className="h-2" />
+                            <span className="text-xs text-muted-foreground">
+                              {pillar.stats.completed}/{pillar.stats.total}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedPillar && pillarDetails && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle data-testid="text-pillar-details-title">{pillarDetails.name}</CardTitle>
+                <CardDescription>{pillarDetails.description || "No description"}</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                {pillarDetails.status === "draft" && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      generateMapMutation.mutate(pillarDetails.id);
+                    }}
+                    disabled={generateMapMutation.isPending}
+                    data-testid="button-generate-map"
+                  >
+                    {generateMapMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Map className="h-4 w-4 mr-2" />
+                    )}
+                    Generate Map
+                  </Button>
+                )}
+                {(pillarDetails.status === "mapped" || pillarDetails.status === "paused") && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startGenerationMutation.mutate(pillarDetails.id);
+                    }}
+                    disabled={startGenerationMutation.isPending}
+                    data-testid="button-start-generation"
+                  >
+                    {startGenerationMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Play className="h-4 w-4 mr-2" />
+                    )}
+                    Start Generation
+                  </Button>
+                )}
+                {pillarDetails.status === "generating" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      pauseGenerationMutation.mutate(pillarDetails.id);
+                    }}
+                    disabled={pauseGenerationMutation.isPending}
+                    data-testid="button-pause-generation"
+                  >
+                    {pauseGenerationMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Pause className="h-4 w-4 mr-2" />
+                    )}
+                    Pause
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm("Are you sure you want to delete this pillar?")) {
+                      deletePillarMutation.mutate(pillarDetails.id);
+                    }
+                  }}
+                  disabled={deletePillarMutation.isPending}
+                  data-testid="button-delete-pillar"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {detailsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : pillarDetails.clusters.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Map className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p>No topical map generated yet.</p>
+                <p className="text-sm">Click "Generate Map" to create the content structure.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pillarDetails.pillarArticle && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="font-medium flex-1">{pillarDetails.pillarArticle.title}</span>
+                    {articleStatusIcons[pillarDetails.pillarArticle.status]}
+                    <Badge variant="outline" className="text-xs">Pillar Article</Badge>
+                  </div>
+                )}
+
+                {pillarDetails.clusters.map((cluster) => (
+                  <Collapsible 
+                    key={cluster.id}
+                    open={expandedClusters.has(cluster.id)}
+                    onOpenChange={() => toggleCluster(cluster.id)}
+                  >
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        {expandedClusters.has(cluster.id) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <Folder className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium flex-1 text-left">{cluster.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {cluster.generatedCount}/{cluster.articleCount} articles
+                        </span>
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="ml-6 mt-1 space-y-1">
+                        {cluster.articles.map((article) => (
+                          <div 
+                            key={article.id}
+                            className="flex items-center gap-2 p-2 pl-4 rounded text-sm hover:bg-muted/30"
+                          >
+                            <FileText className="h-3 w-3 text-muted-foreground" />
+                            <span className="flex-1 truncate">{article.title}</span>
+                            {articleStatusIcons[article.status]}
+                            <Badge variant="outline" className="text-xs">
+                              {article.articleType}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
