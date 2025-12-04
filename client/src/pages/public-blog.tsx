@@ -4,8 +4,6 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { FileText, Clock, ArrowRight } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
-import { PublicLayout } from "@/components/public-layout";
-import { PublicHeader } from "@/components/public-header";
 import { PostCard, Pagination } from "@/components/post-cards";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
@@ -28,7 +26,7 @@ function formatDate(date: Date | string): string {
   });
 }
 
-export function PublicBlog({ site }: PublicBlogProps) {
+export function PublicBlogContent({ site }: PublicBlogProps) {
   const [, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const templateClasses = useTemplateClasses(site.templateSettings);
@@ -37,14 +35,6 @@ export function PublicBlog({ site }: PublicBlogProps) {
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
   });
-
-  const { data: topTags } = useQuery<string[]>({
-    queryKey: ["/api/public/sites", site.id, "top-tags"],
-  });
-
-  const handleTagClick = (tag: string) => {
-    setLocation(`/tag/${encodeURIComponent(tag)}`);
-  };
 
   const handlePostClick = (slug: string) => {
     setLocation(`/post/${slug}`);
@@ -100,17 +90,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
   };
 
   return (
-    <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
-      <div className="min-h-screen bg-background text-foreground">
-        <PublicHeader
-          site={site}
-          topTags={topTags || []}
-          onTagClick={handleTagClick}
-          onLogoClick={() => setLocation("/")}
-          templateClasses={templateClasses}
-        />
-
-        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 lg:px-8`}>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 lg:px-8`}>
           {isLoading ? (
             <div className="py-12 sm:py-16 space-y-16">
               <div className="relative">
@@ -336,7 +317,8 @@ export function PublicBlog({ site }: PublicBlogProps) {
             </motion.div>
           )}
         </main>
-      </div>
-    </PublicLayout>
+    </div>
   );
 }
+
+export { PublicBlogContent as PublicBlog };

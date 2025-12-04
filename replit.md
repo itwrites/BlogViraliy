@@ -29,6 +29,11 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay)
     - **Cross-Layout Pagination**: All layouts support pagination with configurable posts per page
     - **Reduced Motion Support**: All animations respect `prefers-reduced-motion` accessibility preference
+- **SPA Shell Architecture**: Seamless client-side navigation without full page reloads:
+    - **PublicShell Component**: Wraps all public routes with shared header, footer, and layout elements that stay mounted during navigation
+    - **Content Components**: Each theme exports a `XXXContent` function (e.g., `PublicBlogContent`) without layout wrappers
+    - **Memoized Routes**: Route switching is handled by a memoized `PublicRoutes` component for optimal performance
+    - **Props-Based Params**: Post slug and tag archive routes receive parameters via props instead of useParams() for cleaner component boundaries
 - **Custom Cursor System**: Four animated cursor styles (pointer-dot, crosshair, spotlight, trail) with:
     - RAF-throttled performance optimization
     - Velocity-based smooth motion

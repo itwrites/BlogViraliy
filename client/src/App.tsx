@@ -1,4 +1,4 @@
-import { Switch, Route, Router } from "wouter";
+import { Switch, Route, Router, useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -14,16 +14,18 @@ import UserManagement from "@/pages/user-management";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import SiteNotFound from "@/pages/site-not-found";
-import { PublicBlog } from "@/pages/public-blog";
-import { PublicNews } from "@/pages/public-news";
-import { PublicMagazine } from "@/pages/public-magazine";
-import { PublicPortfolio } from "@/pages/public-portfolio";
-import { PublicRestaurant } from "@/pages/public-restaurant";
-import { PublicCrypto } from "@/pages/public-crypto";
-import { PublicNovaPress } from "@/pages/public-novapress";
-import { PublicPost } from "@/pages/public-post";
-import { PublicTagArchive } from "@/pages/public-tag-archive";
+import { PublicBlogContent } from "@/pages/public-blog";
+import { PublicNewsContent } from "@/pages/public-news";
+import { PublicMagazineContent } from "@/pages/public-magazine";
+import { PublicPortfolioContent } from "@/pages/public-portfolio";
+import { PublicRestaurantContent } from "@/pages/public-restaurant";
+import { PublicCryptoContent } from "@/pages/public-crypto";
+import { PublicNovaPressContent } from "@/pages/public-novapress";
+import { PublicPostContent } from "@/pages/public-post";
+import { PublicTagArchiveContent } from "@/pages/public-tag-archive";
+import { PublicShell } from "@/components/public-shell";
 import type { Site } from "@shared/schema";
+import { useMemo, memo } from "react";
 
 function AdminRouter() {
   return (
@@ -40,47 +42,65 @@ function AdminRouter() {
   );
 }
 
-function PublicRouter({ site }: { site: Site }) {
-  const layoutComponents = {
-    blog: PublicBlog,
-    news: PublicNews,
-    magazine: PublicMagazine,
-    novapress: PublicNovaPress,
-    portfolio: PublicPortfolio,
-    restaurant: PublicRestaurant,
-    crypto: PublicCrypto,
-  };
+const layoutComponents = {
+  blog: PublicBlogContent,
+  news: PublicNewsContent,
+  magazine: PublicMagazineContent,
+  novapress: PublicNovaPressContent,
+  portfolio: PublicPortfolioContent,
+  restaurant: PublicRestaurantContent,
+  crypto: PublicCryptoContent,
+};
 
-  const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlog;
+const PublicRoutes = memo(function PublicRoutes({ site }: { site: Site }) {
+  const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlogContent;
+  
+  return (
+    <Switch>
+      <Route path="/">
+        <LayoutComponent site={site} />
+      </Route>
+      <Route path="/post/:slug">
+        {(params) => <PublicPostContent site={site} slug={params.slug} />}
+      </Route>
+      <Route path="/tag/:tag">
+        {(params) => <PublicTagArchiveContent site={site} tag={params.tag} />}
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
+  );
+});
+
+function PublicShellWrapper({ site }: { site: Site }) {
+  const [matchTag, paramsTag] = useRoute("/tag/:tag");
+  const currentTag = matchTag ? paramsTag?.tag : null;
+
+  return (
+    <PublicShell site={site} currentTag={currentTag}>
+      <PublicRoutes site={site} />
+    </PublicShell>
+  );
+}
+
+function PublicRouter({ site }: { site: Site }) {
   const basePath = normalizeBasePath(site.basePath);
 
   return (
     <BasePathProvider site={site}>
       <Router base={basePath}>
-        <Switch>
-          <Route path="/">
-            <LayoutComponent site={site} />
-          </Route>
-          <Route path="/post/:slug">
-            <PublicPost site={site} />
-          </Route>
-          <Route path="/tag/:tag">
-            <PublicTagArchive site={site} />
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
+        <PublicShellWrapper site={site} />
       </Router>
     </BasePathProvider>
   );
 }
 
 function RouterSwitch() {
-  // Pass the browser's hostname to help the backend identify the correct site
-  // This is needed for reverse proxy scenarios where the backend sees a different hostname
   const browserHostname = window.location.hostname;
   const { data: siteData, isLoading } = useQuery<{ isAdmin: boolean; site?: Site }>({
     queryKey: ["/api/domain-check", browserHostname],
     queryFn: () => fetch(`/bv_api/domain-check?hostname=${encodeURIComponent(browserHostname)}`).then(res => res.json()),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   if (isLoading) {

@@ -6,8 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
-import { PublicLayout } from "@/components/public-layout";
-import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { PostCard, Pagination } from "@/components/post-cards";
@@ -16,21 +14,13 @@ interface PublicMagazineProps {
   site: Site;
 }
 
-export function PublicMagazine({ site }: PublicMagazineProps) {
+export function PublicMagazineContent({ site }: PublicMagazineProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
   });
-
-  const { data: topTags } = useQuery<string[]>({
-    queryKey: ["/api/public/sites", site.id, "top-tags"],
-  });
-
-  const handleTagClick = (tag: string) => {
-    setLocation(`/tag/${encodeURIComponent(tag)}`);
-  };
 
   const handlePostClick = (slug: string) => {
     setLocation(`/post/${slug}`);
@@ -71,17 +61,8 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
   };
 
   return (
-    <PublicLayout site={site} topTags={topTags || []} onTagClick={handleTagClick}>
-      <div className="min-h-screen bg-background text-foreground">
-        <PublicHeader
-          site={site}
-          topTags={topTags || []}
-          onTagClick={handleTagClick}
-          onLogoClick={() => setLocation("/")}
-          templateClasses={templateClasses}
-        />
-
-        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-6 sm:py-8`}>
+    <div className="min-h-screen bg-background text-foreground">
+      <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-6 sm:py-8`}>
           {isLoading ? (
             <div className="space-y-6">
               <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
@@ -207,7 +188,8 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
             </div>
           )}
         </main>
-      </div>
-    </PublicLayout>
+    </div>
   );
 }
+
+export { PublicMagazineContent as PublicMagazine };
