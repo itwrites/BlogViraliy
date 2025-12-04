@@ -58,6 +58,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Domain detection middleware
   app.use(async (req: DomainRequest, res: Response, next: NextFunction) => {
+    // Log ALL headers for debugging proxy issues
+    if (req.path === "/" || req.path === "/api/domain-check") {
+      console.log(`[ALL HEADERS] path=${req.path}`, JSON.stringify(req.headers, null, 2));
+    }
+    
     // Check multiple headers that proxies might use
     const xForwardedHost = req.headers["x-forwarded-host"];
     const xOriginalHost = req.headers["x-original-host"];
