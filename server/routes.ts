@@ -56,6 +56,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
+  // Rewrite /bv_api/ to /api/ for reverse proxy deployments
+  // This allows sites behind a proxy to use /bv_api/ prefix without conflicts
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith("/bv_api/") || req.path === "/bv_api") {
+      const originalPath = req.path;
+      req.url = req.url.replace(/^\/bv_api/, "/api");
+      console.log(`[bv_api rewrite] ${originalPath} -> ${req.url}`);
+    }
+    next();
+  });
+
   // Domain detection middleware
   app.use(async (req: DomainRequest, res: Response, next: NextFunction) => {
     // Log ALL headers for debugging proxy issues

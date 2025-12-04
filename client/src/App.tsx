@@ -78,7 +78,7 @@ function RouterSwitch() {
   const browserHostname = window.location.hostname;
   const { data: siteData, isLoading } = useQuery<{ isAdmin: boolean; site?: Site }>({
     queryKey: ["/api/domain-check", browserHostname],
-    queryFn: () => fetch(`/api/domain-check?hostname=${encodeURIComponent(browserHostname)}`).then(res => res.json()),
+    queryFn: () => fetch(`/bv_api/domain-check?hostname=${encodeURIComponent(browserHostname)}`).then(res => res.json()),
   });
 
   if (isLoading) {

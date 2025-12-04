@@ -1,5 +1,14 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Convert /api/ URLs to /bv_api/ for reverse proxy compatibility
+// The backend rewrites /bv_api/ back to /api/, so this works everywhere
+function toProxyApiUrl(url: string): string {
+  if (url.startsWith("/api/") || url === "/api") {
+    return url.replace(/^\/api/, "/bv_api");
+  }
+  return url;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -12,7 +21,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const res = await fetch(toProxyApiUrl(url), {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -37,7 +46,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = toProxyApiUrl(queryKey.join("/"));
+    const res = await fetch(url, {
       credentials: "include",
     });
 
