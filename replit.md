@@ -1,7 +1,7 @@
 # Blog Virality - Multi-Domain Content Platform
 
 ## Overview
-Blog Virality is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible layout templates (Blog, News, Magazine, Portfolio, Restaurant, Crypto).
+Blog Virality is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible themes (Blog, News, Magazine, NovaPress, Portfolio, Restaurant, Crypto).
 
 ## User Preferences
 - Clean, modern UI with consistent spacing
@@ -25,7 +25,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.
     - **RSS Rewriting**: Monitors RSS feeds, fetches new articles, and rewrites content using AI to ensure uniqueness, with configurable scheduling.
-- **Public Site Templates**: Six distinct layouts (Blog, News, Magazine, Portfolio, Restaurant, Crypto) with customizable themes, fonts, logo sizing, and content width. All layouts now support:
+- **Public Site Themes**: Seven distinct themes (Blog, News, Magazine, NovaPress, Portfolio, Restaurant, Crypto) with customizable templates, fonts, logo sizing, and content width. All themes now support:
     - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay)
     - **Cross-Layout Pagination**: All layouts support pagination with configurable posts per page
     - **Reduced Motion Support**: All animations respect `prefers-reduced-motion` accessibility preference
