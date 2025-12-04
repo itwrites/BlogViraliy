@@ -58,7 +58,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Domain detection middleware
   app.use(async (req: DomainRequest, res: Response, next: NextFunction) => {
-    const hostname = req.hostname;
+    // Check X-Forwarded-Host first (set by reverse proxies), then fall back to req.hostname
+    const xForwardedHost = req.headers["x-forwarded-host"];
+    const hostname = typeof xForwardedHost === "string" 
+      ? xForwardedHost.split(",")[0].trim().split(":")[0] // Handle "host:port" and comma-separated lists
+      : req.hostname;
+    
+    // Debug logging for domain routing issues
+    console.log(`[Domain Routing] hostname=${hostname}, x-forwarded-host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
     
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
@@ -71,6 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     const site = await storage.getSiteByDomain(hostname);
     if (site) {
+      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}`);
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
       return next();
@@ -79,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (isReplitDefaultHost) {
       req.siteId = undefined;
       req.siteBasePath = "";
+    } else {
+      // Log when domain is not found for debugging
+      console.log(`[Domain Routing] Site not found for hostname: ${hostname}`);
     }
     
     next();
