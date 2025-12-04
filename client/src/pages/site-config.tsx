@@ -156,14 +156,15 @@ export default function SiteConfig() {
   };
 
   const addFeedUrl = () => {
-    if (newFeedUrl.trim() && !rssConfig.feedUrls.includes(newFeedUrl.trim())) {
-      setRssConfig({ ...rssConfig, feedUrls: [...rssConfig.feedUrls, newFeedUrl.trim()] });
+    const feedUrls = rssConfig.feedUrls || [];
+    if (newFeedUrl.trim() && !feedUrls.includes(newFeedUrl.trim())) {
+      setRssConfig({ ...rssConfig, feedUrls: [...feedUrls, newFeedUrl.trim()] });
       setNewFeedUrl("");
     }
   };
 
   const removeFeedUrl = (url: string) => {
-    setRssConfig({ ...rssConfig, feedUrls: rssConfig.feedUrls.filter(u => u !== url) });
+    setRssConfig({ ...rssConfig, feedUrls: (rssConfig.feedUrls || []).filter(u => u !== url) });
   };
 
   if (!isNewSite && siteLoading) {
@@ -1199,7 +1200,7 @@ export default function SiteConfig() {
                     </Button>
                   </div>
                   <div className="space-y-2 mt-2">
-                    {rssConfig.feedUrls.map((url) => (
+                    {(rssConfig.feedUrls || []).map((url) => (
                       <div
                         key={url}
                         className="flex items-center justify-between bg-muted px-3 py-2 rounded-md"
