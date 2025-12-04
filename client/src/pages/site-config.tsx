@@ -29,6 +29,7 @@ export default function SiteConfig() {
   const [siteData, setSiteData] = useState({
     domain: "",
     domainAliases: [] as string[],
+    basePath: "", // Optional path prefix for reverse proxy (e.g., "/blog")
     title: "",
     logoUrl: "",
     siteType: "blog",
@@ -79,6 +80,7 @@ export default function SiteConfig() {
       setSiteData({
         domain: site.domain,
         domainAliases: site.domainAliases || [],
+        basePath: site.basePath || "",
         title: site.title,
         logoUrl: site.logoUrl || "",
         siteType: site.siteType,
@@ -398,6 +400,36 @@ export default function SiteConfig() {
                         <p className="text-sm text-muted-foreground italic">No domain aliases configured</p>
                       )}
                     </div>
+                  </div>
+
+                  <div className="space-y-3 md:col-span-2">
+                    <Label htmlFor="basePath" data-testid="label-base-path">Base Path (Optional)</Label>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Path prefix for reverse proxy deployments. If you're hosting the blog under a subdirectory 
+                      (e.g., yoursite.com/blog), enter the path prefix here (e.g., /blog). Leave empty for root deployment.
+                    </p>
+                    <Input
+                      id="basePath"
+                      data-testid="input-base-path"
+                      placeholder="/blog (optional, leave empty for root)"
+                      value={siteData.basePath}
+                      onChange={(e) => {
+                        let value = e.target.value.trim();
+                        // Ensure it starts with / if not empty, and doesn't end with /
+                        if (value && !value.startsWith('/')) {
+                          value = '/' + value;
+                        }
+                        if (value.endsWith('/') && value.length > 1) {
+                          value = value.slice(0, -1);
+                        }
+                        setSiteData({ ...siteData, basePath: value });
+                      }}
+                    />
+                    {siteData.basePath && (
+                      <p className="text-xs text-muted-foreground">
+                        URLs will be prefixed: <span className="font-mono text-primary">{siteData.domain}{siteData.basePath}/post/example-article</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>
