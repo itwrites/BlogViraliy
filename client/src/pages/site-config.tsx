@@ -772,6 +772,198 @@ export default function SiteConfig() {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">Top Announcement Banner</h3>
+                  </div>
+                  <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                    <div>
+                      <Label htmlFor="topBannerEnabled" className="cursor-pointer" data-testid="label-top-banner-enabled">Enable Top Banner</Label>
+                      <p className="text-xs text-muted-foreground">Display an announcement banner at the top of your site</p>
+                    </div>
+                    <Switch
+                      id="topBannerEnabled"
+                      checked={templateSettings.topBannerEnabled || false}
+                      onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, topBannerEnabled: checked })}
+                      data-testid="switch-top-banner-enabled"
+                    />
+                  </div>
+                  {templateSettings.topBannerEnabled && (
+                    <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                      <div className="space-y-2">
+                        <Label htmlFor="topBannerMessage" data-testid="label-top-banner-message">Banner Message</Label>
+                        <Input
+                          id="topBannerMessage"
+                          placeholder="🎉 Check out our latest updates!"
+                          value={templateSettings.topBannerMessage || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerMessage: e.target.value })}
+                          data-testid="input-top-banner-message"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="topBannerLink" data-testid="label-top-banner-link">Banner Link (optional)</Label>
+                        <Input
+                          id="topBannerLink"
+                          placeholder="https://example.com/promo"
+                          value={templateSettings.topBannerLink || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerLink: e.target.value })}
+                          data-testid="input-top-banner-link"
+                        />
+                        <p className="text-xs text-muted-foreground">Makes the banner clickable</p>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="topBannerBackgroundColor" data-testid="label-top-banner-bg">Background Color</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="topBannerBackgroundColor"
+                              type="color"
+                              value={templateSettings.topBannerBackgroundColor || "#3b82f6"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerBackgroundColor: e.target.value })}
+                              className="w-12 h-9 p-1 cursor-pointer"
+                              data-testid="input-top-banner-bg-color"
+                            />
+                            <Input
+                              value={templateSettings.topBannerBackgroundColor || "#3b82f6"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerBackgroundColor: e.target.value })}
+                              className="flex-1 font-mono text-sm"
+                              data-testid="input-top-banner-bg-hex"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="topBannerTextColor" data-testid="label-top-banner-text">Text Color</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="topBannerTextColor"
+                              type="color"
+                              value={templateSettings.topBannerTextColor || "#ffffff"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerTextColor: e.target.value })}
+                              className="w-12 h-9 p-1 cursor-pointer"
+                              data-testid="input-top-banner-text-color"
+                            />
+                            <Input
+                              value={templateSettings.topBannerTextColor || "#ffffff"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, topBannerTextColor: e.target.value })}
+                              className="flex-1 font-mono text-sm"
+                              data-testid="input-top-banner-text-hex"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between space-x-2 bg-muted/30 p-3 rounded-lg">
+                        <Label htmlFor="topBannerDismissible" className="cursor-pointer" data-testid="label-top-banner-dismissible">Allow visitors to dismiss</Label>
+                        <Switch
+                          id="topBannerDismissible"
+                          checked={templateSettings.topBannerDismissible !== false}
+                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, topBannerDismissible: checked })}
+                          data-testid="switch-top-banner-dismissible"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-muted-foreground" />
+                    <h3 className="font-semibold">GDPR Cookie Consent</h3>
+                  </div>
+                  <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                    <div>
+                      <Label htmlFor="gdprBannerEnabled" className="cursor-pointer" data-testid="label-gdpr-enabled">Enable GDPR Banner</Label>
+                      <p className="text-xs text-muted-foreground">Show cookie consent banner for GDPR compliance (controls Google Analytics)</p>
+                    </div>
+                    <Switch
+                      id="gdprBannerEnabled"
+                      checked={templateSettings.gdprBannerEnabled || false}
+                      onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, gdprBannerEnabled: checked })}
+                      data-testid="switch-gdpr-enabled"
+                    />
+                  </div>
+                  {templateSettings.gdprBannerEnabled && (
+                    <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                      <div className="space-y-2">
+                        <Label htmlFor="gdprBannerMessage" data-testid="label-gdpr-message">Consent Message</Label>
+                        <Textarea
+                          id="gdprBannerMessage"
+                          placeholder="We use cookies to improve your experience..."
+                          value={templateSettings.gdprBannerMessage || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerMessage: e.target.value })}
+                          rows={2}
+                          data-testid="input-gdpr-message"
+                        />
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="gdprBannerButtonText" data-testid="label-gdpr-accept">Accept Button Text</Label>
+                          <Input
+                            id="gdprBannerButtonText"
+                            placeholder="Accept"
+                            value={templateSettings.gdprBannerButtonText || "Accept"}
+                            onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerButtonText: e.target.value })}
+                            data-testid="input-gdpr-accept"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="gdprBannerDeclineText" data-testid="label-gdpr-decline">Decline Button Text</Label>
+                          <Input
+                            id="gdprBannerDeclineText"
+                            placeholder="Decline"
+                            value={templateSettings.gdprBannerDeclineText || "Decline"}
+                            onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerDeclineText: e.target.value })}
+                            data-testid="input-gdpr-decline"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="gdprBannerBackgroundColor" data-testid="label-gdpr-bg">Background Color</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="gdprBannerBackgroundColor"
+                              type="color"
+                              value={templateSettings.gdprBannerBackgroundColor || "#1f2937"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerBackgroundColor: e.target.value })}
+                              className="w-12 h-9 p-1 cursor-pointer"
+                              data-testid="input-gdpr-bg-color"
+                            />
+                            <Input
+                              value={templateSettings.gdprBannerBackgroundColor || "#1f2937"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerBackgroundColor: e.target.value })}
+                              className="flex-1 font-mono text-sm"
+                              data-testid="input-gdpr-bg-hex"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="gdprBannerTextColor" data-testid="label-gdpr-text">Text Color</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="gdprBannerTextColor"
+                              type="color"
+                              value={templateSettings.gdprBannerTextColor || "#ffffff"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerTextColor: e.target.value })}
+                              className="w-12 h-9 p-1 cursor-pointer"
+                              data-testid="input-gdpr-text-color"
+                            />
+                            <Input
+                              value={templateSettings.gdprBannerTextColor || "#ffffff"}
+                              onChange={(e) => setTemplateSettings({ ...templateSettings, gdprBannerTextColor: e.target.value })}
+                              className="flex-1 font-mono text-sm"
+                              data-testid="input-gdpr-text-hex"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                        When enabled, Google Analytics will only load after visitors accept cookies. Make sure to add your Analytics ID in the SEO tab.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

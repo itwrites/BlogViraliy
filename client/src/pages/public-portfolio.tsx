@@ -4,8 +4,8 @@ import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, ExternalLink, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
-import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
-import { SeoHead } from "@/components/seo-head";
+import { useTemplateClasses } from "@/components/public-theme-provider";
+import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion } from "framer-motion";
@@ -54,8 +54,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
   };
 
   return (
-    <PublicThemeProvider settings={site.templateSettings}>
-      <SeoHead site={site} />
+    <PublicLayout site={site}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -170,6 +169,6 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
           </div>
         </footer>
       </div>
-    </PublicThemeProvider>
+    </PublicLayout>
   );
 }

@@ -65,6 +65,20 @@ export const templateSettingsSchema = z.object({
   socialFacebook: z.string().default(""),
   socialInstagram: z.string().default(""),
   socialLinkedin: z.string().default(""),
+  // Top announcement banner
+  topBannerEnabled: z.boolean().default(false),
+  topBannerMessage: z.string().default(""),
+  topBannerBackgroundColor: z.string().default("#3b82f6"),
+  topBannerTextColor: z.string().default("#ffffff"),
+  topBannerLink: z.string().default("").optional(),
+  topBannerDismissible: z.boolean().default(true),
+  // GDPR cookie consent banner
+  gdprBannerEnabled: z.boolean().default(false),
+  gdprBannerMessage: z.string().default("We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies."),
+  gdprBannerButtonText: z.string().default("Accept"),
+  gdprBannerDeclineText: z.string().default("Decline"),
+  gdprBannerBackgroundColor: z.string().default("#1f2937"),
+  gdprBannerTextColor: z.string().default("#ffffff"),
 });
 
 export type TemplateSettings = z.infer<typeof templateSettingsSchema>;
@@ -94,6 +108,20 @@ export const defaultTemplateSettings: TemplateSettings = {
   socialFacebook: "",
   socialInstagram: "",
   socialLinkedin: "",
+  // Top announcement banner
+  topBannerEnabled: false,
+  topBannerMessage: "",
+  topBannerBackgroundColor: "#3b82f6",
+  topBannerTextColor: "#ffffff",
+  topBannerLink: "",
+  topBannerDismissible: true,
+  // GDPR cookie consent banner
+  gdprBannerEnabled: false,
+  gdprBannerMessage: "We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies.",
+  gdprBannerButtonText: "Accept",
+  gdprBannerDeclineText: "Decline",
+  gdprBannerBackgroundColor: "#1f2937",
+  gdprBannerTextColor: "#ffffff",
 };
 
 // Sites (multi-tenant websites)

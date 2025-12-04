@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tag, FileText } from "lucide-react";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
+import { useTemplateClasses } from "@/components/public-theme-provider";
+import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
-import { SeoHead } from "@/components/seo-head";
 import { motion, useReducedMotion, Variants } from "framer-motion";
 
 interface PublicTagArchiveProps {
@@ -60,8 +60,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
   };
 
   return (
-    <PublicThemeProvider settings={site.templateSettings}>
-      <SeoHead site={site} />
+    <PublicLayout site={site}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -169,6 +168,6 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
           </div>
         </footer>
       </div>
-    </PublicThemeProvider>
+    </PublicLayout>
   );
 }

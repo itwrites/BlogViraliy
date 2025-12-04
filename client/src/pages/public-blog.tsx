@@ -3,8 +3,8 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, ArrowRight, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
-import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
-import { SeoHead } from "@/components/seo-head";
+import { useTemplateClasses } from "@/components/public-theme-provider";
+import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
@@ -86,8 +86,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
   };
 
   return (
-    <PublicThemeProvider settings={site.templateSettings}>
-      <SeoHead site={site} />
+    <PublicLayout site={site}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -466,6 +465,6 @@ export function PublicBlog({ site }: PublicBlogProps) {
           </div>
         </footer>
       </div>
-    </PublicThemeProvider>
+    </PublicLayout>
   );
 }

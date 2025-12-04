@@ -7,8 +7,8 @@ import { Calendar, Clock, ChevronRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
-import { SeoHead } from "@/components/seo-head";
+import { useTemplateClasses } from "@/components/public-theme-provider";
+import { PublicLayout } from "@/components/public-layout";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { PublicHeader } from "@/components/public-header";
 import { motion, useReducedMotion } from "framer-motion";
@@ -58,7 +58,7 @@ export function PublicPost({ site }: PublicPostProps) {
 
   if (isLoading) {
     return (
-      <PublicThemeProvider settings={site.templateSettings}>
+      <PublicLayout site={site}>
         <div className="min-h-screen bg-background">
           <div className="animate-pulse">
             <div className="h-14 bg-card border-b" />
@@ -78,13 +78,13 @@ export function PublicPost({ site }: PublicPostProps) {
             </div>
           </div>
         </div>
-      </PublicThemeProvider>
+      </PublicLayout>
     );
   }
 
   if (!post) {
     return (
-      <PublicThemeProvider settings={site.templateSettings}>
+      <PublicLayout site={site}>
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center px-6">
             <h2 className="text-2xl font-semibold mb-2" data-testid="text-not-found-title">Post not found</h2>
@@ -92,15 +92,14 @@ export function PublicPost({ site }: PublicPostProps) {
             <Button onClick={handleBack} data-testid="button-go-home">Go back home</Button>
           </div>
         </div>
-      </PublicThemeProvider>
+      </PublicLayout>
     );
   }
 
   const readingTime = estimateReadingTime(post.content);
 
   return (
-    <PublicThemeProvider settings={site.templateSettings}>
-      <SeoHead site={site} post={post} />
+    <PublicLayout site={site} post={post}>
       <div className="min-h-screen bg-background text-foreground">
         <PublicHeader
           site={site}
@@ -364,6 +363,6 @@ export function PublicPost({ site }: PublicPostProps) {
           </div>
         </footer>
       </div>
-    </PublicThemeProvider>
+    </PublicLayout>
   );
 }
