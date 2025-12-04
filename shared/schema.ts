@@ -165,6 +165,7 @@ export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   domain: text("domain").notNull().unique(),
   domainAliases: text("domain_aliases").array().notNull().default(sql`ARRAY[]::text[]`), // Additional domains that point to this site
+  basePath: text("base_path").notNull().default(""), // Optional path prefix for reverse proxy (e.g., "/blog")
   title: text("title").notNull(),
   logoUrl: text("logo_url"),
   siteType: text("site_type").notNull().default("blog"),
