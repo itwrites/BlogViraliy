@@ -4,6 +4,7 @@ import { SeoHead } from "@/components/seo-head";
 import { TopBanner } from "@/components/top-banner";
 import { GdprBanner } from "@/components/gdpr-banner";
 import { PublicFooter } from "@/components/public-footer";
+import { CustomCursor } from "@/components/custom-cursor";
 import type { Post } from "@shared/schema";
 
 interface PublicLayoutProps {
@@ -29,9 +30,12 @@ function LayoutContent({
   children: React.ReactNode;
 }) {
   const settings = site.templateSettings;
+  const cursorStyle = settings?.cursorStyle || "default";
   
   return (
     <>
+      {cursorStyle !== "default" && <CustomCursor style={cursorStyle} />}
+      
       {settings?.topBannerEnabled && settings.topBannerMessage && (
         <TopBanner
           message={settings.topBannerMessage}

@@ -52,6 +52,20 @@ const cardStyles: Record<string, { container: string; image: string; hover: stri
   },
 };
 
+const menuSpacings: Record<string, string> = {
+  compact: "gap-0",
+  normal: "gap-1",
+  relaxed: "gap-2",
+  spacious: "gap-4",
+};
+
+const menuItemPaddings: Record<string, string> = {
+  compact: "px-2 py-1.5",
+  normal: "px-4 py-2",
+  relaxed: "px-5 py-2.5",
+  spacious: "px-6 py-3",
+};
+
 const headerStyles: Record<string, { height: string; padding: string; border: string; blur: string }> = {
   minimal: {
     height: "h-14",
@@ -285,6 +299,12 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     showSearch: s.showSearch,
     maxNavItems: s.maxNavItems,
     menuActiveStyle: s.menuActiveStyle || "underline",
+    menuSpacing: menuSpacings[s.menuSpacing || "normal"] || menuSpacings.normal,
+    menuItemPadding: menuItemPaddings[s.menuSpacing || "normal"] || menuItemPaddings.normal,
+    showMenuIcons: s.showMenuIcons !== false,
+    cursorStyle: s.cursorStyle || "default",
+    postCardStyle: s.postCardStyle || "standard",
+    postsPerPage: s.postsPerPage || 12,
     fontScale: s.fontScale || "normal",
     footerText: s.footerText || "",
     hasSocials,

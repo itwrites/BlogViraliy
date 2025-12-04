@@ -12,6 +12,7 @@ interface MobileNavProps {
   siteTitle: string;
   currentTag?: string | null;
   menuActiveStyle?: MenuActiveStyle;
+  showMenuIcons?: boolean;
 }
 
 function getMobileMenuItemClasses(isActive: boolean, style: MenuActiveStyle) {
@@ -47,7 +48,7 @@ function getMobileMenuItemClasses(isActive: boolean, style: MenuActiveStyle) {
   }
 }
 
-export function MobileNav({ tags, onTagClick, onHomeClick, siteTitle, currentTag, menuActiveStyle = "underline" }: MobileNavProps) {
+export function MobileNav({ tags, onTagClick, onHomeClick, siteTitle, currentTag, menuActiveStyle = "underline", showMenuIcons = true }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const isHome = !currentTag;
 
@@ -95,7 +96,7 @@ export function MobileNav({ tags, onTagClick, onHomeClick, siteTitle, currentTag
             data-testid="link-mobile-home"
             data-active={isHome}
           >
-            <Home className="h-5 w-5" />
+            {showMenuIcons && <Home className="h-5 w-5" />}
             HOME
           </button>
           

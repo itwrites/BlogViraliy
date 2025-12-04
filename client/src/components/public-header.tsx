@@ -28,6 +28,9 @@ interface PublicHeaderProps {
     maxNavItems: number;
     hideLogoText?: boolean;
     menuActiveStyle?: MenuActiveStyle;
+    menuSpacing?: string;
+    menuItemPadding?: string;
+    showMenuIcons?: boolean;
     headerStyle?: HeaderStyleConfig;
   };
   variant?: "default" | "compact";
@@ -37,9 +40,11 @@ function getMenuItemClasses(
   isActive: boolean, 
   isHome: boolean, 
   style: MenuActiveStyle,
-  hasCustomBackground: boolean = false
+  hasCustomBackground: boolean = false,
+  customPadding?: string
 ) {
-  const baseClasses = "relative px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-200 whitespace-nowrap";
+  const padding = customPadding || "px-4 py-2";
+  const baseClasses = `relative ${padding} text-sm font-medium uppercase tracking-wide transition-all duration-200 whitespace-nowrap`;
   
   // When custom background is set, use neutral hover effects that work with any color
   const hoverTextClass = hasCustomBackground ? "hover:opacity-100" : "hover:text-primary";
@@ -92,6 +97,9 @@ export function PublicHeader({
 }: PublicHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
   const menuActiveStyle = templateClasses.menuActiveStyle || "underline";
+  const menuSpacing = templateClasses.menuSpacing || "gap-1";
+  const menuItemPadding = templateClasses.menuItemPadding;
+  const showMenuIcons = templateClasses.showMenuIcons !== false;
   const isHome = !currentTag;
   const hasCustomBackground = Boolean(templateClasses.headerStyle?.customBackground);
   
@@ -181,6 +189,7 @@ export function PublicHeader({
                 siteTitle={site.title}
                 currentTag={currentTag}
                 menuActiveStyle={menuActiveStyle}
+                showMenuIcons={showMenuIcons}
               />
             )}
             {site.logoUrl && (
@@ -218,18 +227,18 @@ export function PublicHeader({
             variants={containerAnimation}
             data-testid="nav-main"
           >
-            <div className="flex items-center gap-1">
+            <div className={`flex items-center ${menuSpacing}`}>
               <motion.button
                 variants={itemAnimation}
                 onClick={onLogoClick}
-                className={getMenuItemClasses(isHome, true, menuActiveStyle, hasCustomBackground)}
+                className={getMenuItemClasses(isHome, true, menuActiveStyle, hasCustomBackground, menuItemPadding)}
                 data-testid="link-home"
                 data-active={isHome}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
               >
                 <span className="flex items-center gap-1.5">
-                  <Home className="h-4 w-4" />
+                  {showMenuIcons && <Home className="h-4 w-4" />}
                   HOME
                 </span>
               </motion.button>
@@ -241,7 +250,7 @@ export function PublicHeader({
                     key={tag}
                     variants={itemAnimation}
                     onClick={() => onTagClick(tag)}
-                    className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground)}
+                    className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground, menuItemPadding)}
                     data-testid={`link-tag-${tag}`}
                     data-active={isActive}
                     whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}

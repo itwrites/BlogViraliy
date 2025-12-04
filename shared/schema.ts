@@ -55,11 +55,16 @@ export const templateSettingsSchema = z.object({
   fontScale: z.enum(["compact", "normal", "spacious"]).default("normal"),
   headerStyle: z.enum(["minimal", "standard", "full"]).default("standard"),
   cardStyle: z.enum(["rounded", "sharp", "borderless"]).default("rounded"),
+  postCardStyle: z.enum(["standard", "editorial", "minimal", "overlay"]).default("standard"), // Post card design style
   contentWidth: z.enum(["narrow", "medium", "wide"]).default("medium"),
   showFeaturedHero: z.boolean().default(true),
   showSearch: z.boolean().default(true),
   maxNavItems: z.number().min(3).max(10).default(7),
   menuActiveStyle: z.enum(["underline", "background", "pill", "bold"]).default("underline"),
+  menuSpacing: z.enum(["compact", "normal", "relaxed", "spacious"]).default("normal"), // Menu item spacing
+  showMenuIcons: z.boolean().default(true), // Show/hide icons in navigation menu
+  cursorStyle: z.enum(["default", "pointer-dot", "crosshair", "spotlight", "trail"]).default("default"), // Custom cursor style
+  postsPerPage: z.number().min(6).max(30).default(12), // Posts per page for pagination
   footerText: z.string().default(""),
   socialTwitter: z.string().default(""),
   socialFacebook: z.string().default(""),
@@ -116,11 +121,16 @@ export const defaultTemplateSettings: TemplateSettings = {
   fontScale: "normal",
   headerStyle: "standard",
   cardStyle: "rounded",
+  postCardStyle: "standard",
   contentWidth: "medium",
   showFeaturedHero: true,
   showSearch: true,
   maxNavItems: 7,
   menuActiveStyle: "underline",
+  menuSpacing: "normal",
+  showMenuIcons: true,
+  cursorStyle: "default",
+  postsPerPage: 12,
   footerText: "",
   socialTwitter: "",
   socialFacebook: "",

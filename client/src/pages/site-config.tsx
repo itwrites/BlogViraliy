@@ -791,7 +791,7 @@ export default function SiteConfig() {
                       />
                     </div>
                   </div>
-                  <div className="pt-4">
+                  <div className="pt-4 grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="menuActiveStyle" data-testid="label-menu-style">Menu Selected Style</Label>
                       <Select
@@ -810,6 +810,94 @@ export default function SiteConfig() {
                       </Select>
                       <p className="text-xs text-muted-foreground">Choose how selected menu items appear</p>
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="menuSpacing" data-testid="label-menu-spacing">Menu Spacing</Label>
+                      <Select
+                        value={templateSettings.menuSpacing || "normal"}
+                        onValueChange={(value: "compact" | "normal" | "relaxed" | "spacious") => setTemplateSettings({ ...templateSettings, menuSpacing: value })}
+                      >
+                        <SelectTrigger id="menuSpacing" data-testid="select-menu-spacing">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="compact">Compact</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="relaxed">Relaxed</SelectItem>
+                          <SelectItem value="spacious">Spacious</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Adjust spacing between menu items</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                    <div>
+                      <Label htmlFor="showMenuIcons" className="cursor-pointer" data-testid="label-show-menu-icons">Show Menu Icons</Label>
+                      <p className="text-xs text-muted-foreground">Display home icon in navigation menu</p>
+                    </div>
+                    <Switch
+                      id="showMenuIcons"
+                      checked={templateSettings.showMenuIcons !== false}
+                      onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, showMenuIcons: checked })}
+                      data-testid="switch-show-menu-icons"
+                    />
+                  </div>
+                  
+                  <div className="grid gap-4 md:grid-cols-2 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="postCardStyle" data-testid="label-post-card-style">Post Card Design</Label>
+                      <Select
+                        value={templateSettings.postCardStyle || "standard"}
+                        onValueChange={(value: "standard" | "editorial" | "minimal" | "overlay") => setTemplateSettings({ ...templateSettings, postCardStyle: value })}
+                      >
+                        <SelectTrigger id="postCardStyle" data-testid="select-post-card-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard (classic grid cards)</SelectItem>
+                          <SelectItem value="editorial">Editorial (split magazine style)</SelectItem>
+                          <SelectItem value="minimal">Minimal (list with thumbnails)</SelectItem>
+                          <SelectItem value="overlay">Overlay (text over image)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Choose the visual style for post cards</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="cursorStyle" data-testid="label-cursor-style">Custom Cursor</Label>
+                      <Select
+                        value={templateSettings.cursorStyle || "default"}
+                        onValueChange={(value: "default" | "pointer-dot" | "crosshair" | "spotlight" | "trail") => setTemplateSettings({ ...templateSettings, cursorStyle: value })}
+                      >
+                        <SelectTrigger id="cursorStyle" data-testid="select-cursor-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">Default (browser cursor)</SelectItem>
+                          <SelectItem value="pointer-dot">Pointer Dot (animated dot)</SelectItem>
+                          <SelectItem value="crosshair">Crosshair (precision style)</SelectItem>
+                          <SelectItem value="spotlight">Spotlight (glow effect)</SelectItem>
+                          <SelectItem value="trail">Trail (following particles)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Add animated cursor effects to your site</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-4">
+                    <Label htmlFor="postsPerPage" data-testid="label-posts-per-page">Posts Per Page: {templateSettings.postsPerPage || 12}</Label>
+                    <Slider
+                      id="postsPerPage"
+                      min={6}
+                      max={30}
+                      step={3}
+                      value={[templateSettings.postsPerPage || 12]}
+                      onValueChange={([value]) => setTemplateSettings({ ...templateSettings, postsPerPage: value })}
+                      className="py-2"
+                      data-testid="slider-posts-per-page"
+                    />
+                    <p className="text-xs text-muted-foreground">Number of posts to show per page before pagination</p>
                   </div>
                 </div>
 

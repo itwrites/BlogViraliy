@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
-import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, ArrowRight } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
+import { PostCard, Pagination } from "@/components/post-cards";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 
@@ -29,6 +30,7 @@ function formatDate(date: Date | string): string {
 
 export function PublicBlog({ site }: PublicBlogProps) {
   const [, setLocation] = useLocation();
+  const [currentPage, setCurrentPage] = useState(1);
   const templateClasses = useTemplateClasses(site.templateSettings);
   const prefersReducedMotion = useReducedMotion();
 
@@ -48,8 +50,20 @@ export function PublicBlog({ site }: PublicBlogProps) {
     setLocation(`/post/${slug}`);
   };
 
+  const postsPerPage = templateClasses.postsPerPage;
+  const postCardStyle = templateClasses.postCardStyle;
+  
   const featuredPost = posts?.[0];
-  const recentPosts = posts?.slice(1) || [];
+  const allRecentPosts = posts?.slice(1) || [];
+  
+  const totalPages = Math.ceil(allRecentPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const recentPosts = allRecentPosts.slice(startIndex, startIndex + postsPerPage);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const containerVariants: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
@@ -211,7 +225,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                 </div>
               </motion.article>
 
-              {/* Recent Posts Grid - Editorial Cards */}
+              {/* Recent Posts Grid */}
               {recentPosts.length > 0 && (
                 <section className="pb-16 sm:pb-20 lg:pb-24">
                   {/* Section Divider */}
@@ -232,85 +246,35 @@ export function PublicBlog({ site }: PublicBlogProps) {
                   </motion.div>
 
                   <motion.div 
-                    className="grid gap-x-8 gap-y-12 sm:gap-y-14 md:grid-cols-2 lg:grid-cols-3"
+                    className={`${
+                      postCardStyle === "editorial" 
+                        ? "flex flex-col gap-8" 
+                        : postCardStyle === "minimal"
+                          ? "flex flex-col"
+                          : "grid gap-x-8 gap-y-12 sm:gap-y-14 md:grid-cols-2 lg:grid-cols-3"
+                    }`}
                     initial={prefersReducedMotion ? false : "hidden"}
                     animate={prefersReducedMotion ? false : "visible"}
                     variants={containerVariants}
                   >
                     {recentPosts.map((post, index) => (
-                      <motion.article 
-                        key={post.id} 
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        onClick={handlePostClick}
+                        style={postCardStyle}
+                        cardClasses={templateClasses.cardStyle}
                         variants={itemVariants}
-                        className={`group cursor-pointer ${templateClasses.cardStyle.container} ${templateClasses.cardStyle.hover} overflow-hidden`}
-                        onClick={() => handlePostClick(post.slug)}
-                        data-testid={`card-post-${post.id}`}
-                      >
-                        {/* Image Container */}
-                        <div className={`relative aspect-[4/3] overflow-hidden bg-muted ${templateClasses.cardStyle.image}`}>
-                          {post.imageUrl ? (
-                            <motion.img 
-                              src={post.imageUrl} 
-                              alt={post.title} 
-                              className="absolute inset-0 w-full h-full object-cover"
-                              whileHover={prefersReducedMotion ? undefined : { scale: 1.04 }}
-                              transition={prefersReducedMotion ? undefined : { duration: 0.4, ease: "easeOut" }}
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted to-muted-foreground/5" />
-                          )}
-                          {/* Hover Overlay */}
-                          <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
-                        </div>
-
-                        {/* Content */}
-                        <div className="space-y-3 p-5">
-                          {/* Category & Reading Time */}
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            {post.tags[0] && (
-                              <>
-                                <span 
-                                  className="font-semibold uppercase tracking-[0.12em] text-primary/80"
-                                  data-testid={`badge-post-category-${post.id}`}
-                                >
-                                  {post.tags[0]}
-                                </span>
-                                <span className="text-muted-foreground/40">·</span>
-                              </>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {getReadingTime(post.content)} min
-                            </span>
-                          </div>
-
-                          {/* Title */}
-                          <h3 
-                            className="text-xl sm:text-[1.35rem] font-semibold leading-snug tracking-tight line-clamp-2 group-hover:text-primary transition-colors duration-300"
-                            style={{ fontFamily: "var(--public-heading-font)" }}
-                            data-testid={`text-post-title-${post.id}`}
-                          >
-                            {post.title}
-                          </h3>
-
-                          {/* Excerpt */}
-                          <p 
-                            className="text-muted-foreground text-sm leading-relaxed line-clamp-2"
-                            data-testid={`text-post-excerpt-${post.id}`}
-                          >
-                            {stripMarkdown(post.content, 120)}
-                          </p>
-
-                          {/* Date */}
-                          <time 
-                            className="block text-xs text-muted-foreground/70 pt-1"
-                            data-testid={`text-post-date-${post.id}`}
-                          >
-                            {formatDate(post.createdAt)}
-                          </time>
-                        </div>
-                      </motion.article>
+                        index={index}
+                      />
                     ))}
                   </motion.div>
+                  
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
                 </section>
               )}
             </>
@@ -318,68 +282,35 @@ export function PublicBlog({ site }: PublicBlogProps) {
             /* All Posts Grid (No Hero) */
             <section className="py-12 sm:py-16 lg:py-20">
               <motion.div 
-                className="grid gap-x-8 gap-y-12 sm:gap-y-14 md:grid-cols-2 lg:grid-cols-3"
+                className={`${
+                  postCardStyle === "editorial" 
+                    ? "flex flex-col gap-8" 
+                    : postCardStyle === "minimal"
+                      ? "flex flex-col"
+                      : "grid gap-x-8 gap-y-12 sm:gap-y-14 md:grid-cols-2 lg:grid-cols-3"
+                }`}
                 initial={prefersReducedMotion ? false : "hidden"}
                 animate={prefersReducedMotion ? false : "visible"}
                 variants={containerVariants}
               >
-                {posts.map((post) => (
-                  <motion.article 
-                    key={post.id} 
+                {posts.slice(startIndex, startIndex + postsPerPage).map((post, index) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onClick={handlePostClick}
+                    style={postCardStyle}
+                    cardClasses={templateClasses.cardStyle}
                     variants={itemVariants}
-                    className={`group cursor-pointer ${templateClasses.cardStyle.container} ${templateClasses.cardStyle.hover} overflow-hidden`}
-                    onClick={() => handlePostClick(post.slug)}
-                    data-testid={`card-post-${post.id}`}
-                  >
-                    <div className={`relative aspect-[4/3] overflow-hidden bg-muted ${templateClasses.cardStyle.image}`}>
-                      {post.imageUrl ? (
-                        <motion.img 
-                          src={post.imageUrl} 
-                          alt={post.title} 
-                          className="absolute inset-0 w-full h-full object-cover"
-                          whileHover={prefersReducedMotion ? undefined : { scale: 1.04 }}
-                          transition={prefersReducedMotion ? undefined : { duration: 0.4, ease: "easeOut" }}
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted to-muted-foreground/5" />
-                      )}
-                      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
-                    </div>
-
-                    <div className="space-y-3 p-5">
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {post.tags[0] && (
-                          <>
-                            <span className="font-semibold uppercase tracking-[0.12em] text-primary/80">
-                              {post.tags[0]}
-                            </span>
-                            <span className="text-muted-foreground/40">·</span>
-                          </>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {getReadingTime(post.content)} min
-                        </span>
-                      </div>
-
-                      <h3 
-                        className="text-xl sm:text-[1.35rem] font-semibold leading-snug tracking-tight line-clamp-2 group-hover:text-primary transition-colors duration-300"
-                        style={{ fontFamily: "var(--public-heading-font)" }}
-                      >
-                        {post.title}
-                      </h3>
-
-                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
-                        {stripMarkdown(post.content, 120)}
-                      </p>
-
-                      <time className="block text-xs text-muted-foreground/70 pt-1">
-                        {formatDate(post.createdAt)}
-                      </time>
-                    </div>
-                  </motion.article>
+                    index={index}
+                  />
                 ))}
               </motion.div>
+              
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(posts.length / postsPerPage)}
+                onPageChange={handlePageChange}
+              />
             </section>
           ) : (
             /* Empty State - Sophisticated */
