@@ -454,7 +454,7 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  siteType: z.enum(["blog", "news", "magazine", "portfolio", "restaurant", "crypto"]),
+  siteType: z.enum(["blog", "news", "magazine", "novapress", "portfolio", "restaurant", "crypto"]),
   templateSettings: templateSettingsSchema.optional(),
 });
 

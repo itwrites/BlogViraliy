@@ -336,35 +336,36 @@ export default function SiteConfig() {
                   </div>
 
                   <div className="space-y-3 md:col-span-2">
-                    <Label data-testid="label-site-type">Site Layout Type</Label>
-                    <p className="text-xs text-muted-foreground mb-3">Choose a visual template that best matches your content style</p>
-                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+                    <Label data-testid="label-site-type">Theme</Label>
+                    <p className="text-xs text-muted-foreground mb-3">Choose a visual theme that best matches your content style</p>
+                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
                       {[
                         { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
                         { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
                         { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
+                        { value: "novapress", label: "NovaPress", desc: "Modern editorial, grid-based, premium magazine" },
                         { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
                         { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
                         { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
-                      ].map((layout) => (
+                      ].map((theme) => (
                         <Card
-                          key={layout.value}
+                          key={theme.value}
                           className={`cursor-pointer transition-all ${
-                            siteData.siteType === layout.value
+                            siteData.siteType === theme.value
                               ? "ring-2 ring-primary"
                               : "hover-elevate"
                           }`}
-                          onClick={() => setSiteData({ ...siteData, siteType: layout.value })}
-                          data-testid={`card-layout-${layout.value}`}
+                          onClick={() => setSiteData({ ...siteData, siteType: theme.value })}
+                          data-testid={`card-theme-${theme.value}`}
                         >
                           <CardContent className="p-4">
                             <div className="aspect-video bg-muted rounded mb-3 flex items-center justify-center">
                               <div className="text-center">
-                                <div className="text-2xl font-bold text-muted-foreground">{layout.label.substring(0, 1)}</div>
+                                <div className="text-2xl font-bold text-muted-foreground">{theme.label.substring(0, 1)}</div>
                               </div>
                             </div>
-                            <h4 className="font-semibold text-sm mb-1" data-testid={`text-layout-name-${layout.value}`}>{layout.label}</h4>
-                            <p className="text-xs text-muted-foreground line-clamp-2" data-testid={`text-layout-desc-${layout.value}`}>{layout.desc}</p>
+                            <h4 className="font-semibold text-sm mb-1" data-testid={`text-theme-name-${theme.value}`}>{theme.label}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2" data-testid={`text-theme-desc-${theme.value}`}>{theme.desc}</p>
                           </CardContent>
                         </Card>
                       ))}

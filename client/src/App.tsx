@@ -20,6 +20,7 @@ import { PublicMagazine } from "@/pages/public-magazine";
 import { PublicPortfolio } from "@/pages/public-portfolio";
 import { PublicRestaurant } from "@/pages/public-restaurant";
 import { PublicCrypto } from "@/pages/public-crypto";
+import { PublicNovaPress } from "@/pages/public-novapress";
 import { PublicPost } from "@/pages/public-post";
 import { PublicTagArchive } from "@/pages/public-tag-archive";
 import type { Site } from "@shared/schema";
@@ -44,6 +45,7 @@ function PublicRouter({ site }: { site: Site }) {
     blog: PublicBlog,
     news: PublicNews,
     magazine: PublicMagazine,
+    novapress: PublicNovaPress,
     portfolio: PublicPortfolio,
     restaurant: PublicRestaurant,
     crypto: PublicCrypto,

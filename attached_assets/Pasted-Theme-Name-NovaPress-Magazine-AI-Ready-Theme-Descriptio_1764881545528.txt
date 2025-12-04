@@ -1,0 +1,110 @@
+Theme Name: NovaPress Magazine
+AI-Ready Theme Description (Highly Specific)
+
+NovaPress Magazine is a modern, editorial-style blog theme with a clean, grid-based layout and premium magazine aesthetics. The design uses ample white space, soft shadows, and rounded image cards to create a polished, contemporary look. The overall mood is minimal, high-tech, and professional.
+
+Color Palette
+
+Background: Very light gray (#F5F7FA) or pure white
+
+Accents: Soft blue tones (#3A7BFF – #6EA8FF)
+
+Text: Dark gray (#1A1A1A)
+
+Metadata: Muted gray (#6E6E6E)
+
+Typography
+
+Primary font: Modern sans-serif (e.g., Inter, SF Pro, or similar)
+
+Style: Clean, high-contrast headings with light-weight body text
+
+Article titles: Bold
+
+Metadata: Small, light, spaced out
+
+Header
+
+Full-width top navigation bar with logo centered or left-aligned
+
+Links: Home, Categories, About, Contact
+
+Right side includes search icon, theme switch, and login button
+
+Background: White with subtle shadow
+
+Hero Section
+
+Two-column layout
+
+Left Column:
+
+One large featured article with wide image (16:9)
+
+Title overlay or below image
+
+Short summary in small text
+
+Right Column:
+
+Three vertical stacked article cards
+
+Each card has a square or 4:3 image, small title, and metadata
+
+Category Sections
+
+Each category (e.g., Electronics, Trends) appears as a full-width block with:
+
+Category name on the left
+
+"View all" link on the right
+
+4-card horizontal grid
+
+Cards include:
+
+Rounded image
+
+Title
+
+Small excerpt or metadata
+
+Soft drop shadow
+
+Card Style (Very Specific)
+
+Border radius: 12–16px
+
+Shadow: Subtle, 5–10px soft blur
+
+Hover state: Slight scale-up (1.02) and shadow enhancement
+
+Image crops: Consistent, edge-to-edge
+
+Title: 1–2 lines
+
+Metadata: Date + category in muted gray
+
+Spacing & Layout
+
+Grid gutters: 24px
+
+Section padding: 60–80px top & bottom
+
+Cards use a 3–5 column structure depending on screen width
+
+Very symmetrical and balanced visual rhythm
+
+Overall Feel / Moodboard Keywords
+
+Editorial
+
+Clean tech
+
+Professional magazine
+
+Soft minimalism
+
+Premium UI
+
+Apple-style simplicity
