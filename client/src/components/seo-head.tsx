@@ -58,7 +58,8 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
     const currentProtocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
     const protocol = currentProtocol === 'http:' ? 'http://' : 'https://';
-    const siteBaseUrl = `${protocol}${site.domain}`;
+    const basePath = site.basePath || "";
+    const siteBaseUrl = `${protocol}${site.domain}${basePath}`;
     const currentPath = post ? `/post/${post.slug}` : pagePath;
     const fullUrl = `${siteBaseUrl}${currentPath}`;
 
@@ -206,7 +207,7 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
       trackedElements.current = [];
     };
-  }, [site.id, site.domain, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath]);
+  }, [site.id, site.domain, site.basePath, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath]);
 
   return null;
 }

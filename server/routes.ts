@@ -922,9 +922,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Site not found");
       }
 
-      // Construct base URL
+      // Construct base URL with optional base path
       const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-      const baseUrl = `${protocol}://${hostname}`;
+      const basePath = site.basePath || "";
+      const baseUrl = `${protocol}://${hostname}${basePath}`;
       
       const xml = await generateSitemap(site, baseUrl);
       
@@ -957,8 +958,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Site not found" });
       }
       
-      // Generate with a placeholder base URL (actual URL comes from request)
-      const baseUrl = `https://${site.domain}`;
+      // Generate with full base URL including optional base path
+      const basePath = site.basePath || "";
+      const baseUrl = `https://${site.domain}${basePath}`;
       await generateSitemap(site, baseUrl);
       
       const stats = await getSitemapStats(req.params.id);
@@ -976,7 +978,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Site not found" });
       }
       
-      const baseUrl = `https://${site.domain}`;
+      const basePath = site.basePath || "";
+      const baseUrl = `https://${site.domain}${basePath}`;
       const xml = await generateSitemap(site, baseUrl);
       
       res.set("Content-Type", "application/xml");
