@@ -260,8 +260,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSiteByDomain(domain: string): Promise<Site | undefined> {
+    // First check primary domain
     const [site] = await db.select().from(sites).where(eq(sites.domain, domain));
-    return site || undefined;
+    if (site) return site;
+    
+    // Then check domain aliases using array contains
+    const [aliasMatch] = await db.select().from(sites).where(
+      sql`${domain} = ANY(${sites.domainAliases})`
+    );
+    return aliasMatch || undefined;
   }
 
   async canUserAccessSite(userId: string, siteId: string): Promise<boolean> {

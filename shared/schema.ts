@@ -164,6 +164,7 @@ export const defaultTemplateSettings: TemplateSettings = {
 export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   domain: text("domain").notNull().unique(),
+  domainAliases: text("domain_aliases").array().notNull().default(sql`ARRAY[]::text[]`), // Additional domains that point to this site
   title: text("title").notNull(),
   logoUrl: text("logo_url"),
   siteType: text("site_type").notNull().default("blog"),

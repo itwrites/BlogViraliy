@@ -17,7 +17,7 @@ The platform is built with a backend using Express.js with TypeScript and a fron
 The system employs a clean, modern UI with consistent spacing and professional design, heavily utilizing Shadcn UI with Tailwind CSS. It features responsive layouts, beautiful empty states, loading indicators, and interactive hover effects with elevation. Admin interfaces adopt a macOS-inspired glassmorphism design with soft shadows and Framer Motion animations for smooth transitions. Public sites offer six distinct layout templates, each with unique typography, color schemes, and structural designs, all designed to be responsive across devices.
 
 **Technical Implementations:**
-- **Domain-Based Routing**: Automatically routes requests to the admin dashboard or the appropriate public site based on the domain.
+- **Domain-Based Routing**: Automatically routes requests to the admin dashboard or the appropriate public site based on the domain. Supports domain aliases allowing multiple URLs to point to the same site.
 - **Admin Dashboard**: Provides secure login, site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.

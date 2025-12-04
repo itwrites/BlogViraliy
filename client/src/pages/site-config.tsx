@@ -28,6 +28,7 @@ export default function SiteConfig() {
 
   const [siteData, setSiteData] = useState({
     domain: "",
+    domainAliases: [] as string[],
     title: "",
     logoUrl: "",
     siteType: "blog",
@@ -56,6 +57,7 @@ export default function SiteConfig() {
 
   const [newKeyword, setNewKeyword] = useState("");
   const [newFeedUrl, setNewFeedUrl] = useState("");
+  const [newDomainAlias, setNewDomainAlias] = useState("");
 
   const { data: site, isLoading: siteLoading } = useQuery<Site>({
     queryKey: ["/api/sites", id],
@@ -76,6 +78,7 @@ export default function SiteConfig() {
     if (site) {
       setSiteData({
         domain: site.domain,
+        domainAliases: site.domainAliases || [],
         title: site.title,
         logoUrl: site.logoUrl || "",
         siteType: site.siteType,
@@ -90,6 +93,18 @@ export default function SiteConfig() {
       }
     }
   }, [site]);
+
+  const addDomainAlias = () => {
+    const alias = newDomainAlias.trim().toLowerCase();
+    if (alias && !siteData.domainAliases.includes(alias) && alias !== siteData.domain) {
+      setSiteData({ ...siteData, domainAliases: [...siteData.domainAliases, alias] });
+      setNewDomainAlias("");
+    }
+  };
+
+  const removeDomainAlias = (alias: string) => {
+    setSiteData({ ...siteData, domainAliases: siteData.domainAliases.filter(a => a !== alias) });
+  };
 
   useEffect(() => {
     if (existingAiConfig) {
@@ -240,7 +255,7 @@ export default function SiteConfig() {
               <CardContent className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="domain" data-testid="label-domain">Domain Name</Label>
+                    <Label htmlFor="domain" data-testid="label-domain">Primary Domain</Label>
                     <Input
                       id="domain"
                       data-testid="input-domain"
@@ -248,7 +263,7 @@ export default function SiteConfig() {
                       value={siteData.domain}
                       onChange={(e) => setSiteData({ ...siteData, domain: e.target.value })}
                     />
-                    <p className="text-xs text-muted-foreground" data-testid="text-domain-hint">The exact domain this site will respond to</p>
+                    <p className="text-xs text-muted-foreground" data-testid="text-domain-hint">The main domain this site will respond to</p>
                   </div>
 
                   <div className="space-y-2">
@@ -331,6 +346,57 @@ export default function SiteConfig() {
                           </CardContent>
                         </Card>
                       ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 md:col-span-2">
+                    <Label data-testid="label-domain-aliases">Domain Aliases</Label>
+                    <p className="text-xs text-muted-foreground mb-3">Additional domains that will also serve this site's content</p>
+                    <div className="flex gap-2">
+                      <Input
+                        id="newAlias"
+                        data-testid="input-new-alias"
+                        placeholder="www.example.com or alias.example.com"
+                        value={newDomainAlias}
+                        onChange={(e) => setNewDomainAlias(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addDomainAlias();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={addDomainAlias}
+                        data-testid="button-add-alias"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2 mt-2">
+                      {(siteData.domainAliases || []).map((alias) => (
+                        <div
+                          key={alias}
+                          className="flex items-center justify-between bg-muted px-3 py-2 rounded-md"
+                          data-testid={`alias-${alias}`}
+                        >
+                          <span className="text-sm font-mono truncate flex-1">{alias}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDomainAlias(alias)}
+                            data-testid={`button-remove-alias-${alias}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {(!siteData.domainAliases || siteData.domainAliases.length === 0) && (
+                        <p className="text-sm text-muted-foreground italic">No domain aliases configured</p>
+                      )}
                     </div>
                   </div>
                 </div>
