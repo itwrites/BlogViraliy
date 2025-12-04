@@ -260,14 +260,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSiteByDomain(domain: string): Promise<Site | undefined> {
+    console.log(`[getSiteByDomain] Looking up domain: "${domain}"`);
+    
     // First check primary domain
     const [site] = await db.select().from(sites).where(eq(sites.domain, domain));
-    if (site) return site;
+    if (site) {
+      console.log(`[getSiteByDomain] Found by primary domain: ${site.domain}`);
+      return site;
+    }
     
     // Then check domain aliases using array contains
+    console.log(`[getSiteByDomain] Not found by primary, checking aliases...`);
     const [aliasMatch] = await db.select().from(sites).where(
       sql`${domain} = ANY(${sites.domainAliases})`
     );
+    
+    if (aliasMatch) {
+      console.log(`[getSiteByDomain] Found by alias! Site: ${aliasMatch.domain}, aliases: ${JSON.stringify(aliasMatch.domainAliases)}`);
+    } else {
+      console.log(`[getSiteByDomain] No site found for domain "${domain}"`);
+    }
+    
     return aliasMatch || undefined;
   }
 
