@@ -8,6 +8,7 @@ import { pool } from "./db";
 import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User } from "@shared/schema";
 import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
+import { normalizeBasePath } from "./utils";
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
@@ -922,9 +923,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Site not found");
       }
 
-      // Construct base URL with optional base path
+      // Construct base URL with optional base path (normalized)
       const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-      const basePath = site.basePath || "";
+      const basePath = normalizeBasePath(site.basePath);
       const baseUrl = `${protocol}://${hostname}${basePath}`;
       
       const xml = await generateSitemap(site, baseUrl);
@@ -958,8 +959,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Site not found" });
       }
       
-      // Generate with full base URL including optional base path
-      const basePath = site.basePath || "";
+      // Generate with full base URL including optional base path (normalized)
+      const basePath = normalizeBasePath(site.basePath);
       const baseUrl = `https://${site.domain}${basePath}`;
       await generateSitemap(site, baseUrl);
       
@@ -978,7 +979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Site not found" });
       }
       
-      const basePath = site.basePath || "";
+      const basePath = normalizeBasePath(site.basePath);
       const baseUrl = `https://${site.domain}${basePath}`;
       const xml = await generateSitemap(site, baseUrl);
       

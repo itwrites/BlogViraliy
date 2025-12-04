@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Site, Post } from "@shared/schema";
+import { normalizeBasePath } from "./base-path-provider";
 
 interface SeoHeadProps {
   site: Site;
@@ -58,7 +59,7 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
     const currentProtocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
     const protocol = currentProtocol === 'http:' ? 'http://' : 'https://';
-    const basePath = site.basePath || "";
+    const basePath = normalizeBasePath(site.basePath);
     const siteBaseUrl = `${protocol}${site.domain}${basePath}`;
     const currentPath = post ? `/post/${post.slug}` : pagePath;
     const fullUrl = `${siteBaseUrl}${currentPath}`;

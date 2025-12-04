@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
-import { BasePathProvider } from "@/components/base-path-provider";
+import { BasePathProvider, normalizeBasePath } from "@/components/base-path-provider";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -50,7 +50,7 @@ function PublicRouter({ site }: { site: Site }) {
   };
 
   const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlog;
-  const basePath = site.basePath || "";
+  const basePath = normalizeBasePath(site.basePath);
 
   return (
     <BasePathProvider site={site}>
