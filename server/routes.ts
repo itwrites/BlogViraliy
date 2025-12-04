@@ -58,14 +58,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Domain detection middleware
   app.use(async (req: DomainRequest, res: Response, next: NextFunction) => {
-    // Check X-Forwarded-Host first (set by reverse proxies), then fall back to req.hostname
+    // Check multiple headers that proxies might use
     const xForwardedHost = req.headers["x-forwarded-host"];
-    const hostname = typeof xForwardedHost === "string" 
-      ? xForwardedHost.split(",")[0].trim().split(":")[0] // Handle "host:port" and comma-separated lists
-      : req.hostname;
+    const xOriginalHost = req.headers["x-original-host"];
+    const xRealHost = req.headers["x-real-host"];
+    const hostHeader = req.headers["host"];
     
-    // Debug logging for domain routing issues
-    console.log(`[Domain Routing] hostname=${hostname}, x-forwarded-host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
+    // Try multiple sources for the original hostname
+    const hostname = 
+      (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
+      (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
+      (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
+      req.hostname;
+    
+    // Debug logging for domain routing issues - show all relevant headers
+    console.log(`[Domain Routing] Final hostname=${hostname}, Host=${hostHeader}, X-Forwarded-Host=${xForwardedHost}, X-Original-Host=${xOriginalHost}, req.hostname=${req.hostname}, path=${req.path}`);
     
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
