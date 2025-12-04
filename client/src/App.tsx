@@ -1,10 +1,11 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import { BasePathProvider } from "@/components/base-path-provider";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -49,20 +50,25 @@ function PublicRouter({ site }: { site: Site }) {
   };
 
   const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlog;
+  const basePath = site.basePath || "";
 
   return (
-    <Switch>
-      <Route path="/">
-        <LayoutComponent site={site} />
-      </Route>
-      <Route path="/post/:slug">
-        <PublicPost site={site} />
-      </Route>
-      <Route path="/tag/:tag">
-        <PublicTagArchive site={site} />
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <BasePathProvider site={site}>
+      <Router base={basePath}>
+        <Switch>
+          <Route path="/">
+            <LayoutComponent site={site} />
+          </Route>
+          <Route path="/post/:slug">
+            <PublicPost site={site} />
+          </Route>
+          <Route path="/tag/:tag">
+            <PublicTagArchive site={site} />
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </Router>
+    </BasePathProvider>
   );
 }
 
