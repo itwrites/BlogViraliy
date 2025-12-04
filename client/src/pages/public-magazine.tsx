@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { PostCard, Pagination } from "@/components/post-cards";
 
 interface PublicMagazineProps {
   site: Site;
@@ -34,12 +35,24 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
     setLocation(`/post/${slug}`);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
   const featuredPost = posts?.[0];
   const secondaryPosts = posts?.slice(1, 3) || [];
-  const gridPosts = posts?.slice(3) || [];
+  const allGridPosts = posts?.slice(3) || [];
   const prefersReducedMotion = useReducedMotion();
+  
+  const postsPerPage = templateClasses.postsPerPage;
+  const postCardStyle = templateClasses.postCardStyle;
+  const totalPages = Math.ceil(allGridPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const gridPosts = allGridPosts.slice(startIndex, startIndex + postsPerPage);
 
-  const containerAnimation = prefersReducedMotion ? {} : {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "instant" : "smooth" });
+  };
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -47,7 +60,7 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
     },
   };
 
-  const cardAnimation = prefersReducedMotion ? {} : {
+  const cardAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, y: 25 },
     visible: { 
       opacity: 1, 
@@ -128,32 +141,16 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
 
                 {secondaryPosts.map((post) => (
                   <motion.div key={post.id} variants={cardAnimation}>
-                    <Card
-                      className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle.simple}`}
-                      onClick={() => handlePostClick(post.slug)}
-                      data-testid={`card-secondary-post-${post.id}`}
-                    >
-                      <div className="aspect-video bg-muted overflow-hidden">
-                        {post.imageUrl && (
-                          <img 
-                            src={post.imageUrl} 
-                            alt={post.title} 
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
-                          />
-                        )}
-                      </div>
-                      <CardContent className="p-3 sm:p-4">
-                        <Badge variant="secondary" className="text-xs uppercase mb-2" data-testid={`badge-secondary-tag-${post.id}`}>
-                          {post.tags[0] || "Article"}
-                        </Badge>
-                        <h3 className="font-bold text-base sm:text-lg line-clamp-2 mb-2 hover:opacity-80 transition-opacity" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-secondary-title-${post.id}`}>
-                          {post.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground" data-testid={`text-secondary-date-${post.id}`}>
-                          {new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <PostCard
+                      post={post}
+                      style="compact"
+                      onClick={handlePostClick}
+                      cardClasses={{
+                        container: `${templateClasses.cardStyle.simple}`,
+                        image: "",
+                        hover: "hover-elevate",
+                      }}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
@@ -162,7 +159,7 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                 <motion.div
                   initial={prefersReducedMotion ? false : { opacity: 0 }}
                   animate={prefersReducedMotion ? false : { opacity: 1 }}
-                  transition={prefersReducedMotion ? {} : { delay: 0.5 }}
+                  transition={prefersReducedMotion ? undefined : { delay: 0.5 }}
                 >
                   <motion.h3 
                     className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 uppercase tracking-wide" 
@@ -170,7 +167,7 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                     data-testid="text-latest-title"
                     initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
                     animate={prefersReducedMotion ? false : { opacity: 1, x: 0 }}
-                    transition={prefersReducedMotion ? {} : { delay: 0.6 }}
+                    transition={prefersReducedMotion ? undefined : { delay: 0.6 }}
                   >
                     Latest Stories
                   </motion.h3>
@@ -182,32 +179,22 @@ export function PublicMagazine({ site }: PublicMagazineProps) {
                   >
                     {gridPosts.map((post) => (
                       <motion.div key={post.id} variants={cardAnimation}>
-                        <Card
-                          className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle.simple}`}
-                          onClick={() => handlePostClick(post.slug)}
-                          data-testid={`card-post-${post.id}`}
-                        >
-                          <div className="aspect-video bg-muted overflow-hidden">
-                            {post.imageUrl && (
-                              <img 
-                                src={post.imageUrl} 
-                                alt={post.title} 
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
-                              />
-                            )}
-                          </div>
-                          <CardContent className="p-3 sm:p-4">
-                            <Badge variant="secondary" className="text-xs uppercase mb-2" data-testid={`badge-post-tag-${post.id}`}>
-                              {post.tags[0] || "Article"}
-                            </Badge>
-                            <h4 className="font-bold text-sm line-clamp-2 hover:opacity-80 transition-opacity" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
-                              {post.title}
-                            </h4>
-                          </CardContent>
-                        </Card>
+                        <PostCard
+                          post={post}
+                          style={postCardStyle}
+                          onClick={handlePostClick}
+                        />
                       </motion.div>
                     ))}
                   </motion.div>
+                  
+                  {totalPages > 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
                 </motion.div>
               )}
             </>

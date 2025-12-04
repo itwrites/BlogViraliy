@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,8 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { PostCard, Pagination } from "@/components/post-cards";
 
 interface PublicPortfolioProps {
   site: Site;
@@ -34,9 +36,22 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
     setLocation(`/post/${slug}`);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
   const prefersReducedMotion = useReducedMotion();
+  
+  const postsPerPage = templateClasses.postsPerPage;
+  const postCardStyle = templateClasses.postCardStyle;
+  const allPosts = posts || [];
+  const totalPages = Math.ceil(allPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const paginatedPosts = allPosts.slice(startIndex, startIndex + postsPerPage);
 
-  const containerAnimation = prefersReducedMotion ? {} : {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "instant" : "smooth" });
+  };
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -44,7 +59,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
     },
   };
 
-  const cardAnimation = prefersReducedMotion ? {} : {
+  const cardAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, y: 40 },
     visible: { 
       opacity: 1, 
@@ -71,61 +86,79 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                 <div key={i} className="h-72 sm:h-96 bg-muted animate-pulse rounded-lg" />
               ))}
             </div>
-          ) : posts && posts.length > 0 ? (
-            <motion.div 
-              className="grid gap-8 sm:gap-12 grid-cols-1 md:grid-cols-2"
-              initial="hidden"
-              animate="visible"
-              variants={containerAnimation}
-            >
-              {posts.map((post, index) => (
-                <motion.div 
-                  key={post.id} 
-                  variants={cardAnimation}
-                  className={index === 0 && templateClasses.showHero ? 'md:col-span-2' : ''}
-                >
-                  <Card
-                    className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle.simple}`}
-                    onClick={() => handlePostClick(post.slug)}
-                    data-testid={`card-post-${post.id}`}
+          ) : paginatedPosts && paginatedPosts.length > 0 ? (
+            <>
+              <motion.div 
+                className="grid gap-8 sm:gap-12 grid-cols-1 md:grid-cols-2"
+                initial="hidden"
+                animate="visible"
+                variants={containerAnimation}
+              >
+                {paginatedPosts.map((post, index) => (
+                  <motion.div 
+                    key={post.id} 
+                    variants={cardAnimation}
+                    className={index === 0 && currentPage === 1 && templateClasses.showHero ? 'md:col-span-2' : ''}
                   >
-                    <div className={`${index === 0 && templateClasses.showHero ? 'aspect-[16/9] md:aspect-[21/9]' : 'aspect-[4/3]'} bg-muted relative overflow-hidden`}>
-                      {post.imageUrl && (
-                        <img 
-                          src={post.imageUrl} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <ExternalLink className="h-6 w-6 sm:h-8 sm:w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                    <CardContent className={`${index === 0 && templateClasses.showHero ? 'p-6 sm:p-10' : 'p-4 sm:p-6'}`}>
-                      <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
-                        {post.tags.slice(0, 3).map((tag, tagIndex) => (
-                          <Badge key={tag} variant="outline" className="text-xs" data-testid={`badge-post-tag-${post.id}-${tagIndex}`}>
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <h3 className={`${index === 0 && templateClasses.showHero ? 'text-xl sm:text-2xl md:text-3xl' : 'text-lg sm:text-2xl'} font-light mb-2 sm:mb-3 line-clamp-2 group-hover:opacity-80 transition-opacity`} style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
-                        {post.title}
-                      </h3>
-                      <p className="text-muted-foreground line-clamp-2 mb-3 sm:mb-4 text-sm" data-testid={`text-post-excerpt-${post.id}`}>
-                        {stripMarkdown(post.content, 120)}
-                      </p>
-                      <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
-                        {new Date(post.createdAt).toLocaleDateString("en-US", {
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+                    {index === 0 && currentPage === 1 && templateClasses.showHero ? (
+                      <Card
+                        className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle.simple}`}
+                        onClick={() => handlePostClick(post.slug)}
+                        data-testid={`card-post-${post.id}`}
+                      >
+                        <div className="aspect-[16/9] md:aspect-[21/9] bg-muted relative overflow-hidden">
+                          {post.imageUrl && (
+                            <img 
+                              src={post.imageUrl} 
+                              alt={post.title} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                            <ExternalLink className="h-6 w-6 sm:h-8 sm:w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                        <CardContent className="p-6 sm:p-10">
+                          <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+                            {post.tags.slice(0, 3).map((tag, tagIndex) => (
+                              <Badge key={tag} variant="outline" className="text-xs" data-testid={`badge-post-tag-${post.id}-${tagIndex}`}>
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          <h3 className="text-xl sm:text-2xl md:text-3xl font-light mb-2 sm:mb-3 line-clamp-2 group-hover:opacity-80 transition-opacity" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
+                            {post.title}
+                          </h3>
+                          <p className="text-muted-foreground line-clamp-2 mb-3 sm:mb-4 text-sm" data-testid={`text-post-excerpt-${post.id}`}>
+                            {stripMarkdown(post.content, 120)}
+                          </p>
+                          <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
+                            {new Date(post.createdAt).toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <PostCard
+                        post={post}
+                        style={postCardStyle}
+                        onClick={handlePostClick}
+                      />
+                    )}
+                  </motion.div>
+                ))}
+              </motion.div>
+              
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              )}
+            </>
           ) : (
             <div className="text-center py-24">
               <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />

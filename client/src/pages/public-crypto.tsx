@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import type { Site, Post } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,8 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PublicLayout } from "@/components/public-layout";
 import { PublicHeader } from "@/components/public-header";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { PostCard, Pagination } from "@/components/post-cards";
 
 interface PublicCryptoProps {
   site: Site;
@@ -34,12 +36,24 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
     setLocation(`/post/${slug}`);
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
   const breakingPost = posts?.[0];
   const trendingPosts = posts?.slice(1, 4) || [];
-  const latestPosts = posts?.slice(4) || [];
+  const allLatestPosts = posts?.slice(4) || [];
   const prefersReducedMotion = useReducedMotion();
+  
+  const postsPerPage = templateClasses.postsPerPage;
+  const postCardStyle = templateClasses.postCardStyle;
+  const totalPages = Math.ceil(allLatestPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const latestPosts = allLatestPosts.slice(startIndex, startIndex + postsPerPage);
 
-  const containerAnimation = prefersReducedMotion ? {} : {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "instant" : "smooth" });
+  };
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -47,7 +61,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
     },
   };
 
-  const cardAnimation = prefersReducedMotion ? {} : {
+  const cardAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 
@@ -56,7 +70,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
     },
   };
 
-  const pulseAnimation = prefersReducedMotion ? {} : {
+  const pulseAnimation = prefersReducedMotion ? undefined : {
     scale: [1, 1.05, 1],
     transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
   };
@@ -216,14 +230,14 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                 <motion.div
                   initial={prefersReducedMotion ? false : { opacity: 0 }}
                   animate={prefersReducedMotion ? false : { opacity: 1 }}
-                  transition={prefersReducedMotion ? {} : { delay: 0.5 }}
+                  transition={prefersReducedMotion ? undefined : { delay: 0.5 }}
                 >
                   <motion.h3 
                     className="text-base sm:text-lg font-bold font-mono uppercase tracking-wide mb-3 sm:mb-4" 
                     data-testid="text-latest-title"
                     initial={prefersReducedMotion ? false : { opacity: 0, x: -20 }}
                     animate={prefersReducedMotion ? false : { opacity: 1, x: 0 }}
-                    transition={prefersReducedMotion ? {} : { delay: 0.6 }}
+                    transition={prefersReducedMotion ? undefined : { delay: 0.6 }}
                   >
                     Latest Updates
                   </motion.h3>
@@ -271,6 +285,14 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                       </motion.div>
                     ))}
                   </motion.div>
+                  
+                  {totalPages > 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
                 </motion.div>
               )}
             </>

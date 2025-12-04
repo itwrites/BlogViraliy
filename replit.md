@@ -9,6 +9,7 @@ Blog Virality is a multi-tenant content management system (CMS) that operates on
 - Responsive layouts for all screen sizes
 - Beautiful empty states and loading indicators
 - Hover interactions with elevation effects
+- macOS-inspired design language (SF Pro fonts, glassmorphism, 280-350ms animations)
 
 ## System Architecture
 The platform is built with a backend using Express.js with TypeScript and a frontend in React with TypeScript. PostgreSQL (Neon) with Drizzle ORM handles data persistence. Authentication is managed via Express-session and bcrypt. AI content generation leverages Replit AI Integrations (GPT-5), and node-cron handles scheduled automation. RSS feed processing uses rss-parser.
@@ -23,7 +24,15 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.
     - **RSS Rewriting**: Monitors RSS feeds, fetches new articles, and rewrites content using AI to ensure uniqueness, with configurable scheduling.
-- **Public Site Templates**: Six distinct layouts (Blog, News, Magazine, Portfolio, Restaurant, Crypto) with customizable themes, fonts, logo sizing, and content width.
+- **Public Site Templates**: Six distinct layouts (Blog, News, Magazine, Portfolio, Restaurant, Crypto) with customizable themes, fonts, logo sizing, and content width. All layouts now support:
+    - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay)
+    - **Cross-Layout Pagination**: All layouts support pagination with configurable posts per page
+    - **Reduced Motion Support**: All animations respect `prefers-reduced-motion` accessibility preference
+- **Custom Cursor System**: Four animated cursor styles (pointer-dot, crosshair, spotlight, trail) with:
+    - RAF-throttled performance optimization
+    - Velocity-based smooth motion
+    - Automatic native cursor restoration in input fields
+    - Hover state detection for interactive elements
 - **Automatic Navigation**: Generates navigation menus from the top 10 most-used tags, creating tag archive pages and related post sections dynamically.
 - **Bulk Keyword Generation**: Supports uploading keyword lists for automated post generation, with a dashboard to track progress.
 - **Topical Authority System**: Automated SEO content generation using the Pillar-Cluster model:

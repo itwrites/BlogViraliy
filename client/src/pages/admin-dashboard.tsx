@@ -21,19 +21,34 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 
+const macOSFontStyle = {
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif",
+};
+
 const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
     }
   }
 };
 
 const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { 
+      type: "spring", 
+      stiffness: 200, 
+      damping: 25,
+      duration: 0.35
+    } 
+  }
 };
 
 export default function AdminDashboard() {
@@ -94,22 +109,26 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={macOSFontStyle}>
       <motion.header 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
+        transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="sticky top-0 z-50 border-b border-border/40 bg-card/70 backdrop-blur-xl backdrop-saturate-150"
       >
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+              <motion.div 
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
                 <LayoutGrid className="w-5 h-5 text-primary-foreground" />
-              </div>
+              </motion.div>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-app-title">Blog Virality</h1>
-                <p className="text-xs text-muted-foreground" data-testid="text-app-subtitle">Admin Dashboard</p>
+                <h1 className="text-lg font-medium tracking-tight" data-testid="text-app-title" style={macOSFontStyle}>Blog Virality</h1>
+                <p className="text-xs text-muted-foreground/80" data-testid="text-app-subtitle">Admin Dashboard</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -155,15 +174,15 @@ export default function AdminDashboard() {
         </div>
       </motion.header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-10">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
+          transition={{ delay: 0.12, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-10"
         >
-          <h2 className="text-2xl font-semibold tracking-tight mb-1" data-testid="text-section-title">Your Websites</h2>
-          <p className="text-muted-foreground" data-testid="text-section-description">
+          <h2 className="text-2xl font-medium tracking-tight mb-1.5" style={macOSFontStyle} data-testid="text-section-title">Your Websites</h2>
+          <p className="text-muted-foreground/80" data-testid="text-section-description">
             {isAdmin 
               ? "Manage all multi-tenant websites from one dashboard"
               : "Manage the websites you have access to"
@@ -188,7 +207,7 @@ export default function AdminDashboard() {
               <motion.div key={site.id} variants={item}>
                 <Card 
                   data-testid={`card-site-${site.id}`} 
-                  className="hover-elevate group transition-all duration-200 ios-shadow cursor-pointer"
+                  className="hover-elevate group transition-all duration-300 cursor-pointer border-border/40 shadow-sm hover:shadow-md bg-card/80 backdrop-blur-sm rounded-xl"
                   onClick={() => setLocation(`/admin/sites/${site.id}`)}
                 >
                   <CardHeader className="pb-3">

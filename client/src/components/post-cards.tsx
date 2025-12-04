@@ -3,13 +3,13 @@ import { Clock, ArrowRight } from "lucide-react";
 import type { Post } from "@shared/schema";
 import { stripMarkdown } from "@/lib/strip-markdown";
 
-type PostCardStyle = "standard" | "editorial" | "minimal" | "overlay";
+type PostCardStyle = "standard" | "editorial" | "minimal" | "overlay" | "compact";
 
 interface PostCardProps {
   post: Post;
   onClick: (slug: string) => void;
   style: PostCardStyle;
-  cardClasses: {
+  cardClasses?: {
     container: string;
     image: string;
     hover: string;
@@ -17,6 +17,12 @@ interface PostCardProps {
   variants?: Variants;
   index?: number;
 }
+
+const defaultCardClasses = {
+  container: "bg-card rounded-lg border shadow-sm",
+  image: "rounded-t-lg",
+  hover: "hover:shadow-md transition-shadow duration-300",
+};
 
 function getReadingTime(content: string): number {
   const wordsPerMinute = 200;
@@ -34,6 +40,7 @@ function formatDate(date: Date | string): string {
 
 export function PostCard({ post, onClick, style, cardClasses, variants, index = 0 }: PostCardProps) {
   const prefersReducedMotion = useReducedMotion();
+  const classes = cardClasses || defaultCardClasses;
 
   switch (style) {
     case "editorial":
@@ -42,8 +49,10 @@ export function PostCard({ post, onClick, style, cardClasses, variants, index = 
       return <MinimalCard post={post} onClick={onClick} variants={variants} />;
     case "overlay":
       return <OverlayCard post={post} onClick={onClick} variants={variants} />;
+    case "compact":
+      return <CompactCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     default:
-      return <StandardCard post={post} onClick={onClick} cardClasses={cardClasses} variants={variants} />;
+      return <StandardCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
   }
 }
 
@@ -357,6 +366,62 @@ function OverlayCard({
         >
           {formatDate(post.createdAt)}
         </time>
+      </div>
+    </motion.article>
+  );
+}
+
+function CompactCard({ 
+  post, 
+  onClick, 
+  cardClasses,
+  variants 
+}: { 
+  post: Post; 
+  onClick: (slug: string) => void;
+  cardClasses?: { container: string; image: string; hover: string };
+  variants?: Variants;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <motion.article 
+      variants={variants}
+      className={`group cursor-pointer h-full ${cardClasses?.container || ""} ${cardClasses?.hover || ""}`}
+      onClick={() => onClick(post.slug)}
+      data-testid={`card-secondary-post-${post.id}`}
+    >
+      <div className={`aspect-video bg-muted overflow-hidden ${cardClasses?.image || ""}`}>
+        {post.imageUrl ? (
+          <motion.img 
+            src={post.imageUrl} 
+            alt={post.title} 
+            className="w-full h-full object-cover"
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.5, ease: "easeOut" }}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-muted via-muted to-muted-foreground/5" />
+        )}
+      </div>
+
+      <div className="p-3">
+        {post.tags[0] && (
+          <span 
+            className="inline-block text-[10px] font-medium uppercase tracking-wider bg-secondary text-secondary-foreground px-2 py-0.5 rounded mb-2"
+            data-testid={`badge-secondary-tag-${post.id}`}
+          >
+            {post.tags[0]}
+          </span>
+        )}
+        
+        <h3 
+          className="text-sm font-semibold line-clamp-2 hover:opacity-80 transition-opacity"
+          style={{ fontFamily: "var(--public-heading-font)" }}
+          data-testid={`text-secondary-title-${post.id}`}
+        >
+          {post.title}
+        </h3>
       </div>
     </motion.article>
   );
