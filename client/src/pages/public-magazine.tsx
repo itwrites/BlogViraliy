@@ -17,6 +17,7 @@ interface PublicMagazineProps {
 export function PublicMagazineContent({ site }: PublicMagazineProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
@@ -66,10 +67,10 @@ export function PublicMagazineContent({ site }: PublicMagazineProps) {
           {isLoading ? (
             <div className="space-y-6">
               <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-                <div className="h-[300px] sm:h-[400px] bg-muted animate-pulse rounded" />
+                <div className={`h-[300px] sm:h-[400px] bg-muted animate-pulse ${cardStyle.radius}`} />
                 <div className="space-y-4 sm:space-y-6">
-                  <div className="h-[150px] sm:h-[190px] bg-muted animate-pulse rounded" />
-                  <div className="h-[150px] sm:h-[190px] bg-muted animate-pulse rounded" />
+                  <div className={`h-[150px] sm:h-[190px] bg-muted animate-pulse ${cardStyle.radius}`} />
+                  <div className={`h-[150px] sm:h-[190px] bg-muted animate-pulse ${cardStyle.radius}`} />
                 </div>
               </div>
             </div>
@@ -165,6 +166,7 @@ export function PublicMagazineContent({ site }: PublicMagazineProps) {
                           post={post}
                           style={postCardStyle}
                           onClick={handlePostClick}
+                          cardClasses={cardStyle}
                         />
                       </motion.div>
                     ))}

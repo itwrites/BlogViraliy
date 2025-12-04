@@ -17,6 +17,7 @@ interface PublicRestaurantProps {
 export function PublicRestaurantContent({ site }: PublicRestaurantProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
@@ -73,10 +74,10 @@ export function PublicRestaurantContent({ site }: PublicRestaurantProps) {
       <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-10`}>
         {isLoading ? (
           <div className="space-y-6 sm:space-y-8">
-            <div className="h-[300px] sm:h-[450px] bg-muted animate-pulse rounded-xl" />
+            <div className={`h-[300px] sm:h-[450px] bg-muted animate-pulse ${cardStyle.radius}`} />
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-60 sm:h-80 bg-muted animate-pulse rounded-xl" />
+                <div key={i} className={`h-60 sm:h-80 bg-muted animate-pulse ${cardStyle.radius}`} />
               ))}
             </div>
           </div>
@@ -162,6 +163,7 @@ export function PublicRestaurantContent({ site }: PublicRestaurantProps) {
                         post={post}
                         style={postCardStyle}
                         onClick={handlePostClick}
+                        cardClasses={cardStyle}
                       />
                     </motion.div>
                   ))}

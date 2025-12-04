@@ -17,6 +17,7 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
   const [, setLocation] = useLocation();
   const decodedTag = decodeURIComponent(tag || "");
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts-by-tag", decodedTag],
@@ -68,7 +69,7 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
         {isLoading ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+              <div key={i} className={`h-64 bg-muted animate-pulse ${cardStyle.radius}`} />
             ))}
           </div>
         ) : posts && posts.length > 0 ? (

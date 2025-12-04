@@ -34,21 +34,41 @@ const contentWidths: Record<string, string> = {
   wide: "max-w-7xl",
 };
 
-const cardStyles: Record<string, { container: string; image: string; hover: string }> = {
+const cardStyles: Record<string, { 
+  container: string; 
+  image: string; 
+  imageBottom: string;
+  hover: string;
+  radius: string;
+  radiusSm: string;
+  radiusLg: string;
+}> = {
   rounded: { 
     container: "rounded-xl border bg-card shadow-sm", 
     image: "rounded-t-xl",
-    hover: "hover:shadow-md hover:border-primary/20 transition-all duration-300"
+    imageBottom: "rounded-b-xl",
+    hover: "hover:shadow-lg hover:border-primary/20 transition-all duration-300",
+    radius: "rounded-xl",
+    radiusSm: "rounded-lg",
+    radiusLg: "rounded-2xl",
   },
   sharp: { 
     container: "rounded-none border bg-card shadow-sm", 
     image: "rounded-none",
-    hover: "hover:shadow-md hover:border-primary/30 transition-all duration-300"
+    imageBottom: "rounded-none",
+    hover: "hover:shadow-lg hover:border-primary/30 transition-all duration-300",
+    radius: "rounded-none",
+    radiusSm: "rounded-none",
+    radiusLg: "rounded-none",
   },
   borderless: { 
     container: "rounded-lg border-0 shadow-none bg-transparent", 
     image: "rounded-lg",
-    hover: "hover:bg-muted/30 transition-all duration-300"
+    imageBottom: "rounded-b-lg",
+    hover: "hover:bg-muted/50 transition-all duration-300",
+    radius: "rounded-lg",
+    radiusSm: "rounded-md",
+    radiusLg: "rounded-xl",
   },
 };
 
@@ -282,7 +302,7 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     const style = cardStyles[s.cardStyle] || cardStyles.rounded;
     return {
       ...style,
-      // Backward compatible simple class string for templates that don't use the object
+      style: s.cardStyle || "rounded",
       simple: s.cardStyle === "borderless" ? "border-0 shadow-none" : 
               s.cardStyle === "sharp" ? "rounded-none border" : "rounded-lg border",
     };

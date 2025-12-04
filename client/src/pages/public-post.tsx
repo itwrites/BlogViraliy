@@ -50,6 +50,8 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
 
   const latestPosts = allPosts?.filter(p => p.id !== post?.id).slice(0, 5) || [];
 
+  const cardStyle = templateClasses.cardStyle;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -58,15 +60,15 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
           <div className="h-[50vh] bg-muted" />
           <div className="max-w-3xl mx-auto px-6 py-12 space-y-6">
             <div className="flex gap-2">
-              <div className="h-6 w-16 bg-muted rounded-full" />
-              <div className="h-6 w-20 bg-muted rounded-full" />
+              <div className={`h-6 w-16 bg-muted ${cardStyle.radiusSm}`} />
+              <div className={`h-6 w-20 bg-muted ${cardStyle.radiusSm}`} />
             </div>
-            <div className="h-12 bg-muted rounded w-3/4" />
-            <div className="h-6 bg-muted rounded w-1/4" />
+            <div className={`h-12 bg-muted ${cardStyle.radiusSm} w-3/4`} />
+            <div className={`h-6 bg-muted ${cardStyle.radiusSm} w-1/4`} />
             <div className="space-y-4 mt-8">
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-4 bg-muted rounded w-full" />
-              <div className="h-4 bg-muted rounded w-5/6" />
+              <div className={`h-4 bg-muted ${cardStyle.radiusSm} w-full`} />
+              <div className={`h-4 bg-muted ${cardStyle.radiusSm} w-full`} />
+              <div className={`h-4 bg-muted ${cardStyle.radiusSm} w-5/6`} />
             </div>
           </div>
         </div>
@@ -115,7 +117,7 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
             transition={prefersReducedMotion ? {} : { delay: 0.2, duration: 0.4 }}
             data-testid={`article-${post.id}`}
           >
-            <div className={`${post.imageUrl ? 'bg-card rounded-2xl p-6 sm:p-10 shadow-xl border' : 'pb-8'}`}>
+            <div className={`${post.imageUrl ? `bg-card ${templateClasses.cardStyle.radiusLg} p-6 sm:p-10 shadow-xl border` : 'pb-8'}`}>
               <div className="flex flex-wrap gap-2 mb-5">
                 {post.tags.map((tag, index) => (
                   <motion.div
@@ -207,7 +209,7 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
-              className="mt-12 bg-card rounded-xl p-6 border"
+              className={`mt-12 bg-card ${templateClasses.cardStyle.radius} p-6 border`}
             >
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
@@ -238,12 +240,12 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 + index * 0.1 }}
-                    className="group cursor-pointer p-4 rounded-lg hover:bg-muted/50 transition-colors"
+                    className={`group cursor-pointer p-4 ${templateClasses.cardStyle.radiusSm} hover:bg-muted/50 transition-colors`}
                     onClick={() => setLocation(`/post/${latestPost.slug}`)}
                     data-testid={`latest-post-${latestPost.id}`}
                   >
                     {latestPost.imageUrl && (
-                      <div className="aspect-video rounded-lg overflow-hidden mb-3">
+                      <div className={`aspect-video ${templateClasses.cardStyle.radiusSm} overflow-hidden mb-3`}>
                         <img 
                           src={latestPost.imageUrl} 
                           alt={latestPost.title}
@@ -294,7 +296,7 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
                     transition={{ delay: 0.7 + index * 0.1 }}
                   >
                     <Card
-                      className="cursor-pointer hover-elevate overflow-hidden group h-full"
+                      className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle.simple}`}
                       onClick={() => setLocation(`/post/${relatedPost.slug}`)}
                       data-testid={`card-related-${relatedPost.id}`}
                     >

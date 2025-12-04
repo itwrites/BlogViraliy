@@ -17,6 +17,7 @@ interface PublicNewsProps {
 export function PublicNewsContent({ site }: PublicNewsProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
@@ -66,16 +67,16 @@ export function PublicNewsContent({ site }: PublicNewsProps) {
           {isLoading ? (
             <div className="space-y-6">
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                <div className="h-60 sm:h-80 bg-muted animate-pulse rounded" />
+                <div className={`h-60 sm:h-80 bg-muted animate-pulse ${cardStyle.radius}`} />
                 <div className="grid gap-4 grid-cols-2">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-32 sm:h-36 bg-muted animate-pulse rounded" />
+                    <div key={i} className={`h-32 sm:h-36 bg-muted animate-pulse ${cardStyle.radius}`} />
                   ))}
                 </div>
               </div>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-48 bg-muted animate-pulse rounded" />
+                  <div key={i} className={`h-48 bg-muted animate-pulse ${cardStyle.radius}`} />
                 ))}
               </div>
             </div>
@@ -178,6 +179,7 @@ export function PublicNewsContent({ site }: PublicNewsProps) {
                           post={post}
                           style={postCardStyle}
                           onClick={handlePostClick}
+                          cardClasses={cardStyle}
                         />
                       </motion.div>
                     ))}

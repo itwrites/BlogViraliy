@@ -17,6 +17,7 @@ interface PublicPortfolioProps {
 export function PublicPortfolioContent({ site }: PublicPortfolioProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts"],
@@ -64,7 +65,7 @@ export function PublicPortfolioContent({ site }: PublicPortfolioProps) {
         {isLoading ? (
           <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-72 sm:h-96 bg-muted animate-pulse rounded-lg" />
+              <div key={i} className={`h-72 sm:h-96 bg-muted animate-pulse ${cardStyle.radius}`} />
             ))}
           </div>
         ) : paginatedPosts && paginatedPosts.length > 0 ? (
@@ -126,6 +127,7 @@ export function PublicPortfolioContent({ site }: PublicPortfolioProps) {
                       post={post}
                       style={postCardStyle}
                       onClick={handlePostClick}
+                      cardClasses={cardStyle}
                     />
                   )}
                 </motion.div>

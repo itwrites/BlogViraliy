@@ -44,11 +44,11 @@ export function PostCard({ post, onClick, style, cardClasses, variants, index = 
 
   switch (style) {
     case "editorial":
-      return <EditorialCard post={post} onClick={onClick} variants={variants} />;
+      return <EditorialCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     case "minimal":
-      return <MinimalCard post={post} onClick={onClick} variants={variants} />;
+      return <MinimalCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     case "overlay":
-      return <OverlayCard post={post} onClick={onClick} variants={variants} />;
+      return <OverlayCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     case "compact":
       return <CompactCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     default:
@@ -139,10 +139,12 @@ function StandardCard({
 function EditorialCard({ 
   post, 
   onClick, 
+  cardClasses,
   variants 
 }: { 
   post: Post; 
   onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
   variants?: Variants;
 }) {
   const prefersReducedMotion = useReducedMotion();
@@ -154,7 +156,7 @@ function EditorialCard({
       onClick={() => onClick(post.slug)}
       data-testid={`card-post-${post.id}`}
     >
-      <div className="relative flex flex-col md:flex-row gap-0 bg-card rounded-xl overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500">
+      <div className={`relative flex flex-col md:flex-row gap-0 bg-card overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500 ${cardClasses.container}`}>
         <div className="relative md:w-1/2 aspect-[4/3] md:aspect-auto overflow-hidden">
           {post.imageUrl ? (
             <motion.img 
@@ -216,10 +218,12 @@ function EditorialCard({
 function MinimalCard({ 
   post, 
   onClick, 
+  cardClasses,
   variants 
 }: { 
   post: Post; 
   onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
   variants?: Variants;
 }) {
   const prefersReducedMotion = useReducedMotion();
@@ -233,7 +237,7 @@ function MinimalCard({
     >
       <div className="flex items-start gap-6">
         {post.imageUrl && (
-          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+          <div className={`relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 overflow-hidden bg-muted ${cardClasses.image}`}>
             <motion.img 
               src={post.imageUrl} 
               alt={post.title} 
@@ -295,10 +299,12 @@ function MinimalCard({
 function OverlayCard({ 
   post, 
   onClick, 
+  cardClasses,
   variants 
 }: { 
   post: Post; 
   onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
   variants?: Variants;
 }) {
   const prefersReducedMotion = useReducedMotion();
@@ -306,7 +312,7 @@ function OverlayCard({
   return (
     <motion.article 
       variants={variants}
-      className="group cursor-pointer relative aspect-[4/3] rounded-xl overflow-hidden"
+      className={`group cursor-pointer relative aspect-[4/3] overflow-hidden ${cardClasses.container}`}
       onClick={() => onClick(post.slug)}
       data-testid={`card-post-${post.id}`}
     >

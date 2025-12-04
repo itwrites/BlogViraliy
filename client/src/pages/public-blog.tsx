@@ -30,6 +30,7 @@ export function PublicBlogContent({ site }: PublicBlogProps) {
   const [, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const cardStyle = templateClasses.cardStyle;
   const prefersReducedMotion = useReducedMotion();
 
   const { data: posts, isLoading } = useQuery<Post[]>({
@@ -95,23 +96,23 @@ export function PublicBlogContent({ site }: PublicBlogProps) {
           {isLoading ? (
             <div className="py-12 sm:py-16 space-y-16">
               <div className="relative">
-                <div className="aspect-[21/9] bg-muted/50 rounded-2xl overflow-hidden">
+                <div className={`aspect-[21/9] bg-muted/50 ${cardStyle.radiusLg} overflow-hidden`}>
                   <div className="absolute inset-0 bg-gradient-to-r from-muted/80 via-muted/40 to-muted/80 animate-pulse" />
                 </div>
                 <div className="mt-8 space-y-4">
-                  <div className="h-4 w-24 bg-muted/60 rounded animate-pulse" />
-                  <div className="h-10 w-3/4 bg-muted/50 rounded animate-pulse" />
-                  <div className="h-6 w-1/2 bg-muted/40 rounded animate-pulse" />
+                  <div className={`h-4 w-24 bg-muted/60 ${cardStyle.radiusSm} animate-pulse`} />
+                  <div className={`h-10 w-3/4 bg-muted/50 ${cardStyle.radiusSm} animate-pulse`} />
+                  <div className={`h-6 w-1/2 bg-muted/40 ${cardStyle.radiusSm} animate-pulse`} />
                 </div>
               </div>
               <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="space-y-4">
-                    <div className="aspect-[4/3] bg-muted/50 rounded-xl animate-pulse" />
+                    <div className={`aspect-[4/3] bg-muted/50 ${cardStyle.radius} animate-pulse`} />
                     <div className="space-y-3">
-                      <div className="h-3 w-20 bg-muted/40 rounded animate-pulse" />
-                      <div className="h-6 w-full bg-muted/50 rounded animate-pulse" />
-                      <div className="h-4 w-3/4 bg-muted/40 rounded animate-pulse" />
+                      <div className={`h-3 w-20 bg-muted/40 ${cardStyle.radiusSm} animate-pulse`} />
+                      <div className={`h-6 w-full bg-muted/50 ${cardStyle.radiusSm} animate-pulse`} />
+                      <div className={`h-4 w-3/4 bg-muted/40 ${cardStyle.radiusSm} animate-pulse`} />
                     </div>
                   </div>
                 ))}
@@ -244,7 +245,7 @@ export function PublicBlogContent({ site }: PublicBlogProps) {
                         post={post}
                         onClick={handlePostClick}
                         style={postCardStyle}
-                        cardClasses={templateClasses.cardStyle}
+                        cardClasses={cardStyle}
                         variants={itemVariants}
                         index={index}
                       />
@@ -280,7 +281,7 @@ export function PublicBlogContent({ site }: PublicBlogProps) {
                     post={post}
                     onClick={handlePostClick}
                     style={postCardStyle}
-                    cardClasses={templateClasses.cardStyle}
+                    cardClasses={cardStyle}
                     variants={itemVariants}
                     index={index}
                   />
