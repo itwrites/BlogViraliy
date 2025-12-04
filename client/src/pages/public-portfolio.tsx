@@ -86,7 +86,7 @@ export function PublicPortfolio({ site }: PublicPortfolioProps) {
                   className={index === 0 && templateClasses.showHero ? 'md:col-span-2' : ''}
                 >
                   <Card
-                    className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle}`}
+                    className={`cursor-pointer hover-elevate overflow-hidden group h-full ${templateClasses.cardStyle.simple}`}
                     onClick={() => handlePostClick(post.slug)}
                     data-testid={`card-post-${post.id}`}
                   >

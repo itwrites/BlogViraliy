@@ -106,7 +106,7 @@ export function PublicTagArchive({ site }: PublicTagArchiveProps) {
               {posts.map((post) => (
                 <motion.div key={post.id} variants={cardAnimation}>
                   <Card
-                    className={`cursor-pointer hover-elevate overflow-hidden h-full group ${templateClasses.cardStyle}`}
+                    className={`cursor-pointer hover-elevate overflow-hidden h-full group ${templateClasses.cardStyle.simple}`}
                     onClick={() => handlePostClick(post.slug)}
                     data-testid={`card-post-${post.id}`}
                   >

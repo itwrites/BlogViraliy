@@ -109,7 +109,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                   transition={prefersReducedMotion ? {} : { delay: 0.2, duration: 0.5 }}
                 >
                   <Card
-                    className={`cursor-pointer hover-elevate overflow-hidden border-2 border-accent/20 ${templateClasses.cardStyle}`}
+                    className={`cursor-pointer hover-elevate overflow-hidden border-2 border-accent/20 ${templateClasses.cardStyle.simple}`}
                     onClick={() => handlePostClick(breakingPost.slug)}
                     data-testid={`card-breaking-post-${breakingPost.id}`}
                   >
@@ -179,7 +179,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                     {trendingPosts.map((post, index) => (
                       <motion.div key={post.id} variants={cardAnimation}>
                         <Card
-                          className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle}`}
+                          className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle.simple}`}
                           onClick={() => handlePostClick(post.slug)}
                           data-testid={`card-trending-post-${post.id}`}
                         >
@@ -237,7 +237,7 @@ export function PublicCrypto({ site }: PublicCryptoProps) {
                     {latestPosts.map((post) => (
                       <motion.div key={post.id} variants={cardAnimation}>
                         <Card
-                          className={`cursor-pointer hover-elevate ${templateClasses.cardStyle}`}
+                          className={`cursor-pointer hover-elevate ${templateClasses.cardStyle.simple}`}
                           onClick={() => handlePostClick(post.slug)}
                           data-testid={`card-post-${post.id}`}
                         >

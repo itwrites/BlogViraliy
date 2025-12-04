@@ -242,12 +242,12 @@ export function PublicBlog({ site }: PublicBlogProps) {
                       <motion.article 
                         key={post.id} 
                         variants={itemVariants}
-                        className="group cursor-pointer"
+                        className={`group cursor-pointer ${templateClasses.cardStyle.container} ${templateClasses.cardStyle.hover} overflow-hidden`}
                         onClick={() => handlePostClick(post.slug)}
                         data-testid={`card-post-${post.id}`}
                       >
                         {/* Image Container */}
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-5">
+                        <div className={`relative aspect-[4/3] overflow-hidden bg-muted ${templateClasses.cardStyle.image}`}>
                           {post.imageUrl ? (
                             <motion.img 
                               src={post.imageUrl} 
@@ -264,7 +264,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                         </div>
 
                         {/* Content */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 p-5">
                           {/* Category & Reading Time */}
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {post.tags[0] && (
@@ -328,11 +328,11 @@ export function PublicBlog({ site }: PublicBlogProps) {
                   <motion.article 
                     key={post.id} 
                     variants={itemVariants}
-                    className="group cursor-pointer"
+                    className={`group cursor-pointer ${templateClasses.cardStyle.container} ${templateClasses.cardStyle.hover} overflow-hidden`}
                     onClick={() => handlePostClick(post.slug)}
                     data-testid={`card-post-${post.id}`}
                   >
-                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-5">
+                    <div className={`relative aspect-[4/3] overflow-hidden bg-muted ${templateClasses.cardStyle.image}`}>
                       {post.imageUrl ? (
                         <motion.img 
                           src={post.imageUrl} 
@@ -347,7 +347,7 @@ export function PublicBlog({ site }: PublicBlogProps) {
                       <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 p-5">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         {post.tags[0] && (
                           <>

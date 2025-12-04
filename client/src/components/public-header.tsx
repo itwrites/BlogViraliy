@@ -5,6 +5,16 @@ import { Home } from "lucide-react";
 
 type MenuActiveStyle = "underline" | "background" | "pill" | "bold";
 
+interface HeaderStyleConfig {
+  height: string;
+  padding: string;
+  border: string;
+  blur: string;
+  isSticky: boolean;
+  customBackground?: string | null;
+  customTextColor?: string | null;
+}
+
 interface PublicHeaderProps {
   site: Site;
   topTags: string[];
@@ -18,41 +28,53 @@ interface PublicHeaderProps {
     maxNavItems: number;
     hideLogoText?: boolean;
     menuActiveStyle?: MenuActiveStyle;
+    headerStyle?: HeaderStyleConfig;
   };
   variant?: "default" | "compact";
 }
 
-function getMenuItemClasses(isActive: boolean, isHome: boolean, style: MenuActiveStyle) {
+function getMenuItemClasses(
+  isActive: boolean, 
+  isHome: boolean, 
+  style: MenuActiveStyle,
+  hasCustomBackground: boolean = false
+) {
   const baseClasses = "relative px-4 py-2 text-sm font-medium uppercase tracking-wide transition-all duration-200 whitespace-nowrap";
   
+  // When custom background is set, use neutral hover effects that work with any color
+  const hoverTextClass = hasCustomBackground ? "hover:opacity-100" : "hover:text-primary";
+  const inactiveTextClass = hasCustomBackground ? "opacity-70" : "text-current/70";
+  const hoverBgClass = hasCustomBackground ? "hover:bg-white/10" : "hover:bg-primary/5";
+  const hoverBgMutedClass = hasCustomBackground ? "hover:bg-white/15" : "hover:bg-muted";
+  
   if (isHome && !isActive) {
-    return `${baseClasses} text-foreground/70 hover:text-primary`;
+    return `${baseClasses} ${inactiveTextClass} ${hoverTextClass}`;
   }
   
   switch (style) {
     case "underline":
       return `${baseClasses} ${
         isActive 
-          ? 'text-primary after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[3px] after:bg-primary after:rounded-full' 
-          : 'text-foreground/70 hover:text-primary'
+          ? `${hasCustomBackground ? 'opacity-100' : 'text-primary'} after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[3px] after:bg-current after:rounded-full` 
+          : `${inactiveTextClass} ${hoverTextClass}`
       }`;
     case "background":
       return `${baseClasses} rounded-md ${
         isActive 
-          ? 'bg-primary/10 text-primary' 
-          : 'text-foreground/70 hover:text-primary hover:bg-primary/5'
+          ? `${hasCustomBackground ? 'bg-white/20 opacity-100' : 'bg-primary/10 text-primary'}` 
+          : `${inactiveTextClass} ${hoverTextClass} ${hoverBgClass}`
       }`;
     case "pill":
       return `${baseClasses} rounded-full ${
         isActive 
-          ? 'bg-primary text-primary-foreground' 
-          : 'text-foreground/70 hover:text-primary hover:bg-muted'
+          ? `${hasCustomBackground ? 'bg-white/25 opacity-100' : 'bg-primary text-primary-foreground'}` 
+          : `${inactiveTextClass} ${hoverTextClass} ${hoverBgMutedClass}`
       }`;
     case "bold":
       return `${baseClasses} ${
         isActive 
-          ? 'text-primary font-bold' 
-          : 'text-foreground/70 hover:text-primary font-medium'
+          ? `${hasCustomBackground ? 'opacity-100' : 'text-primary'} font-bold` 
+          : `${inactiveTextClass} ${hoverTextClass} font-medium`
       }`;
     default:
       return baseClasses;
@@ -71,6 +93,17 @@ export function PublicHeader({
   const prefersReducedMotion = useReducedMotion();
   const menuActiveStyle = templateClasses.menuActiveStyle || "underline";
   const isHome = !currentTag;
+  const hasCustomBackground = Boolean(templateClasses.headerStyle?.customBackground);
+  
+  const headerConfig = templateClasses.headerStyle || {
+    height: "h-16",
+    padding: "py-3",
+    border: "border-b",
+    blur: "bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80",
+    isSticky: true,
+    customBackground: null,
+    customTextColor: null,
+  };
 
   const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
@@ -110,16 +143,30 @@ export function PublicHeader({
       };
 
   const hasTags = topTags && topTags.length > 0;
-
   const isSvg = site.logoUrl?.toLowerCase().endsWith('.svg');
+
+  const headerStyles: React.CSSProperties = {};
+  if (headerConfig.customBackground) {
+    headerStyles.backgroundColor = headerConfig.customBackground;
+  }
+  if (headerConfig.customTextColor) {
+    headerStyles.color = headerConfig.customTextColor;
+  }
+
+  const headerClasses = [
+    headerConfig.isSticky ? 'sticky top-0 z-50' : '',
+    headerConfig.border,
+    headerConfig.customBackground ? '' : headerConfig.blur,
+  ].filter(Boolean).join(' ');
 
   return (
     <motion.header 
       {...headerAnimation}
-      className={`${templateClasses.isHeaderSticky ? 'sticky top-0 z-50' : ''} border-b bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80`}
+      className={headerClasses}
+      style={headerStyles}
     >
       <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6`}>
-        <div className={`flex items-center justify-between gap-6 ${variant === "compact" ? "h-14" : "py-4"}`}>
+        <div className={`flex items-center justify-between gap-6 ${variant === "compact" ? "h-14" : headerConfig.padding}`}>
           <motion.div 
             className="flex items-center gap-3 sm:gap-4"
             initial={prefersReducedMotion ? false : "hidden"}
@@ -175,7 +222,7 @@ export function PublicHeader({
               <motion.button
                 variants={itemAnimation}
                 onClick={onLogoClick}
-                className={getMenuItemClasses(isHome, true, menuActiveStyle)}
+                className={getMenuItemClasses(isHome, true, menuActiveStyle, hasCustomBackground)}
                 data-testid="link-home"
                 data-active={isHome}
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
@@ -194,7 +241,7 @@ export function PublicHeader({
                     key={tag}
                     variants={itemAnimation}
                     onClick={() => onTagClick(tag)}
-                    className={getMenuItemClasses(isActive, false, menuActiveStyle)}
+                    className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground)}
                     data-testid={`link-tag-${tag}`}
                     data-active={isActive}
                     whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}

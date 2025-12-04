@@ -425,6 +425,72 @@ export default function SiteConfig() {
                       </div>
                     </div>
                   </div>
+                  <div className="grid gap-4 md:grid-cols-2 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="headerBackgroundColor" data-testid="label-header-bg-color">Header Background (optional)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="headerBackgroundColor"
+                          type="color"
+                          value={templateSettings.headerBackgroundColor || "#ffffff"}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, headerBackgroundColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-header-bg-color"
+                        />
+                        <Input
+                          value={templateSettings.headerBackgroundColor || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, headerBackgroundColor: e.target.value })}
+                          placeholder="Leave empty for default"
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-header-bg-color-hex"
+                        />
+                        {templateSettings.headerBackgroundColor && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setTemplateSettings({ ...templateSettings, headerBackgroundColor: "" })}
+                            data-testid="button-reset-header-bg-color"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Custom header background color</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="headerTextColor" data-testid="label-header-text-color">Header Text Color (optional)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="headerTextColor"
+                          type="color"
+                          value={templateSettings.headerTextColor || "#1f2937"}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, headerTextColor: e.target.value })}
+                          className="w-12 h-9 p-1 cursor-pointer"
+                          data-testid="input-header-text-color"
+                        />
+                        <Input
+                          value={templateSettings.headerTextColor || ""}
+                          onChange={(e) => setTemplateSettings({ ...templateSettings, headerTextColor: e.target.value })}
+                          placeholder="Leave empty for default"
+                          className="flex-1 font-mono text-sm"
+                          data-testid="input-header-text-color-hex"
+                        />
+                        {templateSettings.headerTextColor && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setTemplateSettings({ ...templateSettings, headerTextColor: "" })}
+                            data-testid="button-reset-header-text-color"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Custom header text/menu color</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4">

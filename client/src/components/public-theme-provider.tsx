@@ -34,10 +34,43 @@ const contentWidths: Record<string, string> = {
   wide: "max-w-7xl",
 };
 
-const cardStyles: Record<string, string> = {
-  rounded: "rounded-lg",
-  sharp: "rounded-none",
-  borderless: "border-0 shadow-none",
+const cardStyles: Record<string, { container: string; image: string; hover: string }> = {
+  rounded: { 
+    container: "rounded-xl border bg-card shadow-sm", 
+    image: "rounded-t-xl",
+    hover: "hover:shadow-md hover:border-primary/20 transition-all duration-300"
+  },
+  sharp: { 
+    container: "rounded-none border bg-card shadow-sm", 
+    image: "rounded-none",
+    hover: "hover:shadow-md hover:border-primary/30 transition-all duration-300"
+  },
+  borderless: { 
+    container: "rounded-lg border-0 shadow-none bg-transparent", 
+    image: "rounded-lg",
+    hover: "hover:bg-muted/30 transition-all duration-300"
+  },
+};
+
+const headerStyles: Record<string, { height: string; padding: string; border: string; blur: string }> = {
+  minimal: {
+    height: "h-14",
+    padding: "py-2",
+    border: "border-b-0",
+    blur: "bg-background/80 backdrop-blur-sm"
+  },
+  standard: {
+    height: "h-16",
+    padding: "py-3",
+    border: "border-b",
+    blur: "bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80"
+  },
+  full: {
+    height: "h-20",
+    padding: "py-4",
+    border: "border-b",
+    blur: "bg-card backdrop-blur-lg"
+  },
 };
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
@@ -218,16 +251,41 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     return { class: size.class, px: size.px, style: { width: size.px, height: size.px } };
   };
 
+  const getHeaderStyle = () => {
+    const style = headerStyles[s.headerStyle] || headerStyles.standard;
+    const hasCustomBg = s.headerBackgroundColor && s.headerBackgroundColor.trim();
+    const hasCustomText = s.headerTextColor && s.headerTextColor.trim();
+    
+    return {
+      ...style,
+      isSticky: s.headerStyle === "standard" || s.headerStyle === "full",
+      customBackground: hasCustomBg ? s.headerBackgroundColor : null,
+      customTextColor: hasCustomText ? s.headerTextColor : null,
+    };
+  };
+
+  const getCardStyle = () => {
+    const style = cardStyles[s.cardStyle] || cardStyles.rounded;
+    return {
+      ...style,
+      // Backward compatible simple class string for templates that don't use the object
+      simple: s.cardStyle === "borderless" ? "border-0 shadow-none" : 
+              s.cardStyle === "sharp" ? "rounded-none border" : "rounded-lg border",
+    };
+  };
+
   return {
     logoSize: getLogoSize(),
     hideLogoText: s.hideLogoText || false,
     contentWidth: contentWidths[s.contentWidth] || contentWidths.medium,
-    cardStyle: cardStyles[s.cardStyle] || cardStyles.rounded,
+    cardStyle: getCardStyle(),
+    headerStyle: getHeaderStyle(),
     isHeaderSticky: s.headerStyle === "standard" || s.headerStyle === "full",
     showHero: s.showFeaturedHero,
     showSearch: s.showSearch,
     maxNavItems: s.maxNavItems,
     menuActiveStyle: s.menuActiveStyle || "underline",
+    fontScale: s.fontScale || "normal",
     footerText: s.footerText || "",
     hasSocials,
     socials: {

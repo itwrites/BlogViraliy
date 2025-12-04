@@ -95,7 +95,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                 variants={heroAnimation}
               >
                 <Card
-                  className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle}`}
+                  className={`cursor-pointer hover-elevate overflow-hidden ${templateClasses.cardStyle.simple}`}
                   onClick={() => handlePostClick(featuredPost.slug)}
                   data-testid={`card-featured-post-${featuredPost.id}`}
                 >
@@ -165,7 +165,7 @@ export function PublicRestaurant({ site }: PublicRestaurantProps) {
                     {latestPosts.map((post) => (
                       <motion.div key={post.id} variants={cardAnimation}>
                         <Card
-                          className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle}`}
+                          className={`cursor-pointer hover-elevate overflow-hidden h-full ${templateClasses.cardStyle.simple}`}
                           onClick={() => handlePostClick(post.slug)}
                           data-testid={`card-post-${post.id}`}
                         >

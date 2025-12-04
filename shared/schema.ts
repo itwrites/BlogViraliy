@@ -48,6 +48,8 @@ export const templateSettingsSchema = z.object({
   secondaryColor: z.string().default("#8b5cf6"),
   backgroundColor: z.string().default("#ffffff"),
   textColor: z.string().default("#1f2937"),
+  headerBackgroundColor: z.string().default("").optional(), // Empty = use card color, or custom hex
+  headerTextColor: z.string().default("").optional(), // Empty = use foreground, or custom hex
   headingFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
   bodyFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
   fontScale: z.enum(["compact", "normal", "spacious"]).default("normal"),
@@ -75,6 +77,8 @@ export const defaultTemplateSettings: TemplateSettings = {
   secondaryColor: "#8b5cf6",
   backgroundColor: "#ffffff",
   textColor: "#1f2937",
+  headerBackgroundColor: "",
+  headerTextColor: "",
   headingFont: "modern",
   bodyFont: "modern",
   fontScale: "normal",
