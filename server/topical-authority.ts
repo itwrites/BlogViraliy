@@ -194,14 +194,15 @@ export async function generatePillarArticleContent(
   parentArticle?: PillarArticle
 ): Promise<GeneratedArticle> {
   // Build context about related articles for internal linking
+  // Use /post/ prefix for canonical URLs (basePath is added at runtime)
   const relatedArticlesInfo = siblingArticles
     .filter(a => a.id !== article.id && a.status === "completed" && a.postId)
     .slice(0, 5)
-    .map(a => `- "${a.title}" (/${a.slug})`)
+    .map(a => `- "${a.title}" (/post/${a.slug})`)
     .join("\n");
 
   const parentInfo = parentArticle
-    ? `Parent topic: "${parentArticle.title}" (/${parentArticle.slug})`
+    ? `Parent topic: "${parentArticle.title}" (/post/${parentArticle.slug})`
     : "";
 
   let articleTypeContext = "";
@@ -237,8 +238,8 @@ IMPORTANT FORMATTING RULES:
 2. INTERNAL LINKING:
    - Naturally incorporate internal links to related articles
    - Use descriptive anchor text (not "click here")
-   - Format links as: [anchor text](/slug)
-   ${parentArticle ? `- Link back to the parent article: [${parentArticle.title}](/${parentArticle.slug})` : ""}
+   - Format links as: [anchor text](/post/slug)
+   ${parentArticle ? `- Link back to the parent article: [${parentArticle.title}](/post/${parentArticle.slug})` : ""}
 
 3. Make the content:
    - 1500-2500 words for pillar/category articles
