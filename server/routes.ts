@@ -76,20 +76,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     // Check multiple headers that proxies might use
+    // X-BV-Visitor-Host is our custom header that won't be stripped by intermediary infrastructure (Google/Replit)
+    const xBvVisitorHost = req.headers["x-bv-visitor-host"];
     const xForwardedHost = req.headers["x-forwarded-host"];
     const xOriginalHost = req.headers["x-original-host"];
     const xRealHost = req.headers["x-real-host"];
     const hostHeader = req.headers["host"];
     
     // Try multiple sources for the original hostname
+    // Priority: X-BV-Visitor-Host (custom, survives intermediaries) > X-Forwarded-Host > X-Original-Host > X-Real-Host > req.hostname
     const hostname = 
+      (typeof xBvVisitorHost === "string" ? xBvVisitorHost.split(",")[0].trim().split(":")[0] : null) ||
       (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
       (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
       (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
       req.hostname;
     
     // Debug logging for domain routing issues - show all relevant headers
-    console.log(`[Domain Routing] Final hostname=${hostname}, Host=${hostHeader}, X-Forwarded-Host=${xForwardedHost}, X-Original-Host=${xOriginalHost}, req.hostname=${req.hostname}, path=${req.path}`);
+    console.log(`[Domain Routing] Final hostname=${hostname}, Host=${hostHeader}, X-BV-Visitor-Host=${xBvVisitorHost}, X-Forwarded-Host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
     
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
@@ -1125,6 +1129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.set("X-Sitemap-BasePath", basePath || "(none)");
       res.set("X-Sitemap-BaseUrl", baseUrl);
       res.set("X-Req-Hostname", req.hostname);
+      res.set("X-BV-Visitor-Host-Received", req.headers["x-bv-visitor-host"] as string || "(none)");
       res.set("X-Forwarded-Host-Received", req.headers["x-forwarded-host"] as string || "(none)");
       res.send(xml);
     } catch (error) {
