@@ -1067,6 +1067,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/public/sites/:id/posts-by-tags/:tags", async (req: Request, res: Response) => {
+    try {
+      const tags = decodeURIComponent(req.params.tags).split(",").filter(t => t.trim());
+      if (tags.length === 0) {
+        return res.json([]);
+      }
+      const posts = await storage.getPostsByTags(req.params.id, tags);
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch posts" });
+    }
+  });
+
   app.get("/api/public/sites/:id/top-tags", async (req: Request, res: Response) => {
     try {
       const tags = await storage.getTopTags(req.params.id, 10);

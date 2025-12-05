@@ -1,7 +1,8 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { MobileNav } from "@/components/mobile-nav";
-import type { Site } from "@shared/schema";
-import { Home } from "lucide-react";
+import type { Site, SiteMenuItem } from "@shared/schema";
+import { Home, ExternalLink } from "lucide-react";
+import { useLocation } from "wouter";
 
 type MenuActiveStyle = "underline" | "background" | "pill" | "bold";
 
@@ -18,9 +19,12 @@ interface HeaderStyleConfig {
 interface PublicHeaderProps {
   site: Site;
   topTags: string[];
+  menuItems?: SiteMenuItem[];
   onTagClick: (tag: string) => void;
   onLogoClick: () => void;
+  onMenuItemClick?: (item: SiteMenuItem) => void;
   currentTag?: string | null;
+  currentGroupSlug?: string | null;
   templateClasses: {
     contentWidth: string;
     logoSize: { style: { width: number; height: number } };
@@ -34,6 +38,7 @@ interface PublicHeaderProps {
     headerStyle?: HeaderStyleConfig;
   };
   variant?: "default" | "compact";
+  basePath?: string;
 }
 
 function getMenuItemClasses(
@@ -88,20 +93,27 @@ function getMenuItemClasses(
 
 export function PublicHeader({ 
   site, 
-  topTags, 
+  topTags,
+  menuItems = [],
   onTagClick, 
-  onLogoClick, 
+  onLogoClick,
+  onMenuItemClick,
   currentTag,
+  currentGroupSlug,
   templateClasses,
-  variant = "default"
+  variant = "default",
+  basePath = ""
 }: PublicHeaderProps) {
   const prefersReducedMotion = useReducedMotion();
+  const [location, setLocation] = useLocation();
   const menuActiveStyle = templateClasses.menuActiveStyle || "underline";
   const menuSpacing = templateClasses.menuSpacing || "gap-1";
   const menuItemPadding = templateClasses.menuItemPadding;
   const showMenuIcons = templateClasses.showMenuIcons !== false;
-  const isHome = !currentTag;
+  const isHome = !currentTag && !currentGroupSlug;
   const hasCustomBackground = Boolean(templateClasses.headerStyle?.customBackground);
+  
+  const isManualMode = site.menuMode === "manual" && menuItems.length > 0;
   
   const headerConfig = templateClasses.headerStyle || {
     height: "h-16",
@@ -181,15 +193,20 @@ export function PublicHeader({
             animate={prefersReducedMotion ? false : "visible"}
             variants={containerAnimation}
           >
-            {hasTags && (
+            {(hasTags || isManualMode) && (
               <MobileNav 
-                tags={topTags} 
+                tags={topTags}
+                menuItems={menuItems}
+                isManualMode={isManualMode}
                 onTagClick={onTagClick} 
                 onHomeClick={onLogoClick}
+                onMenuItemClick={onMenuItemClick}
                 siteTitle={site.title}
                 currentTag={currentTag}
+                currentGroupSlug={currentGroupSlug}
                 menuActiveStyle={menuActiveStyle}
                 showMenuIcons={showMenuIcons}
+                basePath={basePath}
               />
             )}
             {site.logoUrl && (
@@ -243,23 +260,72 @@ export function PublicHeader({
                 </span>
               </motion.button>
               
-              {hasTags && topTags.slice(0, templateClasses.maxNavItems - 1).map((tag) => {
-                const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
-                return (
-                  <motion.button
-                    key={tag}
-                    variants={itemAnimation}
-                    onClick={() => onTagClick(tag)}
-                    className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground, menuItemPadding)}
-                    data-testid={`link-tag-${tag}`}
-                    data-active={isActive}
-                    whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
-                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  >
-                    {tag.toUpperCase()}
-                  </motion.button>
-                );
-              })}
+              {isManualMode ? (
+                menuItems.slice(0, templateClasses.maxNavItems - 1).map((item) => {
+                  // For active state: compare against router-relative paths (without basePath)
+                  const isActive = item.type === "tag_group" 
+                    ? currentGroupSlug === item.groupSlug
+                    : Boolean(item.href && !item.href.startsWith("http") && location.startsWith(item.href));
+                  
+                  const handleClick = () => {
+                    if (item.type === "url") {
+                      if (item.href?.startsWith("http")) {
+                        // External URLs - open in browser
+                        if (item.openInNewTab) {
+                          window.open(item.href, "_blank", "noopener,noreferrer");
+                        } else {
+                          window.location.href = item.href;
+                        }
+                      } else {
+                        // Internal URLs - use router-relative path (no basePath prefix)
+                        setLocation(item.href || "/");
+                      }
+                    } else if (item.type === "tag_group" && item.groupSlug) {
+                      // Topic groups - router-relative path
+                      setLocation(`/topics/${item.groupSlug}`);
+                    }
+                    onMenuItemClick?.(item);
+                  };
+                  
+                  return (
+                    <motion.button
+                      key={item.id}
+                      variants={itemAnimation}
+                      onClick={handleClick}
+                      className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground, menuItemPadding)}
+                      data-testid={`link-menu-${item.id}`}
+                      data-active={isActive}
+                      whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {item.label.toUpperCase()}
+                        {item.type === "url" && item.openInNewTab && (
+                          <ExternalLink className="h-3 w-3 opacity-50" />
+                        )}
+                      </span>
+                    </motion.button>
+                  );
+                })
+              ) : (
+                hasTags && topTags.slice(0, templateClasses.maxNavItems - 1).map((tag) => {
+                  const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
+                  return (
+                    <motion.button
+                      key={tag}
+                      variants={itemAnimation}
+                      onClick={() => onTagClick(tag)}
+                      className={getMenuItemClasses(isActive, false, menuActiveStyle, hasCustomBackground, menuItemPadding)}
+                      data-testid={`link-tag-${tag}`}
+                      data-active={isActive}
+                      whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    >
+                      {tag.toUpperCase()}
+                    </motion.button>
+                  );
+                })
+              )}
             </div>
           </motion.nav>
         </div>

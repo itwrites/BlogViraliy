@@ -23,6 +23,7 @@ import { PublicCryptoContent } from "@/pages/public-crypto";
 import { PublicNovaPressContent } from "@/pages/public-novapress";
 import { PublicPostContent } from "@/pages/public-post";
 import { PublicTagArchiveContent } from "@/pages/public-tag-archive";
+import { PublicTopicGroupContent } from "@/pages/public-topic-group";
 import { PublicShell } from "@/components/public-shell";
 import type { Site } from "@shared/schema";
 import { useMemo, memo } from "react";
@@ -66,6 +67,9 @@ const PublicRoutes = memo(function PublicRoutes({ site }: { site: Site }) {
       <Route path="/tag/:tag">
         {(params) => <PublicTagArchiveContent site={site} tag={params.tag} />}
       </Route>
+      <Route path="/topics/:groupSlug">
+        {(params) => <PublicTopicGroupContent site={site} groupSlug={params.groupSlug} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -73,10 +77,12 @@ const PublicRoutes = memo(function PublicRoutes({ site }: { site: Site }) {
 
 function PublicShellWrapper({ site }: { site: Site }) {
   const [matchTag, paramsTag] = useRoute("/tag/:tag");
+  const [matchTopics, paramsTopics] = useRoute("/topics/:groupSlug");
   const currentTag = matchTag ? paramsTag?.tag : null;
+  const currentGroupSlug = matchTopics ? paramsTopics?.groupSlug : null;
 
   return (
-    <PublicShell site={site} currentTag={currentTag}>
+    <PublicShell site={site} currentTag={currentTag} currentGroupSlug={currentGroupSlug}>
       <PublicRoutes site={site} />
     </PublicShell>
   );

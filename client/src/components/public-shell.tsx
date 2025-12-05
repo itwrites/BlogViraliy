@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import type { Site } from "@shared/schema";
+import type { Site, SiteMenuItem } from "@shared/schema";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { TopBanner } from "@/components/top-banner";
@@ -14,21 +14,25 @@ interface PublicShellProps {
   site: Site;
   children: React.ReactNode;
   currentTag?: string | null;
+  currentGroupSlug?: string | null;
 }
 
 function ShellContent({ 
   site, 
   children,
-  currentTag
+  currentTag,
+  currentGroupSlug
 }: { 
   site: Site; 
   children: React.ReactNode;
   currentTag?: string | null;
+  currentGroupSlug?: string | null;
 }) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
   const settings = site.templateSettings;
   const cursorStyle = settings?.cursorStyle || "default";
+  const basePath = site.basePath || "";
 
   const { data: topTags } = useQuery<string[]>({
     queryKey: ["/api/public/sites", site.id, "top-tags"],
@@ -36,15 +40,35 @@ function ShellContent({
     gcTime: 10 * 60 * 1000,
   });
 
+  const { data: menuItems } = useQuery<SiteMenuItem[]>({
+    queryKey: ["/api/sites", site.id, "menu-items"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    enabled: site.menuMode === "manual",
+  });
+
   const handleTagClick = useCallback((tag: string) => {
+    // Router-relative path (no basePath prefix - router base handles it)
     setLocation(`/tag/${encodeURIComponent(tag)}`);
   }, [setLocation]);
 
   const handleLogoClick = useCallback(() => {
-    setLocation("/");
-  }, [setLocation]);
+    if (site.logoTargetUrl) {
+      if (site.logoTargetUrl.startsWith("http")) {
+        // External URL - use window.location
+        window.location.href = site.logoTargetUrl;
+      } else {
+        // Internal URL - router-relative path
+        setLocation(site.logoTargetUrl);
+      }
+    } else {
+      // Default to home - router-relative path
+      setLocation("/");
+    }
+  }, [setLocation, site.logoTargetUrl]);
 
   const memoizedTopTags = useMemo(() => topTags || [], [topTags]);
+  const memoizedMenuItems = useMemo(() => menuItems || [], [menuItems]);
 
   return (
     <>
@@ -64,10 +88,13 @@ function ShellContent({
       <PublicHeader
         site={site}
         topTags={memoizedTopTags}
+        menuItems={memoizedMenuItems}
         onTagClick={handleTagClick}
         onLogoClick={handleLogoClick}
         currentTag={currentTag}
+        currentGroupSlug={currentGroupSlug}
         templateClasses={templateClasses}
+        basePath={basePath}
       />
       
       {children}
@@ -93,11 +120,11 @@ function ShellContent({
   );
 }
 
-export function PublicShell({ site, children, currentTag }: PublicShellProps) {
+export function PublicShell({ site, children, currentTag, currentGroupSlug }: PublicShellProps) {
   return (
     <PublicThemeProvider settings={site.templateSettings}>
       <SeoHead site={site} />
-      <ShellContent site={site} currentTag={currentTag}>
+      <ShellContent site={site} currentTag={currentTag} currentGroupSlug={currentGroupSlug}>
         {children}
       </ShellContent>
     </PublicThemeProvider>

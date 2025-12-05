@@ -75,6 +75,7 @@ export interface IStorage {
   getPostBySlug(siteId: string, slug: string): Promise<Post | undefined>;
   getPostBySourceUrl(siteId: string, sourceUrl: string): Promise<Post | undefined>;
   getPostsByTag(siteId: string, tag: string): Promise<Post[]>;
+  getPostsByTags(siteId: string, tags: string[]): Promise<Post[]>;
   getRelatedPosts(postId: string, siteId: string): Promise<Post[]>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined>;
@@ -357,6 +358,17 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(posts)
       .where(and(eq(posts.siteId, siteId), sql`${tag} = ANY(${posts.tags})`))
+      .orderBy(desc(posts.createdAt));
+  }
+
+  async getPostsByTags(siteId: string, tags: string[]): Promise<Post[]> {
+    if (tags.length === 0) return [];
+    const tagConditions = tags.map(tag => sql`${tag} = ANY(${posts.tags})`);
+    const orCondition = sql`(${sql.join(tagConditions, sql` OR `)})`;
+    return await db
+      .select()
+      .from(posts)
+      .where(and(eq(posts.siteId, siteId), orCondition))
       .orderBy(desc(posts.createdAt));
   }
 
