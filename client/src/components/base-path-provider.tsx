@@ -6,6 +6,7 @@ interface BasePathContextType {
   prefixPath: (path: string) => string;
   getFullUrl: (path: string) => string;
   domain: string;
+  site: Site | null;
 }
 
 const BasePathContext = createContext<BasePathContextType>({
@@ -13,6 +14,7 @@ const BasePathContext = createContext<BasePathContextType>({
   prefixPath: (path) => path,
   getFullUrl: (path) => path,
   domain: "",
+  site: null,
 });
 
 interface BasePathProviderProps {
@@ -91,8 +93,9 @@ export function BasePathProvider({ site, children }: BasePathProviderProps) {
       prefixPath,
       getFullUrl,
       domain,
+      site,
     }),
-    [basePath, prefixPath, getFullUrl, domain]
+    [basePath, prefixPath, getFullUrl, domain, site]
   );
 
   return (
@@ -104,6 +107,11 @@ export function BasePathProvider({ site, children }: BasePathProviderProps) {
 
 export function useBasePath() {
   return useContext(BasePathContext);
+}
+
+export function useSiteContext() {
+  const { site } = useContext(BasePathContext);
+  return site;
 }
 
 // Utility hook for navigation with base path

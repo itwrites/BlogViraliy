@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useSiteContext } from "@/components/base-path-provider";
 import { motion, useReducedMotion } from "framer-motion";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { login, isAuthenticated, isAdmin, user, isLoading: authLoading } = useAuth();
+  const siteContext = useSiteContext();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -20,13 +22,16 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (loginSuccess && !authLoading && isAuthenticated) {
-      if (isAdmin) {
+      // If we have site context (accessed from site domain), go to that site's editor
+      if (siteContext && siteContext.id) {
+        setLocation(`/editor/sites/${siteContext.id}/posts`);
+      } else if (isAdmin) {
         setLocation("/admin");
       } else {
         setLocation("/editor");
       }
     }
-  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, setLocation]);
+  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, siteContext, setLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

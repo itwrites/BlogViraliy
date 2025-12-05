@@ -100,9 +100,40 @@ function PublicRouter({ site }: { site: Site }) {
   );
 }
 
+interface DomainCheckResponse {
+  isAdmin: boolean;
+  site?: Site;
+  allowAdminAccess?: boolean;
+  siteId?: string;
+}
+
+function SiteContextAdminRouter({ site }: { site: Site }) {
+  const basePath = normalizeBasePath(site.basePath);
+  
+  return (
+    <BasePathProvider site={site}>
+      <Router base={basePath}>
+        <Switch>
+          <Route path="/admin" component={AdminLogin} />
+          <Route path="/admin/dashboard">
+            <EditorDashboard />
+          </Route>
+          <Route path="/editor">
+            <EditorDashboard />
+          </Route>
+          <Route path="/editor/sites/:id/posts" component={EditorPosts} />
+          <Route component={NotFound} />
+        </Switch>
+      </Router>
+    </BasePathProvider>
+  );
+}
+
 function RouterSwitch() {
   const browserHostname = window.location.hostname;
-  const { data: siteData, isLoading } = useQuery<{ isAdmin: boolean; site?: Site }>({
+  const browserPath = window.location.pathname;
+  
+  const { data: siteData, isLoading } = useQuery<DomainCheckResponse>({
     queryKey: ["/api/domain-check", browserHostname],
     queryFn: () => fetch(`/bv_api/domain-check?hostname=${encodeURIComponent(browserHostname)}`).then(res => res.json()),
     staleTime: 5 * 60 * 1000,
@@ -124,8 +155,24 @@ function RouterSwitch() {
     return <SiteNotFound />;
   }
 
+  // Check if we're trying to access admin/editor routes
+  // The path might include basePath (e.g., /blog/admin), so we need to check both
+  const basePath = siteData.site ? normalizeBasePath(siteData.site.basePath) : "";
+  const pathWithoutBase = basePath && browserPath.startsWith(basePath) 
+    ? browserPath.slice(basePath.length) || "/"
+    : browserPath;
+  
+  const isAdminPath = pathWithoutBase.startsWith('/admin') || pathWithoutBase.startsWith('/editor');
+  
+  // If accessing from a pure admin domain (no site context)
   if (siteData.isAdmin) {
     return <AdminRouter />;
+  }
+  
+  // If accessing admin routes from a site domain
+  if (isAdminPath && siteData.allowAdminAccess && siteData.site) {
+    // Show admin routes but with site context
+    return <SiteContextAdminRouter site={siteData.site} />;
   }
 
   if (!siteData.site) {

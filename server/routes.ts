@@ -1020,21 +1020,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     console.log(`[domain-check] Query hostname=${hostnameParam}, req.hostname=${req.hostname}, using=${hostname}`);
     
-    const site = await storage.getSiteByDomain(hostname);
-    if (site) {
-      console.log(`[domain-check] Found site: ${site.domain} for hostname=${hostname}`);
-      return res.json({ isAdmin: false, site });
-    }
-
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
     const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
     
+    // Check if this hostname is associated with a site
+    const site = await storage.getSiteByDomain(hostname);
+    
+    if (site) {
+      console.log(`[domain-check] Found site: ${site.domain} for hostname=${hostname}`);
+      // Return site info AND indicate admin is accessible
+      // The frontend will decide whether to show admin or public based on the current path
+      return res.json({ 
+        isAdmin: false, 
+        site,
+        // Allow admin access from any site domain - frontend will route based on path
+        allowAdminAccess: true,
+        siteId: site.id
+      });
+    }
+
     if (isExplicitAdminDomain || isReplitDefaultHost) {
-      return res.json({ isAdmin: true });
+      // Pure admin domain - no site context
+      return res.json({ isAdmin: true, allowAdminAccess: true });
     }
 
     console.log(`[domain-check] No site found for hostname=${hostname}`);
-    res.json({ isAdmin: false, site: null });
+    res.json({ isAdmin: false, site: null, allowAdminAccess: false });
   });
 
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {

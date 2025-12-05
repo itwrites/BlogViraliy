@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useSiteContext, useBasePath } from "@/components/base-path-provider";
 import { Globe, FileText, LogOut, Settings, ChevronRight } from "lucide-react";
 import type { Site } from "@shared/schema";
 
@@ -30,10 +32,20 @@ const item = {
 export default function EditorDashboard() {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const siteContext = useSiteContext();
+  const { basePath } = useBasePath();
 
   const { data: sites, isLoading } = useQuery<SiteWithPermission[]>({
     queryKey: ["/api/editor/sites"],
   });
+
+  // If we have site context (accessed from site domain), auto-redirect to that site's posts
+  useEffect(() => {
+    if (siteContext && siteContext.id) {
+      // Redirect to the site's posts page
+      setLocation(`/editor/sites/${siteContext.id}/posts`);
+    }
+  }, [siteContext, setLocation]);
 
   const handleSiteClick = (siteId: string) => {
     setLocation(`/editor/sites/${siteId}/posts`);
