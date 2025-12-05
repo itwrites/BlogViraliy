@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import type { Site, SiteMenuItem } from "@shared/schema";
+import type { Site, SiteMenuItem, TemplateSettings } from "@shared/schema";
 import { PublicThemeProvider, useTemplateClasses } from "@/components/public-theme-provider";
 import { SeoHead } from "@/components/seo-head";
 import { TopBanner } from "@/components/top-banner";
@@ -9,6 +9,7 @@ import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { CustomCursor } from "@/components/custom-cursor";
 import { useCallback, useMemo } from "react";
+import { mergeThemeTokens, isValidTheme } from "@/lib/theme-registry";
 
 interface PublicShellProps {
   site: Site;
@@ -19,19 +20,20 @@ interface PublicShellProps {
 
 function ShellContent({ 
   site, 
+  mergedSettings,
   children,
   currentTag,
   currentGroupSlug
 }: { 
   site: Site; 
+  mergedSettings: TemplateSettings;
   children: React.ReactNode;
   currentTag?: string | null;
   currentGroupSlug?: string | null;
 }) {
   const [, setLocation] = useLocation();
-  const templateClasses = useTemplateClasses(site.templateSettings);
-  const settings = site.templateSettings;
-  const cursorStyle = settings?.cursorStyle || "default";
+  const templateClasses = useTemplateClasses(mergedSettings);
+  const cursorStyle = mergedSettings.cursorStyle || "default";
   const basePath = site.basePath || "";
 
   const { data: topTags } = useQuery<string[]>({
@@ -74,13 +76,13 @@ function ShellContent({
     <>
       {cursorStyle !== "default" && <CustomCursor style={cursorStyle} />}
       
-      {settings?.topBannerEnabled && settings.topBannerMessage && (
+      {mergedSettings?.topBannerEnabled && mergedSettings.topBannerMessage && (
         <TopBanner
-          message={settings.topBannerMessage}
-          backgroundColor={settings.topBannerBackgroundColor || "#3b82f6"}
-          textColor={settings.topBannerTextColor || "#ffffff"}
-          link={settings.topBannerLink}
-          dismissible={settings.topBannerDismissible !== false}
+          message={mergedSettings.topBannerMessage}
+          backgroundColor={mergedSettings.topBannerBackgroundColor || "#3b82f6"}
+          textColor={mergedSettings.topBannerTextColor || "#ffffff"}
+          link={mergedSettings.topBannerLink}
+          dismissible={mergedSettings.topBannerDismissible !== false}
           siteId={String(site.id)}
         />
       )}
@@ -105,13 +107,13 @@ function ShellContent({
         onTagClick={handleTagClick} 
       />
       
-      {settings?.gdprBannerEnabled && (
+      {mergedSettings?.gdprBannerEnabled && (
         <GdprBanner
-          message={settings.gdprBannerMessage || "We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies."}
-          acceptButtonText={settings.gdprBannerButtonText || "Accept"}
-          declineButtonText={settings.gdprBannerDeclineText || "Decline"}
-          backgroundColor={settings.gdprBannerBackgroundColor || "#1f2937"}
-          textColor={settings.gdprBannerTextColor || "#ffffff"}
+          message={mergedSettings.gdprBannerMessage || "We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies."}
+          acceptButtonText={mergedSettings.gdprBannerButtonText || "Accept"}
+          declineButtonText={mergedSettings.gdprBannerDeclineText || "Decline"}
+          backgroundColor={mergedSettings.gdprBannerBackgroundColor || "#1f2937"}
+          textColor={mergedSettings.gdprBannerTextColor || "#ffffff"}
           siteId={String(site.id)}
           analyticsId={site.analyticsId || undefined}
         />
@@ -121,10 +123,20 @@ function ShellContent({
 }
 
 export function PublicShell({ site, children, currentTag, currentGroupSlug }: PublicShellProps) {
+  const themeId = site.siteType || "blog";
+  
+  const mergedSettings = useMemo(() => {
+    if (!isValidTheme(themeId)) {
+      console.warn(`[PublicShell] Unknown theme "${themeId}", falling back to blog defaults`);
+      return mergeThemeTokens("blog", site.templateSettings || {});
+    }
+    return mergeThemeTokens(themeId, site.templateSettings || {});
+  }, [themeId, site.templateSettings]);
+
   return (
-    <PublicThemeProvider settings={site.templateSettings}>
+    <PublicThemeProvider settings={mergedSettings}>
       <SeoHead site={site} />
-      <ShellContent site={site} currentTag={currentTag} currentGroupSlug={currentGroupSlug}>
+      <ShellContent site={site} mergedSettings={mergedSettings} currentTag={currentTag} currentGroupSlug={currentGroupSlug}>
         {children}
       </ShellContent>
     </PublicThemeProvider>

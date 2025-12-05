@@ -1,4 +1,5 @@
 import type { TemplateSettings } from "@shared/schema";
+import { defaultTemplateSettings } from "@shared/schema";
 
 export interface ThemeDefinition {
   id: string;
@@ -179,7 +180,6 @@ export function mergeThemeTokens(
   customSettings: Partial<TemplateSettings>
 ): TemplateSettings {
   const themeDefaults = getThemeDefaultTokens(themeId);
-  const { defaultTemplateSettings } = require("@shared/schema");
   
   return {
     ...defaultTemplateSettings,
@@ -194,3 +194,9 @@ export const themeCategories = [
   { id: "business", label: "Business", description: "Corporate and professional sites" },
   { id: "creative", label: "Creative", description: "Art, design, and creative portfolios" },
 ] as const;
+
+export type ThemeId = keyof typeof themeRegistry;
+
+export function isValidTheme(id: string): id is ThemeId {
+  return id in themeRegistry;
+}

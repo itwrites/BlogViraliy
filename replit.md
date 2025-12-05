@@ -29,6 +29,12 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay)
     - **Cross-Layout Pagination**: All layouts support pagination with configurable posts per page
     - **Reduced Motion Support**: All animations respect `prefers-reduced-motion` accessibility preference
+- **Theme Registry System** (`client/src/lib/theme-registry.ts`): Centralized theme definitions with:
+    - **Theme Definitions**: Each theme has id, name, description, category, default tokens, and feature list
+    - **Token Inheritance**: Settings merge order: globalDefaults < themeDefaults < customSettings
+    - **Runtime Validation**: Invalid theme IDs fall back to blog defaults with console warning
+    - **Theme Categories**: blog, news, business, creative for organizing themes
+    - **Utility Functions**: getThemeDefinition, getThemeDefaultTokens, getAllThemes, getThemesByCategory, mergeThemeTokens, isValidTheme
 - **SPA Shell Architecture**: Seamless client-side navigation without full page reloads:
     - **PublicShell Component**: Wraps all public routes with shared header, footer, and layout elements that stay mounted during navigation
     - **Content Components**: Each theme exports a `XXXContent` function (e.g., `PublicBlogContent`) without layout wrappers
