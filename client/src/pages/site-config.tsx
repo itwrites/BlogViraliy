@@ -558,6 +558,241 @@ export default function SiteConfig() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="navigation" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2" data-testid="text-navigation-title">
+                  <Menu className="h-5 w-5" />
+                  Navigation Settings
+                </CardTitle>
+                <CardDescription data-testid="text-navigation-description">
+                  Configure your site's navigation menu and logo behavior
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="logoTargetUrl" data-testid="label-logo-target-url">Logo Click URL</Label>
+                    <Input
+                      id="logoTargetUrl"
+                      data-testid="input-logo-target-url"
+                      placeholder="https://example.com (leave empty for homepage)"
+                      value={siteData.logoTargetUrl}
+                      onChange={(e) => setSiteData({ ...siteData, logoTargetUrl: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Where clicking the logo takes users. Leave empty to go to homepage.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label data-testid="label-menu-mode">Navigation Menu Mode</Label>
+                    <Select
+                      value={siteData.menuMode}
+                      onValueChange={(value: "automatic" | "manual") => setSiteData({ ...siteData, menuMode: value })}
+                    >
+                      <SelectTrigger data-testid="select-menu-mode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="automatic">Automatic (from tags)</SelectItem>
+                        <SelectItem value="manual">Manual (custom menu)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {siteData.menuMode === "automatic" 
+                        ? "Navigation is auto-generated from your most popular tags"
+                        : "Create custom menu items with URLs or tag groups"}
+                    </p>
+                  </div>
+                </div>
+
+                {siteData.menuMode === "manual" && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Menu Items</h3>
+                      <span className="text-sm text-muted-foreground">{menuItems.length} items</span>
+                    </div>
+
+                    {menuItems.length > 0 && (
+                      <div className="space-y-2">
+                        {menuItems.map((item, index) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg"
+                            data-testid={`menu-item-${item.id}`}
+                          >
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => moveMenuItem(index, "up")}
+                                disabled={index === 0}
+                                data-testid={`button-move-up-${item.id}`}
+                              >
+                                <GripVertical className="h-3 w-3 rotate-90" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => moveMenuItem(index, "down")}
+                                disabled={index === menuItems.length - 1}
+                                data-testid={`button-move-down-${item.id}`}
+                              >
+                                <GripVertical className="h-3 w-3 rotate-90" />
+                              </Button>
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium truncate" data-testid={`text-menu-label-${item.id}`}>
+                                  {item.label}
+                                </span>
+                                {item.type === "url" && item.openInNewTab && (
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {item.type === "url" ? item.href : `Tag group: ${item.groupSlug || "not set"}`}
+                              </p>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteMenuItem(item.id)}
+                              data-testid={`button-delete-${item.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Card className="border-dashed">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Add Menu Item</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="newMenuLabel">Label</Label>
+                            <Input
+                              id="newMenuLabel"
+                              placeholder="Menu item text"
+                              value={newMenuItem.label}
+                              onChange={(e) => setNewMenuItem({ ...newMenuItem, label: e.target.value })}
+                              data-testid="input-new-menu-label"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Type</Label>
+                            <Select
+                              value={newMenuItem.type}
+                              onValueChange={(value: "url" | "tag_group") => setNewMenuItem({ ...newMenuItem, type: value })}
+                            >
+                              <SelectTrigger data-testid="select-new-menu-type">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="url">URL Link</SelectItem>
+                                <SelectItem value="tag_group">Tag Group</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {newMenuItem.type === "url" ? (
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                              <Label htmlFor="newMenuHref">URL</Label>
+                              <Input
+                                id="newMenuHref"
+                                placeholder="/about or https://..."
+                                value={newMenuItem.href}
+                                onChange={(e) => setNewMenuItem({ ...newMenuItem, href: e.target.value })}
+                                data-testid="input-new-menu-href"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 pt-6">
+                              <Switch
+                                id="newMenuNewTab"
+                                checked={newMenuItem.openInNewTab}
+                                onCheckedChange={(checked) => setNewMenuItem({ ...newMenuItem, openInNewTab: checked })}
+                                data-testid="switch-new-menu-new-tab"
+                              />
+                              <Label htmlFor="newMenuNewTab">Open in new tab</Label>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor="newMenuGroupSlug">Group URL Slug</Label>
+                                <Input
+                                  id="newMenuGroupSlug"
+                                  placeholder="tech-news"
+                                  value={newMenuItem.groupSlug}
+                                  onChange={(e) => setNewMenuItem({ ...newMenuItem, groupSlug: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
+                                  data-testid="input-new-menu-group-slug"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Creates page at /topics/{newMenuItem.groupSlug || "slug"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Tags in this group</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Add tag slug"
+                                  value={newTagSlug}
+                                  onChange={(e) => setNewTagSlug(e.target.value)}
+                                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTagSlugToNewItem())}
+                                  data-testid="input-new-tag-slug"
+                                />
+                                <Button type="button" onClick={addTagSlugToNewItem} size="icon" data-testid="button-add-tag-slug">
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              {newMenuItem.tagSlugs.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {newMenuItem.tagSlugs.map((slug) => (
+                                    <span
+                                      key={slug}
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-sm rounded"
+                                    >
+                                      {slug}
+                                      <button
+                                        type="button"
+                                        onClick={() => removeTagSlugFromNewItem(slug)}
+                                        className="hover:text-destructive"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <Button onClick={addMenuItem} disabled={!newMenuItem.label.trim()} data-testid="button-add-menu-item">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Menu Item
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="design" className="space-y-6">
             <Card>
               <CardHeader>
