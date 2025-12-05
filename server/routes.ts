@@ -1127,21 +1127,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
       
       // Check if the sitemap hostname matches an alias with a base path
-      // If the request came via an alias, use that alias's base path
+      // If the request came via an alias, use that alias's base path (or inherit site's basePath)
       let basePath = "";
+      let aliasMatched = false;
       const aliases = site.domainAliases as Array<string | { domain: string; basePath?: string }> | null;
       if (aliases && Array.isArray(aliases)) {
         const matchingAlias = aliases.find((alias) => {
           const aliasDomain = typeof alias === "string" ? alias : alias.domain;
           return aliasDomain === sitemapHostname;
         });
-        if (matchingAlias && typeof matchingAlias === "object" && matchingAlias.basePath) {
-          basePath = normalizeBasePath(matchingAlias.basePath);
+        if (matchingAlias) {
+          aliasMatched = true;
+          if (typeof matchingAlias === "object" && matchingAlias.basePath) {
+            // Alias has its own basePath
+            basePath = normalizeBasePath(matchingAlias.basePath);
+          } else {
+            // Alias matched but has no basePath - inherit from site
+            basePath = normalizeBasePath(site.basePath);
+          }
         }
       }
       
       // If no alias matched, check if it's the primary domain with base path
-      if (!basePath && sitemapHostname === site.domain) {
+      if (!aliasMatched && sitemapHostname === site.domain) {
         basePath = normalizeBasePath(site.basePath);
       }
       
