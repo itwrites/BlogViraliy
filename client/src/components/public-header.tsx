@@ -186,29 +186,32 @@ export function PublicHeader({
       style={headerStyles}
     >
       <div className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6`}>
-        <div className={`flex items-center justify-between gap-6 ${variant === "compact" ? "h-14" : headerConfig.padding}`}>
+        <div className={`flex items-center gap-4 sm:gap-6 ${variant === "compact" ? "h-14" : headerConfig.padding}`}>
+          {/* Mobile menu button */}
+          {(hasTags || isManualMode) && (
+            <MobileNav 
+              tags={topTags}
+              menuItems={menuItems}
+              isManualMode={isManualMode}
+              onTagClick={onTagClick} 
+              onHomeClick={onLogoClick}
+              onMenuItemClick={onMenuItemClick}
+              siteTitle={site.title}
+              currentTag={currentTag}
+              currentGroupSlug={currentGroupSlug}
+              menuActiveStyle={menuActiveStyle}
+              showMenuIcons={showMenuIcons}
+              basePath={basePath}
+            />
+          )}
+          
+          {/* Logo */}
           <motion.div 
-            className="flex items-center gap-3 sm:gap-4"
+            className="flex items-center gap-3 sm:gap-4 flex-shrink-0"
             initial={prefersReducedMotion ? false : "hidden"}
             animate={prefersReducedMotion ? false : "visible"}
             variants={containerAnimation}
           >
-            {(hasTags || isManualMode) && (
-              <MobileNav 
-                tags={topTags}
-                menuItems={menuItems}
-                isManualMode={isManualMode}
-                onTagClick={onTagClick} 
-                onHomeClick={onLogoClick}
-                onMenuItemClick={onMenuItemClick}
-                siteTitle={site.title}
-                currentTag={currentTag}
-                currentGroupSlug={currentGroupSlug}
-                menuActiveStyle={menuActiveStyle}
-                showMenuIcons={showMenuIcons}
-                basePath={basePath}
-              />
-            )}
             {site.logoUrl && (
               <motion.div
                 variants={logoAnimation}
@@ -237,8 +240,9 @@ export function PublicHeader({
             )}
           </motion.div>
 
+          {/* Desktop Navigation - flows naturally after logo */}
           <motion.nav 
-            className="hidden md:flex items-center"
+            className="hidden md:flex items-center flex-1"
             initial={prefersReducedMotion ? false : "hidden"}
             animate={prefersReducedMotion ? false : "visible"}
             variants={containerAnimation}
