@@ -11,6 +11,7 @@ import {
   pillars,
   clusters,
   pillarArticles,
+  siteMenuItems,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -22,6 +23,7 @@ import {
   type Pillar,
   type Cluster,
   type PillarArticle,
+  type SiteMenuItem,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -33,6 +35,7 @@ import {
   type InsertPillar,
   type InsertCluster,
   type InsertPillarArticle,
+  type InsertSiteMenuItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -130,6 +133,15 @@ export interface IStorage {
   deletePillarArticlesByPillarId(pillarId: string): Promise<void>;
   getNextPendingPillarArticle(pillarId: string): Promise<PillarArticle | undefined>;
   getPillarArticleStats(pillarId: string): Promise<{ total: number; pending: number; completed: number; failed: number }>;
+
+  // Site Menu Items
+  getMenuItemsBySiteId(siteId: string): Promise<SiteMenuItem[]>;
+  getMenuItemById(id: string): Promise<SiteMenuItem | undefined>;
+  createMenuItem(item: InsertSiteMenuItem): Promise<SiteMenuItem>;
+  updateMenuItem(id: string, item: Partial<InsertSiteMenuItem>): Promise<SiteMenuItem | undefined>;
+  deleteMenuItem(id: string): Promise<void>;
+  deleteMenuItemsBySiteId(siteId: string): Promise<void>;
+  reorderMenuItems(siteId: string, itemIds: string[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -732,6 +744,51 @@ export class DatabaseStorage implements IStorage {
       completed: allArticles.filter(a => a.status === "completed").length,
       failed: allArticles.filter(a => a.status === "failed").length,
     };
+  }
+
+  // Site Menu Items
+  async getMenuItemsBySiteId(siteId: string): Promise<SiteMenuItem[]> {
+    return await db
+      .select()
+      .from(siteMenuItems)
+      .where(eq(siteMenuItems.siteId, siteId))
+      .orderBy(asc(siteMenuItems.sortOrder));
+  }
+
+  async getMenuItemById(id: string): Promise<SiteMenuItem | undefined> {
+    const [item] = await db.select().from(siteMenuItems).where(eq(siteMenuItems.id, id));
+    return item || undefined;
+  }
+
+  async createMenuItem(insertItem: InsertSiteMenuItem): Promise<SiteMenuItem> {
+    const [item] = await db.insert(siteMenuItems).values(insertItem).returning();
+    return item;
+  }
+
+  async updateMenuItem(id: string, item: Partial<InsertSiteMenuItem>): Promise<SiteMenuItem | undefined> {
+    const [updated] = await db
+      .update(siteMenuItems)
+      .set({ ...item, updatedAt: new Date() })
+      .where(eq(siteMenuItems.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteMenuItem(id: string): Promise<void> {
+    await db.delete(siteMenuItems).where(eq(siteMenuItems.id, id));
+  }
+
+  async deleteMenuItemsBySiteId(siteId: string): Promise<void> {
+    await db.delete(siteMenuItems).where(eq(siteMenuItems.siteId, siteId));
+  }
+
+  async reorderMenuItems(siteId: string, itemIds: string[]): Promise<void> {
+    for (let i = 0; i < itemIds.length; i++) {
+      await db
+        .update(siteMenuItems)
+        .set({ sortOrder: i, updatedAt: new Date() })
+        .where(and(eq(siteMenuItems.id, itemIds[i]), eq(siteMenuItems.siteId, siteId)));
+    }
   }
 }
 

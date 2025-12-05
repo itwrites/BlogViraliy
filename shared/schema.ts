@@ -16,6 +16,14 @@ export type UserStatus = z.infer<typeof userStatusEnum>;
 export const sitePermissionEnum = z.enum(["view", "posts_only", "edit", "manage"]);
 export type SitePermission = z.infer<typeof sitePermissionEnum>;
 
+// Menu mode enum
+export const menuModeEnum = z.enum(["automatic", "manual"]);
+export type MenuMode = z.infer<typeof menuModeEnum>;
+
+// Menu item type enum
+export const menuItemTypeEnum = z.enum(["url", "tag_group"]);
+export type MenuItemType = z.infer<typeof menuItemTypeEnum>;
+
 // Admin Users
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -178,6 +186,8 @@ export const sites = pgTable("sites", {
   basePath: text("base_path").notNull().default(""), // Optional path prefix for reverse proxy (e.g., "/blog")
   title: text("title").notNull(),
   logoUrl: text("logo_url"),
+  logoTargetUrl: text("logo_target_url"), // Custom URL for logo click (null = homepage)
+  menuMode: text("menu_mode").notNull().default("automatic"), // "automatic" or "manual"
   siteType: text("site_type").notNull().default("blog"),
   // Template customization settings
   templateSettings: jsonb("template_settings").$type<TemplateSettings>().default(defaultTemplateSettings),
@@ -187,6 +197,21 @@ export const sites = pgTable("sites", {
   ogImage: text("og_image"),
   favicon: text("favicon"),
   analyticsId: text("analytics_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Site Menu Items (for manual menu mode)
+export const siteMenuItems = pgTable("site_menu_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  label: text("label").notNull(), // Display text
+  type: text("type").notNull().default("url"), // "url" or "tag_group"
+  href: text("href"), // URL for type="url"
+  tagSlugs: text("tag_slugs").array().default(sql`ARRAY[]::text[]`), // Tags for type="tag_group"
+  groupSlug: text("group_slug"), // URL slug for tag group (e.g., "tech-news" -> /topics/tech-news)
+  openInNewTab: boolean("open_in_new_tab").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -357,6 +382,14 @@ export const sitesRelations = relations(sites, ({ many, one }) => ({
   aiAutomationConfig: one(aiAutomationConfigs),
   rssAutomationConfig: one(rssAutomationConfigs),
   userSites: many(userSites),
+  menuItems: many(siteMenuItems),
+}));
+
+export const siteMenuItemsRelations = relations(siteMenuItems, ({ one }) => ({
+  site: one(sites, {
+    fields: [siteMenuItems.siteId],
+    references: [sites.id],
+  }),
 }));
 
 export const postsRelations = relations(posts, ({ one }) => ({
@@ -456,6 +489,15 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
 }).extend({
   siteType: z.enum(["blog", "news", "magazine", "novapress", "portfolio", "restaurant", "crypto"]),
   templateSettings: templateSettingsSchema.optional(),
+  menuMode: menuModeEnum.optional().default("automatic"),
+});
+
+export const insertSiteMenuItemSchema = createInsertSchema(siteMenuItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  type: menuItemTypeEnum.optional().default("url"),
 });
 
 export const insertAiAutomationConfigSchema = createInsertSchema(aiAutomationConfigs).omit({
@@ -497,6 +539,9 @@ export type UserSite = typeof userSites.$inferSelect;
 
 export type InsertSite = z.infer<typeof insertSiteSchema>;
 export type Site = typeof sites.$inferSelect;
+
+export type InsertSiteMenuItem = z.infer<typeof insertSiteMenuItemSchema>;
+export type SiteMenuItem = typeof siteMenuItems.$inferSelect;
 
 export type InsertAiAutomationConfig = z.infer<typeof insertAiAutomationConfigSchema>;
 export type AiAutomationConfig = typeof aiAutomationConfigs.$inferSelect;
