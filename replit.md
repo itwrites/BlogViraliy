@@ -39,7 +39,13 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - Velocity-based smooth motion
     - Automatic native cursor restoration in input fields
     - Hover state detection for interactive elements
-- **Automatic Navigation**: Generates navigation menus from the top 10 most-used tags, creating tag archive pages and related post sections dynamically.
+- **Configurable Navigation System**: Supports two menu modes per site:
+    - **Automatic Mode**: Generates navigation from top 10 most-used tags, creating tag archive pages dynamically
+    - **Manual Mode**: Admin-defined menu items with drag-and-drop reordering, supporting:
+        - **URL Links**: Internal or external URLs with optional new-tab opening
+        - **Tag Groups**: Multi-tag groupings accessed via `/topics/:groupSlug` route, displaying posts matching any of the grouped tags
+    - **Logo Target URL**: Custom redirect URL when clicking the site logo (defaults to home)
+    - All navigation uses router-relative paths for correct basePath handling in proxy deployments
 - **Bulk Keyword Generation**: Supports uploading keyword lists for automated post generation, with a dashboard to track progress.
 - **Topical Authority System**: Automated SEO content generation using the Pillar-Cluster model:
     - **Pillars**: Main topic entities with configurable subtopic counts (50-200 articles)
