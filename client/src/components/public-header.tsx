@@ -113,7 +113,7 @@ export function PublicHeader({
   const isHome = !currentTag && !currentGroupSlug;
   const hasCustomBackground = Boolean(templateClasses.headerStyle?.customBackground);
   
-  const isManualMode = site.menuMode === "manual" && menuItems.length > 0;
+  const isManualMode = site.menuMode === "manual";
   
   const headerConfig = templateClasses.headerStyle || {
     height: "h-16",

@@ -1,18 +1,19 @@
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Twitter, Facebook, Instagram, Linkedin, Youtube, Github } from "lucide-react";
 import { SiTiktok, SiPinterest } from "react-icons/si";
-import type { Site } from "@shared/schema";
+import type { Site, TemplateSettings } from "@shared/schema";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 
 interface PublicFooterProps {
   site: Site;
   topTags?: string[];
   onTagClick?: (tag: string) => void;
+  mergedSettings?: TemplateSettings;
 }
 
-export function PublicFooter({ site, topTags = [], onTagClick }: PublicFooterProps) {
-  const templateClasses = useTemplateClasses(site.templateSettings);
-  const settings = site.templateSettings;
+export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }: PublicFooterProps) {
+  const settings = mergedSettings || site.templateSettings;
+  const templateClasses = useTemplateClasses(settings);
   const prefersReducedMotion = useReducedMotion();
 
   const footerLayout = settings?.footerLayout || "columns";

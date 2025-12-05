@@ -104,7 +104,8 @@ function ShellContent({
       <PublicFooter 
         site={site} 
         topTags={memoizedTopTags} 
-        onTagClick={handleTagClick} 
+        onTagClick={handleTagClick}
+        mergedSettings={mergedSettings}
       />
       
       {mergedSettings?.gdprBannerEnabled && (
