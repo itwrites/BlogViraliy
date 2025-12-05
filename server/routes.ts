@@ -1081,28 +1081,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Sitemap Routes
   // Public sitemap.xml - served based on domain
+  // Supports reverse proxy scenarios via X-Forwarded-Host header or ?host= query param
   app.get("/sitemap.xml", async (req: DomainRequest, res: Response) => {
     try {
-      // Get site from domain
-      const hostname = req.hostname;
+      // Get the hostname from multiple sources (same logic as domain routing middleware)
+      // Priority: query param > X-Forwarded-Host > X-Original-Host > X-Real-Host > req.hostname
+      const hostParam = req.query.host as string | undefined;
+      const xForwardedHost = req.headers["x-forwarded-host"];
+      const xOriginalHost = req.headers["x-original-host"];
+      const xRealHost = req.headers["x-real-host"];
+      
+      // Determine the hostname to use for sitemap URLs
+      const sitemapHostname = 
+        (hostParam ? hostParam.split(":")[0] : null) ||
+        (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
+        (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
+        (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
+        req.hostname;
+      
+      // Determine the hostname for site lookup (may be different from sitemap URLs)
+      const lookupHostname = req.hostname;
+      
+      console.log(`[Sitemap] sitemapHostname=${sitemapHostname}, lookupHostname=${lookupHostname}, hostParam=${hostParam}, X-Forwarded-Host=${xForwardedHost}`);
+      
       let site = null;
       
       // If siteId is already set by middleware, use that
       if (req.siteId) {
         site = await storage.getSiteById(req.siteId);
       } else {
-        // Try to get site by domain
-        site = await storage.getSiteByDomain(hostname);
+        // Try to get site by the lookup hostname (the actual domain the request came to)
+        site = await storage.getSiteByDomain(lookupHostname);
+        
+        // If not found and we have a different sitemap hostname, try that too
+        if (!site && sitemapHostname !== lookupHostname) {
+          site = await storage.getSiteByDomain(sitemapHostname);
+        }
       }
       
       if (!site) {
         return res.status(404).send("Site not found");
       }
 
-      // Construct base URL with optional base path (normalized)
+      // Construct base URL using the sitemap hostname (the alias/proxy domain)
       const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-      const basePath = normalizeBasePath(site.basePath);
-      const baseUrl = `${protocol}://${hostname}${basePath}`;
+      
+      // Check if the sitemap hostname matches an alias with a base path
+      // If the request came via an alias, use that alias's base path
+      let basePath = "";
+      const aliases = site.domainAliases as Array<string | { domain: string; basePath?: string }> | null;
+      if (aliases && Array.isArray(aliases)) {
+        const matchingAlias = aliases.find((alias) => {
+          const aliasDomain = typeof alias === "string" ? alias : alias.domain;
+          return aliasDomain === sitemapHostname;
+        });
+        if (matchingAlias && typeof matchingAlias === "object" && matchingAlias.basePath) {
+          basePath = normalizeBasePath(matchingAlias.basePath);
+        }
+      }
+      
+      // If no alias matched, check if it's the primary domain with base path
+      if (!basePath && sitemapHostname === site.domain) {
+        basePath = normalizeBasePath(site.basePath);
+      }
+      
+      const baseUrl = `${protocol}://${sitemapHostname}${basePath}`;
+      console.log(`[Sitemap] Generating sitemap with baseUrl=${baseUrl}`);
       
       const xml = await generateSitemap(site, baseUrl);
       
