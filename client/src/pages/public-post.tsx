@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { createLinkRewriter } from "@/lib/rewrite-links";
 import { motion, useReducedMotion } from "framer-motion";
 
 interface PublicPostProps {
@@ -180,7 +181,12 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
                 style={{ fontFamily: "var(--public-body-font)" }}
                 data-testid="text-post-content"
               >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    a: createLinkRewriter(site.basePath)
+                  }}
+                >
                   {post.content}
                 </ReactMarkdown>
               </div>
