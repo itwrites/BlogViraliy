@@ -8,6 +8,9 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
  * - "/my-post" → "/blog/my-post"
  * - "/tag/tech" → "/blog/tag/tech"
  * - "/blog/my-post" → "/blog/my-post" (unchanged)
+ * - "/blog" → "/blog" (unchanged)
+ * - "/blog?utm=1" → "/blog?utm=1" (unchanged)
+ * - "/blog#top" → "/blog#top" (unchanged)
  * - "https://external.com" → "https://external.com" (unchanged)
  * - "#section" → "#section" (unchanged)
  */
@@ -20,16 +23,20 @@ export function rewriteInternalLink(href: string, basePath: string | null | unde
     return href;
   }
   
-  if (
-    href.startsWith("/") &&
-    !href.startsWith("//") &&
-    !href.startsWith(normalizedBasePath + "/") &&
-    href !== normalizedBasePath
-  ) {
-    return `${normalizedBasePath}${href}`;
+  if (!href.startsWith("/") || href.startsWith("//")) {
+    return href;
   }
   
-  return href;
+  if (
+    href.startsWith(normalizedBasePath + "/") ||
+    href === normalizedBasePath ||
+    href.startsWith(normalizedBasePath + "?") ||
+    href.startsWith(normalizedBasePath + "#")
+  ) {
+    return href;
+  }
+  
+  return `${normalizedBasePath}${href}`;
 }
 
 type LinkProps = ComponentPropsWithoutRef<"a"> & { 
