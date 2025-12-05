@@ -1190,6 +1190,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================
+  // MENU ITEMS ROUTES
+  // ========================================
+
+  // Get all menu items for a site
+  app.get("/api/sites/:id/menu-items", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const items = await storage.getMenuItemsBySiteId(req.params.id);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch menu items" });
+    }
+  });
+
+  // Create a new menu item
+  app.post("/api/sites/:id/menu-items", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const item = await storage.createMenuItem({
+        siteId: req.params.id,
+        ...req.body,
+      });
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create menu item" });
+    }
+  });
+
+  // Reorder menu items (must come before :itemId routes)
+  app.post("/api/sites/:id/menu-items/reorder", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const { itemIds } = req.body;
+      if (!Array.isArray(itemIds)) {
+        return res.status(400).json({ error: "itemIds must be an array" });
+      }
+      await storage.reorderMenuItems(req.params.id, itemIds);
+      const items = await storage.getMenuItemsBySiteId(req.params.id);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reorder menu items" });
+    }
+  });
+
+  // Update a menu item
+  app.put("/api/sites/:id/menu-items/:itemId", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const item = await storage.getMenuItemById(req.params.itemId);
+      if (!item || item.siteId !== req.params.id) {
+        return res.status(404).json({ error: "Menu item not found" });
+      }
+      const updated = await storage.updateMenuItem(req.params.itemId, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update menu item" });
+    }
+  });
+
+  // Delete a menu item
+  app.delete("/api/sites/:id/menu-items/:itemId", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const item = await storage.getMenuItemById(req.params.itemId);
+      if (!item || item.siteId !== req.params.id) {
+        return res.status(404).json({ error: "Menu item not found" });
+      }
+      await storage.deleteMenuItem(req.params.itemId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete menu item" });
+    }
+  });
+
+  // ========================================
   // TOPICAL AUTHORITY ROUTES
   // ========================================
 
