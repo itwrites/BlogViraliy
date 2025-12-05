@@ -1120,6 +1120,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.set("Content-Type", "application/xml");
       res.set("Cache-Control", "public, max-age=900"); // 15 minutes
+      // Debug headers to troubleshoot proxy issues
+      res.set("X-Sitemap-Hostname", sitemapHostname);
+      res.set("X-Sitemap-BasePath", basePath || "(none)");
+      res.set("X-Sitemap-BaseUrl", baseUrl);
+      res.set("X-Req-Hostname", req.hostname);
+      res.set("X-Forwarded-Host-Received", req.headers["x-forwarded-host"] as string || "(none)");
       res.send(xml);
     } catch (error) {
       console.error("Error generating sitemap:", error);
