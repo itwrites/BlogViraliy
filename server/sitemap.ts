@@ -23,7 +23,8 @@ function formatDate(date: Date): string {
 }
 
 export async function generateSitemap(site: Site, baseUrl: string): Promise<string> {
-  const cacheKey = site.id;
+  // Use site.id + baseUrl as cache key so different domains/aliases get their own cached sitemap
+  const cacheKey = `${site.id}:${baseUrl}`;
   const cached = sitemapCache.get(cacheKey);
   
   // Return cached version if still valid
@@ -90,7 +91,14 @@ export async function generateSitemap(site: Site, baseUrl: string): Promise<stri
 }
 
 export function invalidateSitemapCache(siteId: string): void {
-  sitemapCache.delete(siteId);
+  // Clear all cache entries for this site (includes all domain variants)
+  const keysToDelete: string[] = [];
+  sitemapCache.forEach((_, key) => {
+    if (key.startsWith(`${siteId}:`)) {
+      keysToDelete.push(key);
+    }
+  });
+  keysToDelete.forEach(key => sitemapCache.delete(key));
 }
 
 export function clearAllSitemapCache(): void {
@@ -105,11 +113,20 @@ export async function getSitemapStats(siteId: string): Promise<{
 }> {
   const posts = await storage.getPublishedPostsBySiteId(siteId);
   const tags = await storage.getTopTags(siteId, 20);
-  const cached = sitemapCache.get(siteId);
+  
+  // Find the most recent cache entry for this site (across all domain variants)
+  let lastGenerated: Date | null = null;
+  sitemapCache.forEach((cached, key) => {
+    if (key.startsWith(`${siteId}:`)) {
+      if (!lastGenerated || cached.generatedAt > lastGenerated) {
+        lastGenerated = cached.generatedAt;
+      }
+    }
+  });
 
   return {
     postCount: posts.length,
     tagCount: tags.length,
-    lastGenerated: cached?.generatedAt || null,
+    lastGenerated,
   };
 }
