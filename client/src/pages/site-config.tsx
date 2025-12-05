@@ -10,11 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings } from "@shared/schema";
+import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem } from "@shared/schema";
 import { defaultTemplateSettings } from "@shared/schema";
 import { PostsManager } from "@/components/posts-manager";
 import { BulkGeneration } from "@/components/bulk-generation";
@@ -32,6 +32,8 @@ export default function SiteConfig() {
     basePath: "", // Optional path prefix for reverse proxy (e.g., "/blog")
     title: "",
     logoUrl: "",
+    logoTargetUrl: "", // Custom URL for logo click (empty = homepage)
+    menuMode: "automatic" as "automatic" | "manual",
     siteType: "blog",
     metaTitle: "",
     metaDescription: "",
@@ -59,6 +61,18 @@ export default function SiteConfig() {
   const [newKeyword, setNewKeyword] = useState("");
   const [newFeedUrl, setNewFeedUrl] = useState("");
   const [newDomainAlias, setNewDomainAlias] = useState("");
+  
+  const [menuItems, setMenuItems] = useState<SiteMenuItem[]>([]);
+  const [editingMenuItem, setEditingMenuItem] = useState<SiteMenuItem | null>(null);
+  const [newMenuItem, setNewMenuItem] = useState({
+    label: "",
+    type: "url" as "url" | "tag_group",
+    href: "",
+    tagSlugs: [] as string[],
+    groupSlug: "",
+    openInNewTab: false,
+  });
+  const [newTagSlug, setNewTagSlug] = useState("");
 
   const { data: site, isLoading: siteLoading } = useQuery<Site>({
     queryKey: ["/api/sites", id],
@@ -75,6 +89,11 @@ export default function SiteConfig() {
     enabled: !isNewSite,
   });
 
+  const { data: existingMenuItems } = useQuery<SiteMenuItem[]>({
+    queryKey: ["/api/sites", id, "menu-items"],
+    enabled: !isNewSite,
+  });
+
   useEffect(() => {
     if (site) {
       setSiteData({
@@ -83,6 +102,8 @@ export default function SiteConfig() {
         basePath: site.basePath || "",
         title: site.title,
         logoUrl: site.logoUrl || "",
+        logoTargetUrl: site.logoTargetUrl || "",
+        menuMode: (site.menuMode as "automatic" | "manual") || "automatic",
         siteType: site.siteType,
         metaTitle: site.metaTitle || "",
         metaDescription: site.metaDescription || "",
@@ -95,6 +116,12 @@ export default function SiteConfig() {
       }
     }
   }, [site]);
+
+  useEffect(() => {
+    if (existingMenuItems) {
+      setMenuItems(existingMenuItems);
+    }
+  }, [existingMenuItems]);
 
   const addDomainAlias = () => {
     let alias = newDomainAlias.trim().toLowerCase();
@@ -205,6 +232,79 @@ export default function SiteConfig() {
     setRssConfig({ ...rssConfig, feedUrls: (rssConfig.feedUrls || []).filter(u => u !== url) });
   };
 
+  const addMenuItem = async () => {
+    if (!newMenuItem.label.trim()) return;
+    try {
+      const response = await apiRequest("POST", `/api/sites/${id}/menu-items`, {
+        ...newMenuItem,
+        sortOrder: menuItems.length,
+      });
+      const item = await response.json();
+      setMenuItems([...menuItems, item]);
+      setNewMenuItem({
+        label: "",
+        type: "url",
+        href: "",
+        tagSlugs: [],
+        groupSlug: "",
+        openInNewTab: false,
+      });
+      toast({ title: "Menu item added" });
+    } catch (error) {
+      toast({ title: "Failed to add menu item", variant: "destructive" });
+    }
+  };
+
+  const updateMenuItem = async (item: SiteMenuItem) => {
+    try {
+      await apiRequest("PUT", `/api/sites/${id}/menu-items/${item.id}`, item);
+      setMenuItems(menuItems.map(m => m.id === item.id ? item : m));
+      setEditingMenuItem(null);
+      toast({ title: "Menu item updated" });
+    } catch (error) {
+      toast({ title: "Failed to update menu item", variant: "destructive" });
+    }
+  };
+
+  const deleteMenuItem = async (itemId: string) => {
+    try {
+      await apiRequest("DELETE", `/api/sites/${id}/menu-items/${itemId}`);
+      setMenuItems(menuItems.filter(m => m.id !== itemId));
+      toast({ title: "Menu item deleted" });
+    } catch (error) {
+      toast({ title: "Failed to delete menu item", variant: "destructive" });
+    }
+  };
+
+  const moveMenuItem = async (index: number, direction: "up" | "down") => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= menuItems.length) return;
+    
+    const newItems = [...menuItems];
+    [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+    setMenuItems(newItems);
+    
+    try {
+      await apiRequest("POST", `/api/sites/${id}/menu-items/reorder`, {
+        itemIds: newItems.map(item => item.id),
+      });
+    } catch (error) {
+      toast({ title: "Failed to reorder menu items", variant: "destructive" });
+    }
+  };
+
+  const addTagSlugToNewItem = () => {
+    const slug = newTagSlug.trim().toLowerCase().replace(/\s+/g, "-");
+    if (slug && !newMenuItem.tagSlugs.includes(slug)) {
+      setNewMenuItem({ ...newMenuItem, tagSlugs: [...newMenuItem.tagSlugs, slug] });
+      setNewTagSlug("");
+    }
+  };
+
+  const removeTagSlugFromNewItem = (slug: string) => {
+    setNewMenuItem({ ...newMenuItem, tagSlugs: newMenuItem.tagSlugs.filter(s => s !== slug) });
+  };
+
   if (!isNewSite && siteLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -257,8 +357,9 @@ export default function SiteConfig() {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full max-w-6xl grid-cols-8">
+          <TabsList className="grid w-full max-w-6xl grid-cols-9">
             <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
+            <TabsTrigger value="navigation" data-testid="tab-navigation">Navigation</TabsTrigger>
             <TabsTrigger value="design" data-testid="tab-design">Design</TabsTrigger>
             <TabsTrigger value="seo" data-testid="tab-seo">SEO</TabsTrigger>
             <TabsTrigger value="ai" data-testid="tab-ai">AI Content</TabsTrigger>
