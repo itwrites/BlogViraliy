@@ -7,6 +7,28 @@ import { Calendar, Clock, ChevronRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+
+const sanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    'mark',
+    'u',
+    'del',
+    's',
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    mark: [],
+    u: [],
+    del: [],
+    s: [],
+  },
+  clobberPrefix: '',
+  clobber: [],
+};
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { createLinkRewriter } from "@/lib/rewrite-links";
@@ -183,8 +205,9 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
               >
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
                   components={{
-                    a: createLinkRewriter(site.basePath)
+                    a: createLinkRewriter(site.basePath) as any
                   }}
                 >
                   {post.content}

@@ -11,7 +11,7 @@ import { Plus, Edit, Trash2, FileText, ChevronDown, Search } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Post } from "@shared/schema";
-import { MarkdownEditor } from "@/components/markdown-editor";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import {
   Dialog,
@@ -246,11 +246,11 @@ export function PostsManager({ siteId }: PostsManagerProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="postContent">Content (Markdown)</Label>
-              <MarkdownEditor
+              <Label htmlFor="postContent">Content</Label>
+              <RichTextEditor
                 value={formData.content}
                 onChange={(value) => setFormData({ ...formData, content: value })}
-                placeholder="Write your post content in markdown..."
+                placeholder="Write your post content..."
                 minHeight="300px"
               />
             </div>

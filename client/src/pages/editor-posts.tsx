@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
-import { MarkdownEditor } from "@/components/markdown-editor";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import {
   ArrowLeft,
   Plus,
@@ -354,9 +354,11 @@ export default function EditorPosts() {
             </div>
             <div>
               <Label htmlFor="content">Content</Label>
-              <MarkdownEditor
+              <RichTextEditor
                 value={formData.content}
                 onChange={(value) => setFormData({ ...formData, content: value })}
+                placeholder="Start writing your post content..."
+                minHeight="350px"
               />
             </div>
             <div>

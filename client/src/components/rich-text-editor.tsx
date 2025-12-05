@@ -1,4 +1,4 @@
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
@@ -6,10 +6,12 @@ import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import Highlight from '@tiptap/extension-highlight';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
 import Typography from '@tiptap/extension-typography';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { marked } from 'marked';
+import TurndownService from 'turndown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -100,8 +102,8 @@ const FontSize = TextStyle.extend({
       ...this.parent?.(),
       fontSize: {
         default: null,
-        parseHTML: element => element.style.fontSize || null,
-        renderHTML: attributes => {
+        parseHTML: (element: HTMLElement) => element.style.fontSize || null,
+        renderHTML: (attributes: Record<string, string | null>) => {
           if (!attributes.fontSize) {
             return {};
           }
@@ -124,6 +126,75 @@ export function RichTextEditor({
   const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [imagePopoverOpen, setImagePopoverOpen] = useState(false);
+  const isInitialMount = useRef(true);
+  const lastExternalValue = useRef(value);
+
+  const turndownService = useMemo(() => {
+    const service = new TurndownService({
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced',
+      bulletListMarker: '-',
+    });
+    service.addRule('strikethrough', {
+      filter: ['del', 's'] as (keyof HTMLElementTagNameMap)[],
+      replacement: (content: string) => `~~${content}~~`,
+    });
+    service.addRule('underline', {
+      filter: ['u'],
+      replacement: (content: string, node: Node) => {
+        const el = node as HTMLElement;
+        return `<u>${content}</u>`;
+      },
+    });
+    service.addRule('highlight', {
+      filter: ['mark'],
+      replacement: (content: string) => {
+        return `<mark>${content}</mark>`;
+      },
+    });
+    service.addRule('preserveCodeBlocks', {
+      filter: (node: Node) => {
+        return node.nodeName === 'PRE' && 
+               node.firstChild !== null && 
+               node.firstChild.nodeName === 'CODE';
+      },
+      replacement: (content: string, node: Node) => {
+        const codeNode = (node as HTMLElement).querySelector('code');
+        const className = codeNode?.className || '';
+        const langMatch = className.match(/language-(\w+)/);
+        const lang = langMatch ? langMatch[1] : '';
+        const code = codeNode?.textContent || content;
+        return `\n\n\`\`\`${lang}\n${code}\n\`\`\`\n\n`;
+      },
+    });
+    return service;
+  }, []);
+
+  const markdownToHtml = useCallback((markdown: string): string => {
+    if (!markdown) return '';
+    const trimmed = markdown.trim();
+    const looksLikeHtml = trimmed.startsWith('<!') || 
+      (trimmed.startsWith('<') && /^<(p|div|h[1-6]|ul|ol|blockquote|pre|table|article|section|header|footer|main|aside|nav)\b/i.test(trimmed));
+    if (looksLikeHtml) {
+      return markdown;
+    }
+    try {
+      return marked.parse(markdown, { async: false }) as string;
+    } catch {
+      return markdown;
+    }
+  }, []);
+
+  const htmlToMarkdown = useCallback((html: string): string => {
+    if (!html || html === '<p></p>') return '';
+    try {
+      return turndownService.turndown(html);
+    } catch {
+      return html;
+    }
+  }, [turndownService]);
+
+  const initialContent = useMemo(() => markdownToHtml(value), []);
 
   const editor = useEditor({
     extensions: [
@@ -157,9 +228,11 @@ export function RichTextEditor({
       Color,
       Typography,
     ],
-    content: value,
+    content: initialContent,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      const markdown = htmlToMarkdown(html);
+      onChange(markdown);
     },
     editorProps: {
       attributes: {
@@ -170,10 +243,20 @@ export function RichTextEditor({
   });
 
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value, false);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
-  }, [value, editor]);
+    
+    if (editor && value !== lastExternalValue.current) {
+      lastExternalValue.current = value;
+      const html = markdownToHtml(value);
+      const currentHtml = editor.getHTML();
+      if (html !== currentHtml) {
+        editor.commands.setContent(html, { emitUpdate: false });
+      }
+    }
+  }, [value, editor, markdownToHtml]);
 
   const setFontSize = useCallback((size: string) => {
     if (!editor) return;
@@ -614,51 +697,6 @@ export function RichTextEditor({
           <RemoveFormatting className="h-4 w-4" />
         </Button>
       </div>
-
-      {editor && (
-        <BubbleMenu
-          editor={editor}
-          tippyOptions={{ duration: 100 }}
-          className="flex items-center gap-1 p-1 bg-popover border rounded-lg shadow-lg"
-        >
-          <Button
-            type="button"
-            variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => editor.chain().focus().toggleBold().run()}
-          >
-            <Bold className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-          >
-            <Italic className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-          >
-            <UnderlineIcon className="h-3 w-3" />
-          </Button>
-          <Button
-            type="button"
-            variant={editor.isActive('link') ? 'secondary' : 'ghost'}
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setLinkPopoverOpen(true)}
-          >
-            <LinkIcon className="h-3 w-3" />
-          </Button>
-        </BubbleMenu>
-      )}
 
       <EditorContent editor={editor} data-testid="editor-content" />
     </div>

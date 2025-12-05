@@ -48,7 +48,7 @@ type LinkProps = ComponentPropsWithoutRef<"a"> & {
  * Creates a custom link component for ReactMarkdown that rewrites internal links.
  */
 export function createLinkRewriter(basePath: string | null | undefined) {
-  return function LinkRewriter({ href, children, node, ...props }: LinkProps) {
+  return function LinkRewriter({ href, children, node, ...props }: LinkProps): JSX.Element {
     const rewrittenHref = rewriteInternalLink(href || "", basePath);
     return (
       <a href={rewrittenHref} {...props}>
