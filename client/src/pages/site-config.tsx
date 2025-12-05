@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem } from "@shared/schema";
 import { defaultTemplateSettings } from "@shared/schema";
-import { PostsManager } from "@/components/posts-manager";
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 
@@ -356,7 +355,15 @@ export default function SiteConfig() {
       </motion.header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <Tabs defaultValue="general" className="space-y-6">
+        <Tabs 
+          defaultValue="general" 
+          className="space-y-6"
+          onValueChange={(value) => {
+            if (value === "posts" && id && !isNewSite) {
+              setLocation(`/editor/sites/${id}/posts`);
+            }
+          }}
+        >
           <TabsList className="grid w-full max-w-6xl grid-cols-9">
             <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
             <TabsTrigger value="navigation" data-testid="tab-navigation">Navigation</TabsTrigger>
@@ -1817,7 +1824,11 @@ export default function SiteConfig() {
           </TabsContent>
 
           <TabsContent value="posts" className="space-y-6">
-            {!isNewSite && id && <PostsManager siteId={id} />}
+            <Card>
+              <CardContent className="flex items-center justify-center py-12">
+                <p className="text-muted-foreground">Redirecting to Posts Manager...</p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
