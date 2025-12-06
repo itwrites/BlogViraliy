@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,25 @@ const sidebarVariants = {
 type SourceFilter = "all" | "manual" | "ai" | "rss";
 type ViewMode = "grid" | "list";
 
+const AI_SOURCES = ["ai", "ai-bulk", "topical-authority"];
+const isAiSource = (source: string) => AI_SOURCES.includes(source);
+
+const getRelativeTime = (date: Date | string | null | undefined) => {
+  if (!date) return "Unknown";
+  try {
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
+  } catch {
+    return "Unknown";
+  }
+};
+
+const getReadingTime = (content: string) => {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return { wordCount, minutes };
+};
+
 export default function EditorPosts() {
   const { id: siteId } = useParams();
   const [, setLocation] = useLocation();
@@ -152,7 +172,9 @@ export default function EditorPosts() {
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       
-      const matchesSource = sourceFilter === "all" || post.source === sourceFilter;
+      const matchesSource = sourceFilter === "all" 
+        || (sourceFilter === "ai" && isAiSource(post.source))
+        || post.source === sourceFilter;
       
       return matchesSearch && matchesSource;
     });
@@ -169,7 +191,7 @@ export default function EditorPosts() {
     return {
       total: posts.length,
       manual: posts.filter(p => p.source === "manual").length,
-      ai: posts.filter(p => p.source === "ai").length,
+      ai: posts.filter(p => isAiSource(p.source)).length,
       rss: posts.filter(p => p.source === "rss").length,
     };
   }, [posts]);
@@ -262,16 +284,22 @@ export default function EditorPosts() {
   };
 
   const getSourceIcon = (source: string) => {
+    if (isAiSource(source)) return <Bot className="w-3.5 h-3.5" />;
     switch (source) {
-      case "ai": return <Bot className="w-3.5 h-3.5" />;
       case "rss": return <Rss className="w-3.5 h-3.5" />;
       default: return <PenLine className="w-3.5 h-3.5" />;
     }
   };
 
   const getSourceLabel = (source: string) => {
+    if (isAiSource(source)) {
+      switch (source) {
+        case "ai-bulk": return "AI Bulk";
+        case "topical-authority": return "Topical AI";
+        default: return "AI Generated";
+      }
+    }
     switch (source) {
-      case "ai": return "AI Generated";
       case "rss": return "RSS Import";
       default: return "Manual";
     }
@@ -575,7 +603,11 @@ export default function EditorPosts() {
                               </p>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Clock className="w-3 h-3" />
-                                {new Date(post.createdAt).toLocaleDateString()}
+                                <span title={new Date(post.createdAt).toLocaleString()}>
+                                  {getRelativeTime(post.createdAt)}
+                                </span>
+                                <span className="text-muted-foreground/50">|</span>
+                                <span>{getReadingTime(post.content).minutes} min read</span>
                                 {post.tags.length > 0 && (
                                   <>
                                     <span className="text-muted-foreground/50">|</span>
@@ -633,8 +665,12 @@ export default function EditorPosts() {
                                         <span 
                                           className="text-xs text-muted-foreground"
                                           data-testid={`text-post-date-${post.id}`}
+                                          title={new Date(post.createdAt).toLocaleString()}
                                         >
-                                          {new Date(post.createdAt).toLocaleDateString()}
+                                          {getRelativeTime(post.createdAt)}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {getReadingTime(post.content).minutes} min
                                         </span>
                                         {post.tags.slice(0, 2).map((tag) => (
                                           <Badge 
