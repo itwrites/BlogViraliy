@@ -2,7 +2,9 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, ArrowLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, ChevronRight, Share2, Bookmark, Printer } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -58,6 +60,8 @@ export function ThemePostDetail({ site, post, relatedPosts = [] }: ThemePostDeta
       return <ImmersivePostDetail site={site} post={post} relatedPosts={relatedPosts} manifest={manifest} />;
     case "wide":
       return <WidePostDetail site={site} post={post} relatedPosts={relatedPosts} manifest={manifest} />;
+    case "forbis":
+      return <ForbisPostDetail site={site} post={post} relatedPosts={relatedPosts} manifest={manifest} />;
     default:
       return <StandardPostDetail site={site} post={post} relatedPosts={relatedPosts} manifest={manifest} />;
   }
@@ -692,6 +696,189 @@ function RelatedPosts({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePostDetailProps & { manifest: ThemeManifest }) {
+  const [, setLocation] = useLocation();
+  const prefersReducedMotion = useReducedMotion();
+  const templateClasses = useTemplateClasses(site.templateSettings);
+  const readingTime = estimateReadingTime(post.content);
+  const basePath = site.basePath || "";
+
+  const handleTagClick = (tag: string) => setLocation(`${basePath}/tag/${encodeURIComponent(tag)}`);
+  const handleBack = () => setLocation(basePath || "/");
+  const handleRelatedClick = (slug: string) => setLocation(`${basePath}/${slug}`);
+
+  const rewriteUrl = (url: string) => {
+    if (!basePath) return url;
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("mailto:") || url.startsWith("#")) {
+      return url;
+    }
+    if (url.startsWith("/") && !url.startsWith(basePath)) {
+      return basePath + url;
+    }
+    return url;
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="bg-black text-white py-16 md:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.4 }}
+          >
+            {post.tags[0] && (
+              <button
+                onClick={() => handleTagClick(post.tags[0])}
+                className="text-sm font-semibold uppercase tracking-wider text-white/70 hover:text-white hover:underline mb-4 block"
+                data-testid={`tag-${post.tags[0]}`}
+              >
+                {post.tags[0]}
+              </button>
+            )}
+            
+            <h1 
+              className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
+              style={{ fontFamily: "var(--public-heading-font)" }}
+              data-testid="text-post-title"
+            >
+              {post.title}
+            </h1>
+
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 border-2 border-white/20">
+                <AvatarFallback className="bg-white/20 text-white text-sm">SW</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-white">Staff Writer</p>
+                <p className="text-sm text-white/60">
+                  Forbes Staff · {readingTime} min read
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/20">
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                <Share2 className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                <Bookmark className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                <Printer className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {post.imageUrl && (
+        <motion.div 
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={prefersReducedMotion ? false : { opacity: 1 }}
+          transition={prefersReducedMotion ? {} : { duration: 0.5, delay: 0.2 }}
+          className="max-w-5xl mx-auto px-4 sm:px-6 -mt-6"
+        >
+          <img 
+            src={post.imageUrl} 
+            alt={post.title} 
+            className="w-full object-cover aspect-video"
+            data-testid="img-post-hero" 
+          />
+        </motion.div>
+      )}
+
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+        <motion.article
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? {} : { delay: 0.3, duration: 0.4 }}
+          data-testid={`article-${post.id}`}
+        >
+          <div 
+            className="prose prose-lg max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4"
+            style={{ fontFamily: "var(--public-body-font)" }}
+          >
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
+              urlTransform={rewriteUrl}
+            >
+              {post.content}
+            </ReactMarkdown>
+          </div>
+
+          <Separator className="my-10" />
+
+          <div className="flex flex-wrap gap-2">
+            {post.tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="cursor-pointer hover:bg-accent px-3 py-1"
+                onClick={() => handleTagClick(tag)}
+                data-testid={`tag-${tag}`}
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="mt-10 pt-10 border-t">
+            <Button variant="outline" size="sm" onClick={handleBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Articles
+            </Button>
+          </div>
+        </motion.article>
+
+        {relatedPosts.length > 0 && (
+          <motion.section
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={prefersReducedMotion ? false : { opacity: 1 }}
+            transition={prefersReducedMotion ? {} : { delay: 0.5, duration: 0.4 }}
+            className="mt-16"
+          >
+            <h3 
+              className="text-xl font-bold mb-6"
+              style={{ fontFamily: "var(--public-heading-font)" }}
+            >
+              More From Forbes
+            </h3>
+            <div className="space-y-4">
+              {relatedPosts.slice(0, 4).map((relPost) => (
+                <div
+                  key={relPost.id}
+                  className="flex gap-4 items-start cursor-pointer group py-4 border-b border-border/40 last:border-0"
+                  onClick={() => handleRelatedClick(relPost.slug)}
+                  data-testid={`related-post-${relPost.id}`}
+                >
+                  {relPost.imageUrl && (
+                    <div className="w-24 h-16 overflow-hidden flex-shrink-0">
+                      <img src={relPost.imageUrl} alt={relPost.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 
+                      className="font-semibold group-hover:underline line-clamp-2"
+                      style={{ fontFamily: "var(--public-heading-font)" }}
+                    >
+                      {relPost.title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      By Staff Writer
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+      </main>
     </div>
   );
 }

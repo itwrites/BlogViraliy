@@ -57,6 +57,29 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
     features: ["Breaking News Banner", "Section Grid", "Trending Sidebar", "Live Updates"],
   },
   
+  forbis: {
+    id: "forbis",
+    name: "Forbis",
+    description: "Premium business publication with Forbes-inspired 3-column layout",
+    category: "business",
+    defaultTokens: {
+      primaryColor: "#000000",
+      secondaryColor: "#666666",
+      backgroundColor: "#ffffff",
+      textColor: "#1a1a1a",
+      headingFont: "elegant",
+      bodyFont: "editorial",
+      cardStyle: "borderless",
+      postCardStyle: "editorial",
+      postCardHoverEffect: "none",
+      showFeaturedHero: false,
+      contentWidth: "wide",
+      headerStyle: "standard",
+      footerColorMode: "dark",
+    },
+    features: ["Forbes-Style Layout", "Trending Ticker", "Popular/Breaking Tabs", "Author Bylines", "Category Badges"],
+  },
+  
   magazine: {
     id: "magazine",
     name: "Magazine",
