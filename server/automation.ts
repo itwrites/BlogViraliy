@@ -35,8 +35,12 @@ export async function processAIAutomation() {
       const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(aiConfig.masterPrompt, keyword);
       const slug = createSlug(title);
 
+      // Get default author for this site
+      const defaultAuthor = await storage.getDefaultAuthor(site.id);
+
       await storage.createPost({
         siteId: site.id,
+        authorId: defaultAuthor?.id || null,
         title,
         content,
         slug,
@@ -100,8 +104,12 @@ export async function processRSSAutomation() {
             const { title, content, tags, imageUrl, metaTitle, metaDescription } = await rewriteArticle(originalContent, originalTitle);
             const slug = createSlug(title);
 
+            // Get default author for this site
+            const defaultAuthor = await storage.getDefaultAuthor(site.id);
+
             await storage.createPost({
               siteId: site.id,
+              authorId: defaultAuthor?.id || null,
               title,
               content,
               slug,
@@ -188,9 +196,13 @@ export async function processKeywordBatches() {
         );
         const slug = createSlug(title);
 
+        // Get default author for this site
+        const defaultAuthor = await storage.getDefaultAuthor(site.id);
+
         // Create the post
         const post = await storage.createPost({
           siteId: site.id,
+          authorId: defaultAuthor?.id || null,
           title,
           content,
           slug,

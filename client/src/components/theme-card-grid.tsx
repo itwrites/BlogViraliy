@@ -814,9 +814,16 @@ function ForbisLayout({ posts, onPostClick, onTagClick, manifest, templateClasse
   const [activeTab, setActiveTab] = useState<"popular" | "breaking">("popular");
   
   const heroPost = posts[0];
-  const leftSidebarPosts = posts.slice(1, 6);
-  const rightSidebarPosts = posts.slice(6, 10);
-  const additionalPosts = posts.slice(10);
+  const carouselPosts = posts.slice(1, 9);
+  const rightSidebarPosts = posts.slice(9, 13);
+  const additionalPosts = posts.slice(13);
+  
+  const usedPostIds = new Set([heroPost?.id, ...carouselPosts.map(p => p.id), ...rightSidebarPosts.map(p => p.id)]);
+  const remainingPosts = posts.filter(p => !usedPostIds.has(p.id));
+  
+  const sortedByViews = [...remainingPosts].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 4);
+  const sortedByDate = [...remainingPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4);
+  const tabPosts = activeTab === "popular" ? sortedByViews : sortedByDate;
 
   const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
     hidden: { opacity: 0 },
@@ -1038,17 +1045,60 @@ function ForbisLayout({ posts, onPostClick, onTagClick, manifest, templateClasse
               </button>
             </div>
             <div className="divide-y divide-border/20">
-              {leftSidebarPosts.slice(0, 4).map((post, index) => renderNumberedArticle(post, index))}
+              {tabPosts.map((post: Post, index: number) => renderNumberedArticle(post, index))}
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-6 order-1 lg:order-2">
+        <div className="lg:col-span-6 order-1 lg:order-2 space-y-6">
           {heroPost && renderHeroStory(heroPost)}
+          
+          {carouselPosts.length > 0 && (
+            <div className="pt-6 border-t border-border/40">
+              <h3 
+                className="text-lg font-bold mb-4"
+                style={{ fontFamily: "var(--public-heading-font)" }}
+              >
+                Featured Stories
+              </h3>
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border">
+                {carouselPosts.map((post: Post) => (
+                  <motion.article
+                    key={post.id}
+                    variants={itemAnimation}
+                    className="group cursor-pointer flex-shrink-0 w-48"
+                    onClick={() => onPostClick(post.slug)}
+                    data-testid={`card-forbis-carousel-${post.id}`}
+                  >
+                    {post.imageUrl && (
+                      <div className="aspect-[4/3] overflow-hidden mb-2">
+                        <img 
+                          src={post.imageUrl} 
+                          alt={post.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    {post.tags[0] && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                        {post.tags[0]}
+                      </span>
+                    )}
+                    <h4 
+                      className="text-sm font-bold group-hover:underline decoration-1 underline-offset-2 line-clamp-2"
+                      style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.25" }}
+                    >
+                      {post.title}
+                    </h4>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:col-span-3 order-3 space-y-4">
-          {rightSidebarPosts.map((post) => renderRightSidebarCard(post))}
+          {rightSidebarPosts.map((post: Post) => renderRightSidebarCard(post))}
         </div>
       </div>
 

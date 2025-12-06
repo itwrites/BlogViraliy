@@ -49,6 +49,7 @@ import {
   Sparkles,
   CheckSquare,
   Square,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -67,7 +68,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Site, Post } from "@shared/schema";
+import type { Site, Post, SiteAuthor } from "@shared/schema";
 
 const POSTS_PER_PAGE = 10;
 
@@ -158,6 +159,7 @@ export default function EditorPosts() {
     content: "",
     tags: "",
     imageUrl: "",
+    authorId: "" as string,
   });
 
   const { data: site } = useQuery<Site>({
@@ -167,6 +169,11 @@ export default function EditorPosts() {
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts"],
+    enabled: !!siteId,
+  });
+
+  const { data: authors } = useQuery<SiteAuthor[]>({
+    queryKey: ["/api/sites", siteId, "authors"],
     enabled: !!siteId,
   });
 
@@ -193,12 +200,13 @@ export default function EditorPosts() {
   );
 
   const stats = useMemo(() => {
-    if (!posts) return { total: 0, manual: 0, ai: 0, rss: 0 };
+    if (!posts) return { total: 0, manual: 0, ai: 0, rss: 0, totalViews: 0 };
     return {
       total: posts.length,
       manual: posts.filter(p => p.source === "manual").length,
       ai: posts.filter(p => isAiSource(p.source)).length,
       rss: posts.filter(p => p.source === "rss").length,
+      totalViews: posts.reduce((sum, p) => sum + (p.viewCount || 0), 0),
     };
   }, [posts]);
 
@@ -215,10 +223,12 @@ export default function EditorPosts() {
         content: post.content,
         tags: post.tags.join(", "),
         imageUrl: post.imageUrl || "",
+        authorId: post.authorId?.toString() || "",
       });
     } else {
       setCurrentPost(null);
-      setFormData({ title: "", content: "", tags: "", imageUrl: "" });
+      const defaultAuthor = authors?.find(a => a.isDefault);
+      setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: defaultAuthor?.id.toString() || "" });
     }
     setEditorOpen(true);
   };
@@ -226,7 +236,7 @@ export default function EditorPosts() {
   const closeEditor = () => {
     setEditorOpen(false);
     setCurrentPost(null);
-    setFormData({ title: "", content: "", tags: "", imageUrl: "" });
+    setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: "" });
   };
 
   const handleSave = async () => {
@@ -252,6 +262,7 @@ export default function EditorPosts() {
           content: formData.content,
           tags: tagsArray,
           imageUrl: formData.imageUrl || null,
+          authorId: formData.authorId || null,
           slug,
         });
         toast({ title: "Success", description: "Post updated successfully" });
@@ -262,6 +273,7 @@ export default function EditorPosts() {
           content: formData.content,
           tags: tagsArray,
           imageUrl: formData.imageUrl || null,
+          authorId: formData.authorId || null,
           slug,
           source: "manual",
         });
@@ -398,23 +410,32 @@ export default function EditorPosts() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="grid grid-cols-2 gap-2"
+              className="space-y-2"
             >
-              <div className="bg-background/60 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-primary">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Posts</p>
+              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-xl p-3 text-center border border-blue-500/20">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                </div>
+                <p className="text-2xl font-bold text-blue-500">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total Views</p>
               </div>
-              <div className="bg-background/60 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-500">{stats.manual}</p>
-                <p className="text-xs text-muted-foreground">Manual</p>
-              </div>
-              <div className="bg-background/60 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-violet-500">{stats.ai}</p>
-                <p className="text-xs text-muted-foreground">AI Generated</p>
-              </div>
-              <div className="bg-background/60 rounded-xl p-3 text-center">
-                <p className="text-2xl font-bold text-orange-500">{stats.rss}</p>
-                <p className="text-xs text-muted-foreground">RSS Imports</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-background/60 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground">Total Posts</p>
+                </div>
+                <div className="bg-background/60 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-emerald-500">{stats.manual}</p>
+                  <p className="text-xs text-muted-foreground">Manual</p>
+                </div>
+                <div className="bg-background/60 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-violet-500">{stats.ai}</p>
+                  <p className="text-xs text-muted-foreground">AI Generated</p>
+                </div>
+                <div className="bg-background/60 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-orange-500">{stats.rss}</p>
+                  <p className="text-xs text-muted-foreground">RSS Imports</p>
+                </div>
               </div>
             </motion.div>
 
@@ -702,13 +723,20 @@ export default function EditorPosts() {
                               >
                                 {stripMarkdown(post.content, 100)}
                               </p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                <span title={new Date(post.createdAt).toLocaleString()}>
-                                  {getRelativeTime(post.createdAt)}
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span title={new Date(post.createdAt).toLocaleString()}>
+                                    {getRelativeTime(post.createdAt)}
+                                  </span>
                                 </span>
                                 <span className="text-muted-foreground/50">|</span>
                                 <span>{getReadingTime(post.content).minutes} min read</span>
+                                <span className="text-muted-foreground/50">|</span>
+                                <span className="flex items-center gap-1 text-blue-500">
+                                  <Eye className="w-3 h-3" />
+                                  {(post.viewCount || 0).toLocaleString()}
+                                </span>
                                 {post.tags.length > 0 && (
                                   <>
                                     <span className="text-muted-foreground/50">|</span>
@@ -788,6 +816,10 @@ export default function EditorPosts() {
                                         </span>
                                         <span className="text-xs text-muted-foreground">
                                           {getReadingTime(post.content).minutes} min
+                                        </span>
+                                        <span className="flex items-center gap-1 text-xs text-blue-500">
+                                          <Eye className="w-3 h-3" />
+                                          {(post.viewCount || 0).toLocaleString()}
                                         </span>
                                         {post.tags.slice(0, 2).map((tag) => (
                                           <Badge 
@@ -1004,6 +1036,28 @@ export default function EditorPosts() {
                 <p className="text-xs text-muted-foreground">Optional cover image for the post</p>
               </div>
             </div>
+            {authors && authors.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="author" className="text-sm font-medium">Author</Label>
+                <Select
+                  value={formData.authorId}
+                  onValueChange={(value) => setFormData({ ...formData, authorId: value })}
+                >
+                  <SelectTrigger data-testid="select-author">
+                    <SelectValue placeholder="Select an author" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No author</SelectItem>
+                    {authors.map((author) => (
+                      <SelectItem key={author.id} value={author.id.toString()}>
+                        {author.name} {author.isDefault && "(Default)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Select the post author</p>
+              </div>
+            )}
           </motion.div>
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={closeEditor} data-testid="button-cancel">

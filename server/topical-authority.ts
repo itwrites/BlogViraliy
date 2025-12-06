@@ -320,9 +320,13 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
     // Fetch image
     const imageUrl = await searchPexelsImage(article.keywords[0] || article.title);
 
+    // Get default author for this site
+    const defaultAuthor = await storage.getDefaultAuthor(pillar.siteId);
+
     // Create post
     const post = await storage.createPost({
       siteId: pillar.siteId,
+      authorId: defaultAuthor?.id || null,
       title: generated.title,
       slug: article.slug,
       content: generated.content,

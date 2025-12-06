@@ -251,10 +251,23 @@ export const rssAutomationConfigs = pgTable("rss_automation_configs", {
   articlesToFetch: integer("articles_to_fetch").notNull().default(3),
 });
 
+// Site Authors (configurable bylines like "Staff Writer", "Editorial Team")
+export const siteAuthors = pgTable("site_authors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Display name e.g., "Staff Writer", "Forbes Staff"
+  slug: text("slug").notNull(), // URL slug e.g., "staff-writer"
+  bio: text("bio"), // Optional author bio
+  avatarUrl: text("avatar_url"), // Optional avatar image
+  isDefault: boolean("is_default").notNull().default(false), // Default author for AI/RSS posts
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Posts
 export const posts = pgTable("posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  authorId: varchar("author_id").references(() => siteAuthors.id, { onDelete: "set null" }), // Optional author reference
   title: text("title").notNull(),
   slug: text("slug").notNull(),
   content: text("content").notNull(),
@@ -262,6 +275,8 @@ export const posts = pgTable("posts", {
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   source: text("source").notNull().default("manual"),
   sourceUrl: text("source_url"), // Original article URL for RSS posts (used for duplicate detection)
+  // Analytics
+  viewCount: integer("view_count").notNull().default(0), // Total page views
   // SEO settings for individual posts
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),
@@ -397,6 +412,15 @@ export const sitesRelations = relations(sites, ({ many, one }) => ({
   rssAutomationConfig: one(rssAutomationConfigs),
   userSites: many(userSites),
   menuItems: many(siteMenuItems),
+  authors: many(siteAuthors),
+}));
+
+export const siteAuthorsRelations = relations(siteAuthors, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [siteAuthors.siteId],
+    references: [sites.id],
+  }),
+  posts: many(posts),
 }));
 
 export const siteMenuItemsRelations = relations(siteMenuItems, ({ one }) => ({
@@ -410,6 +434,10 @@ export const postsRelations = relations(posts, ({ one }) => ({
   site: one(sites, {
     fields: [posts.siteId],
     references: [sites.id],
+  }),
+  author: one(siteAuthors, {
+    fields: [posts.authorId],
+    references: [siteAuthors.id],
   }),
 }));
 
@@ -514,6 +542,11 @@ export const insertSiteMenuItemSchema = createInsertSchema(siteMenuItems).omit({
   type: menuItemTypeEnum.optional().default("url"),
 });
 
+export const insertSiteAuthorSchema = createInsertSchema(siteAuthors).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertAiAutomationConfigSchema = createInsertSchema(aiAutomationConfigs).omit({
   id: true,
 });
@@ -556,6 +589,9 @@ export type Site = typeof sites.$inferSelect;
 
 export type InsertSiteMenuItem = z.infer<typeof insertSiteMenuItemSchema>;
 export type SiteMenuItem = typeof siteMenuItems.$inferSelect;
+
+export type InsertSiteAuthor = z.infer<typeof insertSiteAuthorSchema>;
+export type SiteAuthor = typeof siteAuthors.$inferSelect;
 
 export type InsertAiAutomationConfig = z.infer<typeof insertAiAutomationConfigSchema>;
 export type AiAutomationConfig = typeof aiAutomationConfigs.$inferSelect;

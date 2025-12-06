@@ -1284,6 +1284,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================
+  // SITE AUTHORS ROUTES
+  // ========================================
+
+  // Get all authors for a site
+  app.get("/api/sites/:id/authors", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const authors = await storage.getAuthorsBySiteId(req.params.id);
+      res.json(authors);
+    } catch (error) {
+      console.error("Error fetching authors:", error);
+      res.status(500).json({ error: "Failed to fetch authors" });
+    }
+  });
+
+  // Create a new author
+  app.post("/api/sites/:id/authors", requireAuth, requireSiteAccess("id", "edit"), async (req: Request, res: Response) => {
+    try {
+      const { name, slug, bio, avatarUrl, isDefault } = req.body;
+      if (!name || !slug) {
+        return res.status(400).json({ error: "Name and slug are required" });
+      }
+      
+      const author = await storage.createAuthor({
+        siteId: req.params.id,
+        name,
+        slug,
+        bio: bio || null,
+        avatarUrl: avatarUrl || null,
+        isDefault: isDefault || false,
+      });
+      
+      // If this is set as default, update default status
+      if (isDefault) {
+        await storage.setDefaultAuthor(req.params.id, author.id);
+      }
+      
+      res.status(201).json(author);
+    } catch (error) {
+      console.error("Error creating author:", error);
+      res.status(500).json({ error: "Failed to create author" });
+    }
+  });
+
+  // Update an author
+  app.put("/api/sites/:id/authors/:authorId", requireAuth, requireSiteAccess("id", "edit"), async (req: Request, res: Response) => {
+    try {
+      const author = await storage.getAuthorById(req.params.authorId);
+      if (!author || author.siteId !== req.params.id) {
+        return res.status(404).json({ error: "Author not found" });
+      }
+      
+      const { name, slug, bio, avatarUrl, isDefault } = req.body;
+      const updated = await storage.updateAuthor(req.params.authorId, {
+        name,
+        slug,
+        bio,
+        avatarUrl,
+      });
+      
+      // Handle default status update
+      if (isDefault === true) {
+        await storage.setDefaultAuthor(req.params.id, req.params.authorId);
+      }
+      
+      // Fetch updated author with correct default status
+      const refreshed = await storage.getAuthorById(req.params.authorId);
+      res.json(refreshed);
+    } catch (error) {
+      console.error("Error updating author:", error);
+      res.status(500).json({ error: "Failed to update author" });
+    }
+  });
+
+  // Delete an author
+  app.delete("/api/sites/:id/authors/:authorId", requireAuth, requireSiteAccess("id", "edit"), async (req: Request, res: Response) => {
+    try {
+      const author = await storage.getAuthorById(req.params.authorId);
+      if (!author || author.siteId !== req.params.id) {
+        return res.status(404).json({ error: "Author not found" });
+      }
+      await storage.deleteAuthor(req.params.authorId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting author:", error);
+      res.status(500).json({ error: "Failed to delete author" });
+    }
+  });
+
+  // ========================================
+  // ANALYTICS ROUTES
+  // ========================================
+
+  // Track a post view (public endpoint for the frontend)
+  app.post("/api/posts/:slug/view", async (req: Request, res: Response) => {
+    try {
+      const { siteId } = req.body;
+      if (!siteId) {
+        return res.status(400).json({ error: "siteId required" });
+      }
+      const post = await storage.getPostBySlug(siteId, req.params.slug);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      await storage.incrementPostViewCount(post.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking view:", error);
+      res.status(500).json({ error: "Failed to track view" });
+    }
+  });
+
+  // Get site analytics summary
+  app.get("/api/sites/:id/analytics", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const totalViews = await storage.getTotalSiteViews(req.params.id);
+      const popularPosts = await storage.getPopularPosts(req.params.id, 10);
+      const posts = await storage.getPostsBySiteId(req.params.id);
+      
+      res.json({
+        totalViews,
+        totalPosts: posts.length,
+        popularPosts: popularPosts.map(p => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          viewCount: p.viewCount,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // ========================================
   // TOPICAL AUTHORITY ROUTES
   // ========================================
 

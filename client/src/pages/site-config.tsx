@@ -14,7 +14,8 @@ import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Setting
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem } from "@shared/schema";
+import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem, SiteAuthor } from "@shared/schema";
+import { User, UserPlus } from "lucide-react";
 import { defaultTemplateSettings } from "@shared/schema";
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
@@ -72,6 +73,17 @@ export default function SiteConfig() {
     openInNewTab: false,
   });
   const [newTagSlug, setNewTagSlug] = useState("");
+  
+  // Authors state
+  const [authors, setAuthors] = useState<SiteAuthor[]>([]);
+  const [editingAuthor, setEditingAuthor] = useState<SiteAuthor | null>(null);
+  const [newAuthor, setNewAuthor] = useState({
+    name: "",
+    slug: "",
+    bio: "",
+    avatarUrl: "",
+    isDefault: false,
+  });
 
   const { data: site, isLoading: siteLoading } = useQuery<Site>({
     queryKey: ["/api/sites", id],
@@ -92,6 +104,17 @@ export default function SiteConfig() {
     queryKey: ["/api/sites", id, "menu-items"],
     enabled: !isNewSite,
   });
+
+  const { data: existingAuthors } = useQuery<SiteAuthor[]>({
+    queryKey: ["/api/sites", id, "authors"],
+    enabled: !isNewSite,
+  });
+
+  useEffect(() => {
+    if (existingAuthors) {
+      setAuthors(existingAuthors);
+    }
+  }, [existingAuthors]);
 
   useEffect(() => {
     if (site) {
@@ -304,6 +327,61 @@ export default function SiteConfig() {
     setNewMenuItem({ ...newMenuItem, tagSlugs: newMenuItem.tagSlugs.filter(s => s !== slug) });
   };
 
+  // Author functions
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  };
+
+  const addAuthor = async () => {
+    if (!newAuthor.name.trim() || !newAuthor.slug.trim()) return;
+    try {
+      const response = await apiRequest("POST", `/api/sites/${id}/authors`, newAuthor);
+      const author = await response.json();
+      setAuthors([...authors, author]);
+      setNewAuthor({ name: "", slug: "", bio: "", avatarUrl: "", isDefault: false });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", id, "authors"] });
+      toast({ title: "Author added" });
+    } catch (error) {
+      toast({ title: "Failed to add author", variant: "destructive" });
+    }
+  };
+
+  const updateAuthor = async (author: SiteAuthor) => {
+    try {
+      await apiRequest("PUT", `/api/sites/${id}/authors/${author.id}`, author);
+      setAuthors(authors.map(a => a.id === author.id ? author : a));
+      setEditingAuthor(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", id, "authors"] });
+      toast({ title: "Author updated" });
+    } catch (error) {
+      toast({ title: "Failed to update author", variant: "destructive" });
+    }
+  };
+
+  const deleteAuthor = async (authorId: string) => {
+    try {
+      await apiRequest("DELETE", `/api/sites/${id}/authors/${authorId}`);
+      setAuthors(authors.filter(a => a.id !== authorId));
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", id, "authors"] });
+      toast({ title: "Author deleted" });
+    } catch (error) {
+      toast({ title: "Failed to delete author", variant: "destructive" });
+    }
+  };
+
+  const setAsDefaultAuthor = async (authorId: string) => {
+    try {
+      const author = authors.find(a => a.id === authorId);
+      if (!author) return;
+      await apiRequest("PUT", `/api/sites/${id}/authors/${authorId}`, { ...author, isDefault: true });
+      setAuthors(authors.map(a => ({ ...a, isDefault: a.id === authorId })));
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", id, "authors"] });
+      toast({ title: "Default author set" });
+    } catch (error) {
+      toast({ title: "Failed to set default author", variant: "destructive" });
+    }
+  };
+
   if (!isNewSite && siteLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -364,11 +442,12 @@ export default function SiteConfig() {
             }
           }}
         >
-          <TabsList className="grid w-full max-w-6xl grid-cols-9">
+          <TabsList className="grid w-full max-w-6xl grid-cols-10">
             <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
             <TabsTrigger value="navigation" data-testid="tab-navigation">Navigation</TabsTrigger>
             <TabsTrigger value="design" data-testid="tab-design">Design</TabsTrigger>
             <TabsTrigger value="seo" data-testid="tab-seo">SEO</TabsTrigger>
+            <TabsTrigger value="authors" data-testid="tab-authors" disabled={isNewSite}>Authors</TabsTrigger>
             <TabsTrigger value="ai" data-testid="tab-ai">AI Content</TabsTrigger>
             <TabsTrigger value="rss" data-testid="tab-rss">RSS Feeds</TabsTrigger>
             <TabsTrigger value="topical" data-testid="tab-topical" disabled={isNewSite}>Topical</TabsTrigger>
@@ -1725,6 +1804,149 @@ export default function SiteConfig() {
                     <p className="text-xs text-muted-foreground">Your Google Analytics tracking ID for visitor analytics</p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="authors" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2" data-testid="text-authors-title">
+                  <User className="w-5 h-5" />
+                  Content Authors
+                </CardTitle>
+                <CardDescription data-testid="text-authors-description">
+                  Create and manage authors for your posts. The default author will be used for AI-generated and RSS-imported content.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <h4 className="font-medium">Add New Author</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="authorName">Author Name</Label>
+                      <Input
+                        id="authorName"
+                        placeholder="e.g., Forbes Staff"
+                        value={newAuthor.name}
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          setNewAuthor({ 
+                            ...newAuthor, 
+                            name,
+                            slug: newAuthor.slug || generateSlug(name)
+                          });
+                        }}
+                        data-testid="input-author-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="authorSlug">URL Slug</Label>
+                      <Input
+                        id="authorSlug"
+                        placeholder="e.g., forbes-staff"
+                        value={newAuthor.slug}
+                        onChange={(e) => setNewAuthor({ ...newAuthor, slug: e.target.value })}
+                        data-testid="input-author-slug"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="authorBio">Bio (optional)</Label>
+                      <Textarea
+                        id="authorBio"
+                        placeholder="Brief author biography..."
+                        value={newAuthor.bio}
+                        onChange={(e) => setNewAuthor({ ...newAuthor, bio: e.target.value })}
+                        rows={2}
+                        data-testid="input-author-bio"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="authorAvatar">Avatar URL (optional)</Label>
+                      <Input
+                        id="authorAvatar"
+                        placeholder="https://example.com/avatar.jpg"
+                        value={newAuthor.avatarUrl}
+                        onChange={(e) => setNewAuthor({ ...newAuthor, avatarUrl: e.target.value })}
+                        data-testid="input-author-avatar"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-6">
+                      <Switch
+                        id="authorDefault"
+                        checked={newAuthor.isDefault}
+                        onCheckedChange={(checked) => setNewAuthor({ ...newAuthor, isDefault: checked })}
+                      />
+                      <Label htmlFor="authorDefault">Set as default author</Label>
+                    </div>
+                  </div>
+                  <Button onClick={addAuthor} className="gap-2" data-testid="button-add-author">
+                    <UserPlus className="w-4 h-4" />
+                    Add Author
+                  </Button>
+                </div>
+
+                {authors.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <h4 className="font-medium">Existing Authors</h4>
+                    <div className="space-y-3">
+                      {authors.map((author) => (
+                        <motion.div
+                          key={author.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex items-center justify-between p-4 border rounded-lg bg-muted/30"
+                          data-testid={`author-card-${author.id}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {author.avatarUrl ? (
+                              <img 
+                                src={author.avatarUrl} 
+                                alt={author.name}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                                <User className="w-5 h-5 text-primary" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{author.name}</span>
+                                {author.isDefault && (
+                                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-muted-foreground">/{author.slug}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {!author.isDefault && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAsDefaultAuthor(author.id)}
+                                data-testid={`button-set-default-${author.id}`}
+                              >
+                                Set Default
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteAuthor(author.id)}
+                              data-testid={`button-delete-author-${author.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

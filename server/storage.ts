@@ -12,6 +12,7 @@ import {
   clusters,
   pillarArticles,
   siteMenuItems,
+  siteAuthors,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -24,6 +25,7 @@ import {
   type Cluster,
   type PillarArticle,
   type SiteMenuItem,
+  type SiteAuthor,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -36,6 +38,7 @@ import {
   type InsertCluster,
   type InsertPillarArticle,
   type InsertSiteMenuItem,
+  type InsertSiteAuthor,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -143,6 +146,20 @@ export interface IStorage {
   deleteMenuItem(id: string): Promise<void>;
   deleteMenuItemsBySiteId(siteId: string): Promise<void>;
   reorderMenuItems(siteId: string, itemIds: string[]): Promise<void>;
+
+  // Site Authors
+  getAuthorsBySiteId(siteId: string): Promise<SiteAuthor[]>;
+  getAuthorById(id: string): Promise<SiteAuthor | undefined>;
+  getDefaultAuthor(siteId: string): Promise<SiteAuthor | undefined>;
+  createAuthor(author: InsertSiteAuthor): Promise<SiteAuthor>;
+  updateAuthor(id: string, author: Partial<InsertSiteAuthor>): Promise<SiteAuthor | undefined>;
+  deleteAuthor(id: string): Promise<void>;
+  setDefaultAuthor(siteId: string, authorId: string): Promise<void>;
+
+  // Analytics
+  incrementPostViewCount(postId: string): Promise<void>;
+  getPopularPosts(siteId: string, limit: number): Promise<Post[]>;
+  getTotalSiteViews(siteId: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -801,6 +818,84 @@ export class DatabaseStorage implements IStorage {
         .set({ sortOrder: i, updatedAt: new Date() })
         .where(and(eq(siteMenuItems.id, itemIds[i]), eq(siteMenuItems.siteId, siteId)));
     }
+  }
+
+  // Site Authors
+  async getAuthorsBySiteId(siteId: string): Promise<SiteAuthor[]> {
+    return await db
+      .select()
+      .from(siteAuthors)
+      .where(eq(siteAuthors.siteId, siteId))
+      .orderBy(desc(siteAuthors.isDefault), asc(siteAuthors.name));
+  }
+
+  async getAuthorById(id: string): Promise<SiteAuthor | undefined> {
+    const [author] = await db.select().from(siteAuthors).where(eq(siteAuthors.id, id));
+    return author || undefined;
+  }
+
+  async getDefaultAuthor(siteId: string): Promise<SiteAuthor | undefined> {
+    const [author] = await db
+      .select()
+      .from(siteAuthors)
+      .where(and(eq(siteAuthors.siteId, siteId), eq(siteAuthors.isDefault, true)));
+    return author || undefined;
+  }
+
+  async createAuthor(insertAuthor: InsertSiteAuthor): Promise<SiteAuthor> {
+    const [author] = await db.insert(siteAuthors).values(insertAuthor).returning();
+    return author;
+  }
+
+  async updateAuthor(id: string, author: Partial<InsertSiteAuthor>): Promise<SiteAuthor | undefined> {
+    const [updated] = await db
+      .update(siteAuthors)
+      .set(author)
+      .where(eq(siteAuthors.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteAuthor(id: string): Promise<void> {
+    await db.delete(siteAuthors).where(eq(siteAuthors.id, id));
+  }
+
+  async setDefaultAuthor(siteId: string, authorId: string): Promise<void> {
+    // First, unset all authors as default for this site
+    await db
+      .update(siteAuthors)
+      .set({ isDefault: false })
+      .where(eq(siteAuthors.siteId, siteId));
+    // Then set the specified author as default
+    await db
+      .update(siteAuthors)
+      .set({ isDefault: true })
+      .where(eq(siteAuthors.id, authorId));
+  }
+
+  // Analytics
+  async incrementPostViewCount(postId: string): Promise<void> {
+    await db
+      .update(posts)
+      .set({ viewCount: sql`${posts.viewCount} + 1` })
+      .where(eq(posts.id, postId));
+  }
+
+  async getPopularPosts(siteId: string, limit: number): Promise<Post[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(eq(posts.siteId, siteId))
+      .orderBy(desc(posts.viewCount))
+      .limit(limit);
+  }
+
+  async getTotalSiteViews(siteId: string): Promise<number> {
+    const result = await db
+      .select({ total: sql<number>`COALESCE(SUM(${posts.viewCount}), 0)` })
+      .from(posts)
+      .where(eq(posts.siteId, siteId));
+    return Number(result[0]?.total || 0);
   }
 }
 
