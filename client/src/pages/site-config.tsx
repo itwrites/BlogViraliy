@@ -450,6 +450,7 @@ export default function SiteConfig() {
                       {[
                         { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
                         { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
+                        { value: "forbis", label: "Forbis", desc: "Forbes-style 3-column, business publication" },
                         { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
                         { value: "novapress", label: "NovaPress", desc: "Modern editorial, grid-based, premium magazine" },
                         { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
