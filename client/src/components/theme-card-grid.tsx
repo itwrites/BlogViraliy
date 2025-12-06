@@ -27,6 +27,21 @@ function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function formatRelativeTime(date: Date | string): string {
+  const now = new Date();
+  const then = new Date(date);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
+  if (diffHours < 24) return `${diffHours} hr${diffHours === 1 ? "" : "s"} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  return formatDate(date);
+}
+
 export function ThemeCardGrid({ site, posts, onPostClick, onTagClick, showPagination = true, className = "" }: ThemeCardGridProps) {
   const prefersReducedMotion = useReducedMotion();
   const themeId = site.siteType || "blog";
@@ -64,6 +79,8 @@ export function ThemeCardGrid({ site, posts, onPostClick, onTagClick, showPagina
         return <MasonryLayout posts={paginatedPosts} onPostClick={onPostClick} manifest={manifest} templateClasses={templateClasses} />;
       case "bento":
         return <BentoLayout posts={paginatedPosts} onPostClick={onPostClick} manifest={manifest} templateClasses={templateClasses} />;
+      case "bbc-news":
+        return <BBCNewsLayout posts={paginatedPosts} onPostClick={onPostClick} onTagClick={onTagClick} manifest={manifest} templateClasses={templateClasses} />;
       default:
         return <GridLayout posts={paginatedPosts} onPostClick={onPostClick} manifest={manifest} templateClasses={templateClasses} />;
     }
@@ -559,6 +576,228 @@ function BentoLayout({ posts, onPostClick, manifest, templateClasses }: LayoutPr
         {fourth && renderBentoCard(fourth, "medium")}
         {rest.map((post) => renderBentoCard(post, "small"))}
       </div>
+    </motion.div>
+  );
+}
+
+function BBCNewsLayout({ posts, onPostClick, onTagClick, manifest, templateClasses }: LayoutProps) {
+  const prefersReducedMotion = useReducedMotion();
+  
+  const heroPost = posts[0];
+  const leftColumnPosts = posts.slice(1, 3);
+  const rightRailPosts = posts.slice(3, 8);
+  const gridPosts = posts.slice(8);
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+  };
+  const itemAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.25 } },
+  };
+
+  const renderHeroStory = (post: Post) => (
+    <motion.article
+      variants={itemAnimation}
+      className="group cursor-pointer"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-hero-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-[16/10] overflow-hidden mb-3">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <h2 
+        className="text-xl md:text-2xl font-bold mb-2 group-hover:underline decoration-2 underline-offset-2"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.2" }}
+        data-testid={`text-hero-title-${post.id}`}
+      >
+        {post.title}
+      </h2>
+      {manifest.cards.showExcerpt && (
+        <p 
+          className="text-sm text-muted-foreground mb-3 line-clamp-3"
+          style={{ fontFamily: "var(--public-body-font)" }}
+        >
+          {stripMarkdown(post.content, manifest.cards.excerptLength)}
+        </p>
+      )}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <time>{formatRelativeTime(post.createdAt)}</time>
+        {post.tags[0] && (
+          <>
+            <span className="text-muted-foreground/40">|</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onTagClick?.(post.tags[0]); }}
+              className="hover:underline font-medium"
+              data-testid={`link-tag-${post.tags[0]}`}
+            >
+              {post.tags[0]}
+            </button>
+          </>
+        )}
+      </div>
+    </motion.article>
+  );
+
+  const renderSecondaryStory = (post: Post) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="group cursor-pointer pb-4 border-b border-border/40 last:border-0"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-secondary-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-video overflow-hidden mb-2">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <h3 
+        className="text-base font-bold mb-1.5 group-hover:underline decoration-1 underline-offset-2 line-clamp-3"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.25" }}
+        data-testid={`text-secondary-title-${post.id}`}
+      >
+        {post.title}
+      </h3>
+      {manifest.cards.showExcerpt && (
+        <p 
+          className="text-xs text-muted-foreground mb-2 line-clamp-2"
+          style={{ fontFamily: "var(--public-body-font)" }}
+        >
+          {stripMarkdown(post.content, 80)}
+        </p>
+      )}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <time>{formatRelativeTime(post.createdAt)}</time>
+        {post.tags[0] && (
+          <>
+            <span className="text-muted-foreground/40">|</span>
+            <span className="font-medium">{post.tags[0]}</span>
+          </>
+        )}
+      </div>
+    </motion.article>
+  );
+
+  const renderHeadlineItem = (post: Post, showIcon: boolean = false) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="group cursor-pointer py-3 border-b border-border/30 last:border-0"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-headline-${post.id}`}
+    >
+      <div className="flex gap-2">
+        {showIcon && (
+          <span className="text-primary mt-0.5">
+            <ArrowRight className="h-3 w-3" />
+          </span>
+        )}
+        <div className="flex-1">
+          <h4 
+            className="text-sm font-bold mb-1 group-hover:underline decoration-1 underline-offset-2 line-clamp-3"
+            style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.3" }}
+            data-testid={`text-headline-title-${post.id}`}
+          >
+            {post.title}
+          </h4>
+          <p 
+            className="text-xs text-muted-foreground line-clamp-2 mb-1.5"
+            style={{ fontFamily: "var(--public-body-font)" }}
+          >
+            {stripMarkdown(post.content, 60)}
+          </p>
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <time>{formatRelativeTime(post.createdAt)}</time>
+            {post.tags[0] && (
+              <>
+                <span className="text-muted-foreground/40">|</span>
+                <span className="font-medium">{post.tags[0]}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+
+  const renderGridStory = (post: Post) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="group cursor-pointer"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-grid-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-video overflow-hidden mb-2">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <h3 
+        className="text-sm font-bold mb-1 group-hover:underline decoration-1 underline-offset-2 line-clamp-2"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.25" }}
+      >
+        {post.title}
+      </h3>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <time>{formatRelativeTime(post.createdAt)}</time>
+        {post.tags[0] && (
+          <>
+            <span className="text-muted-foreground/40">|</span>
+            <span className="font-medium">{post.tags[0]}</span>
+          </>
+        )}
+      </div>
+    </motion.article>
+  );
+
+  return (
+    <motion.div initial="hidden" animate="visible" variants={containerAnimation} className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
+          {leftColumnPosts.map((post) => renderSecondaryStory(post))}
+        </div>
+
+        <div className="lg:col-span-6 order-1 lg:order-2">
+          {heroPost && renderHeroStory(heroPost)}
+        </div>
+
+        <div className="lg:col-span-3 order-3">
+          <div className="divide-y divide-border/20">
+            {rightRailPosts.map((post) => renderHeadlineItem(post, true))}
+          </div>
+        </div>
+      </div>
+
+      {gridPosts.length > 0 && (
+        <div className="pt-6 border-t border-border/50">
+          <h3 
+            className="text-lg font-bold mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "var(--public-heading-font)" }}
+          >
+            More Stories
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {gridPosts.map((post) => renderGridStory(post))}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

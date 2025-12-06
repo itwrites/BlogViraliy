@@ -1302,6 +1302,72 @@ export default function SiteConfig() {
                       </Select>
                       <p className="text-xs text-muted-foreground">Choose how footer colors are determined</p>
                     </div>
+
+                    {templateSettings.footerColorMode === "custom" && (
+                      <div className="space-y-4 p-4 border border-border/50 rounded-lg bg-muted/30">
+                        <h4 className="text-sm font-medium text-muted-foreground">Custom Footer Colors</h4>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="footerBackgroundColor" data-testid="label-footer-bg-color">Background Color</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="footerBackgroundColor"
+                                type="color"
+                                value={templateSettings.footerBackgroundColor || "#1f2937"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerBackgroundColor: e.target.value })}
+                                className="w-12 h-9 p-1 cursor-pointer"
+                                data-testid="input-footer-bg-color"
+                              />
+                              <Input
+                                value={templateSettings.footerBackgroundColor || "#1f2937"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerBackgroundColor: e.target.value })}
+                                className="flex-1 font-mono text-sm"
+                                data-testid="input-footer-bg-hex"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="footerTextColor" data-testid="label-footer-text-color">Text Color</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="footerTextColor"
+                                type="color"
+                                value={templateSettings.footerTextColor || "#9ca3af"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerTextColor: e.target.value })}
+                                className="w-12 h-9 p-1 cursor-pointer"
+                                data-testid="input-footer-text-color"
+                              />
+                              <Input
+                                value={templateSettings.footerTextColor || "#9ca3af"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerTextColor: e.target.value })}
+                                className="flex-1 font-mono text-sm"
+                                data-testid="input-footer-text-hex"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="footerLinkColor" data-testid="label-footer-link-color">Link Color</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                id="footerLinkColor"
+                                type="color"
+                                value={templateSettings.footerLinkColor || "#ffffff"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerLinkColor: e.target.value })}
+                                className="w-12 h-9 p-1 cursor-pointer"
+                                data-testid="input-footer-link-color"
+                              />
+                              <Input
+                                value={templateSettings.footerLinkColor || "#ffffff"}
+                                onChange={(e) => setTemplateSettings({ ...templateSettings, footerLinkColor: e.target.value })}
+                                className="flex-1 font-mono text-sm"
+                                data-testid="input-footer-link-hex"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-2">
                       <Label htmlFor="footerText" data-testid="label-footer-text">Footer Text</Label>
                       <Input

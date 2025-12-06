@@ -4,7 +4,7 @@ import { defaultTemplateSettings } from "@shared/schema";
 export type PostCardVariant = "standard" | "editorial" | "minimal" | "overlay" | "compact" | "featured" | "glass" | "gradient";
 export type HeaderVariant = "minimal" | "centered" | "split" | "magazine" | "transparent";
 export type FooterVariant = "minimal" | "standard" | "rich" | "centered";
-export type LayoutVariant = "grid" | "list" | "masonry" | "featured-grid" | "magazine" | "minimal-list" | "bento";
+export type LayoutVariant = "grid" | "list" | "masonry" | "featured-grid" | "magazine" | "minimal-list" | "bento" | "bbc-news";
 export type PostDetailVariant = "standard" | "immersive" | "minimal" | "magazine" | "centered" | "wide";
 
 export interface ThemeLayoutConfig {
@@ -452,11 +452,11 @@ export const themeManifests: Record<string, ThemeManifest> = {
   news: {
     id: "news",
     name: "News",
-    description: "Information-dense layout optimized for breaking news and updates",
+    description: "BBC-style news layout with asymmetric 3-column grid, hero stories, and compact headlines",
     category: "news",
     layout: {
-      homeLayout: "featured-grid",
-      gridColumns: { mobile: 1, tablet: 2, desktop: 4 },
+      homeLayout: "bbc-news",
+      gridColumns: { mobile: 1, tablet: 2, desktop: 3 },
       showHeroSection: true,
       heroStyle: "split",
       sidebarEnabled: true,
@@ -468,13 +468,13 @@ export const themeManifests: Record<string, ThemeManifest> = {
       primaryCardStyle: "compact",
       secondaryCardStyle: "compact",
       featuredCardStyle: "editorial",
-      showExcerpt: false,
-      excerptLength: 80,
+      showExcerpt: true,
+      excerptLength: 120,
       showReadingTime: false,
       showDate: true,
       showCategory: true,
       imageAspectRatio: "landscape",
-      hoverEffect: "lift",
+      hoverEffect: "none",
     },
     postDetail: {
       variant: "standard",
@@ -489,12 +489,12 @@ export const themeManifests: Record<string, ThemeManifest> = {
       typographyScale: "compact",
     },
     header: {
-      variant: "split",
+      variant: "centered",
       sticky: true,
       showSearch: true,
-      menuStyle: "dropdown",
-      logoPosition: "left",
-      ctaButton: true,
+      menuStyle: "horizontal",
+      logoPosition: "center",
+      ctaButton: false,
       backgroundStyle: "solid",
     },
     footer: {
@@ -513,32 +513,32 @@ export const themeManifests: Record<string, ThemeManifest> = {
     animation: {
       pageTransition: false,
       cardEntrance: "fade",
-      hoverAnimations: true,
+      hoverAnimations: false,
       scrollAnimations: false,
-      transitionDuration: 200,
+      transitionDuration: 150,
     },
     colors: {
-      primaryColor: "#dc2626",
-      secondaryColor: "#1e40af",
+      primaryColor: "#bb1919",
+      secondaryColor: "#3a3a3a",
       backgroundColor: "#ffffff",
-      textColor: "#111827",
+      textColor: "#1a1a1a",
     },
     defaultTemplateSettings: {
-      primaryColor: "#dc2626",
-      secondaryColor: "#1e40af",
+      primaryColor: "#bb1919",
+      secondaryColor: "#3a3a3a",
       backgroundColor: "#ffffff",
-      textColor: "#111827",
+      textColor: "#1a1a1a",
       headingFont: "editorial",
       bodyFont: "modern",
-      cardStyle: "sharp",
+      cardStyle: "borderless",
       postCardStyle: "compact",
-      postCardHoverEffect: "lift",
-      showFeaturedHero: true,
+      postCardHoverEffect: "none",
+      showFeaturedHero: false,
       contentWidth: "wide",
-      headerStyle: "full",
-      footerColorMode: "primary",
+      headerStyle: "standard",
+      footerColorMode: "dark",
     },
-    features: ["Breaking News", "Compact Cards", "Category Sections", "Live Updates"],
+    features: ["BBC-Style Layout", "Asymmetric Grid", "Relative Timestamps", "Category Tags", "Breaking News"],
   },
 
   blog: {
