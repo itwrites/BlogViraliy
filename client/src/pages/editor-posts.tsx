@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -46,6 +47,8 @@ import {
   Image,
   Clock,
   Sparkles,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import {
   Dialog,
@@ -147,6 +150,9 @@ export default function EditorPosts() {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -280,6 +286,52 @@ export default function EditorPosts() {
       setPostToDelete(null);
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete post", variant: "destructive" });
+    }
+  };
+
+  const togglePostSelection = (postId: number) => {
+    setSelectedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPosts.size === paginatedPosts.length) {
+      setSelectedPosts(new Set());
+    } else {
+      setSelectedPosts(new Set(paginatedPosts.map(p => p.id)));
+    }
+  };
+
+  const exitBulkMode = () => {
+    setBulkMode(false);
+    setSelectedPosts(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedPosts.size === 0) return;
+
+    try {
+      await Promise.all(
+        Array.from(selectedPosts).map(id => 
+          apiRequest("DELETE", `/api/editor/posts/${id}`, undefined)
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+      toast({ 
+        title: "Success", 
+        description: `${selectedPosts.size} post${selectedPosts.size > 1 ? 's' : ''} deleted` 
+      });
+      setBulkDeleteDialogOpen(false);
+      exitBulkMode();
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete posts", variant: "destructive" });
     }
   };
 
@@ -505,16 +557,50 @@ export default function EditorPosts() {
                       <LayoutGrid className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  <Button
+                    variant={bulkMode ? "secondary" : "ghost"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => bulkMode ? exitBulkMode() : setBulkMode(true)}
+                    data-testid="button-bulk-mode"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    {bulkMode ? "Exit Select" : "Select"}
+                  </Button>
                 </div>
 
-                <Button 
-                  onClick={() => openEditor()} 
-                  className="gap-2 shadow-lg shadow-primary/20"
-                  data-testid="button-new-post"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>New Post</span>
-                </Button>
+                {bulkMode && selectedPosts.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-2 bg-destructive/10 rounded-lg px-3 py-1.5"
+                  >
+                    <span className="text-sm font-medium">
+                      {selectedPosts.size} selected
+                    </span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setBulkDeleteDialogOpen(true)}
+                      data-testid="button-bulk-delete"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </Button>
+                  </motion.div>
+                )}
+
+                {!bulkMode && (
+                  <Button 
+                    onClick={() => openEditor()} 
+                    className="gap-2 shadow-lg shadow-primary/20"
+                    data-testid="button-new-post"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>New Post</span>
+                  </Button>
+                )}
               </div>
             </div>
           </motion.header>
@@ -562,8 +648,10 @@ export default function EditorPosts() {
                       >
                         {viewMode === "grid" ? (
                           <Card
-                            className="overflow-hidden hover-elevate transition-all duration-300 cursor-pointer h-full"
-                            onClick={() => openEditor(post)}
+                            className={`overflow-hidden hover-elevate transition-all duration-300 cursor-pointer h-full ${
+                              bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-primary" : ""
+                            }`}
+                            onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
                             data-testid={`card-post-${post.id}`}
                           >
                             <div className="relative aspect-video bg-gradient-to-br from-muted to-muted/50">
@@ -576,6 +664,19 @@ export default function EditorPosts() {
                               ) : (
                                 <div className="absolute inset-0 flex items-center justify-center">
                                   <Image className="w-12 h-12 text-muted-foreground/30" />
+                                </div>
+                              )}
+                              {bulkMode && (
+                                <div 
+                                  className="absolute top-3 left-3"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Checkbox
+                                    checked={selectedPosts.has(post.id)}
+                                    onCheckedChange={() => togglePostSelection(post.id)}
+                                    className="h-5 w-5 bg-background/80 backdrop-blur-sm"
+                                    data-testid={`checkbox-select-${post.id}`}
+                                  />
                                 </div>
                               )}
                               <div className="absolute top-3 right-3 flex gap-1">
@@ -621,11 +722,27 @@ export default function EditorPosts() {
                           </Card>
                         ) : (
                           <Card
-                            className="hover-elevate transition-all duration-300"
+                            className={`hover-elevate transition-all duration-300 ${
+                              bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-primary" : ""
+                            } ${bulkMode ? "cursor-pointer" : ""}`}
+                            onClick={() => bulkMode && togglePostSelection(post.id)}
                             data-testid={`card-post-${post.id}`}
                           >
                             <CardContent className="p-4">
                               <div className="flex items-start gap-4">
+                                {bulkMode && (
+                                  <div 
+                                    className="shrink-0 flex items-center"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Checkbox
+                                      checked={selectedPosts.has(post.id)}
+                                      onCheckedChange={() => togglePostSelection(post.id)}
+                                      className="h-5 w-5"
+                                      data-testid={`checkbox-select-${post.id}`}
+                                    />
+                                  </div>
+                                )}
                                 <div className="shrink-0 w-20 h-14 rounded-lg bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
                                   {post.imageUrl ? (
                                     <img 
@@ -688,31 +805,33 @@ export default function EditorPosts() {
                                         )}
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openEditor(post);
-                                        }}
-                                        data-testid={`button-edit-${post.id}`}
-                                      >
-                                        <Edit className="w-4 h-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setPostToDelete(post);
-                                          setDeleteDialogOpen(true);
-                                        }}
-                                        data-testid={`button-delete-${post.id}`}
-                                      >
-                                        <Trash2 className="w-4 h-4 text-destructive" />
-                                      </Button>
-                                    </div>
+                                    {!bulkMode && (
+                                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            openEditor(post);
+                                          }}
+                                          data-testid={`button-edit-${post.id}`}
+                                        >
+                                          <Edit className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPostToDelete(post);
+                                            setDeleteDialogOpen(true);
+                                          }}
+                                          data-testid={`button-delete-${post.id}`}
+                                        >
+                                          <Trash2 className="w-4 h-4 text-destructive" />
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -923,6 +1042,27 @@ export default function EditorPosts() {
               data-testid="button-confirm-delete"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedPosts.size} selected post{selectedPosts.size > 1 ? "s" : ""}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-bulk-delete"
+            >
+              Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
