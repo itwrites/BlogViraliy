@@ -25,10 +25,13 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.
     - **RSS Rewriting**: Monitors RSS feeds, fetches new articles, and rewrites content using AI to ensure uniqueness, with configurable scheduling.
-- **Public Site Themes**: Seven distinct themes (Blog, News, Magazine, NovaPress, Portfolio, Restaurant, Crypto) with customizable templates, fonts, logo sizing, and content width. All themes now support:
-    - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay)
+- **Public Site Themes**: Fifteen distinct themes with customizable templates, fonts, logo sizing, and content width:
+    - **Core Themes**: Blog, News, Magazine, NovaPress, Portfolio, Restaurant, Crypto
+    - **New Themes**: Aurora (pastel gradients), Carbon (brutalist dark), Soho (premium editorial), Citrine (warm magazine), Verve (vibrant creative), Minimal (clean whitespace), Ocean (calming blues), Forest (natural greens)
+    - **Unified PostCard Component**: Configurable post card styles (standard, editorial, minimal, overlay, compact, featured, glass, gradient)
     - **Cross-Layout Pagination**: All layouts support pagination with configurable posts per page
     - **Reduced Motion Support**: All animations respect `prefers-reduced-motion` accessibility preference
+    - **Theme-Aware Footer Colors**: `footerColorMode` supports custom, primary, secondary, dark, light modes for cohesive footer styling
 - **Theme Registry System** (`client/src/lib/theme-registry.ts`): Centralized theme definitions with:
     - **Theme Definitions**: Each theme has id, name, description, category, default tokens, and feature list
     - **Token Inheritance**: Settings merge order: globalDefaults < themeDefaults < customSettings
