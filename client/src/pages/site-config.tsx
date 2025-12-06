@@ -446,7 +446,7 @@ export default function SiteConfig() {
                   <div className="space-y-3 md:col-span-2">
                     <Label data-testid="label-site-type">Theme</Label>
                     <p className="text-xs text-muted-foreground mb-3">Choose a visual theme that best matches your content style</p>
-                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
+                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
                       {[
                         { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
                         { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
@@ -455,6 +455,14 @@ export default function SiteConfig() {
                         { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
                         { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
                         { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
+                        { value: "aurora", label: "Aurora", desc: "Dreamy pastel gradients, soft shadows" },
+                        { value: "carbon", label: "Carbon", desc: "Bold brutalist, dark mode, sharp edges" },
+                        { value: "soho", label: "Soho", desc: "Sophisticated serif, editorial elegance" },
+                        { value: "citrine", label: "Citrine", desc: "Warm golden accents, magazine style" },
+                        { value: "verve", label: "Verve", desc: "Vibrant creative, high-energy gradients" },
+                        { value: "minimal", label: "Minimal", desc: "Ultra-clean, maximum whitespace" },
+                        { value: "ocean", label: "Ocean", desc: "Calming blue tones, serene vibes" },
+                        { value: "forest", label: "Forest", desc: "Natural green palette, organic feel" },
                       ].map((theme) => (
                         <Card
                           key={theme.value}
@@ -1213,7 +1221,7 @@ export default function SiteConfig() {
                       <Label htmlFor="postCardStyle" data-testid="label-post-card-style">Post Card Design</Label>
                       <Select
                         value={templateSettings.postCardStyle || "standard"}
-                        onValueChange={(value: "standard" | "editorial" | "minimal" | "overlay") => setTemplateSettings({ ...templateSettings, postCardStyle: value })}
+                        onValueChange={(value: "standard" | "editorial" | "minimal" | "overlay" | "compact" | "featured" | "glass" | "gradient") => setTemplateSettings({ ...templateSettings, postCardStyle: value })}
                       >
                         <SelectTrigger id="postCardStyle" data-testid="select-post-card-style">
                           <SelectValue />
@@ -1222,6 +1230,10 @@ export default function SiteConfig() {
                           <SelectItem value="standard">Standard (classic grid cards)</SelectItem>
                           <SelectItem value="editorial">Editorial (split magazine style)</SelectItem>
                           <SelectItem value="minimal">Minimal (list with thumbnails)</SelectItem>
+                          <SelectItem value="compact">Compact (small thumbnail list)</SelectItem>
+                          <SelectItem value="featured">Featured (wide hero-style cards)</SelectItem>
+                          <SelectItem value="glass">Glass (frosted glassmorphism effect)</SelectItem>
+                          <SelectItem value="gradient">Gradient (bold gradient backgrounds)</SelectItem>
                           <SelectItem value="overlay">Overlay (text over image)</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1271,6 +1283,25 @@ export default function SiteConfig() {
                     <h3 className="font-semibold">Footer & Social Links</h3>
                   </div>
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="footerColorMode" data-testid="label-footer-color-mode">Footer Color Mode</Label>
+                      <Select
+                        value={templateSettings.footerColorMode || "custom"}
+                        onValueChange={(value: "custom" | "primary" | "secondary" | "dark" | "light") => setTemplateSettings({ ...templateSettings, footerColorMode: value })}
+                      >
+                        <SelectTrigger id="footerColorMode" data-testid="select-footer-color-mode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="custom">Custom Colors (use colors below)</SelectItem>
+                          <SelectItem value="primary">Match Theme Primary</SelectItem>
+                          <SelectItem value="secondary">Match Theme Secondary</SelectItem>
+                          <SelectItem value="dark">Dark (slate/charcoal)</SelectItem>
+                          <SelectItem value="light">Light (white/gray)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Choose how footer colors are determined</p>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="footerText" data-testid="label-footer-text">Footer Text</Label>
                       <Input
