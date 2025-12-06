@@ -4,8 +4,8 @@ import { defaultTemplateSettings } from "@shared/schema";
 export type PostCardVariant = "standard" | "editorial" | "minimal" | "overlay" | "compact" | "featured" | "glass" | "gradient";
 export type HeaderVariant = "minimal" | "centered" | "split" | "magazine" | "transparent";
 export type FooterVariant = "minimal" | "standard" | "rich" | "centered";
-export type LayoutVariant = "grid" | "list" | "masonry" | "featured-grid" | "magazine" | "minimal-list" | "bento" | "bbc-news";
-export type PostDetailVariant = "standard" | "immersive" | "minimal" | "magazine" | "centered" | "wide";
+export type LayoutVariant = "grid" | "list" | "masonry" | "featured-grid" | "magazine" | "minimal-list" | "bento" | "bbc-news" | "forbis";
+export type PostDetailVariant = "standard" | "immersive" | "minimal" | "magazine" | "centered" | "wide" | "forbis";
 
 export interface ThemeLayoutConfig {
   homeLayout: LayoutVariant;
@@ -539,6 +539,98 @@ export const themeManifests: Record<string, ThemeManifest> = {
       footerColorMode: "dark",
     },
     features: ["BBC-Style Layout", "Asymmetric Grid", "Relative Timestamps", "Category Tags", "Breaking News"],
+  },
+
+  forbis: {
+    id: "forbis",
+    name: "Forbis",
+    description: "Premium business publication layout with Forbes-inspired 3-column grid, trending ticker, and elegant typography",
+    category: "business",
+    layout: {
+      homeLayout: "forbis",
+      gridColumns: { mobile: 1, tablet: 2, desktop: 3 },
+      showHeroSection: true,
+      heroStyle: "contained",
+      sidebarEnabled: true,
+      sidebarPosition: "right",
+      contentMaxWidth: "wide",
+      sectionSpacing: "compact",
+    },
+    cards: {
+      primaryCardStyle: "editorial",
+      secondaryCardStyle: "compact",
+      featuredCardStyle: "editorial",
+      showExcerpt: true,
+      excerptLength: 150,
+      showReadingTime: false,
+      showDate: false,
+      showCategory: true,
+      imageAspectRatio: "portrait",
+      hoverEffect: "none",
+    },
+    postDetail: {
+      variant: "forbis",
+      heroImageStyle: "none",
+      contentWidth: "medium",
+      showTableOfContents: false,
+      tocPosition: "right",
+      showRelatedPosts: true,
+      relatedPostsStyle: "list",
+      showAuthorBox: true,
+      showShareButtons: true,
+      typographyScale: "spacious",
+    },
+    header: {
+      variant: "centered",
+      sticky: true,
+      showSearch: true,
+      menuStyle: "horizontal",
+      logoPosition: "center",
+      ctaButton: false,
+      backgroundStyle: "solid",
+    },
+    footer: {
+      variant: "standard",
+      showNewsletter: true,
+      showSocialLinks: true,
+      showTagCloud: false,
+      columns: 4,
+    },
+    typography: {
+      headingWeight: "bold",
+      bodyLineHeight: "relaxed",
+      headingTracking: "tight",
+      titleSize: "xl",
+    },
+    animation: {
+      pageTransition: false,
+      cardEntrance: "fade",
+      hoverAnimations: false,
+      scrollAnimations: false,
+      transitionDuration: 150,
+    },
+    colors: {
+      primaryColor: "#000000",
+      secondaryColor: "#666666",
+      backgroundColor: "#ffffff",
+      textColor: "#1a1a1a",
+    },
+    defaultTemplateSettings: {
+      primaryColor: "#000000",
+      secondaryColor: "#666666",
+      backgroundColor: "#ffffff",
+      textColor: "#1a1a1a",
+      headingFont: "elegant",
+      bodyFont: "editorial",
+      cardStyle: "borderless",
+      postCardStyle: "editorial",
+      postCardHoverEffect: "none",
+      showFeaturedHero: false,
+      contentWidth: "wide",
+      headerStyle: "standard",
+      footerColorMode: "dark",
+    },
+    features: ["Forbes-Style Layout", "Trending Ticker", "Popular/Breaking Tabs", "Author Bylines", "Category Badges", "Numbered Lists"],
   },
 
   blog: {
