@@ -86,6 +86,8 @@ export function ThemeCardGrid({ site, posts, onPostClick, onTagClick, showPagina
         return <BentoLayout posts={paginatedPosts} onPostClick={onPostClick} manifest={manifest} templateClasses={templateClasses} />;
       case "bbc-news":
         return <BBCNewsLayout posts={paginatedPosts} onPostClick={onPostClick} onTagClick={onTagClick} manifest={manifest} templateClasses={templateClasses} />;
+      case "forbis":
+        return <ForbisLayout posts={paginatedPosts} onPostClick={onPostClick} onTagClick={onTagClick} manifest={manifest} templateClasses={templateClasses} />;
       default:
         return <GridLayout posts={paginatedPosts} onPostClick={onPostClick} manifest={manifest} templateClasses={templateClasses} />;
     }
@@ -800,6 +802,260 @@ function BBCNewsLayout({ posts, onPostClick, onTagClick, manifest, templateClass
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {gridPosts.map((post) => renderGridStory(post))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function ForbisLayout({ posts, onPostClick, onTagClick, manifest, templateClasses }: LayoutProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const [activeTab, setActiveTab] = useState<"popular" | "breaking">("popular");
+  
+  const heroPost = posts[0];
+  const leftSidebarPosts = posts.slice(1, 6);
+  const rightSidebarPosts = posts.slice(6, 10);
+  const additionalPosts = posts.slice(10);
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+  };
+  const itemAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
+  };
+
+  const renderCuratedItem = (text: string, index: number) => (
+    <motion.li
+      key={index}
+      variants={itemAnimation}
+      className="flex items-start gap-2 text-sm py-1"
+    >
+      <span className="text-foreground/60 mt-0.5">•</span>
+      <span className="hover:underline cursor-pointer" style={{ fontFamily: "var(--public-body-font)" }}>
+        {text}
+      </span>
+    </motion.li>
+  );
+
+  const renderNumberedArticle = (post: Post, index: number) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="flex items-start gap-3 py-3 border-b border-border/30 last:border-0 cursor-pointer group"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-numbered-${post.id}`}
+    >
+      <span 
+        className="text-2xl font-bold text-muted-foreground/40 min-w-[24px]"
+        style={{ fontFamily: "var(--public-heading-font)" }}
+      >
+        {index + 1}.
+      </span>
+      <div className="flex-1 min-w-0">
+        <h4 
+          className="text-sm font-semibold group-hover:underline decoration-1 underline-offset-2 line-clamp-2"
+          style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.3" }}
+          data-testid={`text-numbered-title-${post.id}`}
+        >
+          {post.title}
+        </h4>
+      </div>
+      {post.imageUrl && (
+        <div className="w-12 h-12 flex-shrink-0 overflow-hidden">
+          <img 
+            src={post.imageUrl} 
+            alt="" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+    </motion.article>
+  );
+
+  const renderHeroStory = (post: Post) => (
+    <motion.article
+      variants={itemAnimation}
+      className="group cursor-pointer"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-forbis-hero-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-[4/5] overflow-hidden mb-4">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      {post.tags[0] && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onTagClick?.(post.tags[0]); }}
+          className="text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:underline mb-2 block"
+          data-testid={`link-forbis-tag-${post.tags[0]}`}
+        >
+          {post.tags[0]}
+        </button>
+      )}
+      <h2 
+        className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 group-hover:underline decoration-2 underline-offset-4"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.15" }}
+        data-testid={`text-forbis-hero-title-${post.id}`}
+      >
+        {post.title}
+      </h2>
+      <p 
+        className="text-sm text-muted-foreground"
+        style={{ fontFamily: "var(--public-body-font)" }}
+      >
+        By <span className="text-foreground hover:underline font-medium">Staff Writer</span>, Forbes Staff
+      </p>
+    </motion.article>
+  );
+
+  const renderRightSidebarCard = (post: Post) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="group cursor-pointer pb-4 border-b border-border/30 last:border-0"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-forbis-sidebar-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-video overflow-hidden mb-2">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      {post.tags[0] && (
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+          {post.tags[0]}
+        </span>
+      )}
+      <h3 
+        className="text-sm font-bold group-hover:underline decoration-1 underline-offset-2 line-clamp-3 mb-1"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.25" }}
+        data-testid={`text-forbis-sidebar-title-${post.id}`}
+      >
+        {post.title}
+      </h3>
+      <p 
+        className="text-xs text-muted-foreground"
+        style={{ fontFamily: "var(--public-body-font)" }}
+      >
+        By <span className="text-foreground hover:underline">Staff Writer</span>, Forbes Staff
+      </p>
+    </motion.article>
+  );
+
+  const renderAdditionalCard = (post: Post) => (
+    <motion.article
+      key={post.id}
+      variants={itemAnimation}
+      className="group cursor-pointer"
+      onClick={() => onPostClick(post.slug)}
+      data-testid={`card-forbis-additional-${post.id}`}
+    >
+      {post.imageUrl && (
+        <div className="aspect-video overflow-hidden mb-2">
+          <img 
+            src={post.imageUrl} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      {post.tags[0] && (
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+          {post.tags[0]}
+        </span>
+      )}
+      <h3 
+        className="text-sm font-bold group-hover:underline decoration-1 underline-offset-2 line-clamp-2 mb-1"
+        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.25" }}
+      >
+        {post.title}
+      </h3>
+      {manifest.cards.showExcerpt && (
+        <p 
+          className="text-xs text-muted-foreground line-clamp-2 mb-1"
+          style={{ fontFamily: "var(--public-body-font)" }}
+        >
+          {stripMarkdown(post.content, 80)}
+        </p>
+      )}
+      <p 
+        className="text-xs text-muted-foreground"
+        style={{ fontFamily: "var(--public-body-font)" }}
+      >
+        By <span className="text-foreground hover:underline">Staff Writer</span>
+      </p>
+    </motion.article>
+  );
+
+  const curatedHeadlines = posts.slice(0, 3).map(p => p.title.slice(0, 60) + (p.title.length > 60 ? "..." : ""));
+
+  return (
+    <motion.div initial="hidden" animate="visible" variants={containerAnimation} className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-3 order-2 lg:order-1 space-y-6">
+          <div className="space-y-3">
+            <h3 
+              className="text-lg font-bold"
+              style={{ fontFamily: "var(--public-heading-font)" }}
+            >
+              Evening Rundown
+            </h3>
+            <ul className="space-y-1">
+              {curatedHeadlines.map((text, i) => renderCuratedItem(text, i))}
+            </ul>
+            <p className="text-xs text-muted-foreground italic">
+              The Rundown is generated by AI. <span className="hover:underline cursor-pointer">Learn More</span>.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-4 border-t border-border/40">
+            <div className="flex gap-4 border-b border-border/40">
+              <button
+                onClick={() => setActiveTab("popular")}
+                className={`pb-2 text-sm font-semibold transition-colors ${activeTab === "popular" ? "text-foreground border-b-2 border-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                data-testid="tab-popular"
+              >
+                Popular
+              </button>
+              <button
+                onClick={() => setActiveTab("breaking")}
+                className={`pb-2 text-sm font-semibold transition-colors ${activeTab === "breaking" ? "text-foreground border-b-2 border-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                data-testid="tab-breaking"
+              >
+                Breaking News
+              </button>
+            </div>
+            <div className="divide-y divide-border/20">
+              {leftSidebarPosts.slice(0, 4).map((post, index) => renderNumberedArticle(post, index))}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-6 order-1 lg:order-2">
+          {heroPost && renderHeroStory(heroPost)}
+        </div>
+
+        <div className="lg:col-span-3 order-3 space-y-4">
+          {rightSidebarPosts.map((post) => renderRightSidebarCard(post))}
+        </div>
+      </div>
+
+      {additionalPosts.length > 0 && (
+        <div className="pt-8 border-t border-border/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {additionalPosts.map((post) => renderAdditionalCard(post))}
           </div>
         </div>
       )}
