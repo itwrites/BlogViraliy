@@ -11,15 +11,56 @@ interface PublicFooterProps {
   mergedSettings?: TemplateSettings;
 }
 
+function getFooterColors(settings: TemplateSettings | null | undefined) {
+  const colorMode = settings?.footerColorMode || "custom";
+  const primaryColor = settings?.primaryColor || "#3b82f6";
+  const secondaryColor = settings?.secondaryColor || "#8b5cf6";
+  
+  switch (colorMode) {
+    case "primary":
+      return {
+        backgroundColor: primaryColor,
+        textColor: "#ffffff",
+        linkColor: "#ffffff",
+      };
+    case "secondary":
+      return {
+        backgroundColor: secondaryColor,
+        textColor: "#ffffff",
+        linkColor: "#ffffff",
+      };
+    case "dark":
+      return {
+        backgroundColor: "#0f172a",
+        textColor: "#94a3b8",
+        linkColor: "#f1f5f9",
+      };
+    case "light":
+      return {
+        backgroundColor: "#f8fafc",
+        textColor: "#475569",
+        linkColor: "#1e293b",
+      };
+    case "custom":
+    default:
+      return {
+        backgroundColor: settings?.footerBackgroundColor || "#1f2937",
+        textColor: settings?.footerTextColor || "#9ca3af",
+        linkColor: settings?.footerLinkColor || "#ffffff",
+      };
+  }
+}
+
 export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }: PublicFooterProps) {
   const settings = mergedSettings || site.templateSettings;
   const templateClasses = useTemplateClasses(settings);
   const prefersReducedMotion = useReducedMotion();
 
   const footerLayout = settings?.footerLayout || "columns";
-  const backgroundColor = settings?.footerBackgroundColor || "#1f2937";
-  const textColor = settings?.footerTextColor || "#9ca3af";
-  const linkColor = settings?.footerLinkColor || "#ffffff";
+  const footerColors = getFooterColors(settings);
+  const backgroundColor = footerColors.backgroundColor;
+  const textColor = footerColors.textColor;
+  const linkColor = footerColors.linkColor;
   const showLogo = settings?.footerShowLogo !== false;
   const footerLogoUrl = settings?.footerLogoUrl || "";
   const footerLogoInvertColors = settings?.footerLogoInvertColors || false;

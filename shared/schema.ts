@@ -63,7 +63,12 @@ export const templateSettingsSchema = z.object({
   fontScale: z.enum(["compact", "normal", "spacious"]).default("normal"),
   headerStyle: z.enum(["minimal", "standard", "full"]).default("standard"),
   cardStyle: z.enum(["rounded", "sharp", "borderless"]).default("rounded"),
-  postCardStyle: z.enum(["standard", "editorial", "minimal", "overlay"]).default("standard"), // Post card design style
+  postCardStyle: z.enum(["standard", "editorial", "minimal", "overlay", "compact", "featured", "glass", "gradient"]).default("standard"), // Post card design style
+  postCardImageRatio: z.enum(["square", "landscape", "portrait", "wide"]).default("landscape"), // Card image aspect ratio
+  postCardShowExcerpt: z.boolean().default(true), // Show/hide excerpt on cards
+  postCardShowMeta: z.boolean().default(true), // Show/hide date/author metadata
+  postCardShowTags: z.boolean().default(true), // Show/hide tags on cards
+  postCardHoverEffect: z.enum(["none", "lift", "glow", "zoom", "tilt"]).default("lift"), // Hover animation style
   contentWidth: z.enum(["narrow", "medium", "wide"]).default("medium"),
   showFeaturedHero: z.boolean().default(true),
   showSearch: z.boolean().default(true),
@@ -94,9 +99,11 @@ export const templateSettingsSchema = z.object({
   gdprBannerTextColor: z.string().default("#ffffff"),
   // Footer settings
   footerLayout: z.enum(["simple", "columns", "centered"]).default("columns"),
+  footerColorMode: z.enum(["custom", "primary", "secondary", "dark", "light"]).default("custom"), // Use theme colors or custom
   footerBackgroundColor: z.string().default("#1f2937"),
   footerTextColor: z.string().default("#9ca3af"),
   footerLinkColor: z.string().default("#ffffff"),
+  footerAccentColor: z.string().default(""), // Optional accent color for footer elements
   footerShowLogo: z.boolean().default(true),
   footerLogoUrl: z.string().default(""), // Custom logo URL for footer (empty = use site logo)
   footerLogoInvertColors: z.boolean().default(false), // Invert/flip logo colors for dark backgrounds
@@ -130,6 +137,11 @@ export const defaultTemplateSettings: TemplateSettings = {
   headerStyle: "standard",
   cardStyle: "rounded",
   postCardStyle: "standard",
+  postCardImageRatio: "landscape",
+  postCardShowExcerpt: true,
+  postCardShowMeta: true,
+  postCardShowTags: true,
+  postCardHoverEffect: "lift",
   contentWidth: "medium",
   showFeaturedHero: true,
   showSearch: true,
@@ -160,9 +172,11 @@ export const defaultTemplateSettings: TemplateSettings = {
   gdprBannerTextColor: "#ffffff",
   // Footer settings
   footerLayout: "columns",
+  footerColorMode: "custom",
   footerBackgroundColor: "#1f2937",
   footerTextColor: "#9ca3af",
   footerLinkColor: "#ffffff",
+  footerAccentColor: "",
   footerShowLogo: true,
   footerLogoUrl: "",
   footerLogoInvertColors: false,

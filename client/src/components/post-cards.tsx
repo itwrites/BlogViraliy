@@ -3,7 +3,7 @@ import { Clock, ArrowRight } from "lucide-react";
 import type { Post } from "@shared/schema";
 import { stripMarkdown } from "@/lib/strip-markdown";
 
-type PostCardStyle = "standard" | "editorial" | "minimal" | "overlay" | "compact";
+type PostCardStyle = "standard" | "editorial" | "minimal" | "overlay" | "compact" | "featured" | "glass" | "gradient";
 
 interface PostCardProps {
   post: Post;
@@ -51,6 +51,12 @@ export function PostCard({ post, onClick, style, cardClasses, variants, index = 
       return <OverlayCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     case "compact":
       return <CompactCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
+    case "featured":
+      return <FeaturedCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
+    case "glass":
+      return <GlassCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
+    case "gradient":
+      return <GradientCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
     default:
       return <StandardCard post={post} onClick={onClick} cardClasses={classes} variants={variants} />;
   }
@@ -428,6 +434,250 @@ function CompactCard({
         >
           {post.title}
         </h3>
+      </div>
+    </motion.article>
+  );
+}
+
+function FeaturedCard({ 
+  post, 
+  onClick, 
+  cardClasses,
+  variants 
+}: { 
+  post: Post; 
+  onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
+  variants?: Variants;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <motion.article 
+      variants={variants}
+      className={`group cursor-pointer ${cardClasses.container} ${cardClasses.hover} overflow-hidden`}
+      onClick={() => onClick(post.slug)}
+      data-testid={`card-post-${post.id}`}
+    >
+      <div className="relative aspect-[16/10] overflow-hidden">
+        {post.imageUrl ? (
+          <motion.img 
+            src={post.imageUrl} 
+            alt={post.title} 
+            className="absolute inset-0 w-full h-full object-cover"
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.03 }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.5, ease: "easeOut" }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-muted" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        
+        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 text-white">
+          <div className="flex items-center gap-3 mb-3 text-xs">
+            {post.tags[0] && (
+              <span 
+                className="font-semibold uppercase tracking-[0.12em] bg-primary/90 px-2 py-1 rounded"
+                data-testid={`badge-post-category-${post.id}`}
+              >
+                {post.tags[0]}
+              </span>
+            )}
+            <span className="flex items-center gap-1 text-white/80">
+              <Clock className="h-3 w-3" />
+              {getReadingTime(post.content)} min
+            </span>
+          </div>
+
+          <h3 
+            className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight tracking-tight line-clamp-2 mb-2"
+            style={{ fontFamily: "var(--public-heading-font)" }}
+            data-testid={`text-post-title-${post.id}`}
+          >
+            {post.title}
+          </h3>
+
+          <p 
+            className="text-white/80 text-sm leading-relaxed line-clamp-2 hidden sm:block"
+            data-testid={`text-post-excerpt-${post.id}`}
+          >
+            {stripMarkdown(post.content, 120)}
+          </p>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+function GlassCard({ 
+  post, 
+  onClick, 
+  cardClasses,
+  variants 
+}: { 
+  post: Post; 
+  onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
+  variants?: Variants;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <motion.article 
+      variants={variants}
+      className={`group cursor-pointer relative overflow-hidden rounded-2xl backdrop-blur-sm bg-white/10 border border-white/20 shadow-xl ${cardClasses.hover}`}
+      onClick={() => onClick(post.slug)}
+      data-testid={`card-post-${post.id}`}
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+      }}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        {post.imageUrl ? (
+          <motion.img 
+            src={post.imageUrl} 
+            alt={post.title} 
+            className="absolute inset-0 w-full h-full object-cover"
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.05, filter: "brightness(1.1)" }}
+            transition={prefersReducedMotion ? undefined : { duration: 0.4, ease: "easeOut" }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-pink-500/20 to-cyan-500/30" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      </div>
+
+      <div className="relative p-5 backdrop-blur-md bg-white/5">
+        <div className="flex items-center gap-3 text-xs text-white/70 mb-3">
+          {post.tags[0] && (
+            <>
+              <span 
+                className="font-semibold uppercase tracking-[0.12em] text-white/90 bg-white/20 px-2 py-0.5 rounded-full"
+                data-testid={`badge-post-category-${post.id}`}
+              >
+                {post.tags[0]}
+              </span>
+              <span className="text-white/40">·</span>
+            </>
+          )}
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {getReadingTime(post.content)} min
+          </span>
+        </div>
+
+        <h3 
+          className="text-xl font-semibold leading-snug tracking-tight line-clamp-2 text-white group-hover:text-white/90 transition-colors duration-300"
+          style={{ fontFamily: "var(--public-heading-font)" }}
+          data-testid={`text-post-title-${post.id}`}
+        >
+          {post.title}
+        </h3>
+
+        <p 
+          className="text-white/60 text-sm leading-relaxed line-clamp-2 mt-2"
+          data-testid={`text-post-excerpt-${post.id}`}
+        >
+          {stripMarkdown(post.content, 100)}
+        </p>
+
+        <time 
+          className="block text-xs text-white/50 pt-3"
+          data-testid={`text-post-date-${post.id}`}
+        >
+          {formatDate(post.createdAt)}
+        </time>
+      </div>
+    </motion.article>
+  );
+}
+
+function GradientCard({ 
+  post, 
+  onClick, 
+  cardClasses,
+  variants 
+}: { 
+  post: Post; 
+  onClick: (slug: string) => void;
+  cardClasses: { container: string; image: string; hover: string };
+  variants?: Variants;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  const gradients = [
+    "from-violet-600 via-purple-600 to-indigo-600",
+    "from-cyan-500 via-blue-500 to-purple-500",
+    "from-rose-500 via-pink-500 to-fuchsia-500",
+    "from-amber-500 via-orange-500 to-red-500",
+    "from-emerald-500 via-teal-500 to-cyan-500",
+  ];
+  
+  const gradientIndex = post.title.length % gradients.length;
+  const gradient = gradients[gradientIndex];
+
+  return (
+    <motion.article 
+      variants={variants}
+      className={`group cursor-pointer relative overflow-hidden rounded-xl ${cardClasses.hover}`}
+      onClick={() => onClick(post.slug)}
+      data-testid={`card-post-${post.id}`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-90`} />
+      
+      {post.imageUrl && (
+        <motion.img 
+          src={post.imageUrl} 
+          alt={post.title} 
+          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40"
+          whileHover={prefersReducedMotion ? undefined : { scale: 1.1 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.5, ease: "easeOut" }}
+        />
+      )}
+
+      <div className="relative p-6 sm:p-8 min-h-[280px] flex flex-col justify-end text-white">
+        <div className="flex items-center gap-3 text-xs text-white/80 mb-3">
+          {post.tags[0] && (
+            <>
+              <span 
+                className="font-semibold uppercase tracking-[0.12em] bg-white/20 backdrop-blur-sm px-2 py-1 rounded"
+                data-testid={`badge-post-category-${post.id}`}
+              >
+                {post.tags[0]}
+              </span>
+              <span className="text-white/50">·</span>
+            </>
+          )}
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {getReadingTime(post.content)} min
+          </span>
+        </div>
+
+        <h3 
+          className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight line-clamp-3 mb-3 drop-shadow-sm"
+          style={{ fontFamily: "var(--public-heading-font)" }}
+          data-testid={`text-post-title-${post.id}`}
+        >
+          {post.title}
+        </h3>
+
+        <p 
+          className="text-white/80 text-sm leading-relaxed line-clamp-2"
+          data-testid={`text-post-excerpt-${post.id}`}
+        >
+          {stripMarkdown(post.content, 100)}
+        </p>
+
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
+          <time 
+            className="text-xs text-white/60"
+            data-testid={`text-post-date-${post.id}`}
+          >
+            {formatDate(post.createdAt)}
+          </time>
+          <ArrowRight className="h-5 w-5 text-white/60 group-hover:translate-x-1 group-hover:text-white transition-all duration-300" />
+        </div>
       </div>
     </motion.article>
   );
