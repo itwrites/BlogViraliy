@@ -31,6 +31,11 @@ function formatRelativeTime(date: Date | string): string {
   const now = new Date();
   const then = new Date(date);
   const diffMs = now.getTime() - then.getTime();
+  
+  if (diffMs < 0) {
+    return formatDate(date);
+  }
+  
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
