@@ -14,13 +14,7 @@ import UserManagement from "@/pages/user-management";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import SiteNotFound from "@/pages/site-not-found";
-import { PublicBlogContent } from "@/pages/public-blog";
-import { PublicNewsContent } from "@/pages/public-news";
-import { PublicMagazineContent } from "@/pages/public-magazine";
-import { PublicPortfolioContent } from "@/pages/public-portfolio";
-import { PublicRestaurantContent } from "@/pages/public-restaurant";
-import { PublicCryptoContent } from "@/pages/public-crypto";
-import { PublicNovaPressContent } from "@/pages/public-novapress";
+import { ThemedHomePage } from "@/components/themed-home-page";
 import { PublicPostContent } from "@/pages/public-post";
 import { PublicTagArchiveContent } from "@/pages/public-tag-archive";
 import { PublicTopicGroupContent } from "@/pages/public-topic-group";
@@ -43,23 +37,11 @@ function AdminRouter() {
   );
 }
 
-const layoutComponents = {
-  blog: PublicBlogContent,
-  news: PublicNewsContent,
-  magazine: PublicMagazineContent,
-  novapress: PublicNovaPressContent,
-  portfolio: PublicPortfolioContent,
-  restaurant: PublicRestaurantContent,
-  crypto: PublicCryptoContent,
-};
-
 const PublicRoutes = memo(function PublicRoutes({ site }: { site: Site }) {
-  const LayoutComponent = layoutComponents[site.siteType as keyof typeof layoutComponents] || PublicBlogContent;
-  
   return (
     <Switch>
       <Route path="/">
-        <LayoutComponent site={site} />
+        <ThemedHomePage site={site} />
       </Route>
       <Route path="/post/:slug">
         {(params) => <PublicPostContent site={site} slug={params.slug} />}
