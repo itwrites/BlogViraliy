@@ -31,6 +31,8 @@ export function getBrowserName(userAgent: string): string {
 // Free geolocation API lookup (ip-api.com - 45 requests per minute free tier)
 // Returns country code or "Unknown"
 export async function getCountryFromIP(ip: string): Promise<string> {
+  console.log(`[GeoIP] Looking up country for IP: ${ip}`);
+  
   // Skip private/local IPs
   if (
     ip === "127.0.0.1" || 
@@ -40,6 +42,7 @@ export async function getCountryFromIP(ip: string): Promise<string> {
     ip.startsWith("172.") ||
     ip === "localhost"
   ) {
+    console.log(`[GeoIP] Skipping private/local IP: ${ip}`);
     return "Local";
   }
   
@@ -51,16 +54,19 @@ export async function getCountryFromIP(ip: string): Promise<string> {
     });
     
     if (!response.ok) {
+      console.log(`[GeoIP] API returned non-OK status: ${response.status}`);
       return "Unknown";
     }
     
     const data = await response.json();
+    console.log(`[GeoIP] API response for ${ip}:`, data);
     if (data.status === "success" && data.countryCode) {
       return data.countryCode;
     }
     return "Unknown";
   } catch (error) {
     // Fail silently - geolocation is not critical
+    console.log(`[GeoIP] Error looking up IP ${ip}:`, error);
     return "Unknown";
   }
 }
