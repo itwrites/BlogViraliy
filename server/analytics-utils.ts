@@ -73,6 +73,20 @@ export async function getCountryFromIP(ip: string): Promise<string> {
 
 // Get client IP from request (handles proxies)
 export function getClientIP(headers: Record<string, string | string[] | undefined>): string {
+  // Check for custom BV header first (set by nginx reverse proxy with real visitor IP)
+  const bvVisitorIP = headers["x-bv-visitor-ip"];
+  if (bvVisitorIP) {
+    const ip = typeof bvVisitorIP === "string" ? bvVisitorIP : bvVisitorIP[0];
+    if (ip) return ip.trim();
+  }
+  
+  // X-Real-IP is commonly set by nginx
+  const realIP = headers["x-real-ip"];
+  if (realIP) {
+    const ip = typeof realIP === "string" ? realIP : realIP[0];
+    if (ip) return ip.trim();
+  }
+  
   // X-Forwarded-For can contain multiple IPs, first one is the client
   const forwardedFor = headers["x-forwarded-for"];
   if (forwardedFor) {
@@ -80,12 +94,6 @@ export function getClientIP(headers: Record<string, string | string[] | undefine
       ? forwardedFor.split(",").map(ip => ip.trim())
       : forwardedFor;
     return ips[0] || "Unknown";
-  }
-  
-  // Try other common headers
-  const realIP = headers["x-real-ip"];
-  if (realIP) {
-    return typeof realIP === "string" ? realIP : realIP[0] || "Unknown";
   }
   
   return "Unknown";

@@ -707,9 +707,10 @@ function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePost
   const readingTime = estimateReadingTime(post.content);
   const basePath = site.basePath || "";
 
-  const handleTagClick = (tag: string) => setLocation(`${basePath}/tag/${encodeURIComponent(tag)}`);
-  const handleBack = () => setLocation(basePath || "/");
-  const handleRelatedClick = (slug: string) => setLocation(`${basePath}/${slug}`);
+  // Router already has basePath as base, so use relative paths
+  const handleTagClick = (tag: string) => setLocation(`/tag/${encodeURIComponent(tag)}`);
+  const handleBack = () => setLocation("/");
+  const handleRelatedClick = (slug: string) => setLocation(`/post/${slug}`);
 
   const rewriteUrl = (url: string) => {
     if (!basePath) return url;

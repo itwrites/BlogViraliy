@@ -33,7 +33,8 @@ export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupPro
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`${basePath}/post/${slug}`);
+    // Router already has basePath as base, so use relative path
+    setLocation(`/post/${slug}`);
   };
 
   const prefersReducedMotion = useReducedMotion();
