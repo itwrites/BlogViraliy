@@ -31,7 +31,28 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
   useEffect(() => {
     if (post && !viewTracked.current) {
       viewTracked.current = true;
-      apiRequest("POST", `/bv_api/posts/${slug}/view`, { siteId: site.id }).catch(() => {
+      
+      // Try to get visitor IP from browser using ipify.org as fallback
+      // This helps when nginx headers aren't passing through correctly
+      const trackView = async () => {
+        let visitorIP: string | undefined;
+        try {
+          const ipResponse = await fetch("https://api.ipify.org?format=json", { 
+            signal: AbortSignal.timeout(2000) 
+          });
+          const ipData = await ipResponse.json();
+          visitorIP = ipData.ip;
+        } catch {
+          // ipify failed, continue without browser IP
+        }
+        
+        await apiRequest("POST", `/bv_api/posts/${slug}/view`, { 
+          siteId: site.id,
+          visitorIP 
+        });
+      };
+      
+      trackView().catch(() => {
         // Silently fail - view tracking is non-critical
       });
     }

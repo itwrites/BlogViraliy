@@ -1414,7 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Protected by: rate limiting, cookie deduplication, and IP+slug fingerprint cache
   app.post("/api/posts/:slug/view", viewTrackingLimiter, async (req: Request, res: Response) => {
     try {
-      const { siteId } = req.body;
+      const { siteId, visitorIP } = req.body;
       if (!siteId) {
         return res.status(400).json({ error: "siteId required" });
       }
@@ -1423,9 +1423,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get client IP for fingerprinting
       const { getDeviceType, getBrowserName, getCountryFromIP, getClientIP } = await import("./analytics-utils");
-      const clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
-      console.log(`[ViewTrack] Raw X-Forwarded-For: ${req.headers["x-forwarded-for"]}`);
-      console.log(`[ViewTrack] Extracted clientIP: ${clientIP}`);
+      
+      // Log ALL relevant headers for debugging
+      console.log(`[ViewTrack] === Headers Debug ===`);
+      console.log(`[ViewTrack] X-Real-IP: ${req.headers["x-real-ip"]}`);
+      console.log(`[ViewTrack] X-BV-Visitor-IP: ${req.headers["x-bv-visitor-ip"]}`);
+      console.log(`[ViewTrack] X-Forwarded-For: ${req.headers["x-forwarded-for"]}`);
+      console.log(`[ViewTrack] Browser-sent visitorIP: ${visitorIP}`);
+      
+      // Use browser-sent IP as fallback if server headers don't have it
+      let clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
+      if ((clientIP === "Unknown" || !clientIP) && visitorIP) {
+        clientIP = visitorIP;
+        console.log(`[ViewTrack] Using browser-sent visitorIP: ${clientIP}`);
+      }
+      console.log(`[ViewTrack] Final clientIP: ${clientIP}`);
       
       // Create fingerprint from IP + siteId + slug
       const fingerprint = `${clientIP}:${siteId}:${slug}`;
