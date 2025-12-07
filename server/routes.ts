@@ -2,7 +2,9 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User } from "@shared/schema";
@@ -10,6 +12,33 @@ import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 import { normalizeBasePath } from "./utils";
 import { rewriteHtmlForBasePath } from "./html-rewriter";
+
+// View tracking deduplication cache (IP+slug -> timestamp)
+// Used to prevent the same visitor from counting multiple views
+const viewCache = new Map<string, number>();
+const VIEW_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Clean up old entries periodically (every hour)
+setInterval(() => {
+  const now = Date.now();
+  const entries = Array.from(viewCache.entries());
+  for (const [key, timestamp] of entries) {
+    if (now - timestamp > VIEW_COOLDOWN_MS) {
+      viewCache.delete(key);
+    }
+  }
+}, 60 * 60 * 1000);
+
+// Rate limiter for view tracking endpoint
+const viewTrackingLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // Max 30 view requests per IP per minute
+  message: { error: "Too many requests, please slow down" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Use default key generator which handles IPv6 properly
+  // The X-Forwarded-For is automatically used when trust proxy is set
+});
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
@@ -34,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === "production";
   
   app.set("trust proxy", 1);
+  
+  // Cookie parser for reading view tracking cookies
+  app.use(cookieParser());
   
   // PostgreSQL session store for persistent sessions
   const PgSession = connectPgSimple(session);
@@ -1379,28 +1411,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // Track a post view (public endpoint for the frontend)
-  app.post("/api/posts/:slug/view", async (req: Request, res: Response) => {
+  // Protected by: rate limiting, cookie deduplication, and IP+slug fingerprint cache
+  app.post("/api/posts/:slug/view", viewTrackingLimiter, async (req: Request, res: Response) => {
     try {
       const { siteId } = req.body;
       if (!siteId) {
         return res.status(400).json({ error: "siteId required" });
       }
-      const post = await storage.getPostBySlug(siteId, req.params.slug);
+      
+      const slug = req.params.slug;
+      
+      // Get client IP for fingerprinting
+      const { getDeviceType, getBrowserName, getCountryFromIP, getClientIP } = await import("./analytics-utils");
+      const clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
+      
+      // Create fingerprint from IP + siteId + slug
+      const fingerprint = `${clientIP}:${siteId}:${slug}`;
+      
+      // Check cookie-based deduplication (browser-level)
+      const viewedCookie = req.cookies?.[`viewed_${siteId}_${slug}`];
+      
+      // Check server-side cache (IP-level, survives cookie clearing)
+      const lastViewTime = viewCache.get(fingerprint);
+      const now = Date.now();
+      
+      // If we've seen this view recently (cookie OR cache), skip counting
+      if (viewedCookie || (lastViewTime && now - lastViewTime < VIEW_COOLDOWN_MS)) {
+        return res.json({ success: true, counted: false, reason: "duplicate" });
+      }
+      
+      // Verify post exists before counting
+      const post = await storage.getPostBySlug(siteId, slug);
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
+      
+      // Mark as viewed in server-side cache
+      viewCache.set(fingerprint, now);
+      
+      // Set cookie to prevent duplicate counting from same browser (24 hour expiry)
+      res.cookie(`viewed_${siteId}_${slug}`, "1", {
+        maxAge: VIEW_COOLDOWN_MS,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
       
       // Increment legacy post view count
       await storage.incrementPostViewCount(post.id);
       
       // Parse user-agent for device and browser info
-      const { getDeviceType, getBrowserName, getCountryFromIP, getClientIP } = await import("./analytics-utils");
       const userAgent = req.headers["user-agent"] || "";
       const deviceType = getDeviceType(userAgent);
       const browserName = getBrowserName(userAgent);
       
       // Get country from IP (async, non-blocking - will use "Unknown" if fails)
-      const clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
       let country = "Unknown";
       try {
         country = await getCountryFromIP(clientIP);
@@ -1411,7 +1476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Record in daily stats (aggregated)
       await storage.recordPageView(siteId, post.slug, deviceType, browserName, country);
       
-      res.json({ success: true });
+      res.json({ success: true, counted: true });
     } catch (error) {
       console.error("Error tracking view:", error);
       res.status(500).json({ error: "Failed to track view" });
