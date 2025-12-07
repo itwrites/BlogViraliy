@@ -31,7 +31,7 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
   useEffect(() => {
     if (post && !viewTracked.current) {
       viewTracked.current = true;
-      apiRequest("POST", `/api/posts/${slug}/view`, { siteId: site.id }).catch(() => {
+      apiRequest("POST", `/bv_api/posts/${slug}/view`, { siteId: site.id }).catch(() => {
         // Silently fail - view tracking is non-critical
       });
     }
