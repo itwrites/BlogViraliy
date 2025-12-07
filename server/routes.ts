@@ -1442,6 +1442,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create fingerprint from IP + siteId + slug
       const fingerprint = `${clientIP}:${siteId}:${slug}`;
       
+      // Check if this is a new unique visitor for today (IP + siteId + date)
+      const today = new Date().toISOString().split("T")[0];
+      const uniqueVisitorKey = `unique:${clientIP}:${siteId}:${today}`;
+      const isNewUniqueVisitor = !viewCache.has(uniqueVisitorKey);
+      
       // Check cookie-based deduplication (browser-level)
       const viewedCookie = req.cookies?.[`viewed_${siteId}_${slug}`];
       
@@ -1462,6 +1467,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Mark as viewed in server-side cache
       viewCache.set(fingerprint, now);
+      
+      // Mark unique visitor for today (to avoid double-counting)
+      if (isNewUniqueVisitor) {
+        viewCache.set(uniqueVisitorKey, now);
+      }
       
       // Set cookie to prevent duplicate counting from same browser (24 hour expiry)
       res.cookie(`viewed_${siteId}_${slug}`, "1", {
@@ -1490,8 +1500,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Record in daily stats (aggregated)
-      console.log(`[ViewTrack] Recording view: siteId=${siteId}, slug=${post.slug}, device=${deviceType}, browser=${browserName}, country=${country}`);
-      await storage.recordPageView(siteId, post.slug, deviceType, browserName, country);
+      console.log(`[ViewTrack] Recording view: siteId=${siteId}, slug=${post.slug}, device=${deviceType}, browser=${browserName}, country=${country}, isNewUniqueVisitor=${isNewUniqueVisitor}`);
+      await storage.recordPageView(siteId, post.slug, deviceType, browserName, country, isNewUniqueVisitor);
       
       res.json({ success: true, counted: true });
     } catch (error) {

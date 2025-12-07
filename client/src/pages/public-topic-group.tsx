@@ -6,6 +6,7 @@ import { Layers, FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { PostCard } from "@/components/post-cards";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface PublicTopicGroupProps {
   site: Site;
@@ -13,9 +14,269 @@ interface PublicTopicGroupProps {
 }
 
 export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupProps) {
+  const templateSettings = site.templateSettings as any;
+  const template = templateSettings?.template || "blog";
+  
+  if (template === "forbis") {
+    return <ForbisTopicGroup site={site} groupSlug={groupSlug} />;
+  }
+  
+  return <StandardTopicGroup site={site} groupSlug={groupSlug} />;
+}
+
+function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
+  const [, setLocation] = useLocation();
+  const prefersReducedMotion = useReducedMotion();
+
+  const { data: menuItems } = useQuery<SiteMenuItem[]>({
+    queryKey: ["/api/sites", site.id, "menu-items"],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const menuItem = menuItems?.find(item => item.type === "tag_group" && item.groupSlug === groupSlug);
+  const tagSlugs = menuItem?.tagSlugs || [];
+  const groupLabel = menuItem?.label || groupSlug;
+
+  const { data: posts, isLoading } = useQuery<Post[]>({
+    queryKey: ["/api/public/sites", site.id, "posts-by-tags", tagSlugs.join(",")],
+    enabled: tagSlugs.length > 0,
+  });
+
+  const handlePostClick = (slug: string) => {
+    setLocation(`/post/${slug}`);
+  };
+
+  const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+  };
+  
+  const itemAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
+  };
+
+  const heroPost = posts?.[0];
+  const sidePosts = posts?.slice(1, 5) || [];
+  const gridPosts = posts?.slice(5) || [];
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+            animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.3 }}
+          >
+            <h1 
+              className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight"
+              style={{ fontFamily: "var(--public-heading-font)" }}
+              data-testid="text-group-name"
+            >
+              {groupLabel}
+            </h1>
+            {tagSlugs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {tagSlugs.map((tag) => (
+                  <span 
+                    key={tag} 
+                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    data-testid={`badge-group-tag-${tag}`}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-muted-foreground mt-2" data-testid="text-post-count">
+              {isLoading ? "Loading..." : `${posts?.length || 0} articles`}
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-7">
+              <div className="h-96 bg-muted animate-pulse" />
+            </div>
+            <div className="lg:col-span-5 space-y-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-muted animate-pulse" />
+              ))}
+            </div>
+          </div>
+        ) : posts && posts.length > 0 ? (
+          <motion.div
+            initial={prefersReducedMotion ? false : "hidden"}
+            animate={prefersReducedMotion ? false : "visible"}
+            variants={containerAnimation}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+              {heroPost && (
+                <motion.article
+                  variants={itemAnimation}
+                  className="lg:col-span-7 group cursor-pointer"
+                  onClick={() => handlePostClick(heroPost.slug)}
+                  data-testid={`card-forbis-hero-${heroPost.id}`}
+                >
+                  {heroPost.imageUrl && (
+                    <div className="aspect-[4/3] overflow-hidden mb-4">
+                      <img 
+                        src={heroPost.imageUrl} 
+                        alt={heroPost.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <h2 
+                    className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 group-hover:underline decoration-2 underline-offset-4"
+                    style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.15" }}
+                    data-testid={`text-forbis-hero-title-${heroPost.id}`}
+                  >
+                    {heroPost.title}
+                  </h2>
+                  {(heroPost as any).authorName && (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        {(heroPost as any).authorAvatarUrl && <AvatarImage src={(heroPost as any).authorAvatarUrl} />}
+                        <AvatarFallback className="text-[10px]">{((heroPost as any).authorName || "A").charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <p className="text-sm text-muted-foreground" style={{ fontFamily: "var(--public-body-font)" }}>
+                        By <span className="text-foreground font-medium">{(heroPost as any).authorName}</span>
+                      </p>
+                    </div>
+                  )}
+                </motion.article>
+              )}
+
+              <div className="lg:col-span-5">
+                <div className="divide-y divide-border/30">
+                  {sidePosts.map((post, index) => (
+                    <motion.article
+                      key={post.id}
+                      variants={itemAnimation}
+                      className="flex items-start gap-4 py-4 first:pt-0 cursor-pointer group"
+                      onClick={() => handlePostClick(post.slug)}
+                      data-testid={`card-forbis-sidebar-${post.id}`}
+                    >
+                      <span 
+                        className="text-2xl font-bold text-muted-foreground/40 min-w-[24px]"
+                        style={{ fontFamily: "var(--public-heading-font)" }}
+                      >
+                        {index + 2}.
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 
+                          className="text-base font-bold group-hover:underline decoration-1 underline-offset-2 line-clamp-2 mb-1"
+                          style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.3" }}
+                          data-testid={`text-forbis-sidebar-title-${post.id}`}
+                        >
+                          {post.title}
+                        </h3>
+                        {(post as any).authorName && (
+                          <p className="text-xs text-muted-foreground">
+                            By {(post as any).authorName}
+                          </p>
+                        )}
+                      </div>
+                      {post.imageUrl && (
+                        <div className="w-20 h-16 flex-shrink-0 overflow-hidden">
+                          <img 
+                            src={post.imageUrl} 
+                            alt="" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </motion.article>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {gridPosts.length > 0 && (
+              <div className="pt-8 border-t border-border/50">
+                <h3 
+                  className="text-lg font-bold mb-6 uppercase tracking-wide"
+                  style={{ fontFamily: "var(--public-heading-font)" }}
+                >
+                  More in {groupLabel}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {gridPosts.map((post) => (
+                    <motion.article
+                      key={post.id}
+                      variants={itemAnimation}
+                      className="group cursor-pointer"
+                      onClick={() => handlePostClick(post.slug)}
+                      data-testid={`card-forbis-grid-${post.id}`}
+                    >
+                      {post.imageUrl && (
+                        <div className="aspect-video overflow-hidden mb-3">
+                          <img 
+                            src={post.imageUrl} 
+                            alt={post.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <h4 
+                        className="text-sm font-bold group-hover:underline decoration-1 underline-offset-2 line-clamp-3"
+                        style={{ fontFamily: "var(--public-heading-font)", lineHeight: "1.3" }}
+                      >
+                        {post.title}
+                      </h4>
+                      {(post as any).authorName && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          By {(post as any).authorName}
+                        </p>
+                      )}
+                    </motion.article>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        ) : menuItem ? (
+          <motion.div 
+            className="text-center py-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--public-heading-font)" }}>
+              No articles found
+            </h2>
+            <p className="text-muted-foreground">
+              There are no articles in this topic group yet
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div 
+            className="text-center py-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--public-heading-font)" }}>
+              Topic not found
+            </h2>
+            <p className="text-muted-foreground">
+              This topic group doesn't exist
+            </p>
+          </motion.div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
-  const basePath = site.basePath || "";
   const postCardStyle = templateClasses.postCardStyle || "standard";
 
   const { data: menuItems } = useQuery<SiteMenuItem[]>({
@@ -33,7 +294,6 @@ export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupPro
   });
 
   const handlePostClick = (slug: string) => {
-    // Router already has basePath as base, so use relative path
     setLocation(`/post/${slug}`);
   };
 

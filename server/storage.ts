@@ -168,7 +168,7 @@ export interface IStorage {
   getDailyStats(siteId: string, date: string): Promise<SiteDailyStats | undefined>;
   getDailyStatsRange(siteId: string, startDate: string, endDate: string): Promise<SiteDailyStats[]>;
   upsertDailyStats(siteId: string, date: string, updates: Partial<InsertSiteDailyStats>): Promise<SiteDailyStats>;
-  recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string): Promise<void>;
+  recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string, isNewUniqueVisitor?: boolean): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -993,13 +993,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string): Promise<void> {
+  async recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string, isNewUniqueVisitor: boolean = true): Promise<void> {
     const today = new Date().toISOString().split("T")[0];
     const existing = await this.getDailyStats(siteId, today);
     
     if (existing) {
       // Update existing stats with incremented values
       const newViews = existing.views + 1;
+      const newUniqueVisitors = isNewUniqueVisitor ? existing.uniqueVisitors + 1 : existing.uniqueVisitors;
       const deviceBreakdown = existing.deviceBreakdown || {};
       const browserBreakdown = existing.browserBreakdown || {};
       const countryBreakdown = existing.countryBreakdown || {};
@@ -1014,6 +1015,7 @@ export class DatabaseStorage implements IStorage {
         .update(siteDailyStats)
         .set({
           views: newViews,
+          uniqueVisitors: newUniqueVisitors,
           deviceBreakdown,
           browserBreakdown,
           countryBreakdown,
