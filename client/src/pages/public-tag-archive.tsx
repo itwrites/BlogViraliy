@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tag, FileText } from "lucide-react";
-import { stripMarkdown } from "@/lib/strip-markdown";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { motion, useReducedMotion, Variants } from "framer-motion";
+import { PostCard } from "@/components/post-cards";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -17,14 +15,15 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
   const [, setLocation] = useLocation();
   const decodedTag = decodeURIComponent(tag || "");
   const templateClasses = useTemplateClasses(site.templateSettings);
-  const cardStyle = templateClasses.cardStyle;
+  const basePath = site.basePath || "";
+  const postCardStyle = templateClasses.postCardStyle || "standard";
 
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ["/api/public/sites", site.id, "posts-by-tag", decodedTag],
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(`${basePath}/post/${slug}`);
   };
 
   const prefersReducedMotion = useReducedMotion();
@@ -44,6 +43,12 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
       y: 0,
       transition: { duration: 0.5, ease: "easeOut" }
     },
+  };
+
+  const cardClasses = {
+    container: `bg-card ${templateClasses.cardStyle.simple}`,
+    image: templateClasses.cardStyle.radius || "rounded-t-lg",
+    hover: "hover:shadow-md transition-shadow duration-300",
   };
 
   return (
@@ -69,7 +74,7 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
         {isLoading ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className={`h-64 bg-muted animate-pulse ${cardStyle.radius}`} />
+              <div key={i} className={`h-64 bg-muted animate-pulse ${templateClasses.cardStyle.radius || "rounded-lg"}`} />
             ))}
           </div>
         ) : posts && posts.length > 0 ? (
@@ -79,46 +84,16 @@ export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
             animate={prefersReducedMotion ? false : "visible"}
             variants={containerAnimation}
           >
-            {posts.map((post) => (
-              <motion.div key={post.id} variants={cardAnimation}>
-                <Card
-                  className={`cursor-pointer hover-elevate overflow-hidden h-full group ${templateClasses.cardStyle.simple}`}
-                  onClick={() => handlePostClick(post.slug)}
-                  data-testid={`card-post-${post.id}`}
-                >
-                  <div className="aspect-video bg-muted overflow-hidden">
-                    {post.imageUrl && (
-                      <img 
-                        src={post.imageUrl} 
-                        alt={post.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                      />
-                    )}
-                  </div>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="flex flex-wrap gap-2 mb-2 sm:mb-3">
-                      {post.tags.slice(0, 2).map((t, index) => (
-                        <Badge key={t} variant="secondary" className="text-xs" data-testid={`badge-post-tag-${post.id}-${index}`}>
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
-                    <h3 className="text-base sm:text-lg font-semibold mb-2 line-clamp-2 group-hover:opacity-70 transition-opacity" style={{ fontFamily: "var(--public-heading-font)" }} data-testid={`text-post-title-${post.id}`}>
-                      {post.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm line-clamp-2 mb-2 sm:mb-3" data-testid={`text-post-excerpt-${post.id}`}>
-                      {stripMarkdown(post.content, 120)}
-                    </p>
-                    <p className="text-xs text-muted-foreground" data-testid={`text-post-date-${post.id}`}>
-                      {new Date(post.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+            {posts.map((post, index) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onClick={handlePostClick}
+                style={postCardStyle as any}
+                cardClasses={cardClasses}
+                variants={cardAnimation}
+                index={index}
+              />
             ))}
           </motion.div>
         ) : (

@@ -1424,6 +1424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get client IP for fingerprinting
       const { getDeviceType, getBrowserName, getCountryFromIP, getClientIP } = await import("./analytics-utils");
       const clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
+      console.log(`[ViewTrack] Raw X-Forwarded-For: ${req.headers["x-forwarded-for"]}`);
+      console.log(`[ViewTrack] Extracted clientIP: ${clientIP}`);
       
       // Create fingerprint from IP + siteId + slug
       const fingerprint = `${clientIP}:${siteId}:${slug}`;
@@ -1469,11 +1471,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let country = "Unknown";
       try {
         country = await getCountryFromIP(clientIP);
-      } catch {
+        console.log(`[ViewTrack] Country resolved: ${country} for IP: ${clientIP}`);
+      } catch (geoError) {
+        console.log(`[ViewTrack] GeoIP error:`, geoError);
         // Non-critical, continue with Unknown
       }
       
       // Record in daily stats (aggregated)
+      console.log(`[ViewTrack] Recording view: siteId=${siteId}, slug=${post.slug}, device=${deviceType}, browser=${browserName}, country=${country}`);
       await storage.recordPageView(siteId, post.slug, deviceType, browserName, country);
       
       res.json({ success: true, counted: true });
