@@ -50,6 +50,7 @@ import {
   CheckSquare,
   Square,
   Eye,
+  BarChart3,
 } from "lucide-react";
 import {
   Dialog,
@@ -403,6 +404,30 @@ export default function EditorPosts() {
           </div>
 
           <div className="flex-1 p-4 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+              Navigation
+            </p>
+            <div className="space-y-1 mb-4">
+              <button
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-primary text-primary-foreground"
+                data-testid="nav-posts"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="flex-1 text-left">Posts</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-foreground/20 text-primary-foreground">
+                  {stats.total}
+                </span>
+              </button>
+              <button
+                onClick={() => setLocation(`/editor/sites/${siteId}/analytics`)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+                data-testid="nav-analytics"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="flex-1 text-left">Analytics</span>
+              </button>
+            </div>
+
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
               Quick Stats
             </p>

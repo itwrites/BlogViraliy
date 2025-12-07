@@ -13,6 +13,7 @@ import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
+import EditorAnalytics from "@/pages/editor-analytics";
 import SiteNotFound from "@/pages/site-not-found";
 import { ThemedHomePage } from "@/components/themed-home-page";
 import { PublicPostContent } from "@/pages/public-post";
@@ -32,6 +33,7 @@ function AdminRouter() {
       <Route path="/admin/users" component={UserManagement} />
       <Route path="/editor" component={EditorDashboard} />
       <Route path="/editor/sites/:id/posts" component={EditorPosts} />
+      <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -104,6 +106,7 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
             <EditorDashboard />
           </Route>
           <Route path="/editor/sites/:id/posts" component={EditorPosts} />
+          <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
           <Route component={NotFound} />
         </Switch>
       </Router>
