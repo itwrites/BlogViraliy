@@ -355,7 +355,8 @@ export const siteDailyStats = pgTable("site_daily_stats", {
   // JSON breakdowns (aggregated counts, not individual records)
   deviceBreakdown: jsonb("device_breakdown").$type<Record<string, number>>().default({}), // { "mobile": 50, "desktop": 100, "tablet": 10 }
   browserBreakdown: jsonb("browser_breakdown").$type<Record<string, number>>().default({}), // { "Chrome": 80, "Safari": 40, "Firefox": 20 }
-  countryBreakdown: jsonb("country_breakdown").$type<Record<string, number>>().default({}), // { "US": 60, "UK": 30, "DE": 20 }
+  countryBreakdown: jsonb("country_breakdown").$type<Record<string, number>>().default({}), // { "US": 60, "UK": 30, "DE": 20 } - page views per country
+  uniqueCountryBreakdown: jsonb("unique_country_breakdown").$type<Record<string, number>>().default({}), // { "US": 40, "UK": 25, "DE": 15 } - unique visitors per country
   postViewBreakdown: jsonb("post_view_breakdown").$type<Record<string, number>>().default({}), // { "post-slug-1": 50, "post-slug-2": 30 }
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

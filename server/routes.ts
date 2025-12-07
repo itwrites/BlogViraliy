@@ -1534,26 +1534,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
       const dailyStats = await storage.getDailyStatsRange(req.params.id, startDate, endDate);
       
-      // Aggregate breakdowns across all days
+      // Aggregate breakdowns across all days (page views, not unique visitors)
       const aggregatedDevice: Record<string, number> = {};
       const aggregatedBrowser: Record<string, number> = {};
       const aggregatedCountry: Record<string, number> = {};
-      let totalDailyViews = 0;
       
       for (const day of dailyStats) {
-        totalDailyViews += day.views;
-        
-        // Merge device breakdown
+        // Merge device breakdown (page views)
         for (const [key, value] of Object.entries(day.deviceBreakdown || {})) {
           aggregatedDevice[key] = (aggregatedDevice[key] || 0) + value;
         }
         
-        // Merge browser breakdown
+        // Merge browser breakdown (page views)
         for (const [key, value] of Object.entries(day.browserBreakdown || {})) {
           aggregatedBrowser[key] = (aggregatedBrowser[key] || 0) + value;
         }
         
-        // Merge country breakdown
+        // Merge country breakdown (page views by country - NOT unique visitors)
         for (const [key, value] of Object.entries(day.countryBreakdown || {})) {
           aggregatedCountry[key] = (aggregatedCountry[key] || 0) + value;
         }
@@ -1571,12 +1568,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const countryBreakdown = Object.entries(aggregatedCountry)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
-        .slice(0, 10); // Top 10 countries
+        .slice(0, 10); // Top 10 countries by page views
       
       // Format daily views as time series
       const viewsOverTime = dailyStats.map(day => ({
         date: day.date,
         views: day.views,
+        uniqueVisitors: day.uniqueVisitors,
       }));
       
       res.json({
@@ -1588,10 +1586,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           slug: p.slug,
           viewCount: p.viewCount,
         })),
-        // Enhanced analytics
+        // Enhanced analytics - aggregated across date range
         deviceBreakdown,
         browserBreakdown,
         countryBreakdown,
+        // Daily time series with per-day unique visitor counts (accurate for each day)
         viewsOverTime,
       });
     } catch (error) {

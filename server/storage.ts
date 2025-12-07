@@ -993,7 +993,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string, isNewUniqueVisitor: boolean = true): Promise<void> {
+  async recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string, isNewUniqueVisitor: boolean = false): Promise<void> {
     const today = new Date().toISOString().split("T")[0];
     const existing = await this.getDailyStats(siteId, today);
     
@@ -1004,12 +1004,18 @@ export class DatabaseStorage implements IStorage {
       const deviceBreakdown = existing.deviceBreakdown || {};
       const browserBreakdown = existing.browserBreakdown || {};
       const countryBreakdown = existing.countryBreakdown || {};
+      const uniqueCountryBreakdown = existing.uniqueCountryBreakdown || {};
       const postViewBreakdown = existing.postViewBreakdown || {};
       
       deviceBreakdown[deviceType] = (deviceBreakdown[deviceType] || 0) + 1;
       browserBreakdown[browserName] = (browserBreakdown[browserName] || 0) + 1;
       countryBreakdown[country] = (countryBreakdown[country] || 0) + 1;
       postViewBreakdown[postSlug] = (postViewBreakdown[postSlug] || 0) + 1;
+      
+      // Only increment unique country breakdown for new unique visitors
+      if (isNewUniqueVisitor) {
+        uniqueCountryBreakdown[country] = (uniqueCountryBreakdown[country] || 0) + 1;
+      }
       
       await db
         .update(siteDailyStats)
@@ -1019,12 +1025,13 @@ export class DatabaseStorage implements IStorage {
           deviceBreakdown,
           browserBreakdown,
           countryBreakdown,
+          uniqueCountryBreakdown,
           postViewBreakdown,
           updatedAt: new Date(),
         })
         .where(eq(siteDailyStats.id, existing.id));
     } else {
-      // Create new stats for today
+      // Create new stats for today - first visitor is always unique
       await db.insert(siteDailyStats).values({
         siteId,
         date: today,
@@ -1033,6 +1040,7 @@ export class DatabaseStorage implements IStorage {
         deviceBreakdown: { [deviceType]: 1 },
         browserBreakdown: { [browserName]: 1 },
         countryBreakdown: { [country]: 1 },
+        uniqueCountryBreakdown: { [country]: 1 },
         postViewBreakdown: { [postSlug]: 1 },
       });
     }
