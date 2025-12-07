@@ -358,6 +358,23 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(posts.createdAt));
   }
 
+  async getPostsBySiteIdWithAuthors(siteId: string): Promise<(Post & { authorName?: string })[]> {
+    const result = await db
+      .select({
+        post: posts,
+        authorName: siteAuthors.name,
+      })
+      .from(posts)
+      .leftJoin(siteAuthors, eq(posts.authorId, siteAuthors.id))
+      .where(eq(posts.siteId, siteId))
+      .orderBy(desc(posts.createdAt));
+    
+    return result.map(r => ({
+      ...r.post,
+      authorName: r.authorName ?? undefined,
+    }));
+  }
+
   async getPostById(id: string): Promise<Post | undefined> {
     const [post] = await db.select().from(posts).where(eq(posts.id, id));
     return post || undefined;

@@ -1050,7 +1050,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {
     try {
-      const posts = await storage.getPostsBySiteId(req.params.id);
+      // Use method with authors to include author names in public posts
+      const posts = await storage.getPostsBySiteIdWithAuthors(req.params.id);
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
