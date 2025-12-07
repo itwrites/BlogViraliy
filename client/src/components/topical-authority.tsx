@@ -28,9 +28,11 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  LayoutGrid
+  LayoutGrid,
+  Languages
 } from "lucide-react";
 import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
+import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
 
 interface PillarWithStats extends Pillar {
   stats: {
@@ -91,6 +93,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     masterPrompt: "",
     targetArticleCount: 50,
     publishSchedule: "1_per_day",
+    targetLanguage: "en",
   });
 
   const { data: pillars, isLoading: pillarsLoading } = useQuery<PillarWithStats[]>({
@@ -118,6 +121,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
         masterPrompt: "",
         targetArticleCount: 50,
         publishSchedule: "1_per_day",
+        targetLanguage: "en",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
@@ -286,23 +290,46 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                       Recommended: 50-100 articles for strong topical authority
                     </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Publishing Schedule</Label>
-                    <Select
-                      value={newPillar.publishSchedule}
-                      onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
-                    >
-                      <SelectTrigger data-testid="select-publish-schedule">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1_per_hour">1 per hour</SelectItem>
-                        <SelectItem value="2_per_day">2 per day</SelectItem>
-                        <SelectItem value="1_per_day">1 per day</SelectItem>
-                        <SelectItem value="3_per_week">3 per week</SelectItem>
-                        <SelectItem value="1_per_week">1 per week</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Publishing Schedule</Label>
+                      <Select
+                        value={newPillar.publishSchedule}
+                        onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
+                      >
+                        <SelectTrigger data-testid="select-publish-schedule">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1_per_hour">1 per hour</SelectItem>
+                          <SelectItem value="2_per_day">2 per day</SelectItem>
+                          <SelectItem value="1_per_day">1 per day</SelectItem>
+                          <SelectItem value="3_per_week">3 per week</SelectItem>
+                          <SelectItem value="1_per_week">1 per week</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>
+                        <span className="flex items-center gap-2">
+                          <Languages className="h-4 w-4" />
+                          Content Language
+                        </span>
+                      </Label>
+                      <Select
+                        value={newPillar.targetLanguage}
+                        onValueChange={(value) => setNewPillar({ ...newPillar, targetLanguage: value })}
+                      >
+                        <SelectTrigger data-testid="select-pillar-language">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(languageDisplayNames).map(([code, name]) => (
+                            <SelectItem key={code} value={code}>{name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>

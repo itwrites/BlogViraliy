@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
+import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster } from "@shared/schema";
 
 const openai = new OpenAI({
@@ -42,8 +43,12 @@ export async function generateTopicalMap(pillar: Pillar): Promise<{
   const targetCount = pillar.targetArticleCount;
   const categoriesCount = Math.min(8, Math.max(3, Math.ceil(targetCount / 20)));
   const articlesPerCategory = Math.ceil((targetCount - 1 - categoriesCount) / categoriesCount);
+  const lang = getLanguageForPrompt(pillar.targetLanguage);
+  const languageDirective = buildLanguageDirective(lang);
 
   const prompt = `You are an SEO expert creating a topical authority map for the topic: "${pillar.name}"
+
+${languageDirective}
 
 ${pillar.description ? `Topic description: ${pillar.description}` : ""}
 ${pillar.masterPrompt ? `Additional context: ${pillar.masterPrompt}` : ""}
@@ -214,7 +219,12 @@ export async function generatePillarArticleContent(
     articleTypeContext = "This is a SUBTOPIC article - it should be detailed and focused on this specific long-tail topic, linking to the parent category and pillar.";
   }
 
+  const lang = getLanguageForPrompt(pillar.targetLanguage);
+  const languageDirective = buildLanguageDirective(lang);
+
   const prompt = `${pillar.masterPrompt || ""}
+
+${languageDirective}
 
 Write a comprehensive, SEO-optimized blog post.
 

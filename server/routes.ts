@@ -845,7 +845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sites/:id/keyword-batches", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
-      const { keywords, masterPrompt } = req.body;
+      const { keywords, masterPrompt, targetLanguage } = req.body;
       
       if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
         return res.status(400).json({ error: "Keywords array is required" });
@@ -863,6 +863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         siteId: req.params.id,
         totalKeywords: validKeywords.length,
         masterPrompt: masterPrompt || null,
+        targetLanguage: targetLanguage || "en",
         status: "pending",
         processedCount: 0,
         successCount: 0,

@@ -29,10 +29,11 @@ export async function processAIAutomation() {
 
       const keyword = aiConfig.keywords[aiConfig.lastKeywordIndex % aiConfig.keywords.length];
       const nextKeywordIndex = (aiConfig.lastKeywordIndex + 1) % aiConfig.keywords.length;
+      const targetLanguage = aiConfig.targetLanguage || "en";
 
-      console.log(`[AI] Generating post for ${site.domain} with keyword: ${keyword}`);
+      console.log(`[AI] Generating post for ${site.domain} with keyword: ${keyword} (language: ${targetLanguage})`);
       
-      const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(aiConfig.masterPrompt, keyword);
+      const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(aiConfig.masterPrompt, keyword, targetLanguage);
       const slug = createSlug(title);
 
       // Get default author for this site
@@ -99,9 +100,10 @@ export async function processRSSAutomation() {
 
             const originalTitle = item.title || "Untitled";
             const originalContent = item.contentSnippet || item.content || "";
+            const targetLanguage = rssConfig.targetLanguage || "en";
 
-            console.log(`[RSS] Rewriting article: ${originalTitle}`);
-            const { title, content, tags, imageUrl, metaTitle, metaDescription } = await rewriteArticle(originalContent, originalTitle);
+            console.log(`[RSS] Rewriting article: ${originalTitle} (target language: ${targetLanguage})`);
+            const { title, content, tags, imageUrl, metaTitle, metaDescription } = await rewriteArticle(originalContent, originalTitle, targetLanguage);
             const slug = createSlug(title);
 
             // Get default author for this site
@@ -161,6 +163,7 @@ export async function processKeywordBatches() {
       // Get the AI config for master prompt fallback
       const aiConfig = await storage.getAiConfigBySiteId(site.id);
       const masterPrompt = batch.masterPrompt || aiConfig?.masterPrompt || "";
+      const targetLanguage = batch.targetLanguage || aiConfig?.targetLanguage || "en";
 
       // Process one job at a time to avoid rate limiting
       const nextJob = await storage.getNextPendingJob(batch.id);
@@ -184,15 +187,16 @@ export async function processKeywordBatches() {
 
       // Process the job
       try {
-        console.log(`[Bulk] Generating post for keyword: "${nextJob.keyword}" (site: ${site.domain})`);
+        console.log(`[Bulk] Generating post for keyword: "${nextJob.keyword}" (site: ${site.domain}, language: ${targetLanguage})`);
         
         // Mark job as processing
         await storage.updateKeywordJob(nextJob.id, { status: "processing" });
 
-        // Generate AI post
+        // Generate AI post with target language
         const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(
           masterPrompt,
-          nextJob.keyword
+          nextJob.keyword,
+          targetLanguage
         );
         const slug = createSlug(title);
 

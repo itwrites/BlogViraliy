@@ -24,6 +24,55 @@ export type MenuMode = z.infer<typeof menuModeEnum>;
 export const menuItemTypeEnum = z.enum(["url", "tag_group"]);
 export type MenuItemType = z.infer<typeof menuItemTypeEnum>;
 
+// Supported content languages (ISO 639-1 codes)
+export const contentLanguageEnum = z.enum([
+  "en", // English
+  "es", // Spanish
+  "fr", // French
+  "de", // German
+  "it", // Italian
+  "pt", // Portuguese
+  "pt-br", // Portuguese (Brazil)
+  "nl", // Dutch
+  "sv", // Swedish
+  "no", // Norwegian
+  "da", // Danish
+  "fi", // Finnish
+  "pl", // Polish
+  "tr", // Turkish
+  "ru", // Russian
+  "ar", // Arabic
+  "zh", // Chinese
+  "ja", // Japanese
+  "ko", // Korean
+  "hi", // Hindi
+]);
+export type ContentLanguage = z.infer<typeof contentLanguageEnum>;
+
+// Language display names for UI
+export const languageDisplayNames: Record<ContentLanguage, string> = {
+  en: "English",
+  es: "Spanish (Español)",
+  fr: "French (Français)",
+  de: "German (Deutsch)",
+  it: "Italian (Italiano)",
+  pt: "Portuguese (Português)",
+  "pt-br": "Portuguese - Brazil (Português Brasileiro)",
+  nl: "Dutch (Nederlands)",
+  sv: "Swedish (Svenska)",
+  no: "Norwegian (Norsk)",
+  da: "Danish (Dansk)",
+  fi: "Finnish (Suomi)",
+  pl: "Polish (Polski)",
+  tr: "Turkish (Türkçe)",
+  ru: "Russian (Русский)",
+  ar: "Arabic (العربية)",
+  zh: "Chinese (中文)",
+  ja: "Japanese (日本語)",
+  ko: "Korean (한국어)",
+  hi: "Hindi (हिन्दी)",
+};
+
 // Admin Users
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -239,6 +288,7 @@ export const aiAutomationConfigs = pgTable("ai_automation_configs", {
   masterPrompt: text("master_prompt").notNull().default(""),
   keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
   lastKeywordIndex: integer("last_keyword_index").notNull().default(0),
+  targetLanguage: text("target_language").notNull().default("en"), // Target language for generated content
 });
 
 // RSS Automation Configuration
@@ -249,6 +299,7 @@ export const rssAutomationConfigs = pgTable("rss_automation_configs", {
   schedule: text("schedule").notNull().default("every_6_hours"),
   feedUrls: text("feed_urls").array().notNull().default(sql`ARRAY[]::text[]`),
   articlesToFetch: integer("articles_to_fetch").notNull().default(3),
+  targetLanguage: text("target_language").notNull().default("en"), // Target language for rewritten content (auto-translate if source differs)
 });
 
 // Site Authors (configurable bylines like "Staff Writer", "Editorial Team")
@@ -330,6 +381,7 @@ export const keywordBatches = pgTable("keyword_batches", {
   successCount: integer("success_count").notNull().default(0),
   failedCount: integer("failed_count").notNull().default(0),
   masterPrompt: text("master_prompt"), // Optional override for this batch
+  targetLanguage: text("target_language").notNull().default("en"), // Target language for generated content
   createdAt: timestamp("created_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
 });
@@ -370,6 +422,7 @@ export const pillars = pgTable("pillars", {
   generatedCount: integer("generated_count").notNull().default(0), // Articles successfully generated
   failedCount: integer("failed_count").notNull().default(0), // Articles that failed generation
   publishSchedule: text("publish_schedule").default("1_per_day"), // Publishing frequency
+  targetLanguage: text("target_language").notNull().default("en"), // Target language for generated articles
   nextPublishAt: timestamp("next_publish_at"), // Next scheduled publish time
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Upload, Play, X, Clock, CheckCircle, XCircle, Loader2, Trash2 } from "lucide-react";
+import { Upload, Play, X, Clock, CheckCircle, XCircle, Loader2, Trash2, Languages } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { KeywordBatch, KeywordJob } from "@shared/schema";
+import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
 
 interface BatchWithJobs extends KeywordBatch {
   jobs: Array<{
@@ -30,6 +32,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
   const { toast } = useToast();
   const [keywordsInput, setKeywordsInput] = useState("");
   const [masterPrompt, setMasterPrompt] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("en");
 
   const { data: batches, isLoading: batchesLoading, refetch } = useQuery<BatchWithJobs[]>({
     queryKey: ["/api/sites", siteId, "keyword-batches"],
@@ -37,7 +40,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
   });
 
   const createBatchMutation = useMutation({
-    mutationFn: async (data: { keywords: string[]; masterPrompt?: string }) => {
+    mutationFn: async (data: { keywords: string[]; masterPrompt?: string; targetLanguage?: string }) => {
       const res = await apiRequest("POST", `/api/sites/${siteId}/keyword-batches`, data);
       return res.json();
     },
@@ -48,6 +51,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
       });
       setKeywordsInput("");
       setMasterPrompt("");
+      setTargetLanguage("en");
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "keyword-batches"] });
     },
     onError: (error: Error) => {
@@ -105,6 +109,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
     createBatchMutation.mutate({
       keywords,
       masterPrompt: masterPrompt || undefined,
+      targetLanguage,
     });
   };
 
@@ -160,19 +165,44 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="masterPrompt">Master Prompt (Optional)</Label>
-            <Textarea
-              id="masterPrompt"
-              data-testid="textarea-bulk-master-prompt"
-              placeholder="Enter a custom prompt to guide AI content generation for all keywords in this batch..."
-              value={masterPrompt}
-              onChange={(e) => setMasterPrompt(e.target.value)}
-              className="min-h-[80px]"
-            />
-            <p className="text-xs text-muted-foreground">
-              If left empty, the default AI prompt from the AI Content tab will be used.
-            </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="masterPrompt">Master Prompt (Optional)</Label>
+              <Textarea
+                id="masterPrompt"
+                data-testid="textarea-bulk-master-prompt"
+                placeholder="Enter a custom prompt to guide AI content generation for all keywords in this batch..."
+                value={masterPrompt}
+                onChange={(e) => setMasterPrompt(e.target.value)}
+                className="min-h-[80px]"
+              />
+              <p className="text-xs text-muted-foreground">
+                If left empty, the default AI prompt from the AI Content tab will be used.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bulkLanguage">
+                <span className="flex items-center gap-2">
+                  <Languages className="h-4 w-4" />
+                  Content Language
+                </span>
+              </Label>
+              <Select
+                value={targetLanguage}
+                onValueChange={setTargetLanguage}
+              >
+                <SelectTrigger id="bulkLanguage" data-testid="select-bulk-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(languageDisplayNames).map(([code, name]) => (
+                    <SelectItem key={code} value={code}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">All posts will be written in this language</p>
+            </div>
           </div>
 
           <div className="space-y-2">

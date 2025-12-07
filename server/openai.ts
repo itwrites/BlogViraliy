@@ -1,6 +1,7 @@
 // Referenced from javascript_openai_ai_integrations blueprint
 import OpenAI from "openai";
 import { searchPexelsImage } from "./pexels";
+import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
@@ -18,8 +19,13 @@ interface AIPostResult {
   metaDescription?: string;
 }
 
-export async function generateAIPost(masterPrompt: string, keyword: string): Promise<AIPostResult> {
+export async function generateAIPost(masterPrompt: string, keyword: string, targetLanguage?: string): Promise<AIPostResult> {
+  const lang = getLanguageForPrompt(targetLanguage);
+  const languageDirective = buildLanguageDirective(lang);
+  
   const prompt = `${masterPrompt}
+
+${languageDirective}
 
 Write a compelling blog post about: ${keyword}
 
@@ -65,8 +71,14 @@ Provide the response in JSON format with the following structure:
   };
 }
 
-export async function rewriteArticle(originalContent: string, originalTitle: string): Promise<AIPostResult> {
+export async function rewriteArticle(originalContent: string, originalTitle: string, targetLanguage?: string): Promise<AIPostResult> {
+  const lang = getLanguageForPrompt(targetLanguage);
+  const { buildTranslationDirective } = await import("./language-utils");
+  const translationDirective = buildTranslationDirective(lang);
+  
   const prompt = `Rewrite the following article to make it completely unique while preserving the key information. Make it engaging and well-written.
+
+${translationDirective}
 
 Original Title: ${originalTitle}
 

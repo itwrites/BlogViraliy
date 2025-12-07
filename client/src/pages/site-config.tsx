@@ -18,8 +18,8 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem, SiteAuthor } from "@shared/schema";
-import { User, UserPlus } from "lucide-react";
-import { defaultTemplateSettings } from "@shared/schema";
+import { User, UserPlus, Languages } from "lucide-react";
+import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } from "@shared/schema";
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 
@@ -52,6 +52,7 @@ export default function SiteConfig() {
     schedule: "1_per_day",
     masterPrompt: "",
     keywords: [] as string[],
+    targetLanguage: "en",
   });
 
   const [rssConfig, setRssConfig] = useState({
@@ -59,6 +60,7 @@ export default function SiteConfig() {
     schedule: "every_6_hours",
     feedUrls: [] as string[],
     articlesToFetch: 3,
+    targetLanguage: "en",
   });
 
   const [newKeyword, setNewKeyword] = useState("");
@@ -210,6 +212,7 @@ export default function SiteConfig() {
         schedule: existingAiConfig.schedule,
         masterPrompt: existingAiConfig.masterPrompt,
         keywords: existingAiConfig.keywords,
+        targetLanguage: existingAiConfig.targetLanguage || "en",
       });
     }
   }, [existingAiConfig]);
@@ -221,6 +224,7 @@ export default function SiteConfig() {
         schedule: existingRssConfig.schedule,
         feedUrls: existingRssConfig.feedUrls,
         articlesToFetch: existingRssConfig.articlesToFetch,
+        targetLanguage: existingRssConfig.targetLanguage || "en",
       });
     }
   }, [existingRssConfig]);
@@ -2070,22 +2074,48 @@ export default function SiteConfig() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Posting Frequency</Label>
-                  <Select
-                    value={aiConfig.schedule}
-                    onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
-                    disabled={!aiConfig.enabled}
-                  >
-                    <SelectTrigger id="aiSchedule" data-testid="select-ai-schedule">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1_per_day">1 post per day</SelectItem>
-                      <SelectItem value="3_per_day">3 posts per day</SelectItem>
-                      <SelectItem value="1_per_week">1 post per week</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Posting Frequency</Label>
+                    <Select
+                      value={aiConfig.schedule}
+                      onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
+                      disabled={!aiConfig.enabled}
+                    >
+                      <SelectTrigger id="aiSchedule" data-testid="select-ai-schedule">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1_per_day">1 post per day</SelectItem>
+                        <SelectItem value="3_per_day">3 posts per day</SelectItem>
+                        <SelectItem value="1_per_week">1 post per week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="aiLanguage" data-testid="label-ai-language">
+                      <span className="flex items-center gap-2">
+                        <Languages className="h-4 w-4" />
+                        Content Language
+                      </span>
+                    </Label>
+                    <Select
+                      value={aiConfig.targetLanguage}
+                      onValueChange={(value) => setAiConfig({ ...aiConfig, targetLanguage: value })}
+                      disabled={!aiConfig.enabled}
+                    >
+                      <SelectTrigger id="aiLanguage" data-testid="select-ai-language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(languageDisplayNames).map(([code, name]) => (
+                          <SelectItem key={code} value={code}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">AI will write all posts in this language</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -2161,22 +2191,48 @@ export default function SiteConfig() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="rssSchedule">Check Frequency</Label>
-                  <Select
-                    value={rssConfig.schedule}
-                    onValueChange={(value) => setRssConfig({ ...rssConfig, schedule: value })}
-                    disabled={!rssConfig.enabled}
-                  >
-                    <SelectTrigger id="rssSchedule" data-testid="select-rss-schedule">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="every_1_hour">Every 1 hour</SelectItem>
-                      <SelectItem value="every_6_hours">Every 6 hours</SelectItem>
-                      <SelectItem value="once_per_day">Once per day</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rssSchedule">Check Frequency</Label>
+                    <Select
+                      value={rssConfig.schedule}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, schedule: value })}
+                      disabled={!rssConfig.enabled}
+                    >
+                      <SelectTrigger id="rssSchedule" data-testid="select-rss-schedule">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="every_1_hour">Every 1 hour</SelectItem>
+                        <SelectItem value="every_6_hours">Every 6 hours</SelectItem>
+                        <SelectItem value="once_per_day">Once per day</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rssLanguage">
+                      <span className="flex items-center gap-2">
+                        <Languages className="h-4 w-4" />
+                        Content Language
+                      </span>
+                    </Label>
+                    <Select
+                      value={rssConfig.targetLanguage}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, targetLanguage: value })}
+                      disabled={!rssConfig.enabled}
+                    >
+                      <SelectTrigger id="rssLanguage" data-testid="select-rss-language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(languageDisplayNames).map(([code, name]) => (
+                          <SelectItem key={code} value={code}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Rewritten articles will be in this language</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
