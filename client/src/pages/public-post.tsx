@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useEffect, useRef } from "react";
 import type { Site, Post } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { ThemePostDetail } from "@/components/theme-post-detail";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiRequest } from "@/lib/queryClient";
 
 interface PublicPostProps {
   site: Site;
@@ -14,6 +16,7 @@ interface PublicPostProps {
 export function PublicPostContent({ site, slug }: PublicPostProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
+  const viewTracked = useRef(false);
 
   const { data: post, isLoading } = useQuery<Post>({
     queryKey: ["/api/public/sites", site.id, "posts", slug],
@@ -23,6 +26,16 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
     queryKey: ["/api/public/sites", site.id, "related-posts", post?.id],
     enabled: !!post,
   });
+
+  // Track view when post loads (only once per page load)
+  useEffect(() => {
+    if (post && !viewTracked.current) {
+      viewTracked.current = true;
+      apiRequest("POST", `/api/posts/${slug}/view`, { siteId: site.id }).catch(() => {
+        // Silently fail - view tracking is non-critical
+      });
+    }
+  }, [post, slug, site.id]);
 
   const handleBack = () => {
     setLocation("/");
