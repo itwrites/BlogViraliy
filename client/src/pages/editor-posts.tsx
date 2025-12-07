@@ -152,7 +152,7 @@ export default function EditorPosts() {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [bulkMode, setBulkMode] = useState(false);
-  const [selectedPosts, setSelectedPosts] = useState<Set<number>>(new Set());
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -223,12 +223,12 @@ export default function EditorPosts() {
         content: post.content,
         tags: post.tags.join(", "),
         imageUrl: post.imageUrl || "",
-        authorId: post.authorId?.toString() || "",
+        authorId: post.authorId || "none",
       });
     } else {
       setCurrentPost(null);
       const defaultAuthor = authors?.find(a => a.isDefault);
-      setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: defaultAuthor?.id.toString() || "" });
+      setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: defaultAuthor?.id || "none" });
     }
     setEditorOpen(true);
   };
@@ -262,7 +262,7 @@ export default function EditorPosts() {
           content: formData.content,
           tags: tagsArray,
           imageUrl: formData.imageUrl || null,
-          authorId: formData.authorId || null,
+          authorId: formData.authorId && formData.authorId !== "none" ? formData.authorId : null,
           slug,
         });
         toast({ title: "Success", description: "Post updated successfully" });
@@ -273,7 +273,7 @@ export default function EditorPosts() {
           content: formData.content,
           tags: tagsArray,
           imageUrl: formData.imageUrl || null,
-          authorId: formData.authorId || null,
+          authorId: formData.authorId && formData.authorId !== "none" ? formData.authorId : null,
           slug,
           source: "manual",
         });
@@ -301,7 +301,7 @@ export default function EditorPosts() {
     }
   };
 
-  const togglePostSelection = (postId: number) => {
+  const togglePostSelection = (postId: string) => {
     setSelectedPosts(prev => {
       const newSet = new Set(prev);
       if (newSet.has(postId)) {
@@ -1047,9 +1047,9 @@ export default function EditorPosts() {
                     <SelectValue placeholder="Select an author" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No author</SelectItem>
+                    <SelectItem value="none">No author</SelectItem>
                     {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id.toString()}>
+                      <SelectItem key={author.id} value={author.id}>
                         {author.name} {author.isDefault && "(Default)"}
                       </SelectItem>
                     ))}
