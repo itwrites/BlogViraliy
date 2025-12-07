@@ -13,11 +13,11 @@ interface PublicTagArchiveProps {
 }
 
 export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
-  const templateSettings = site.templateSettings as any;
-  const template = templateSettings?.template || "blog";
+  // Theme is detected via site.siteType (same as home page and post detail)
+  const themeId = site.siteType || "blog";
   
   // Use Forbis-specific layout for Forbis theme
-  if (template === "forbis") {
+  if (themeId === "forbis") {
     return <ForbisTagArchive site={site} tag={tag} />;
   }
   

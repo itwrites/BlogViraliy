@@ -14,10 +14,10 @@ interface PublicTopicGroupProps {
 }
 
 export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupProps) {
-  const templateSettings = site.templateSettings as any;
-  const template = templateSettings?.template || "blog";
+  // Theme is detected via site.siteType (same as home page and post detail)
+  const themeId = site.siteType || "blog";
   
-  if (template === "forbis") {
+  if (themeId === "forbis") {
     return <ForbisTopicGroup site={site} groupSlug={groupSlug} />;
   }
   
