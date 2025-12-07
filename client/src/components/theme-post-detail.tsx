@@ -749,17 +749,28 @@ function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePost
               {post.title}
             </h1>
 
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-white/20">
-                <AvatarFallback className="bg-white/20 text-white text-sm">SW</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-white">Staff Writer</p>
+            {(post as any).authorName && (
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 border-2 border-white/20">
+                  <AvatarFallback className="bg-white/20 text-white text-sm">
+                    {(post as any).authorName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-white">{(post as any).authorName}</p>
+                  <p className="text-sm text-white/60">
+                    {readingTime} min read
+                  </p>
+                </div>
+              </div>
+            )}
+            {!(post as any).authorName && (
+              <div className="flex items-center gap-4">
                 <p className="text-sm text-white/60">
-                  Forbes Staff · {readingTime} min read
+                  {readingTime} min read
                 </p>
               </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/20">
               <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">

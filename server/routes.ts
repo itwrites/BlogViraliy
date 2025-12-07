@@ -1060,7 +1060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/public/sites/:id/posts/:slug", async (req: Request, res: Response) => {
     try {
-      const post = await storage.getPostBySlug(req.params.id, req.params.slug);
+      // Use method with author to include author name in public post detail
+      const post = await storage.getPostBySlugWithAuthor(req.params.id, req.params.slug);
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
