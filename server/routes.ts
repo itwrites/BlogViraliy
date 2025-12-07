@@ -1387,7 +1387,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
+      
+      // Increment legacy post view count
       await storage.incrementPostViewCount(post.id);
+      
+      // Parse user-agent for device and browser info
+      const { getDeviceType, getBrowserName, getCountryFromIP, getClientIP } = await import("./analytics-utils");
+      const userAgent = req.headers["user-agent"] || "";
+      const deviceType = getDeviceType(userAgent);
+      const browserName = getBrowserName(userAgent);
+      
+      // Get country from IP (async, non-blocking - will use "Unknown" if fails)
+      const clientIP = getClientIP(req.headers as Record<string, string | string[] | undefined>);
+      let country = "Unknown";
+      try {
+        country = await getCountryFromIP(clientIP);
+      } catch {
+        // Non-critical, continue with Unknown
+      }
+      
+      // Record in daily stats (aggregated)
+      await storage.recordPageView(siteId, post.slug, deviceType, browserName, country);
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error tracking view:", error);
@@ -1402,6 +1423,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const popularPosts = await storage.getPopularPosts(req.params.id, 10);
       const posts = await storage.getPostsBySiteId(req.params.id);
       
+      // Get daily stats for the last 30 days
+      const endDate = new Date().toISOString().split("T")[0];
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const dailyStats = await storage.getDailyStatsRange(req.params.id, startDate, endDate);
+      
+      // Aggregate breakdowns across all days
+      const aggregatedDevice: Record<string, number> = {};
+      const aggregatedBrowser: Record<string, number> = {};
+      const aggregatedCountry: Record<string, number> = {};
+      let totalDailyViews = 0;
+      
+      for (const day of dailyStats) {
+        totalDailyViews += day.views;
+        
+        // Merge device breakdown
+        for (const [key, value] of Object.entries(day.deviceBreakdown || {})) {
+          aggregatedDevice[key] = (aggregatedDevice[key] || 0) + value;
+        }
+        
+        // Merge browser breakdown
+        for (const [key, value] of Object.entries(day.browserBreakdown || {})) {
+          aggregatedBrowser[key] = (aggregatedBrowser[key] || 0) + value;
+        }
+        
+        // Merge country breakdown
+        for (const [key, value] of Object.entries(day.countryBreakdown || {})) {
+          aggregatedCountry[key] = (aggregatedCountry[key] || 0) + value;
+        }
+      }
+      
+      // Convert to sorted arrays for charts
+      const deviceBreakdown = Object.entries(aggregatedDevice)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+      
+      const browserBreakdown = Object.entries(aggregatedBrowser)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+      
+      const countryBreakdown = Object.entries(aggregatedCountry)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10); // Top 10 countries
+      
+      // Format daily views as time series
+      const viewsOverTime = dailyStats.map(day => ({
+        date: day.date,
+        views: day.views,
+      }));
+      
       res.json({
         totalViews,
         totalPosts: posts.length,
@@ -1411,6 +1482,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           slug: p.slug,
           viewCount: p.viewCount,
         })),
+        // Enhanced analytics
+        deviceBreakdown,
+        browserBreakdown,
+        countryBreakdown,
+        viewsOverTime,
       });
     } catch (error) {
       console.error("Error fetching analytics:", error);

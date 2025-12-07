@@ -13,6 +13,7 @@ import {
   pillarArticles,
   siteMenuItems,
   siteAuthors,
+  siteDailyStats,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -26,6 +27,7 @@ import {
   type PillarArticle,
   type SiteMenuItem,
   type SiteAuthor,
+  type SiteDailyStats,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -39,6 +41,7 @@ import {
   type InsertPillarArticle,
   type InsertSiteMenuItem,
   type InsertSiteAuthor,
+  type InsertSiteDailyStats,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -160,6 +163,12 @@ export interface IStorage {
   incrementPostViewCount(postId: string): Promise<void>;
   getPopularPosts(siteId: string, limit: number): Promise<Post[]>;
   getTotalSiteViews(siteId: string): Promise<number>;
+  
+  // Daily Analytics Stats
+  getDailyStats(siteId: string, date: string): Promise<SiteDailyStats | undefined>;
+  getDailyStatsRange(siteId: string, startDate: string, endDate: string): Promise<SiteDailyStats[]>;
+  upsertDailyStats(siteId: string, date: string, updates: Partial<InsertSiteDailyStats>): Promise<SiteDailyStats>;
+  recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -896,6 +905,101 @@ export class DatabaseStorage implements IStorage {
       .from(posts)
       .where(eq(posts.siteId, siteId));
     return Number(result[0]?.total || 0);
+  }
+
+  // Daily Analytics Stats
+  async getDailyStats(siteId: string, date: string): Promise<SiteDailyStats | undefined> {
+    const [stats] = await db
+      .select()
+      .from(siteDailyStats)
+      .where(and(eq(siteDailyStats.siteId, siteId), eq(siteDailyStats.date, date)));
+    return stats || undefined;
+  }
+
+  async getDailyStatsRange(siteId: string, startDate: string, endDate: string): Promise<SiteDailyStats[]> {
+    return await db
+      .select()
+      .from(siteDailyStats)
+      .where(
+        and(
+          eq(siteDailyStats.siteId, siteId),
+          sql`${siteDailyStats.date} >= ${startDate}`,
+          sql`${siteDailyStats.date} <= ${endDate}`
+        )
+      )
+      .orderBy(asc(siteDailyStats.date));
+  }
+
+  async upsertDailyStats(siteId: string, date: string, updates: Partial<InsertSiteDailyStats>): Promise<SiteDailyStats> {
+    const existing = await this.getDailyStats(siteId, date);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(siteDailyStats)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(siteDailyStats.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(siteDailyStats)
+        .values({
+          siteId,
+          date,
+          views: 0,
+          uniqueVisitors: 0,
+          deviceBreakdown: {},
+          browserBreakdown: {},
+          countryBreakdown: {},
+          postViewBreakdown: {},
+          ...updates,
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string): Promise<void> {
+    const today = new Date().toISOString().split("T")[0];
+    const existing = await this.getDailyStats(siteId, today);
+    
+    if (existing) {
+      // Update existing stats with incremented values
+      const newViews = existing.views + 1;
+      const deviceBreakdown = existing.deviceBreakdown || {};
+      const browserBreakdown = existing.browserBreakdown || {};
+      const countryBreakdown = existing.countryBreakdown || {};
+      const postViewBreakdown = existing.postViewBreakdown || {};
+      
+      deviceBreakdown[deviceType] = (deviceBreakdown[deviceType] || 0) + 1;
+      browserBreakdown[browserName] = (browserBreakdown[browserName] || 0) + 1;
+      countryBreakdown[country] = (countryBreakdown[country] || 0) + 1;
+      postViewBreakdown[postSlug] = (postViewBreakdown[postSlug] || 0) + 1;
+      
+      await db
+        .update(siteDailyStats)
+        .set({
+          views: newViews,
+          deviceBreakdown,
+          browserBreakdown,
+          countryBreakdown,
+          postViewBreakdown,
+          updatedAt: new Date(),
+        })
+        .where(eq(siteDailyStats.id, existing.id));
+    } else {
+      // Create new stats for today
+      await db.insert(siteDailyStats).values({
+        siteId,
+        date: today,
+        views: 1,
+        uniqueVisitors: 1,
+        deviceBreakdown: { [deviceType]: 1 },
+        browserBreakdown: { [browserName]: 1 },
+        countryBreakdown: { [country]: 1 },
+        postViewBreakdown: { [postSlug]: 1 },
+      });
+    }
   }
 }
 

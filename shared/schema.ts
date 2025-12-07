@@ -294,6 +294,24 @@ export const sessions = pgTable("session", {
   expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
+// Site Daily Analytics Stats (aggregated per day to save storage)
+export const siteDailyStats = pgTable("site_daily_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  date: text("date").notNull(), // YYYY-MM-DD format for easy querying
+  views: integer("views").notNull().default(0), // Total views for the day
+  uniqueVisitors: integer("unique_visitors").notNull().default(0), // Approximate unique visitors
+  // JSON breakdowns (aggregated counts, not individual records)
+  deviceBreakdown: jsonb("device_breakdown").$type<Record<string, number>>().default({}), // { "mobile": 50, "desktop": 100, "tablet": 10 }
+  browserBreakdown: jsonb("browser_breakdown").$type<Record<string, number>>().default({}), // { "Chrome": 80, "Safari": 40, "Firefox": 20 }
+  countryBreakdown: jsonb("country_breakdown").$type<Record<string, number>>().default({}), // { "US": 60, "UK": 30, "DE": 20 }
+  postViewBreakdown: jsonb("post_view_breakdown").$type<Record<string, number>>().default({}), // { "post-slug-1": 50, "post-slug-2": 30 }
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  siteDateUnique: unique().on(table.siteId, table.date),
+}));
+
 // Keyword batch status enum
 export const batchStatusEnum = z.enum(["pending", "processing", "completed", "cancelled", "failed"]);
 export type BatchStatus = z.infer<typeof batchStatusEnum>;
@@ -643,3 +661,13 @@ export type Cluster = typeof clusters.$inferSelect;
 
 export type InsertPillarArticle = z.infer<typeof insertPillarArticleSchema>;
 export type PillarArticle = typeof pillarArticles.$inferSelect;
+
+// Site Daily Stats Insert Schema and Types
+export const insertSiteDailyStatsSchema = createInsertSchema(siteDailyStats).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSiteDailyStats = z.infer<typeof insertSiteDailyStatsSchema>;
+export type SiteDailyStats = typeof siteDailyStats.$inferSelect;

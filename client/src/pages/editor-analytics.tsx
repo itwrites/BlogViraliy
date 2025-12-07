@@ -45,6 +45,10 @@ interface AnalyticsData {
     slug: string;
     viewCount: number;
   }>;
+  deviceBreakdown?: Array<{ name: string; value: number }>;
+  browserBreakdown?: Array<{ name: string; value: number }>;
+  countryBreakdown?: Array<{ name: string; value: number }>;
+  viewsOverTime?: Array<{ date: string; views: number }>;
 }
 
 const sidebarVariants = {
@@ -138,6 +142,14 @@ export default function EditorAnalytics() {
   }, [stats]);
 
   const viewsOverTime = useMemo(() => {
+    // Prefer API data if available
+    if (analytics?.viewsOverTime && analytics.viewsOverTime.length > 0) {
+      return analytics.viewsOverTime.map(d => ({
+        date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        views: d.views,
+      }));
+    }
+    // Fallback to client-side calculation from posts
     if (!posts) return [];
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -150,11 +162,34 @@ export default function EditorAnalytics() {
       return {
         date: date.toLocaleDateString('en-US', { weekday: 'short' }),
         views: dayViews,
-        posts: dayPosts.length,
       };
     });
     return last7Days;
-  }, [posts]);
+  }, [posts, analytics]);
+  
+  const deviceData = useMemo(() => {
+    if (!analytics?.deviceBreakdown) return [];
+    return analytics.deviceBreakdown.map((d, i) => ({
+      ...d,
+      color: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6'][i % 4],
+    }));
+  }, [analytics]);
+  
+  const browserData = useMemo(() => {
+    if (!analytics?.browserBreakdown) return [];
+    return analytics.browserBreakdown.slice(0, 5).map((d, i) => ({
+      ...d,
+      color: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#ef4444'][i % 5],
+    }));
+  }, [analytics]);
+  
+  const countryData = useMemo(() => {
+    if (!analytics?.countryBreakdown) return [];
+    return analytics.countryBreakdown.slice(0, 8).map((d, i) => ({
+      ...d,
+      color: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#ef4444', '#14b8a6', '#f59e0b', '#6366f1'][i % 8],
+    }));
+  }, [analytics]);
 
   const hasSiteContext = !!siteContext;
 
@@ -448,6 +483,127 @@ export default function EditorAnalytics() {
               </Card>
             </div>
 
+            {(deviceData.length > 0 || browserData.length > 0 || countryData.length > 0) && (
+              <div className="grid gap-6 md:grid-cols-3 mb-8">
+                {deviceData.length > 0 && (
+                  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Device Types</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[160px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={deviceData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={35}
+                              outerRadius={55}
+                              paddingAngle={3}
+                              dataKey="value"
+                            >
+                              {deviceData.map((entry, index) => (
+                                <Cell key={`device-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                              }} 
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-3 mt-2">
+                        {deviceData.map((d, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
+                            <span className="text-xs text-muted-foreground capitalize">{d.name} ({d.value})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {browserData.length > 0 && (
+                  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Browsers</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[160px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={browserData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={35}
+                              outerRadius={55}
+                              paddingAngle={3}
+                              dataKey="value"
+                            >
+                              {browserData.map((entry, index) => (
+                                <Cell key={`browser-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                              }} 
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-3 mt-2">
+                        {browserData.map((d, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
+                            <span className="text-xs text-muted-foreground">{d.name} ({d.value})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {countryData.length > 0 && (
+                  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium">Top Countries</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {countryData.slice(0, 5).map((d, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-sm font-medium w-8">{d.name}</span>
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className="h-full rounded-full transition-all duration-300"
+                                style={{ 
+                                  width: `${Math.min(100, (d.value / (countryData[0]?.value || 1)) * 100)}%`,
+                                  backgroundColor: d.color 
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground w-10 text-right">{d.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardHeader>
@@ -482,11 +638,9 @@ export default function EditorAnalytics() {
                             <p className="font-medium truncate group-hover:text-primary transition-colors">
                               {post.title}
                             </p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <Badge variant="outline" className="text-xs">
-                                {post.source}
-                              </Badge>
-                            </div>
+                            <p className="text-xs text-muted-foreground truncate">
+                              /{post.slug}
+                            </p>
                           </div>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Eye className="w-4 h-4" />
