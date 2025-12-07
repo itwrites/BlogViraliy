@@ -32,7 +32,7 @@ setInterval(() => {
 // Rate limiter for view tracking endpoint
 const viewTrackingLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // Max 30 view requests per IP per minute
+  max: 10, // Max 10 view requests per IP per minute
   message: { error: "Too many requests, please slow down" },
   standardHeaders: true,
   legacyHeaders: false,
