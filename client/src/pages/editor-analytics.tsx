@@ -36,6 +36,17 @@ import {
   Cell,
 } from "recharts";
 
+interface AnalyticsData {
+  totalViews: number;
+  totalPosts: number;
+  popularPosts: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    viewCount: number;
+  }>;
+}
+
 const sidebarVariants = {
   initial: { opacity: 0, x: -20 },
   animate: { 
@@ -67,10 +78,17 @@ export default function EditorAnalytics() {
     enabled: !!siteId,
   });
 
-  const { data: posts, isLoading } = useQuery<Post[]>({
+  const { data: posts, isLoading: postsLoading } = useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts"],
     enabled: !!siteId,
   });
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
+    queryKey: ["/api/sites", siteId, "analytics"],
+    enabled: !!siteId,
+  });
+
+  const isLoading = postsLoading || analyticsLoading;
 
   const handleLogout = async () => {
     await logout();
@@ -84,16 +102,25 @@ export default function EditorAnalytics() {
       manual: posts.filter(p => p.source === "manual").length,
       ai: posts.filter(p => isAiSource(p.source)).length,
       rss: posts.filter(p => p.source === "rss").length,
-      totalViews: posts.reduce((sum, p) => sum + (p.viewCount || 0), 0),
+      totalViews: analytics?.totalViews ?? posts.reduce((sum, p) => sum + (p.viewCount || 0), 0),
     };
-  }, [posts]);
+  }, [posts, analytics]);
 
   const topPosts = useMemo(() => {
+    if (analytics?.popularPosts && analytics.popularPosts.length > 0) {
+      return analytics.popularPosts;
+    }
     if (!posts) return [];
     return [...posts]
       .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-      .slice(0, 10);
-  }, [posts]);
+      .slice(0, 10)
+      .map(p => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        viewCount: p.viewCount || 0,
+      }));
+  }, [posts, analytics]);
 
   const recentPosts = useMemo(() => {
     if (!posts) return [];
