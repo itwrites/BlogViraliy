@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -72,7 +75,6 @@ export default function SiteConfig() {
     groupSlug: "",
     openInNewTab: false,
   });
-  const [newTagSlug, setNewTagSlug] = useState("");
   
   // Authors state
   const [authors, setAuthors] = useState<SiteAuthor[]>([]);
@@ -109,6 +111,30 @@ export default function SiteConfig() {
     queryKey: ["/api/sites", id, "authors"],
     enabled: !isNewSite,
   });
+
+  // Fetch all existing tags for the site (for tag group dropdown)
+  const { data: allTags = [] } = useQuery<string[]>({
+    queryKey: ["/api/sites", id, "all-tags"],
+    enabled: !isNewSite,
+  });
+
+  // State for tag selector popover
+  const [tagSelectorOpen, setTagSelectorOpen] = useState(false);
+  const [tagSearchQuery, setTagSearchQuery] = useState("");
+
+  // Filter tags based on search query
+  const filteredTags = useMemo(() => {
+    const query = tagSearchQuery.toLowerCase().trim();
+    if (!query) return allTags;
+    return allTags.filter(tag => tag.toLowerCase().includes(query));
+  }, [allTags, tagSearchQuery]);
+
+  // Check if we can create a new tag (query doesn't match any existing tag)
+  const canCreateNewTag = useMemo(() => {
+    const normalizedQuery = tagSearchQuery.toLowerCase().trim().replace(/\s+/g, "-");
+    if (!normalizedQuery) return false;
+    return !allTags.some(tag => tag.toLowerCase() === normalizedQuery);
+  }, [allTags, tagSearchQuery]);
 
   useEffect(() => {
     if (existingAuthors) {
@@ -312,14 +338,6 @@ export default function SiteConfig() {
       });
     } catch (error) {
       toast({ title: "Failed to reorder menu items", variant: "destructive" });
-    }
-  };
-
-  const addTagSlugToNewItem = () => {
-    const slug = newTagSlug.trim().toLowerCase().replace(/\s+/g, "-");
-    if (slug && !newMenuItem.tagSlugs.includes(slug)) {
-      setNewMenuItem({ ...newMenuItem, tagSlugs: [...newMenuItem.tagSlugs, slug] });
-      setNewTagSlug("");
     }
   };
 
@@ -841,34 +859,119 @@ export default function SiteConfig() {
                             </div>
                             <div className="space-y-2">
                               <Label>Tags in this group</Label>
-                              <div className="flex gap-2">
-                                <Input
-                                  placeholder="Add tag slug"
-                                  value={newTagSlug}
-                                  onChange={(e) => setNewTagSlug(e.target.value)}
-                                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTagSlugToNewItem())}
-                                  data-testid="input-new-tag-slug"
-                                />
-                                <Button type="button" onClick={addTagSlugToNewItem} size="icon" data-testid="button-add-tag-slug">
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
+                              <Popover open={tagSelectorOpen} onOpenChange={setTagSelectorOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={tagSelectorOpen}
+                                    className="w-full justify-between"
+                                    data-testid="button-tag-selector"
+                                  >
+                                    <span className="text-muted-foreground">
+                                      {newMenuItem.tagSlugs.length > 0 
+                                        ? `${newMenuItem.tagSlugs.length} tag(s) selected` 
+                                        : "Search and select tags..."}
+                                    </span>
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0" align="start">
+                                  <Command shouldFilter={false}>
+                                    <CommandInput 
+                                      placeholder="Search tags or type to create..." 
+                                      value={tagSearchQuery}
+                                      onValueChange={setTagSearchQuery}
+                                      data-testid="input-tag-search"
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        {tagSearchQuery.trim() ? (
+                                          <button
+                                            type="button"
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                                            onClick={() => {
+                                              const normalizedTag = tagSearchQuery.toLowerCase().trim().replace(/\s+/g, "-");
+                                              if (normalizedTag && !newMenuItem.tagSlugs.includes(normalizedTag)) {
+                                                setNewMenuItem({ ...newMenuItem, tagSlugs: [...newMenuItem.tagSlugs, normalizedTag] });
+                                                setTagSearchQuery("");
+                                              }
+                                              // Keep popover open for multi-select
+                                              requestAnimationFrame(() => setTagSelectorOpen(true));
+                                            }}
+                                            data-testid="button-create-new-tag"
+                                          >
+                                            <Plus className="h-4 w-4" />
+                                            Create "{tagSearchQuery.toLowerCase().trim().replace(/\s+/g, "-")}"
+                                          </button>
+                                        ) : (
+                                          <span className="text-muted-foreground">No tags found. Type to create a new one.</span>
+                                        )}
+                                      </CommandEmpty>
+                                      <CommandGroup>
+                                        {filteredTags.map((tag) => {
+                                          const isSelected = newMenuItem.tagSlugs.includes(tag);
+                                          return (
+                                            <CommandItem
+                                              key={tag}
+                                              value={tag}
+                                              onSelect={() => {
+                                                if (isSelected) {
+                                                  setNewMenuItem({ ...newMenuItem, tagSlugs: newMenuItem.tagSlugs.filter(t => t !== tag) });
+                                                } else {
+                                                  setNewMenuItem({ ...newMenuItem, tagSlugs: [...newMenuItem.tagSlugs, tag] });
+                                                }
+                                                // Keep popover open for multi-select
+                                                requestAnimationFrame(() => setTagSelectorOpen(true));
+                                              }}
+                                              data-testid={`option-tag-${tag}`}
+                                            >
+                                              <Check className={`mr-2 h-4 w-4 ${isSelected ? "opacity-100" : "opacity-0"}`} />
+                                              {tag}
+                                            </CommandItem>
+                                          );
+                                        })}
+                                        {canCreateNewTag && filteredTags.length > 0 && (
+                                          <CommandItem
+                                            value={`create-${tagSearchQuery}`}
+                                            onSelect={() => {
+                                              const normalizedTag = tagSearchQuery.toLowerCase().trim().replace(/\s+/g, "-");
+                                              if (normalizedTag && !newMenuItem.tagSlugs.includes(normalizedTag)) {
+                                                setNewMenuItem({ ...newMenuItem, tagSlugs: [...newMenuItem.tagSlugs, normalizedTag] });
+                                                setTagSearchQuery("");
+                                              }
+                                              // Keep popover open for multi-select
+                                              requestAnimationFrame(() => setTagSelectorOpen(true));
+                                            }}
+                                            data-testid="option-create-tag"
+                                          >
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Create "{tagSearchQuery.toLowerCase().trim().replace(/\s+/g, "-")}"
+                                          </CommandItem>
+                                        )}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               {newMenuItem.tagSlugs.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-2">
                                   {newMenuItem.tagSlugs.map((slug) => (
-                                    <span
+                                    <Badge
                                       key={slug}
-                                      className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-sm rounded"
+                                      variant="secondary"
+                                      className="gap-1"
                                     >
                                       {slug}
                                       <button
                                         type="button"
                                         onClick={() => removeTagSlugFromNewItem(slug)}
-                                        className="hover:text-destructive"
+                                        className="ml-1 hover:text-destructive"
+                                        data-testid={`button-remove-tag-${slug}`}
                                       >
                                         <X className="h-3 w-3" />
                                       </button>
-                                    </span>
+                                    </Badge>
                                   ))}
                                 </div>
                               )}

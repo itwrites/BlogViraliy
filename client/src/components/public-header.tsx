@@ -1,7 +1,7 @@
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { MobileNav } from "@/components/mobile-nav";
 import type { Site, SiteMenuItem } from "@shared/schema";
-import { Home, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 
 type MenuActiveStyle = "underline" | "background" | "pill" | "bold";
@@ -249,23 +249,8 @@ export function PublicHeader({
             data-testid="nav-main"
           >
             <div className={`flex items-center ${menuSpacing}`}>
-              <motion.button
-                variants={itemAnimation}
-                onClick={onLogoClick}
-                className={getMenuItemClasses(isHome, true, menuActiveStyle, hasCustomBackground, menuItemPadding)}
-                data-testid="link-home"
-                data-active={isHome}
-                whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-              >
-                <span className="flex items-center gap-1.5">
-                  {showMenuIcons && <Home className="h-4 w-4" />}
-                  HOME
-                </span>
-              </motion.button>
-              
               {isManualMode ? (
-                menuItems.slice(0, templateClasses.maxNavItems - 1).map((item) => {
+                menuItems.slice(0, templateClasses.maxNavItems).map((item) => {
                   // For active state: compare against router-relative paths (without basePath)
                   const isActive = item.type === "tag_group" 
                     ? currentGroupSlug === item.groupSlug
@@ -312,7 +297,7 @@ export function PublicHeader({
                   );
                 })
               ) : (
-                hasTags && topTags.slice(0, templateClasses.maxNavItems - 1).map((tag) => {
+                hasTags && topTags.slice(0, templateClasses.maxNavItems).map((tag) => {
                   const isActive = currentTag?.toLowerCase() === tag.toLowerCase();
                   return (
                     <motion.button

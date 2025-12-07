@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, Home, ExternalLink } from "lucide-react";
+import { Menu, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { useLocation } from "wouter";
@@ -71,15 +71,9 @@ export function MobileNav({
 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const [location, setLocation] = useLocation();
-  const isHome = !currentTag && !currentGroupSlug;
 
   const handleTagClick = (tag: string) => {
     onTagClick(tag);
-    setOpen(false);
-  };
-
-  const handleHomeClick = () => {
-    onHomeClick();
     setOpen(false);
   };
 
@@ -132,16 +126,6 @@ export function MobileNav({
           </SheetClose>
         </div>
         <nav className="flex flex-col gap-1" data-testid="nav-mobile">
-          <button
-            onClick={handleHomeClick}
-            className={getMobileMenuItemClasses(isHome, menuActiveStyle)}
-            data-testid="link-mobile-home"
-            data-active={isHome}
-          >
-            {showMenuIcons && <Home className="h-5 w-5" />}
-            HOME
-          </button>
-          
           {isManualMode ? (
             menuItems.map((item) => {
               // For active state: compare against router-relative paths (without basePath)

@@ -979,6 +979,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all unique tags for a site (for admin tag selection dropdown)
+  app.get("/api/sites/:id/all-tags", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      // Get all unique tags (up to 1000)
+      const tags = await storage.getTopTags(req.params.id, 1000);
+      res.json(tags);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch tags" });
+    }
+  });
+
   app.post("/api/posts", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const postData = insertPostSchema.parse(req.body);
