@@ -56,7 +56,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Logo Target URL**: Custom redirect URL when clicking the site logo (defaults to home)
     - All navigation uses router-relative paths for correct basePath handling in proxy deployments
 - **Bulk Keyword Generation**: Supports uploading keyword lists for automated post generation, with a dashboard to track progress.
-- **CSV Post Import**: Import posts from CSV files with title, description, and tags columns. Features RFC 4180-compliant parsing (handles quoted fields, commas in values, UTF-8 BOM), automatic slug generation with batch-aware duplicate handling, and supports comma or semicolon-separated tags. Max 1000 rows per import.
+- **CSV Post Import**: Import posts from CSV files with title, description, and tags columns. Features RFC 4180-compliant parsing (handles quoted fields, commas in values, UTF-8 BOM), automatic slug generation with batch-aware duplicate handling, and supports comma or semicolon-separated tags. Max 1000 rows per import, up to 20MB file size.
 - **Topical Authority System**: Automated SEO content generation using the Pillar-Cluster model:
     - **Pillars**: Main topic entities with configurable subtopic counts (50-200 articles)
     - **Clusters**: AI-generated categories (3-8 per pillar) organizing content thematically

@@ -578,9 +578,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "CSV content is required" });
       }
       
-      // Check file size (max 1MB of text)
-      if (csvContent.length > 1024 * 1024) {
-        return res.status(400).json({ error: "CSV content too large (max 1MB)" });
+      // Check file size (max 20MB of text)
+      if (csvContent.length > 20 * 1024 * 1024) {
+        return res.status(400).json({ error: "CSV content too large (max 20MB)" });
       }
       
       // Strip UTF-8 BOM if present (common in Excel exports)
