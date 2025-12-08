@@ -51,6 +51,11 @@ import {
   Square,
   Eye,
   BarChart3,
+  Upload,
+  Download,
+  FileSpreadsheet,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -155,6 +160,16 @@ export default function EditorPosts() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
+  const [csvContent, setCsvContent] = useState("");
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvResult, setCsvResult] = useState<{
+    success: boolean;
+    imported: number;
+    skipped: number;
+    errors: string[];
+    totalErrors: number;
+  } | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -346,6 +361,72 @@ export default function EditorPosts() {
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete posts", variant: "destructive" });
     }
+  };
+
+  const handleCsvFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 1024 * 1024) {
+      toast({ title: "Error", description: "File too large (max 1MB)", variant: "destructive" });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setCsvContent(content);
+      setCsvResult(null);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCsvImport = async () => {
+    if (!csvContent.trim()) {
+      toast({ title: "Error", description: "Please select a CSV file first", variant: "destructive" });
+      return;
+    }
+
+    setCsvImporting(true);
+    setCsvResult(null);
+
+    try {
+      const response = await apiRequest("POST", `/api/editor/sites/${siteId}/posts/import-csv`, {
+        csvContent,
+      });
+      
+      const result = await response.json();
+      setCsvResult(result);
+      
+      if (result.imported > 0) {
+        queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+        toast({ 
+          title: "Import Complete", 
+          description: `Successfully imported ${result.imported} post${result.imported > 1 ? 's' : ''}` 
+        });
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to import CSV", variant: "destructive" });
+    } finally {
+      setCsvImporting(false);
+    }
+  };
+
+  const closeCsvImport = () => {
+    setCsvImportOpen(false);
+    setCsvContent("");
+    setCsvResult(null);
+  };
+
+  const downloadCsvTemplate = () => {
+    const template = "title,description,tags\n\"My First Post\",\"This is the content of my first post. You can use HTML or plain text here.\",\"tag1, tag2, tag3\"\n\"Another Post\",\"Another great article with interesting content.\",\"news, updates\"";
+    const blob = new Blob([template], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "posts-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const getSourceIcon = (source: string) => {
@@ -638,14 +719,25 @@ export default function EditorPosts() {
                 )}
 
                 {!bulkMode && (
-                  <Button 
-                    onClick={() => openEditor()} 
-                    className="gap-2 shadow-lg shadow-primary/20"
-                    data-testid="button-new-post"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>New Post</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setCsvImportOpen(true)}
+                      className="gap-2"
+                      data-testid="button-csv-import"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>Import CSV</span>
+                    </Button>
+                    <Button 
+                      onClick={() => openEditor()} 
+                      className="gap-2 shadow-lg shadow-primary/20"
+                      data-testid="button-new-post"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>New Post</span>
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -1146,6 +1238,129 @@ export default function EditorPosts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={csvImportOpen} onOpenChange={(open) => !open && closeCsvImport()}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5" />
+              Import Posts from CSV
+            </DialogTitle>
+            <DialogDescription>
+              Upload a CSV file with your posts. Required columns: title, description. Optional: tags.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Download className="w-4 h-4" />
+                <span>Need a template?</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={downloadCsvTemplate}
+                data-testid="button-download-template"
+              >
+                Download Template
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="csv-file">Select CSV File</Label>
+              <Input
+                id="csv-file"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={handleCsvFileSelect}
+                disabled={csvImporting}
+                data-testid="input-csv-file"
+              />
+              {csvContent && (
+                <p className="text-sm text-muted-foreground">
+                  File loaded: {csvContent.split('\n').length - 1} data row(s) detected
+                </p>
+              )}
+            </div>
+
+            {csvResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-lg ${
+                  csvResult.imported > 0 ? "bg-green-500/10 border border-green-500/20" : "bg-yellow-500/10 border border-yellow-500/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {csvResult.imported > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                  )}
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {csvResult.imported > 0 
+                        ? `Successfully imported ${csvResult.imported} post${csvResult.imported > 1 ? 's' : ''}`
+                        : "No posts imported"
+                      }
+                    </p>
+                    {csvResult.skipped > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {csvResult.skipped} row{csvResult.skipped > 1 ? 's' : ''} skipped
+                      </p>
+                    )}
+                    {csvResult.errors.length > 0 && (
+                      <div className="mt-2 text-sm space-y-1">
+                        <p className="text-muted-foreground font-medium">Issues:</p>
+                        <ul className="list-disc list-inside text-muted-foreground">
+                          {csvResult.errors.slice(0, 5).map((err, i) => (
+                            <li key={i}>{err}</li>
+                          ))}
+                          {csvResult.totalErrors > 5 && (
+                            <li>...and {csvResult.totalErrors - 5} more</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={closeCsvImport}
+              disabled={csvImporting}
+              data-testid="button-cancel-csv-import"
+            >
+              {csvResult?.imported ? "Close" : "Cancel"}
+            </Button>
+            {!csvResult?.imported && (
+              <Button 
+                onClick={handleCsvImport}
+                disabled={!csvContent || csvImporting}
+                className="gap-2"
+                data-testid="button-import-csv"
+              >
+                {csvImporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Import Posts
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
