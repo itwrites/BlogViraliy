@@ -568,6 +568,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CSV Import for posts
+  app.post("/api/editor/sites/:id/posts/import-csv", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const { csvContent } = req.body;
+      
+      if (!csvContent || typeof csvContent !== "string") {
+        return res.status(400).json({ error: "CSV content is required" });
+      }
+      
+      // Check file size (max 1MB of text)
+      if (csvContent.length > 1024 * 1024) {
+        return res.status(400).json({ error: "CSV content too large (max 1MB)" });
+      }
+      
+      // Helper function to generate slug
+      const slugify = (text: string): string => {
+        return text
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .substring(0, 100);
+      };
+      
+      // Parse CSV (simple parser handling quoted fields)
+      const parseCSVLine = (line: string): string[] => {
+        const result: string[] = [];
+        let current = "";
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === "," && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+      
+      // Split into lines and parse
+      const lines = csvContent.split(/\r?\n/).filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        return res.status(400).json({ error: "CSV must have a header row and at least one data row" });
+      }
+      
+      // Parse header
+      const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const titleIdx = header.indexOf("title");
+      const descIdx = header.indexOf("description");
+      const tagsIdx = header.indexOf("tags");
+      
+      if (titleIdx === -1) {
+        return res.status(400).json({ error: "CSV must have a 'title' column" });
+      }
+      if (descIdx === -1) {
+        return res.status(400).json({ error: "CSV must have a 'description' column" });
+      }
+      
+      // Get existing post slugs for this site to check for duplicates
+      const existingPosts = await storage.getPostsBySiteId(siteId);
+      const existingSlugs = new Set(existingPosts.map(p => p.slug));
+      
+      // Process data rows (limit to 1000 rows)
+      const dataRows = lines.slice(1).slice(0, 1000);
+      const results = {
+        imported: 0,
+        skipped: 0,
+        errors: [] as string[],
+      };
+      
+      for (let i = 0; i < dataRows.length; i++) {
+        const rowNum = i + 2; // 1-indexed, accounting for header
+        try {
+          const fields = parseCSVLine(dataRows[i]);
+          const title = fields[titleIdx]?.trim();
+          const description = fields[descIdx]?.trim();
+          const tagsRaw = tagsIdx !== -1 ? fields[tagsIdx]?.trim() : "";
+          
+          // Validate required fields
+          if (!title) {
+            results.errors.push(`Row ${rowNum}: Missing title`);
+            results.skipped++;
+            continue;
+          }
+          if (!description) {
+            results.errors.push(`Row ${rowNum}: Missing description`);
+            results.skipped++;
+            continue;
+          }
+          
+          // Generate slug
+          let baseSlug = slugify(title);
+          if (!baseSlug) baseSlug = "post";
+          
+          let slug = baseSlug;
+          let suffix = 1;
+          while (existingSlugs.has(slug)) {
+            slug = `${baseSlug}-${suffix}`;
+            suffix++;
+          }
+          existingSlugs.add(slug);
+          
+          // Parse tags (comma or semicolon separated)
+          const tags = tagsRaw
+            ? tagsRaw.split(/[,;]/).map(t => t.trim().toLowerCase()).filter(t => t.length > 0)
+            : [];
+          
+          // Create the post
+          await storage.createPost({
+            siteId,
+            title,
+            slug,
+            content: description,
+            tags,
+            source: "csv-import",
+          });
+          
+          results.imported++;
+        } catch (err) {
+          results.errors.push(`Row ${rowNum}: ${err instanceof Error ? err.message : "Unknown error"}`);
+          results.skipped++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        imported: results.imported,
+        skipped: results.skipped,
+        errors: results.errors.slice(0, 20), // Return first 20 errors
+        totalErrors: results.errors.length,
+      });
+    } catch (error) {
+      console.error("CSV import error:", error);
+      res.status(500).json({ error: "Failed to import CSV" });
+    }
+  });
+
   app.put("/api/editor/posts/:id", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const post = await storage.getPostById(req.params.id);
