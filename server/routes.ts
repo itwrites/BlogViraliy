@@ -572,7 +572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/editor/sites/:id/posts/import-csv", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
     try {
       const siteId = req.params.id;
-      const { csvContent } = req.body;
+      let { csvContent } = req.body;
       
       if (!csvContent || typeof csvContent !== "string") {
         return res.status(400).json({ error: "CSV content is required" });
@@ -581,6 +581,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check file size (max 1MB of text)
       if (csvContent.length > 1024 * 1024) {
         return res.status(400).json({ error: "CSV content too large (max 1MB)" });
+      }
+      
+      // Strip UTF-8 BOM if present (common in Excel exports)
+      if (csvContent.charCodeAt(0) === 0xFEFF) {
+        csvContent = csvContent.slice(1);
       }
       
       // Helper function to generate slug
@@ -592,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .substring(0, 100);
       };
       
-      // Parse CSV (simple parser handling quoted fields)
+      // Parse CSV (RFC 4180 compliant parser handling quoted fields)
       const parseCSVLine = (line: string): string[] => {
         const result: string[] = [];
         let current = "";
@@ -619,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Split into lines and parse
-      const lines = csvContent.split(/\r?\n/).filter(line => line.trim());
+      const lines = csvContent.split(/\r?\n/).filter((line: string) => line.trim());
       
       if (lines.length < 2) {
         return res.status(400).json({ error: "CSV must have a header row and at least one data row" });
