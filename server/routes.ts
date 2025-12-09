@@ -13,6 +13,22 @@ import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./site
 import { normalizeBasePath } from "./utils";
 import { rewriteHtmlForBasePath } from "./html-rewriter";
 
+async function ensureAdminUser() {
+  try {
+    const existingAdmin = await storage.getUserByUsername("admin");
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+      await storage.createUser({
+        username: "admin",
+        password: hashedPassword,
+      });
+      console.log("[Seed] Created default admin user (username: admin, password: admin123)");
+    }
+  } catch (error) {
+    console.error("[Seed] Failed to ensure admin user:", error);
+  }
+}
+
 // View tracking deduplication cache (IP+slug -> timestamp)
 // Used to prevent the same visitor from counting multiple views
 const viewCache = new Map<string, number>();
@@ -61,6 +77,9 @@ interface AuthenticatedRequest extends Request {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === "production";
+  
+  // Ensure admin user exists on startup (works in both dev and prod)
+  await ensureAdminUser();
   
   app.set("trust proxy", 1);
   
