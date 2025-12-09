@@ -367,8 +367,8 @@ export default function EditorPosts() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (file.size > 1024 * 1024) {
-      toast({ title: "Error", description: "File too large (max 1MB)", variant: "destructive" });
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: "Error", description: "File too large (max 20MB)", variant: "destructive" });
       return;
     }
     
