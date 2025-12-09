@@ -4,10 +4,20 @@ import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster } from "@shared/schema";
 
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+      throw new Error("OpenAI AI Integrations not configured. Please set up AI Integrations in your Replit project.");
+    }
+    openai = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 interface TopicalMapCategory {
   name: string;
@@ -91,7 +101,7 @@ Respond with valid JSON in this exact structure:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-5",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
@@ -266,7 +276,7 @@ Respond with valid JSON:
   "metaDescription": "Meta description (150-160 chars)"
 }`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-5",
     messages: [{ role: "user", content: prompt }],
     response_format: { type: "json_object" },

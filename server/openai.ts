@@ -5,10 +5,20 @@ import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+      throw new Error("OpenAI AI Integrations not configured. Please set up AI Integrations in your Replit project.");
+    }
+    openai = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 interface AIPostResult {
   title: string;
@@ -48,7 +58,7 @@ Provide the response in JSON format with the following structure:
   "metaDescription": "SEO description (150-160 characters, compelling call-to-action)"
 }`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-5",
     messages: [{ role: "user", content: prompt }],
     response_format: { type: "json_object" },
@@ -104,7 +114,7 @@ Provide the response in JSON format with the following structure:
   "metaDescription": "SEO description (150-160 characters, compelling call-to-action)"
 }`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-5",
     messages: [{ role: "user", content: prompt }],
     response_format: { type: "json_object" },
