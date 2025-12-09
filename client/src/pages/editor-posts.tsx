@@ -329,11 +329,25 @@ export default function EditorPosts() {
     });
   };
 
+  // Check if all posts on current page are selected
+  const allCurrentPageSelected = paginatedPosts.length > 0 && 
+    paginatedPosts.every(p => selectedPosts.has(p.id));
+
   const toggleSelectAll = () => {
-    if (selectedPosts.size === paginatedPosts.length) {
-      setSelectedPosts(new Set());
+    if (allCurrentPageSelected) {
+      // Deselect all on current page
+      setSelectedPosts(prev => {
+        const newSet = new Set(prev);
+        paginatedPosts.forEach(p => newSet.delete(p.id));
+        return newSet;
+      });
     } else {
-      setSelectedPosts(new Set(paginatedPosts.map(p => p.id)));
+      // Select all on current page (add to existing selection)
+      setSelectedPosts(prev => {
+        const newSet = new Set(prev);
+        paginatedPosts.forEach(p => newSet.add(p.id));
+        return newSet;
+      });
     }
   };
 
@@ -419,7 +433,14 @@ export default function EditorPosts() {
   };
 
   const downloadCsvTemplate = () => {
-    const template = "title,description,tags\n\"My First Post\",\"This is the content of my first post. You can use HTML or plain text here.\",\"tag1, tag2, tag3\"\n\"Another Post\",\"Another great article with interesting content.\",\"news, updates\"";
+    const template = `title,description,tags,slug,imageUrl
+"My First Post","This is the content of my first post.
+
+You can use multiple lines in the description field when wrapped in quotes.
+
+HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","https://example.com/image1.jpg"
+"Another Post","Another great article with interesting content.","news, updates","another-post",""
+"Post Without Slug","The slug will be auto-generated from the title if left empty.","example","",""`;
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -697,24 +718,48 @@ export default function EditorPosts() {
                   </Button>
                 </div>
 
-                {bulkMode && selectedPosts.size > 0 && (
+                {bulkMode && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-2 bg-destructive/10 rounded-lg px-3 py-1.5"
+                    className="flex items-center gap-2"
                   >
-                    <span className="text-sm font-medium">
-                      {selectedPosts.size} selected
-                    </span>
                     <Button
-                      variant="destructive"
+                      variant="outline"
                       size="sm"
-                      onClick={() => setBulkDeleteDialogOpen(true)}
-                      data-testid="button-bulk-delete"
+                      onClick={toggleSelectAll}
+                      className="gap-2"
+                      data-testid="button-select-all"
                     >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Delete
+                      {allCurrentPageSelected ? (
+                        <>
+                          <CheckSquare className="w-4 h-4" />
+                          Deselect Page ({paginatedPosts.length})
+                        </>
+                      ) : (
+                        <>
+                          <Square className="w-4 h-4" />
+                          Select Page ({paginatedPosts.length})
+                        </>
+                      )}
                     </Button>
+                    
+                    {selectedPosts.size > 0 && (
+                      <div className="flex items-center gap-2 bg-destructive/10 rounded-lg px-3 py-1.5">
+                        <span className="text-sm font-medium">
+                          {selectedPosts.size} selected
+                        </span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setBulkDeleteDialogOpen(true)}
+                          data-testid="button-bulk-delete"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    )}
                   </motion.div>
                 )}
 

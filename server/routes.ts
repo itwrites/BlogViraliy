@@ -616,44 +616,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .substring(0, 100);
       };
       
-      // Parse CSV (RFC 4180 compliant parser handling quoted fields)
-      const parseCSVLine = (line: string): string[] => {
-        const result: string[] = [];
-        let current = "";
-        let inQuotes = false;
-        
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              current += '"';
-              i++;
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === "," && !inQuotes) {
-            result.push(current.trim());
-            current = "";
-          } else {
-            current += char;
-          }
-        }
-        result.push(current.trim());
-        return result;
+      // Helper to normalize a slug from CSV (strip leading slashes, clean up)
+      const normalizeSlug = (rawSlug: string): string => {
+        return rawSlug
+          .replace(/^\/+/, "") // Remove leading slashes
+          .replace(/\/+$/, "") // Remove trailing slashes
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, "-") // Replace invalid chars with hyphens
+          .replace(/-+/g, "-") // Collapse multiple hyphens
+          .replace(/^-|-$/g, "") // Remove leading/trailing hyphens
+          .substring(0, 100);
       };
       
-      // Split into lines and parse
-      const lines = csvContent.split(/\r?\n/).filter((line: string) => line.trim());
+      // RFC 4180 compliant CSV parser that handles multiline quoted fields
+      // Preserves whitespace inside quoted fields and properly unescapes doubled quotes
+      const parseCSV = (content: string): string[][] => {
+        const rows: string[][] = [];
+        let currentRow: string[] = [];
+        let currentField = "";
+        let inQuotes = false;
+        let fieldWasQuoted = false;
+        
+        for (let i = 0; i < content.length; i++) {
+          const char = content[i];
+          const nextChar = content[i + 1];
+          
+          if (char === '"') {
+            if (!inQuotes && currentField === "") {
+              // Opening quote at start of field
+              inQuotes = true;
+              fieldWasQuoted = true;
+            } else if (inQuotes && nextChar === '"') {
+              // Escaped quote (doubled) - unescape to single quote
+              currentField += '"';
+              i++;
+            } else if (inQuotes) {
+              // Closing quote
+              inQuotes = false;
+            } else {
+              // Quote in middle of unquoted field - just add it
+              currentField += char;
+            }
+          } else if (char === ',' && !inQuotes) {
+            // Field separator - preserve content, only trim unquoted fields
+            currentRow.push(fieldWasQuoted ? currentField : currentField.trim());
+            currentField = "";
+            fieldWasQuoted = false;
+          } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            // Row separator (outside quotes)
+            if (char === '\r' && nextChar === '\n') {
+              i++; // Skip \n in \r\n
+            }
+            // Finish current row - preserve content, only trim unquoted fields
+            currentRow.push(fieldWasQuoted ? currentField : currentField.trim());
+            currentField = "";
+            fieldWasQuoted = false;
+            // Only add non-empty rows (at least one field with content after trimming)
+            if (currentRow.some(cell => cell.trim().length > 0)) {
+              rows.push(currentRow);
+            }
+            currentRow = [];
+          } else {
+            // Regular character (including newlines inside quotes)
+            currentField += char;
+          }
+        }
+        
+        // Handle last field/row
+        if (currentField || currentRow.length > 0) {
+          currentRow.push(fieldWasQuoted ? currentField : currentField.trim());
+          if (currentRow.some(f => f.trim())) {
+            rows.push(currentRow);
+          }
+        }
+        
+        return rows;
+      };
       
-      if (lines.length < 2) {
+      // Parse CSV content
+      const rows = parseCSV(csvContent);
+      
+      if (rows.length < 2) {
         return res.status(400).json({ error: "CSV must have a header row and at least one data row" });
       }
       
       // Parse header
-      const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const header = rows[0].map(h => h.toLowerCase().trim());
       const titleIdx = header.indexOf("title");
       const descIdx = header.indexOf("description");
       const tagsIdx = header.indexOf("tags");
+      const slugIdx = header.indexOf("slug");
+      const imageUrlIdx = header.indexOf("imageurl");
       
       if (titleIdx === -1) {
         return res.status(400).json({ error: "CSV must have a 'title' column" });
@@ -667,7 +720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingSlugs = new Set(existingPosts.map(p => p.slug));
       
       // Process data rows (limit to 1000 rows)
-      const dataRows = lines.slice(1).slice(0, 1000);
+      const dataRows = rows.slice(1).slice(0, 1000);
       const results = {
         imported: 0,
         skipped: 0,
@@ -677,10 +730,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (let i = 0; i < dataRows.length; i++) {
         const rowNum = i + 2; // 1-indexed, accounting for header
         try {
-          const fields = parseCSVLine(dataRows[i]);
-          const title = fields[titleIdx]?.trim();
-          const description = fields[descIdx]?.trim();
-          const tagsRaw = tagsIdx !== -1 ? fields[tagsIdx]?.trim() : "";
+          const fields = dataRows[i];
+          // Get raw values - preserve whitespace in content fields
+          const rawTitle = fields[titleIdx] ?? "";
+          const rawDescription = fields[descIdx] ?? "";
+          const tagsRaw = tagsIdx !== -1 ? fields[tagsIdx]?.trim() ?? "" : "";
+          const rawSlug = slugIdx !== -1 ? fields[slugIdx]?.trim() ?? "" : "";
+          const imageUrl = imageUrlIdx !== -1 ? fields[imageUrlIdx]?.trim() ?? "" : "";
+          
+          // Title is trimmed for display and validation
+          const title = rawTitle.trim();
+          // Description preserves whitespace (e.g., newlines) - only check if not empty
+          const description = rawDescription;
           
           // Validate required fields
           if (!title) {
@@ -688,14 +749,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             results.skipped++;
             continue;
           }
-          if (!description) {
+          if (!description.trim()) {
             results.errors.push(`Row ${rowNum}: Missing description`);
             results.skipped++;
             continue;
           }
           
-          // Generate slug
-          let baseSlug = slugify(title);
+          // Use provided slug if valid, otherwise generate from title
+          let baseSlug = rawSlug ? normalizeSlug(rawSlug) : slugify(title);
           if (!baseSlug) baseSlug = "post";
           
           let slug = baseSlug;
@@ -719,6 +780,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             content: description,
             tags,
             source: "csv-import",
+            ...(imageUrl && { imageUrl }),
           });
           
           results.imported++;
