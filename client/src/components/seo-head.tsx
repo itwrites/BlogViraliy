@@ -143,6 +143,11 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
     if (site.favicon) {
       setLink('icon', site.favicon);
+    } else {
+      const firstLetter = (site.title || 'S').charAt(0).toUpperCase();
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="4" fill="#1a1a1a"/><text x="16" y="22" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="600" fill="#ffffff">${firstLetter}</text></svg>`;
+      const faviconDataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+      setLink('icon', faviconDataUrl);
     }
 
     if (site.analyticsId) {

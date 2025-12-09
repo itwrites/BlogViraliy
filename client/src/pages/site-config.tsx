@@ -445,10 +445,10 @@ export default function SiteConfig() {
               </div>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">
-                  {isNewSite ? "Add New Site" : site?.title}
+                  {isNewSite ? "Add New Site" : "Site Configuration"}
                 </h1>
                 <p className="text-xs text-muted-foreground" data-testid="text-page-description">
-                  {isNewSite ? "Create a new multi-tenant website" : "Site Configuration"}
+                  {isNewSite ? "Create a new multi-tenant website" : site?.title}
                 </p>
               </div>
             </div>
