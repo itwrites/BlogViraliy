@@ -46,7 +46,10 @@ export type TranslationKey =
   | "moreIn"
   | "topicNotFound"
   | "topicNotFoundDescription"
-  | "noArticlesInTopic";
+  | "noArticlesInTopic"
+  | "quickLinks"
+  | "allRightsReserved"
+  | "poweredBy";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -98,6 +101,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Topic not found",
     topicNotFoundDescription: "This topic group doesn't exist",
     noArticlesInTopic: "There are no articles in this topic group yet",
+    quickLinks: "Quick Links",
+    allRightsReserved: "All rights reserved.",
+    poweredBy: "Powered by",
   },
   es: {
     readMore: "Leer más",
@@ -146,6 +152,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Tema no encontrado",
     topicNotFoundDescription: "Este grupo de temas no existe",
     noArticlesInTopic: "Aún no hay artículos en este grupo de temas",
+    quickLinks: "Enlaces rápidos",
+    allRightsReserved: "Todos los derechos reservados.",
+    poweredBy: "Desarrollado por",
   },
   fr: {
     readMore: "Lire la suite",
@@ -194,6 +203,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Sujet non trouvé",
     topicNotFoundDescription: "Ce groupe de sujets n'existe pas",
     noArticlesInTopic: "Il n'y a pas encore d'articles dans ce groupe de sujets",
+    quickLinks: "Liens rapides",
+    allRightsReserved: "Tous droits réservés.",
+    poweredBy: "Propulsé par",
   },
   de: {
     readMore: "Weiterlesen",
@@ -242,6 +254,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Thema nicht gefunden",
     topicNotFoundDescription: "Diese Themengruppe existiert nicht",
     noArticlesInTopic: "Es gibt noch keine Artikel in dieser Themengruppe",
+    quickLinks: "Schnelllinks",
+    allRightsReserved: "Alle Rechte vorbehalten.",
+    poweredBy: "Unterstützt von",
   },
   it: {
     readMore: "Leggi di più",
@@ -290,6 +305,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Argomento non trovato",
     topicNotFoundDescription: "Questo gruppo di argomenti non esiste",
     noArticlesInTopic: "Non ci sono ancora articoli in questo gruppo di argomenti",
+    quickLinks: "Link rapidi",
+    allRightsReserved: "Tutti i diritti riservati.",
+    poweredBy: "Alimentato da",
   },
   pt: {
     readMore: "Ler mais",
@@ -386,6 +404,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Tópico não encontrado",
     topicNotFoundDescription: "Este grupo de tópicos não existe",
     noArticlesInTopic: "Ainda não há artigos neste grupo de tópicos",
+    quickLinks: "Links rápidos",
+    allRightsReserved: "Todos os direitos reservados.",
+    poweredBy: "Desenvolvido por",
   },
   nl: {
     readMore: "Lees meer",
@@ -434,6 +455,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Onderwerp niet gevonden",
     topicNotFoundDescription: "Deze onderwerpgroep bestaat niet",
     noArticlesInTopic: "Er zijn nog geen artikelen in deze onderwerpgroep",
+    quickLinks: "Snelle links",
+    allRightsReserved: "Alle rechten voorbehouden.",
+    poweredBy: "Aangedreven door",
   },
   sv: {
     readMore: "Läs mer",
@@ -482,6 +506,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Ämne hittades inte",
     topicNotFoundDescription: "Denna ämnesgrupp finns inte",
     noArticlesInTopic: "Det finns inga artiklar i denna ämnesgrupp än",
+    quickLinks: "Snabblänkar",
+    allRightsReserved: "Alla rättigheter förbehållna.",
+    poweredBy: "Drivs av",
   },
   no: {
     readMore: "Les mer",
@@ -530,6 +557,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Emne ikke funnet",
     topicNotFoundDescription: "Denne emnegruppen finnes ikke",
     noArticlesInTopic: "Det er ingen artikler i denne emnegruppen ennå",
+    quickLinks: "Hurtiglenker",
+    allRightsReserved: "Alle rettigheter reservert.",
+    poweredBy: "Drevet av",
   },
   da: {
     readMore: "Læs mere",
@@ -578,6 +608,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Emne ikke fundet",
     topicNotFoundDescription: "Denne emnegruppe findes ikke",
     noArticlesInTopic: "Der er ingen artikler i denne emnegruppe endnu",
+    quickLinks: "Hurtige links",
+    allRightsReserved: "Alle rettigheder forbeholdes.",
+    poweredBy: "Drevet af",
   },
   fi: {
     readMore: "Lue lisää",
@@ -626,6 +659,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Aihetta ei löytynyt",
     topicNotFoundDescription: "Tätä aiheryhmää ei ole olemassa",
     noArticlesInTopic: "Tässä aiheryhmässä ei ole vielä artikkeleita",
+    quickLinks: "Pikalinkit",
+    allRightsReserved: "Kaikki oikeudet pidätetään.",
+    poweredBy: "Voimanlähde",
   },
   pl: {
     readMore: "Czytaj więcej",
@@ -674,6 +710,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Temat nie znaleziony",
     topicNotFoundDescription: "Ta grupa tematyczna nie istnieje",
     noArticlesInTopic: "W tej grupie tematycznej nie ma jeszcze artykułów",
+    quickLinks: "Szybkie linki",
+    allRightsReserved: "Wszelkie prawa zastrzeżone.",
+    poweredBy: "Napędzane przez",
   },
   sk: {
     readMore: "Čítať viac",
@@ -722,6 +761,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Téma nenájdená",
     topicNotFoundDescription: "Táto skupina tém neexistuje",
     noArticlesInTopic: "V tejto skupine tém zatiaľ nie sú žiadne články",
+    quickLinks: "Rýchle odkazy",
+    allRightsReserved: "Všetky práva vyhradené.",
+    poweredBy: "Poháňané",
   },
   tr: {
     readMore: "Devamını Oku",
@@ -770,6 +812,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Konu bulunamadı",
     topicNotFoundDescription: "Bu konu grubu mevcut değil",
     noArticlesInTopic: "Bu konu grubunda henüz makale yok",
+    quickLinks: "Hızlı Bağlantılar",
+    allRightsReserved: "Tüm hakları saklıdır.",
+    poweredBy: "Tarafından desteklenmektedir",
   },
   ru: {
     readMore: "Читать далее",
@@ -818,6 +863,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "Тема не найдена",
     topicNotFoundDescription: "Эта группа тем не существует",
     noArticlesInTopic: "В этой группе тем пока нет статей",
+    quickLinks: "Быстрые ссылки",
+    allRightsReserved: "Все права защищены.",
+    poweredBy: "Работает на",
   },
   ar: {
     readMore: "اقرأ المزيد",
@@ -866,6 +914,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "الموضوع غير موجود",
     topicNotFoundDescription: "هذه المجموعة الموضوعية غير موجودة",
     noArticlesInTopic: "لا توجد مقالات في هذه المجموعة الموضوعية بعد",
+    quickLinks: "روابط سريعة",
+    allRightsReserved: "جميع الحقوق محفوظة.",
+    poweredBy: "مدعوم من",
   },
   zh: {
     readMore: "阅读更多",
@@ -914,6 +965,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "主题未找到",
     topicNotFoundDescription: "此主题组不存在",
     noArticlesInTopic: "此主题组暂无文章",
+    quickLinks: "快速链接",
+    allRightsReserved: "保留所有权利。",
+    poweredBy: "技术支持",
   },
   ja: {
     readMore: "続きを読む",
@@ -962,6 +1016,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "トピックが見つかりません",
     topicNotFoundDescription: "このトピックグループは存在しません",
     noArticlesInTopic: "このトピックグループにはまだ記事がありません",
+    quickLinks: "クイックリンク",
+    allRightsReserved: "無断転載禁止。",
+    poweredBy: "提供",
   },
   ko: {
     readMore: "더 읽기",
@@ -1010,6 +1067,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "주제를 찾을 수 없습니다",
     topicNotFoundDescription: "이 주제 그룹이 존재하지 않습니다",
     noArticlesInTopic: "이 주제 그룹에는 아직 기사가 없습니다",
+    quickLinks: "빠른 링크",
+    allRightsReserved: "모든 권리 보유.",
+    poweredBy: "제공",
   },
   hi: {
     readMore: "और पढ़ें",
@@ -1058,6 +1118,9 @@ const translations: Record<ContentLanguage, Translations> = {
     topicNotFound: "विषय नहीं मिला",
     topicNotFoundDescription: "यह विषय समूह मौजूद नहीं है",
     noArticlesInTopic: "इस विषय समूह में अभी तक कोई लेख नहीं है",
+    quickLinks: "त्वरित लिंक",
+    allRightsReserved: "सर्वाधिकार सुरक्षित।",
+    poweredBy: "द्वारा संचालित",
   },
 };
 

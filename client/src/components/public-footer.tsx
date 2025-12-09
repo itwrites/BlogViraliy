@@ -3,6 +3,7 @@ import { Twitter, Facebook, Instagram, Linkedin, Youtube, Github } from "lucide-
 import { SiTiktok, SiPinterest } from "react-icons/si";
 import type { Site, TemplateSettings } from "@shared/schema";
 import { useTemplateClasses } from "@/components/public-theme-provider";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface PublicFooterProps {
   site: Site;
@@ -52,6 +53,7 @@ function getFooterColors(settings: TemplateSettings | null | undefined) {
 }
 
 export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }: PublicFooterProps) {
+  const { t } = useTranslation(site.displayLanguage);
   const settings = mergedSettings || site.templateSettings;
   const templateClasses = useTemplateClasses(settings);
   const prefersReducedMotion = useReducedMotion();
@@ -251,7 +253,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
           className="text-sm font-semibold uppercase tracking-wider"
           style={{ color: linkColor }}
         >
-          Categories
+          {t("categories")}
         </h4>
         <ul className="space-y-2">
           {displayTags.map((tag) => (
@@ -275,7 +277,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
 
   const renderCopyright = () => {
     const year = new Date().getFullYear();
-    const displayCopyright = copyrightText || footerText || `© ${year} ${site.title}. All rights reserved.`;
+    const displayCopyright = copyrightText || footerText || `© ${year} ${site.title}. ${t("allRightsReserved")}`;
 
     return (
       <p className="text-sm" style={{ color: textColor }} data-testid="text-footer-copyright">
@@ -407,7 +409,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
               className="text-sm font-semibold uppercase tracking-wider"
               style={{ color: linkColor }}
             >
-              Quick Links
+              {t("quickLinks")}
             </h4>
             <ul className="space-y-2">
               <li>
@@ -434,7 +436,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
           {renderCopyright()}
           {showPoweredBy && (
             <p className="text-xs" style={{ color: textColor }}>
-              Powered by Blog Virality
+              {t("poweredBy")} Blog Virality
             </p>
           )}
         </motion.div>
