@@ -39,6 +39,7 @@ export default function SiteConfig() {
     menuMode: "automatic" as "automatic" | "manual",
     siteType: "blog",
     postUrlFormat: "with-prefix" as "with-prefix" | "root",
+    displayLanguage: "en" as ContentLanguage,
     metaTitle: "",
     metaDescription: "",
     ogImage: "",
@@ -158,6 +159,7 @@ export default function SiteConfig() {
         menuMode: (site.menuMode as "automatic" | "manual") || "automatic",
         siteType: site.siteType,
         postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
+        displayLanguage: (site.displayLanguage as ContentLanguage) || "en",
         metaTitle: site.metaTitle || "",
         metaDescription: site.metaDescription || "",
         ogImage: site.ogImage || "",
@@ -745,6 +747,26 @@ export default function SiteConfig() {
                       {siteData.postUrlFormat === "with-prefix" 
                         ? "Posts use /post/my-article format"
                         : "Posts use /my-article format (cleaner URLs)"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label data-testid="label-display-language">Display Language</Label>
+                    <Select
+                      value={siteData.displayLanguage}
+                      onValueChange={(value: ContentLanguage) => setSiteData({ ...siteData, displayLanguage: value })}
+                    >
+                      <SelectTrigger data-testid="select-display-language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(languageDisplayNames).map(([code, name]) => (
+                          <SelectItem key={code} value={code}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Language for public site UI elements (Read More, Related Posts, etc.)
                     </p>
                   </div>
                 </div>
