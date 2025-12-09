@@ -101,9 +101,10 @@ export async function processRSSAutomation() {
             const originalTitle = item.title || "Untitled";
             const originalContent = item.contentSnippet || item.content || "";
             const targetLanguage = rssConfig.targetLanguage || "en";
+            const masterPrompt = rssConfig.masterPrompt || undefined;
 
             console.log(`[RSS] Rewriting article: ${originalTitle} (target language: ${targetLanguage})`);
-            const { title, content, tags, imageUrl, metaTitle, metaDescription } = await rewriteArticle(originalContent, originalTitle, targetLanguage);
+            const { title, content, tags, imageUrl, metaTitle, metaDescription } = await rewriteArticle(originalContent, originalTitle, targetLanguage, masterPrompt);
             const slug = createSlug(title);
 
             // Get default author for this site

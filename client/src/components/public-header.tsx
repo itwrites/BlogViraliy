@@ -223,7 +223,8 @@ export function PublicHeader({
                 <img
                   src={site.logoUrl}
                   alt={`${site.title} logo`}
-                  className={`w-full h-full ${isSvg ? 'object-contain' : 'object-cover rounded'}`}
+                  className={`w-full h-full ${isSvg ? 'object-contain' : 'object-cover object-center rounded'}`}
+                  style={{ display: 'block' }}
                 />
               </motion.div>
             )}

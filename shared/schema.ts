@@ -308,6 +308,7 @@ export const rssAutomationConfigs = pgTable("rss_automation_configs", {
   feedUrls: text("feed_urls").array().notNull().default(sql`ARRAY[]::text[]`),
   articlesToFetch: integer("articles_to_fetch").notNull().default(3),
   targetLanguage: text("target_language").notNull().default("en"), // Target language for rewritten content (auto-translate if source differs)
+  masterPrompt: text("master_prompt"), // Custom prompt for additional context when rewriting RSS content
 });
 
 // Site Authors (configurable bylines like "Staff Writer", "Editorial Team")

@@ -62,6 +62,7 @@ export default function SiteConfig() {
     feedUrls: [] as string[],
     articlesToFetch: 3,
     targetLanguage: "en",
+    masterPrompt: "",
   });
 
   const [newKeyword, setNewKeyword] = useState("");
@@ -227,6 +228,7 @@ export default function SiteConfig() {
         feedUrls: existingRssConfig.feedUrls,
         articlesToFetch: existingRssConfig.articlesToFetch,
         targetLanguage: existingRssConfig.targetLanguage || "en",
+        masterPrompt: existingRssConfig.masterPrompt || "",
       });
     }
   }, [existingRssConfig]);
@@ -2271,6 +2273,20 @@ export default function SiteConfig() {
                     disabled={!rssConfig.enabled}
                   />
                   <p className="text-xs text-muted-foreground">Number of newest articles to fetch from each feed</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rssMasterPrompt">Custom Prompt (Optional)</Label>
+                  <Textarea
+                    id="rssMasterPrompt"
+                    data-testid="input-rss-master-prompt"
+                    placeholder="Add additional context or instructions for rewriting articles. E.g., 'Focus on UK hospitality industry. Include relevant statistics. Write in a professional tone.'"
+                    value={rssConfig.masterPrompt}
+                    onChange={(e) => setRssConfig({ ...rssConfig, masterPrompt: e.target.value })}
+                    disabled={!rssConfig.enabled}
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">Add extra context or instructions for the AI when rewriting RSS articles</p>
                 </div>
 
                 <div className="space-y-2">

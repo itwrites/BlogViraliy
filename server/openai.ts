@@ -81,13 +81,15 @@ Provide the response in JSON format with the following structure:
   };
 }
 
-export async function rewriteArticle(originalContent: string, originalTitle: string, targetLanguage?: string): Promise<AIPostResult> {
+export async function rewriteArticle(originalContent: string, originalTitle: string, targetLanguage?: string, masterPrompt?: string): Promise<AIPostResult> {
   const lang = getLanguageForPrompt(targetLanguage);
   const { buildTranslationDirective } = await import("./language-utils");
   const translationDirective = buildTranslationDirective(lang);
   
+  const customContext = masterPrompt ? `\nAdditional Context and Instructions:\n${masterPrompt}\n` : "";
+  
   const prompt = `Rewrite the following article to make it completely unique while preserving the key information. Make it engaging and well-written.
-
+${customContext}
 ${translationDirective}
 
 Original Title: ${originalTitle}
