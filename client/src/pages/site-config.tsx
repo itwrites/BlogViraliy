@@ -38,6 +38,7 @@ export default function SiteConfig() {
     logoTargetUrl: "", // Custom URL for logo click (empty = homepage)
     menuMode: "automatic" as "automatic" | "manual",
     siteType: "blog",
+    postUrlFormat: "with-prefix" as "with-prefix" | "root",
     metaTitle: "",
     metaDescription: "",
     ogImage: "",
@@ -155,6 +156,7 @@ export default function SiteConfig() {
         logoTargetUrl: site.logoTargetUrl || "",
         menuMode: (site.menuMode as "automatic" | "manual") || "automatic",
         siteType: site.siteType,
+        postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
         metaTitle: site.metaTitle || "",
         metaDescription: site.metaDescription || "",
         ogImage: site.ogImage || "",
@@ -720,6 +722,27 @@ export default function SiteConfig() {
                       {siteData.menuMode === "automatic" 
                         ? "Navigation is auto-generated from your most popular tags"
                         : "Create custom menu items with URLs or tag groups"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label data-testid="label-post-url-format">Post URL Format</Label>
+                    <Select
+                      value={siteData.postUrlFormat}
+                      onValueChange={(value: "with-prefix" | "root") => setSiteData({ ...siteData, postUrlFormat: value })}
+                    >
+                      <SelectTrigger data-testid="select-post-url-format">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="with-prefix">/post/slug (with prefix)</SelectItem>
+                        <SelectItem value="root">/slug (root level)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {siteData.postUrlFormat === "with-prefix" 
+                        ? "Posts use /post/my-article format"
+                        : "Posts use /my-article format (cleaner URLs)"}
                     </p>
                   </div>
                 </div>

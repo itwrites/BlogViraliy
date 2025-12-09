@@ -9,6 +9,7 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Pagination } from "@/components/post-cards";
+import { getPostUrl } from "@/lib/get-post-url";
 
 interface PublicCryptoProps {
   site: Site;
@@ -24,7 +25,7 @@ export function PublicCryptoContent({ site }: PublicCryptoProps) {
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(getPostUrl(slug, site));
   };
 
   const [currentPage, setCurrentPage] = useState(1);

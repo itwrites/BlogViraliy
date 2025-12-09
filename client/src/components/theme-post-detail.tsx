@@ -15,6 +15,7 @@ import { getThemeManifest, getTypographyClasses, type ThemeManifest, type PostDe
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { createLinkRewriter } from "@/lib/rewrite-links";
+import { getPostUrl } from "@/lib/get-post-url";
 
 const sanitizeSchema = {
   ...defaultSchema,
@@ -148,7 +149,7 @@ function StandardPostDetail({ site, post, relatedPosts, manifest }: ThemePostDet
           </motion.article>
 
           {manifest?.postDetail.showRelatedPosts && (relatedPosts?.length ?? 0) > 0 && (
-            <RelatedPosts posts={relatedPosts || []} style={manifest.postDetail.relatedPostsStyle} onPostClick={(slug) => setLocation(`/post/${slug}`)} />
+            <RelatedPosts posts={relatedPosts || []} style={manifest.postDetail.relatedPostsStyle} onPostClick={(slug) => setLocation(getPostUrl(slug, site))} />
           )}
         </div>
       </main>
@@ -227,7 +228,7 @@ function CenteredPostDetail({ site, post, relatedPosts, manifest }: ThemePostDet
 
           {manifest.postDetail.showRelatedPosts && (relatedPosts?.length ?? 0) > 0 && (
             <div className="mt-16">
-              <RelatedPosts posts={relatedPosts || []} style="minimal" onPostClick={(slug) => setLocation(`/post/${slug}`)} />
+              <RelatedPosts posts={relatedPosts || []} style="minimal" onPostClick={(slug) => setLocation(getPostUrl(slug, site))} />
             </div>
           )}
         </div>
@@ -375,7 +376,7 @@ function MagazinePostDetail({ site, post, relatedPosts, manifest }: ThemePostDet
 
           {manifest.postDetail.showRelatedPosts && (relatedPosts?.length ?? 0) > 0 && (
             <div className="mt-16">
-              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(`/post/${slug}`)} />
+              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(getPostUrl(slug, site))} />
             </div>
           )}
         </div>
@@ -463,7 +464,7 @@ function ImmersivePostDetail({ site, post, relatedPosts, manifest }: ThemePostDe
 
           {manifest.postDetail.showRelatedPosts && (relatedPosts?.length ?? 0) > 0 && (
             <div className="mt-20">
-              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(`/post/${slug}`)} />
+              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(getPostUrl(slug, site))} />
             </div>
           )}
         </div>
@@ -543,7 +544,7 @@ function WidePostDetail({ site, post, relatedPosts, manifest }: ThemePostDetailP
 
           {manifest.postDetail.showRelatedPosts && (relatedPosts?.length ?? 0) > 0 && (
             <div className="mt-16">
-              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(`/post/${slug}`)} />
+              <RelatedPosts posts={relatedPosts || []} style="cards" onPostClick={(slug) => setLocation(getPostUrl(slug, site))} />
             </div>
           )}
         </div>
@@ -710,7 +711,7 @@ function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePost
   // Router already has basePath as base, so use relative paths
   const handleTagClick = (tag: string) => setLocation(`/tag/${encodeURIComponent(tag)}`);
   const handleBack = () => setLocation("/");
-  const handleRelatedClick = (slug: string) => setLocation(`/post/${slug}`);
+  const handleRelatedClick = (slug: string) => setLocation(getPostUrl(slug, site));
 
   const rewriteUrl = (url: string) => {
     if (!basePath) return url;

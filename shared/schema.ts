@@ -20,6 +20,10 @@ export type SitePermission = z.infer<typeof sitePermissionEnum>;
 export const menuModeEnum = z.enum(["automatic", "manual"]);
 export type MenuMode = z.infer<typeof menuModeEnum>;
 
+// Post URL format enum
+export const postUrlFormatEnum = z.enum(["with-prefix", "root"]);
+export type PostUrlFormat = z.infer<typeof postUrlFormatEnum>;
+
 // Menu item type enum
 export const menuItemTypeEnum = z.enum(["url", "tag_group"]);
 export type MenuItemType = z.infer<typeof menuItemTypeEnum>;
@@ -260,6 +264,8 @@ export const sites = pgTable("sites", {
   ogImage: text("og_image"),
   favicon: text("favicon"),
   analyticsId: text("analytics_id"),
+  // Post URL format: "with-prefix" = /post/slug, "root" = /slug
+  postUrlFormat: text("post_url_format").notNull().default("with-prefix"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

@@ -7,6 +7,7 @@ import { getThemeManifest, getLayoutClasses, type ThemeManifest } from "@/lib/th
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, useReducedMotion } from "framer-motion";
+import { getPostUrl } from "@/lib/get-post-url";
 
 interface ThemedHomePageProps {
   site: Site;
@@ -24,7 +25,7 @@ export function ThemedHomePage({ site }: ThemedHomePageProps) {
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(getPostUrl(slug, site));
   };
 
   const handleTagClick = (tag: string) => {

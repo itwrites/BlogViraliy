@@ -7,6 +7,7 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { PostCard, Pagination } from "@/components/post-cards";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { getPostUrl } from "@/lib/get-post-url";
 
 interface PublicBlogProps {
   site: Site;
@@ -38,7 +39,7 @@ export function PublicBlogContent({ site }: PublicBlogProps) {
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(getPostUrl(slug, site));
   };
 
   const postsPerPage = templateClasses.postsPerPage;

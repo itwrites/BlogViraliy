@@ -6,6 +6,7 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { PostCard } from "@/components/post-cards";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getPostUrl } from "@/lib/get-post-url";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -34,7 +35,7 @@ function ForbisTagArchive({ site, tag }: PublicTagArchiveProps) {
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(getPostUrl(slug, site));
   };
 
   const containerAnimation: Variants | undefined = prefersReducedMotion ? undefined : {
@@ -254,7 +255,7 @@ function StandardTagArchive({ site, tag }: PublicTagArchiveProps) {
   });
 
   const handlePostClick = (slug: string) => {
-    setLocation(`/post/${slug}`);
+    setLocation(getPostUrl(slug, site));
   };
 
   const prefersReducedMotion = useReducedMotion();
