@@ -43,6 +43,7 @@ export const contentLanguageEnum = z.enum([
   "da", // Danish
   "fi", // Finnish
   "pl", // Polish
+  "sk", // Slovak
   "tr", // Turkish
   "ru", // Russian
   "ar", // Arabic
@@ -68,6 +69,7 @@ export const languageDisplayNames: Record<ContentLanguage, string> = {
   da: "Danish (Dansk)",
   fi: "Finnish (Suomi)",
   pl: "Polish (Polski)",
+  sk: "Slovak (Slovenčina)",
   tr: "Turkish (Türkçe)",
   ru: "Russian (Русский)",
   ar: "Arabic (العربية)",
