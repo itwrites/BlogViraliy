@@ -73,14 +73,32 @@ export default function AdminLogin() {
     >
       <motion.div {...animationProps}>
         <Card className="w-full max-w-md backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl shadow-black/5">
-          <CardHeader className="space-y-2 pb-6">
+          <CardHeader className="space-y-4 pb-6">
+            <motion.div {...staggerProps(0.1)} className="flex justify-center">
+              <svg 
+                width="48" 
+                height="48" 
+                viewBox="0 0 48 48" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                data-testid="img-brand-logo"
+              >
+                <path 
+                  d="M24 4L44 40H4L24 4Z" 
+                  fill="white" 
+                  stroke="black" 
+                  strokeWidth="3"
+                  strokeLinejoin="miter"
+                />
+              </svg>
+            </motion.div>
             <motion.div {...staggerProps(0.15)}>
               <CardTitle 
-                className="text-2xl font-medium tracking-tight" 
+                className="text-2xl font-medium tracking-tight text-center" 
                 data-testid="text-login-title"
                 style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" }}
               >
-                Blog Virality
+                Brand Virality
               </CardTitle>
             </motion.div>
             <motion.div {...staggerProps(0.2)}>

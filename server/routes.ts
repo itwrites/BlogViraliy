@@ -147,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`[Domain Routing] Final hostname=${hostname}, Host=${hostHeader}, X-BV-Visitor-Host=${xBvVisitorHost}, X-Forwarded-Host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
     
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
-    const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
+    const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app") || hostname === "blogvirality.brandvirality.com";
     
     if (isExplicitAdminDomain) {
       req.siteId = undefined;
@@ -1300,7 +1300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log(`[domain-check] Query hostname=${hostnameParam}, req.hostname=${req.hostname}, using=${hostname}`);
     
     const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
-    const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app");
+    const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app") || hostname === "blogvirality.brandvirality.com";
     
     // Check if this hostname is associated with a site
     const site = await storage.getSiteByDomain(hostname);
