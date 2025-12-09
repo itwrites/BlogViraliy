@@ -43,7 +43,7 @@ function ShellContent({
   });
 
   const { data: menuItems } = useQuery<SiteMenuItem[]>({
-    queryKey: ["/api/sites", site.id, "menu-items"],
+    queryKey: ["/api/public/sites", site.id, "menu-items"],
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     enabled: site.menuMode === "manual",

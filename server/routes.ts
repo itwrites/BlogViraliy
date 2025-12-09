@@ -1381,6 +1381,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public menu items endpoint (no auth required for public site navigation)
+  app.get("/api/public/sites/:id/menu-items", async (req: Request, res: Response) => {
+    try {
+      const items = await storage.getMenuItemsBySiteId(req.params.id);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch menu items" });
+    }
+  });
+
   app.get("/api/public/sites/:id/related-posts/:postId", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getRelatedPosts(req.params.postId, req.params.id);
