@@ -550,6 +550,19 @@ export default function SiteConfig() {
                     />
                   </div>
 
+                  <div className="flex items-center justify-between space-x-4">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="headerLogoInvertColors" data-testid="label-header-logo-invert">Invert Header Logo</Label>
+                      <p className="text-xs text-muted-foreground">Invert logo colors for dark header backgrounds</p>
+                    </div>
+                    <Switch
+                      id="headerLogoInvertColors"
+                      checked={templateSettings.headerLogoInvertColors}
+                      onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, headerLogoInvertColors: checked })}
+                      data-testid="switch-header-logo-invert"
+                    />
+                  </div>
+
                   <div className="space-y-3 md:col-span-2">
                     <Label data-testid="label-site-type">Theme</Label>
                     <p className="text-xs text-muted-foreground mb-3">Choose a visual theme that best matches your content style</p>

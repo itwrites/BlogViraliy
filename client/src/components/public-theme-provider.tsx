@@ -311,6 +311,7 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
   return {
     logoSize: getLogoSize(),
     hideLogoText: s.hideLogoText || false,
+    headerLogoInvertColors: s.headerLogoInvertColors || false,
     contentWidth: contentWidths[s.contentWidth] || contentWidths.medium,
     cardStyle: getCardStyle(),
     headerStyle: getHeaderStyle(),

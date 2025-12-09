@@ -224,7 +224,10 @@ export function PublicHeader({
                   src={site.logoUrl}
                   alt={`${site.title} logo`}
                   className="w-full h-full object-contain"
-                  style={{ display: 'block' }}
+                  style={{ 
+                    display: 'block',
+                    filter: templateClasses.headerLogoInvertColors ? 'invert(1) brightness(2)' : undefined
+                  }}
                 />
               </motion.div>
             )}

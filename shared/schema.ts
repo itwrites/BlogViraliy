@@ -107,6 +107,7 @@ export const templateSettingsSchema = z.object({
   logoSize: z.enum(["small", "medium", "large", "custom"]).default("medium"),
   logoSizeCustom: z.number().min(20).max(200).default(48),
   hideLogoText: z.boolean().default(false),
+  headerLogoInvertColors: z.boolean().default(false), // Invert logo colors for dark header backgrounds
   primaryColor: z.string().default("#3b82f6"),
   secondaryColor: z.string().default("#8b5cf6"),
   backgroundColor: z.string().default("#ffffff"),
@@ -180,6 +181,7 @@ export const defaultTemplateSettings: TemplateSettings = {
   logoSize: "medium",
   logoSizeCustom: 48,
   hideLogoText: false,
+  headerLogoInvertColors: false,
   primaryColor: "#3b82f6",
   secondaryColor: "#8b5cf6",
   backgroundColor: "#ffffff",
