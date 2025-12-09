@@ -268,6 +268,8 @@ export const sites = pgTable("sites", {
   analyticsId: text("analytics_id"),
   // Post URL format: "with-prefix" = /post/slug, "root" = /slug
   postUrlFormat: text("post_url_format").notNull().default("with-prefix"),
+  // Display language for public site UI elements (hardcoded phrases)
+  displayLanguage: text("display_language").notNull().default("en"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
