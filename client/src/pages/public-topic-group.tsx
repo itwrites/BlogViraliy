@@ -8,6 +8,7 @@ import { motion, useReducedMotion, Variants } from "framer-motion";
 import { PostCard } from "@/components/post-cards";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getPostUrl } from "@/lib/get-post-url";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface PublicTopicGroupProps {
   site: Site;
@@ -28,6 +29,7 @@ export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupPro
 function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
   const [, setLocation] = useLocation();
   const prefersReducedMotion = useReducedMotion();
+  const { t } = useTranslation(site.displayLanguage || "en");
 
   const { data: menuItems } = useQuery<SiteMenuItem[]>({
     queryKey: ["/api/sites", site.id, "menu-items"],
@@ -91,7 +93,7 @@ function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
               </div>
             )}
             <p className="text-muted-foreground mt-2" data-testid="text-post-count">
-              {isLoading ? "Loading..." : `${posts?.length || 0} articles`}
+              {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
             </p>
           </motion.div>
         </div>
@@ -204,7 +206,7 @@ function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
                   className="text-lg font-bold mb-6 uppercase tracking-wide"
                   style={{ fontFamily: "var(--public-heading-font)" }}
                 >
-                  More in {groupLabel}
+                  {t("moreIn")} {groupLabel}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {gridPosts.map((post) => (
@@ -249,10 +251,10 @@ function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
           >
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--public-heading-font)" }}>
-              No articles found
+              {t("noPostsFound")}
             </h2>
             <p className="text-muted-foreground">
-              There are no articles in this topic group yet
+              {t("noArticlesInTopic")}
             </p>
           </motion.div>
         ) : (
@@ -263,10 +265,10 @@ function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
           >
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--public-heading-font)" }}>
-              Topic not found
+              {t("topicNotFound")}
             </h2>
             <p className="text-muted-foreground">
-              This topic group doesn't exist
+              {t("topicNotFoundDescription")}
             </p>
           </motion.div>
         )}
@@ -279,6 +281,7 @@ function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
   const postCardStyle = templateClasses.postCardStyle || "standard";
+  const { t } = useTranslation(site.displayLanguage || "en");
 
   const { data: menuItems } = useQuery<SiteMenuItem[]>({
     queryKey: ["/api/sites", site.id, "menu-items"],
@@ -348,7 +351,7 @@ function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
             </div>
           )}
           <p className="text-muted-foreground" data-testid="text-post-count">
-            {isLoading ? "Loading posts..." : `${posts?.length || 0} articles in this topic`}
+            {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
           </p>
         </motion.div>
 
@@ -386,10 +389,10 @@ function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
           >
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-no-posts" />
             <h2 className="text-xl sm:text-2xl font-semibold mb-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-no-posts-title">
-              No posts found
+              {t("noPostsFound")}
             </h2>
             <p className="text-muted-foreground mb-4" data-testid="text-no-posts-message">
-              There are no posts in this topic group yet
+              {t("noArticlesInTopic")}
             </p>
           </motion.div>
         ) : (
@@ -401,10 +404,10 @@ function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
           >
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" data-testid="icon-not-found" />
             <h2 className="text-xl sm:text-2xl font-semibold mb-2" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-not-found-title">
-              Topic not found
+              {t("topicNotFound")}
             </h2>
             <p className="text-muted-foreground mb-4" data-testid="text-not-found-message">
-              This topic group doesn't exist
+              {t("topicNotFoundDescription")}
             </p>
           </motion.div>
         )}

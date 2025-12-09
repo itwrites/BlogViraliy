@@ -7,6 +7,7 @@ import { ThemePostDetail } from "@/components/theme-post-detail";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface PublicPostProps {
   site: Site;
@@ -17,6 +18,7 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
   const [, setLocation] = useLocation();
   const templateClasses = useTemplateClasses(site.templateSettings);
   const viewTracked = useRef(false);
+  const { t } = useTranslation(site.displayLanguage || "en");
 
   const { data: post, isLoading } = useQuery<Post>({
     queryKey: ["/api/public/sites", site.id, "posts", slug],
@@ -91,9 +93,9 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center px-6">
-          <h2 className="text-2xl font-semibold mb-2" data-testid="text-not-found-title">Post not found</h2>
-          <p className="text-muted-foreground mb-4" data-testid="text-not-found-message">The post you're looking for doesn't exist</p>
-          <Button onClick={handleBack} data-testid="button-go-home">Go back home</Button>
+          <h2 className="text-2xl font-semibold mb-2" data-testid="text-not-found-title">{t("postNotFound")}</h2>
+          <p className="text-muted-foreground mb-4" data-testid="text-not-found-message">{t("postNotFoundDescription")}</p>
+          <Button onClick={handleBack} data-testid="button-go-home">{t("goBackHome")}</Button>
         </div>
       </div>
     );

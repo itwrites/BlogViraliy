@@ -41,7 +41,12 @@ export type TranslationKey =
   | "showLess"
   | "seeAll"
   | "viewAll"
-  | "continueReading";
+  | "continueReading"
+  | "articles"
+  | "moreIn"
+  | "topicNotFound"
+  | "topicNotFoundDescription"
+  | "noArticlesInTopic";
 
 type Translations = Record<TranslationKey, string>;
 
@@ -88,6 +93,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "See All",
     viewAll: "View All",
     continueReading: "Continue Reading",
+    articles: "articles",
+    moreIn: "More in",
+    topicNotFound: "Topic not found",
+    topicNotFoundDescription: "This topic group doesn't exist",
+    noArticlesInTopic: "There are no articles in this topic group yet",
   },
   es: {
     readMore: "Leer más",
@@ -131,6 +141,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Ver todo",
     viewAll: "Ver todo",
     continueReading: "Continuar leyendo",
+    articles: "artículos",
+    moreIn: "Más en",
+    topicNotFound: "Tema no encontrado",
+    topicNotFoundDescription: "Este grupo de temas no existe",
+    noArticlesInTopic: "Aún no hay artículos en este grupo de temas",
   },
   fr: {
     readMore: "Lire la suite",
@@ -174,6 +189,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Voir tout",
     viewAll: "Voir tout",
     continueReading: "Continuer la lecture",
+    articles: "articles",
+    moreIn: "Plus dans",
+    topicNotFound: "Sujet non trouvé",
+    topicNotFoundDescription: "Ce groupe de sujets n'existe pas",
+    noArticlesInTopic: "Il n'y a pas encore d'articles dans ce groupe de sujets",
   },
   de: {
     readMore: "Weiterlesen",
@@ -217,6 +237,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Alle anzeigen",
     viewAll: "Alle anzeigen",
     continueReading: "Weiterlesen",
+    articles: "Artikel",
+    moreIn: "Mehr in",
+    topicNotFound: "Thema nicht gefunden",
+    topicNotFoundDescription: "Diese Themengruppe existiert nicht",
+    noArticlesInTopic: "Es gibt noch keine Artikel in dieser Themengruppe",
   },
   it: {
     readMore: "Leggi di più",
@@ -260,6 +285,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Vedi tutto",
     viewAll: "Vedi tutto",
     continueReading: "Continua a leggere",
+    articles: "articoli",
+    moreIn: "Altri in",
+    topicNotFound: "Argomento non trovato",
+    topicNotFoundDescription: "Questo gruppo di argomenti non esiste",
+    noArticlesInTopic: "Non ci sono ancora articoli in questo gruppo di argomenti",
   },
   pt: {
     readMore: "Ler mais",
@@ -303,6 +333,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Ver tudo",
     viewAll: "Ver tudo",
     continueReading: "Continuar a ler",
+    articles: "artigos",
+    moreIn: "Mais em",
+    topicNotFound: "Tópico não encontrado",
+    topicNotFoundDescription: "Este grupo de tópicos não existe",
+    noArticlesInTopic: "Ainda não há artigos neste grupo de tópicos",
   },
   "pt-br": {
     readMore: "Leia mais",
@@ -346,6 +381,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Ver tudo",
     viewAll: "Ver tudo",
     continueReading: "Continue lendo",
+    articles: "artigos",
+    moreIn: "Mais em",
+    topicNotFound: "Tópico não encontrado",
+    topicNotFoundDescription: "Este grupo de tópicos não existe",
+    noArticlesInTopic: "Ainda não há artigos neste grupo de tópicos",
   },
   nl: {
     readMore: "Lees meer",
@@ -389,6 +429,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Alles bekijken",
     viewAll: "Alles bekijken",
     continueReading: "Verder lezen",
+    articles: "artikelen",
+    moreIn: "Meer in",
+    topicNotFound: "Onderwerp niet gevonden",
+    topicNotFoundDescription: "Deze onderwerpgroep bestaat niet",
+    noArticlesInTopic: "Er zijn nog geen artikelen in deze onderwerpgroep",
   },
   sv: {
     readMore: "Läs mer",
@@ -432,6 +477,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Se alla",
     viewAll: "Visa alla",
     continueReading: "Fortsätt läsa",
+    articles: "artiklar",
+    moreIn: "Mer i",
+    topicNotFound: "Ämne hittades inte",
+    topicNotFoundDescription: "Denna ämnesgrupp finns inte",
+    noArticlesInTopic: "Det finns inga artiklar i denna ämnesgrupp än",
   },
   no: {
     readMore: "Les mer",
@@ -475,6 +525,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Se alle",
     viewAll: "Vis alle",
     continueReading: "Fortsett å lese",
+    articles: "artikler",
+    moreIn: "Mer i",
+    topicNotFound: "Emne ikke funnet",
+    topicNotFoundDescription: "Denne emnegruppen finnes ikke",
+    noArticlesInTopic: "Det er ingen artikler i denne emnegruppen ennå",
   },
   da: {
     readMore: "Læs mere",
@@ -518,6 +573,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Se alle",
     viewAll: "Vis alle",
     continueReading: "Fortsæt med at læse",
+    articles: "artikler",
+    moreIn: "Mere i",
+    topicNotFound: "Emne ikke fundet",
+    topicNotFoundDescription: "Denne emnegruppe findes ikke",
+    noArticlesInTopic: "Der er ingen artikler i denne emnegruppe endnu",
   },
   fi: {
     readMore: "Lue lisää",
@@ -561,6 +621,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Näytä kaikki",
     viewAll: "Näytä kaikki",
     continueReading: "Jatka lukemista",
+    articles: "artikkelia",
+    moreIn: "Lisää aiheesta",
+    topicNotFound: "Aihetta ei löytynyt",
+    topicNotFoundDescription: "Tätä aiheryhmää ei ole olemassa",
+    noArticlesInTopic: "Tässä aiheryhmässä ei ole vielä artikkeleita",
   },
   pl: {
     readMore: "Czytaj więcej",
@@ -604,6 +669,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Zobacz wszystko",
     viewAll: "Zobacz wszystko",
     continueReading: "Czytaj dalej",
+    articles: "artykułów",
+    moreIn: "Więcej w",
+    topicNotFound: "Temat nie znaleziony",
+    topicNotFoundDescription: "Ta grupa tematyczna nie istnieje",
+    noArticlesInTopic: "W tej grupie tematycznej nie ma jeszcze artykułów",
   },
   sk: {
     readMore: "Čítať viac",
@@ -647,6 +717,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Zobraziť všetko",
     viewAll: "Zobraziť všetko",
     continueReading: "Pokračovať v čítaní",
+    articles: "článkov",
+    moreIn: "Viac v",
+    topicNotFound: "Téma nenájdená",
+    topicNotFoundDescription: "Táto skupina tém neexistuje",
+    noArticlesInTopic: "V tejto skupine tém zatiaľ nie sú žiadne články",
   },
   tr: {
     readMore: "Devamını Oku",
@@ -690,6 +765,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Tümünü Gör",
     viewAll: "Tümünü Gör",
     continueReading: "Okumaya Devam Et",
+    articles: "makale",
+    moreIn: "Daha fazla",
+    topicNotFound: "Konu bulunamadı",
+    topicNotFoundDescription: "Bu konu grubu mevcut değil",
+    noArticlesInTopic: "Bu konu grubunda henüz makale yok",
   },
   ru: {
     readMore: "Читать далее",
@@ -733,6 +813,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "Смотреть все",
     viewAll: "Смотреть все",
     continueReading: "Продолжить чтение",
+    articles: "статей",
+    moreIn: "Ещё в",
+    topicNotFound: "Тема не найдена",
+    topicNotFoundDescription: "Эта группа тем не существует",
+    noArticlesInTopic: "В этой группе тем пока нет статей",
   },
   ar: {
     readMore: "اقرأ المزيد",
@@ -776,6 +861,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "عرض الكل",
     viewAll: "عرض الكل",
     continueReading: "متابعة القراءة",
+    articles: "مقالات",
+    moreIn: "المزيد في",
+    topicNotFound: "الموضوع غير موجود",
+    topicNotFoundDescription: "هذه المجموعة الموضوعية غير موجودة",
+    noArticlesInTopic: "لا توجد مقالات في هذه المجموعة الموضوعية بعد",
   },
   zh: {
     readMore: "阅读更多",
@@ -819,6 +909,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "查看全部",
     viewAll: "查看全部",
     continueReading: "继续阅读",
+    articles: "篇文章",
+    moreIn: "更多内容",
+    topicNotFound: "主题未找到",
+    topicNotFoundDescription: "此主题组不存在",
+    noArticlesInTopic: "此主题组暂无文章",
   },
   ja: {
     readMore: "続きを読む",
@@ -862,6 +957,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "すべて見る",
     viewAll: "すべて見る",
     continueReading: "続きを読む",
+    articles: "記事",
+    moreIn: "もっと見る",
+    topicNotFound: "トピックが見つかりません",
+    topicNotFoundDescription: "このトピックグループは存在しません",
+    noArticlesInTopic: "このトピックグループにはまだ記事がありません",
   },
   ko: {
     readMore: "더 읽기",
@@ -905,6 +1005,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "모두 보기",
     viewAll: "모두 보기",
     continueReading: "계속 읽기",
+    articles: "기사",
+    moreIn: "더 보기",
+    topicNotFound: "주제를 찾을 수 없습니다",
+    topicNotFoundDescription: "이 주제 그룹이 존재하지 않습니다",
+    noArticlesInTopic: "이 주제 그룹에는 아직 기사가 없습니다",
   },
   hi: {
     readMore: "और पढ़ें",
@@ -948,6 +1053,11 @@ const translations: Record<ContentLanguage, Translations> = {
     seeAll: "सभी देखें",
     viewAll: "सभी देखें",
     continueReading: "पढ़ना जारी रखें",
+    articles: "लेख",
+    moreIn: "और देखें",
+    topicNotFound: "विषय नहीं मिला",
+    topicNotFoundDescription: "यह विषय समूह मौजूद नहीं है",
+    noArticlesInTopic: "इस विषय समूह में अभी तक कोई लेख नहीं है",
   },
 };
 
