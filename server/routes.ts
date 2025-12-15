@@ -1400,6 +1400,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Robots.txt Route
+  // Dynamically generates robots.txt per site with sitemap reference
+  app.get("/robots.txt", async (req: DomainRequest, res: Response) => {
+    try {
+      let site = null;
+      let robotsHostname = req.siteHostname || req.hostname;
+      let basePath = req.siteBasePath || "";
+      
+      // If siteId is already set by middleware, use that
+      if (req.siteId) {
+        site = await storage.getSiteById(req.siteId);
+      } else {
+        // Fallback: try to get site by hostname
+        site = await storage.getSiteByDomain(req.hostname);
+        if (site) {
+          basePath = normalizeBasePath(site.basePath);
+        }
+      }
+      
+      if (!site) {
+        // Return a basic robots.txt for admin/unknown domains
+        res.set("Content-Type", "text/plain");
+        res.send("User-agent: *\nDisallow: /");
+        return;
+      }
+
+      // Construct sitemap URL
+      const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+      const sitemapUrl = `${protocol}://${robotsHostname}${basePath}/sitemap.xml`;
+      
+      const robotsTxt = `User-agent: *
+Allow: /
+
+Sitemap: ${sitemapUrl}
+`;
+      
+      res.set("Content-Type", "text/plain");
+      res.set("Cache-Control", "public, max-age=86400"); // 24 hours
+      res.send(robotsTxt);
+    } catch (error) {
+      console.error("Error generating robots.txt:", error);
+      res.status(500).send("Error generating robots.txt");
+    }
+  });
+
   // Sitemap Routes
   // Public sitemap.xml - served based on domain
   // Uses hostname and basePath already computed by domain routing middleware
