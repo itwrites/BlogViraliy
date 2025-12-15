@@ -65,6 +65,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Status Workflow**: draft → mapping → mapped → generating → completed/paused/failed
 - **Runtime Link Rewriting**: Internal links in post content are automatically rewritten at render time to include the site's basePath. Users can write simple relative links like `/my-post` and the system adds the basePath prefix (e.g., `/blog/my-post`) when the page is rendered. This ensures links work correctly on both primary and proxy/alias domains without storing the basePath in content.
 - **Dynamic Sitemap**: Generates and caches `sitemap.xml` for each site, including posts and tag archives.
+- **Dynamic Robots.txt**: Auto-generates `robots.txt` per site with tenant-specific sitemap URLs. Admin/unknown domains receive `Disallow: /` to block crawling.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles, and site-specific permissions.
 - **SEO Implementation**: Includes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.
 
