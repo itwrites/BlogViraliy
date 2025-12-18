@@ -56,9 +56,14 @@ export async function generateSitemap(site: Site, baseUrl: string): Promise<stri
   </url>
 `;
 
+  // Determine post URL format based on site settings
+  const useRootFormat = site.postUrlFormat === "root";
+
   // Add all published posts
   for (const post of posts) {
-    const postUrl = post.canonicalUrl || `${baseUrl}/post/${post.slug}`;
+    // Use canonical URL if set, otherwise build URL based on site's postUrlFormat setting
+    const postPath = useRootFormat ? `/${post.slug}` : `/post/${post.slug}`;
+    const postUrl = post.canonicalUrl || `${baseUrl}${postPath}`;
     xml += `  <url>
     <loc>${escapeXml(postUrl)}</loc>
     <lastmod>${formatDate(post.updatedAt)}</lastmod>
