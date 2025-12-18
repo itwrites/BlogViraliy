@@ -60,8 +60,11 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
     const currentProtocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
     const protocol = currentProtocol === 'http:' ? 'http://' : 'https://';
+    // Use the actual visitor hostname (from browser) instead of site.domain
+    // This ensures canonical URLs match the domain the visitor is using (especially for aliases)
+    const visitorHostname = typeof window !== 'undefined' ? window.location.hostname : site.domain;
     const basePath = normalizeBasePath(site.basePath);
-    const siteBaseUrl = `${protocol}${site.domain}${basePath}`;
+    const siteBaseUrl = `${protocol}${visitorHostname}${basePath}`;
     const currentPath = post ? getPostUrl(post.slug, site) : pagePath;
     const fullUrl = `${siteBaseUrl}${currentPath}`;
 

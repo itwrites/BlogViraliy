@@ -247,13 +247,13 @@ export function PublicHeader({
 
           {/* Desktop Navigation - flows naturally after logo */}
           <motion.nav 
-            className="hidden md:flex items-center flex-1"
+            className="hidden md:flex items-center flex-1 overflow-hidden"
             initial={prefersReducedMotion ? false : "hidden"}
             animate={prefersReducedMotion ? false : "visible"}
             variants={containerAnimation}
             data-testid="nav-main"
           >
-            <div className={`flex items-center ${menuSpacing}`}>
+            <div className={`flex items-center flex-wrap ${menuSpacing}`}>
               {isManualMode ? (
                 menuItems.slice(0, templateClasses.maxNavItems).map((item) => {
                   // For active state: compare against router-relative paths (without basePath)
