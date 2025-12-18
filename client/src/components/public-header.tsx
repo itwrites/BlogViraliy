@@ -27,10 +27,11 @@ interface PublicHeaderProps {
   currentGroupSlug?: string | null;
   templateClasses: {
     contentWidth: string;
-    logoSize: { style: { width: number; height: number } };
+    logoSize: { style: { width: number; height: number | "auto" } };
     isHeaderSticky: boolean;
     maxNavItems: number;
     hideLogoText?: boolean;
+    headerLogoInvertColors?: boolean;
     menuActiveStyle?: MenuActiveStyle;
     menuSpacing?: string;
     menuItemPadding?: string;
@@ -223,7 +224,7 @@ export function PublicHeader({
                 <img
                   src={site.logoUrl}
                   alt={`${site.title} logo`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-auto object-contain"
                   style={{ 
                     display: 'block',
                     filter: templateClasses.headerLogoInvertColors ? 'invert(1) brightness(2)' : undefined

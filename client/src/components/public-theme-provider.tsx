@@ -22,9 +22,9 @@ const fontScales: Record<string, { base: string; heading: string; hero: string }
 };
 
 const logoSizes: Record<string, { class: string; px: number }> = {
-  small: { class: "h-8 w-8", px: 32 },
-  medium: { class: "h-10 w-10", px: 48 },
-  large: { class: "h-14 w-14", px: 56 },
+  small: { class: "w-8", px: 32 },
+  medium: { class: "w-12", px: 48 },
+  large: { class: "w-14", px: 56 },
   custom: { class: "", px: 48 },
 };
 
@@ -279,10 +279,10 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
   const getLogoSize = () => {
     if (s.logoSize === "custom") {
       const px = s.logoSizeCustom || 48;
-      return { class: "", px, style: { width: px, height: px } };
+      return { class: "", px, style: { width: px, height: "auto" as const } };
     }
     const size = logoSizes[s.logoSize] || logoSizes.medium;
-    return { class: size.class, px: size.px, style: { width: size.px, height: size.px } };
+    return { class: size.class, px: size.px, style: { width: size.px, height: "auto" as const } };
   };
 
   const getHeaderStyle = () => {

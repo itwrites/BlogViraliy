@@ -18,9 +18,11 @@ export async function searchPexelsImage(query: string): Promise<string | null> {
       return null;
     }
 
-    const data = await response.json() as { photos: Array<{ src: { large: string } }> };
+    const data = await response.json() as { photos: Array<{ src: { original: string; large2x: string; large: string } }> };
     if (data.photos && data.photos.length > 0) {
-      return data.photos[0].src.large;
+      // Use large2x for high-resolution retina quality (940×650px @ DPR 2)
+      // Falls back to large if large2x is unavailable
+      return data.photos[0].src.large2x || data.photos[0].src.large;
     }
 
     return null;
