@@ -1695,6 +1695,18 @@ export default function SiteConfig() {
                       </div>
                       <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
                         <div>
+                          <Label htmlFor="footerHideSiteName" className="cursor-pointer" data-testid="label-footer-hide-site-name">Hide Site Name</Label>
+                          <p className="text-xs text-muted-foreground">Hide the site name text in footer (useful when logo is sufficient)</p>
+                        </div>
+                        <Switch
+                          id="footerHideSiteName"
+                          checked={templateSettings.footerHideSiteName || false}
+                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, footerHideSiteName: checked })}
+                          data-testid="switch-footer-hide-site-name"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
+                        <div>
                           <Label htmlFor="footerShowPoweredBy" className="cursor-pointer" data-testid="label-footer-powered-by">Show "Powered by Blog Virality"</Label>
                           <p className="text-xs text-muted-foreground">Display attribution text in the footer</p>
                         </div>

@@ -64,6 +64,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
   const textColor = footerColors.textColor;
   const linkColor = footerColors.linkColor;
   const showLogo = settings?.footerShowLogo !== false;
+  const hideSiteName = settings?.footerHideSiteName === true;
   const footerLogoUrl = settings?.footerLogoUrl || "";
   const footerLogoInvertColors = settings?.footerLogoInvertColors || false;
   const aboutText = settings?.footerAboutText || "";
@@ -233,13 +234,15 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
             data-testid="img-footer-logo"
           />
         )}
-        <span 
-          className="text-lg font-semibold"
-          style={{ color: linkColor }}
-          data-testid="text-footer-site-title"
-        >
-          {site.title}
-        </span>
+        {!hideSiteName && (
+          <span 
+            className="text-lg font-semibold"
+            style={{ color: linkColor }}
+            data-testid="text-footer-site-title"
+          >
+            {site.title}
+          </span>
+        )}
       </div>
     );
   };

@@ -161,6 +161,7 @@ export const templateSettingsSchema = z.object({
   footerLinkColor: z.string().default("#ffffff"),
   footerAccentColor: z.string().default(""), // Optional accent color for footer elements
   footerShowLogo: z.boolean().default(true),
+  footerHideSiteName: z.boolean().default(false), // Hide site name text in footer (useful when logo is enough)
   footerLogoUrl: z.string().default(""), // Custom logo URL for footer (empty = use site logo)
   footerLogoInvertColors: z.boolean().default(false), // Invert/flip logo colors for dark backgrounds
   footerAboutText: z.string().default(""),
@@ -235,6 +236,7 @@ export const defaultTemplateSettings: TemplateSettings = {
   footerLinkColor: "#ffffff",
   footerAccentColor: "",
   footerShowLogo: true,
+  footerHideSiteName: false,
   footerLogoUrl: "",
   footerLogoInvertColors: false,
   footerAboutText: "",
