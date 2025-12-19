@@ -784,6 +784,34 @@ export default function SiteConfig() {
                   </div>
                 </div>
 
+                {siteData.menuMode === "automatic" && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Automatic Menu Settings</h3>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="autoMaxNavItems" data-testid="label-auto-max-nav">
+                          Max Menu Items: {templateSettings.maxNavItems}
+                        </Label>
+                        <Slider
+                          id="autoMaxNavItems"
+                          min={3}
+                          max={10}
+                          step={1}
+                          value={[templateSettings.maxNavItems]}
+                          onValueChange={([value]) => setTemplateSettings({ ...templateSettings, maxNavItems: value })}
+                          className="py-2"
+                          data-testid="slider-auto-max-nav"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Maximum number of tags to show in the navigation menu
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {siteData.menuMode === "manual" && (
                   <div className="space-y-4 pt-4 border-t">
                     <div className="flex items-center justify-between">
