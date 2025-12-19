@@ -7,13 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -22,6 +21,18 @@ import { User, UserPlus, Languages } from "lucide-react";
 import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } from "@shared/schema";
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
+
+type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts";
+
+const sidebarVariants = {
+  initial: { opacity: 0, x: -20 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } }
+};
+
+const contentVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } }
+};
 
 export default function SiteConfig() {
   const { id } = useParams();
@@ -91,6 +102,8 @@ export default function SiteConfig() {
     avatarUrl: "",
     isDefault: false,
   });
+
+  const [activeSection, setActiveSection] = useState<ActiveSection>("general");
 
   const { data: site, isLoading: siteLoading } = useQuery<Site>({
     queryKey: ["/api/sites", id],
@@ -410,9 +423,34 @@ export default function SiteConfig() {
     }
   };
 
+  // Navigation items for sidebar
+  const navItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
+    { id: "general", label: "General", icon: Settings },
+    { id: "navigation", label: "Navigation", icon: Menu },
+    { id: "design", label: "Design", icon: Palette },
+    { id: "seo", label: "SEO", icon: Search },
+    { id: "authors", label: "Authors", icon: Users, disabled: isNewSite },
+    { id: "ai", label: "AI Content", icon: Sparkles },
+    { id: "rss", label: "RSS Feeds", icon: Rss },
+    { id: "topical", label: "Topical", icon: BookOpen, disabled: isNewSite },
+    { id: "bulk", label: "Bulk", icon: FileText, disabled: isNewSite },
+    { id: "posts", label: "Posts", icon: Layout, disabled: isNewSite },
+  ];
+
+  const handleNavClick = (section: ActiveSection) => {
+    if (section === "posts" && id && !isNewSite) {
+      setLocation(`/editor/sites/${id}/posts`);
+    } else {
+      setActiveSection(section);
+    }
+  };
+
   if (!isNewSite && siteLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div 
+        className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center"
+        style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}
+      >
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading site configuration...</p>
@@ -422,68 +460,86 @@ export default function SiteConfig() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
-      >
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setLocation("/admin/dashboard")}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+    <div 
+      className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20"
+      style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif" }}
+    >
+      <div className="flex">
+        {/* macOS-style Sidebar */}
+        <motion.aside
+          variants={sidebarVariants}
+          initial="initial"
+          animate="animate"
+          className="fixed left-0 top-0 bottom-0 w-64 bg-card/50 backdrop-blur-xl border-r z-40 flex flex-col"
+        >
+          {/* Sidebar Header */}
+          <div className="p-5 border-b">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                <Settings className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">
-                  {isNewSite ? "Add New Site" : "Site Configuration"}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation("/admin/dashboard")}
+                className="h-8 w-8"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 min-w-0">
+                <h1 className="font-semibold truncate text-sm" data-testid="text-page-title">
+                  {isNewSite ? "New Site" : site?.title || "Site Config"}
                 </h1>
-                <p className="text-xs text-muted-foreground" data-testid="text-page-description">
-                  {isNewSite ? "Create a new multi-tenant website" : site?.title}
+                <p className="text-xs text-muted-foreground truncate">
+                  {isNewSite ? "Create new website" : "Configuration"}
                 </p>
               </div>
             </div>
           </div>
-          <Button onClick={handleSave} size="sm" data-testid="button-save">
-            <Save className="h-4 w-4 mr-2" />
-            Save
-          </Button>
-        </div>
-      </motion.header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <Tabs 
-          defaultValue="general" 
-          className="space-y-6"
-          onValueChange={(value) => {
-            if (value === "posts" && id && !isNewSite) {
-              setLocation(`/editor/sites/${id}/posts`);
-            }
-          }}
-        >
-          <TabsList className="grid w-full max-w-6xl grid-cols-10">
-            <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
-            <TabsTrigger value="navigation" data-testid="tab-navigation">Navigation</TabsTrigger>
-            <TabsTrigger value="design" data-testid="tab-design">Design</TabsTrigger>
-            <TabsTrigger value="seo" data-testid="tab-seo">SEO</TabsTrigger>
-            <TabsTrigger value="authors" data-testid="tab-authors" disabled={isNewSite}>Authors</TabsTrigger>
-            <TabsTrigger value="ai" data-testid="tab-ai">AI Content</TabsTrigger>
-            <TabsTrigger value="rss" data-testid="tab-rss">RSS Feeds</TabsTrigger>
-            <TabsTrigger value="topical" data-testid="tab-topical" disabled={isNewSite}>Topical</TabsTrigger>
-            <TabsTrigger value="bulk" data-testid="tab-bulk" disabled={isNewSite}>Bulk</TabsTrigger>
-            <TabsTrigger value="posts" data-testid="tab-posts" disabled={isNewSite}>Posts</TabsTrigger>
-          </TabsList>
+          {/* Navigation */}
+          <div className="flex-1 p-3 space-y-1 overflow-y-auto">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+              Settings
+            </p>
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => !item.disabled && handleNavClick(item.id)}
+                disabled={item.disabled}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                  activeSection === item.id
+                    ? "bg-primary text-primary-foreground"
+                    : item.disabled
+                    ? "opacity-40 cursor-not-allowed text-muted-foreground"
+                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid={`nav-${item.id}`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            ))}
+          </div>
 
-          <TabsContent value="general" className="space-y-6">
+          {/* Save Button at Bottom */}
+          <div className="p-4 border-t">
+            <Button onClick={handleSave} className="w-full gap-2" data-testid="button-save">
+              <Save className="h-4 w-4" />
+              Save Changes
+            </Button>
+          </div>
+        </motion.aside>
+
+        {/* Main Content */}
+        <main className="flex-1 ml-64 min-h-screen p-8">
+          <motion.div
+            key={activeSection}
+            variants={contentVariants}
+            initial="initial"
+            animate="animate"
+            className="max-w-4xl"
+          >
+            {activeSection === "general" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle data-testid="text-general-title">General Settings</CardTitle>
@@ -692,9 +748,11 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="navigation" className="space-y-6">
+            {activeSection === "navigation" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2" data-testid="text-navigation-title">
@@ -1081,9 +1139,11 @@ export default function SiteConfig() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="design" className="space-y-6">
+            {activeSection === "design" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle data-testid="text-design-title">Template Design Settings</CardTitle>
@@ -1942,9 +2002,11 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="seo" className="space-y-6">
+            {activeSection === "seo" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle data-testid="text-seo-title">SEO Settings</CardTitle>
@@ -2013,9 +2075,11 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="authors" className="space-y-6">
+            {activeSection === "authors" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2" data-testid="text-authors-title">
@@ -2156,9 +2220,11 @@ export default function SiteConfig() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="ai" className="space-y-6">
+            {activeSection === "ai" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -2273,9 +2339,11 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="rss" className="space-y-6">
+            {activeSection === "rss" && (
+              <div className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -2406,25 +2474,33 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="topical" className="space-y-6">
+            {activeSection === "topical" && (
+              <div className="space-y-6">
             {!isNewSite && id && <TopicalAuthority siteId={id} />}
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="bulk" className="space-y-6">
+            {activeSection === "bulk" && (
+              <div className="space-y-6">
             {!isNewSite && id && <BulkGeneration siteId={id} />}
-          </TabsContent>
+              </div>
+            )}
 
-          <TabsContent value="posts" className="space-y-6">
-            <Card>
-              <CardContent className="flex items-center justify-center py-12">
-                <p className="text-muted-foreground">Redirecting to Posts Manager...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
+            {activeSection === "posts" && (
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="flex items-center justify-center py-12">
+                    <p className="text-muted-foreground">Redirecting to Posts Manager...</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }
