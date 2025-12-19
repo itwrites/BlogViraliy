@@ -318,7 +318,7 @@ export function useTemplateClasses(settings: TemplateSettings | null | undefined
     isHeaderSticky: s.headerStyle === "standard" || s.headerStyle === "full",
     showHero: s.showFeaturedHero,
     showSearch: s.showSearch,
-    maxNavItems: s.maxNavItems,
+    maxNavItems: s.maxNavItems ?? 7,
     menuActiveStyle: s.menuActiveStyle || "underline",
     menuSpacing: menuSpacings[s.menuSpacing || "normal"] || menuSpacings.normal,
     menuItemPadding: menuItemPaddings[s.menuSpacing || "normal"] || menuItemPaddings.normal,
