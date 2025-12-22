@@ -221,14 +221,18 @@ export async function serveStatic(app: Express) {
   const templatePath = path.resolve(distPath, "index.html");
   const template = fs.readFileSync(templatePath, "utf-8");
 
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    index: false,
+  }));
 
   app.use("*", async (req, res) => {
     const url = req.originalUrl;
     
     try {
       const hostname = req.hostname;
+      log(`[SSR] Request: ${hostname}${url}, ssrRender=${!!ssrRender}`, "ssr");
       const site = await storage.getSiteByDomain(hostname);
+      log(`[SSR] Site lookup result: ${site ? `found (id=${site.id})` : 'not found'}`, "ssr");
       
       if (site && ssrRender && isPublicRoute(url)) {
         const basePath = normalizeBasePath(site.basePath);
