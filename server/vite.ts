@@ -216,6 +216,80 @@ export function analyzeRouteForPost(routePath: string): RouteAnalysis {
   };
 }
 
+// Generate SEO meta tags for SSR
+function generateSeoMetaTags(site: Site, post?: Post, currentTag?: string): string {
+  const tags: string[] = [];
+  
+  // Determine title and description
+  let title = site.metaTitle || site.title;
+  let description = site.metaDescription || `Welcome to ${site.title}`;
+  let ogImage = site.ogImage || null;
+  let pageType = 'website';
+  
+  if (post) {
+    title = post.metaTitle || post.title;
+    pageType = 'article';
+    
+    // Generate description from post
+    if (post.metaDescription) {
+      description = post.metaDescription;
+    } else if (post.content) {
+      const text = post.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+      if (text.length <= 160) {
+        description = text;
+      } else {
+        const truncated = text.substring(0, 157);
+        const lastSpace = truncated.lastIndexOf(' ');
+        description = (lastSpace > 100 ? truncated.substring(0, lastSpace) : truncated) + '...';
+      }
+    }
+    
+    ogImage = post.ogImage || post.imageUrl || site.ogImage || null;
+  } else if (currentTag) {
+    title = `${currentTag} - ${site.title}`;
+    description = `Articles tagged with ${currentTag} on ${site.title}`;
+  }
+  
+  // Escape HTML entities
+  const escapeHtml = (str: string) => str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // Title tag
+  tags.push(`<title>${escapeHtml(title)}</title>`);
+  
+  // Basic meta tags
+  tags.push(`<meta name="description" content="${escapeHtml(description)}">`);
+  
+  // Open Graph tags
+  tags.push(`<meta property="og:title" content="${escapeHtml(title)}">`);
+  tags.push(`<meta property="og:description" content="${escapeHtml(description)}">`);
+  tags.push(`<meta property="og:type" content="${pageType}">`);
+  tags.push(`<meta property="og:site_name" content="${escapeHtml(site.title)}">`);
+  
+  if (ogImage) {
+    tags.push(`<meta property="og:image" content="${escapeHtml(ogImage)}">`);
+  }
+  
+  // Twitter Card tags
+  tags.push(`<meta name="twitter:card" content="summary_large_image">`);
+  tags.push(`<meta name="twitter:title" content="${escapeHtml(title)}">`);
+  tags.push(`<meta name="twitter:description" content="${escapeHtml(description)}">`);
+  if (ogImage) {
+    tags.push(`<meta name="twitter:image" content="${escapeHtml(ogImage)}">`);
+  }
+  
+  // Noindex for post if specified
+  if (post?.noindex) {
+    tags.push(`<meta name="robots" content="noindex">`);
+  }
+  
+  // Favicon
+  if (site.favicon) {
+    tags.push(`<link rel="icon" href="${escapeHtml(site.favicon)}">`);
+  }
+  
+  return tags.join('\n    ');
+}
+
 async function getSSRData(site: Site, routePath: string): Promise<{
   posts?: Post[];
   post?: Post;
@@ -320,9 +394,18 @@ async function renderSSR(
       visitorHostname,
     }).replace(/</g, "\\u003c")}</script>`;
 
-    return template
+    // Generate SEO meta tags
+    const seoTags = generateSeoMetaTags(site, ssrData.post, ssrData.currentTag);
+
+    // Remove existing <title> tag (from template) to avoid duplicates
+    let page = template.replace(/<title>[^<]*<\/title>/i, '');
+    
+    // Inject SEO tags, SSR data script, and rendered HTML
+    page = page
       .replace(`<div id="root"></div>`, `<div id="root">${html}</div>`)
-      .replace(`</head>`, `${ssrDataScript}</head>`);
+      .replace(`</head>`, `${seoTags}\n    ${ssrDataScript}\n  </head>`);
+
+    return page;
   } catch (e) {
     vite.ssrFixStacktrace(e as Error);
     console.error("[SSR Error]", e);
@@ -511,9 +594,16 @@ export async function serveStatic(app: Express) {
           visitorHostname: hostname,
         }).replace(/</g, "\\u003c")}</script>`;
 
-        const page = template
+        // Generate SEO meta tags
+        const seoTags = generateSeoMetaTags(site, ssrData.post, ssrData.currentTag);
+
+        // Remove existing <title> tag (from template) to avoid duplicates
+        let page = template.replace(/<title>[^<]*<\/title>/i, '');
+        
+        // Inject SEO tags, SSR data script, and rendered HTML
+        page = page
           .replace(`<div id="root"></div>`, `<div id="root">${html}</div>`)
-          .replace(`</head>`, `${ssrDataScript}</head>`);
+          .replace(`</head>`, `${seoTags}\n    ${ssrDataScript}\n  </head>`);
 
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
