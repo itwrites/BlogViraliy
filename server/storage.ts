@@ -433,23 +433,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRelatedPosts(postId: string, siteId: string): Promise<Post[]> {
-    const currentPost = await this.getPostById(postId);
-    if (!currentPost) return [];
+    try {
+      const currentPost = await this.getPostById(postId);
+      if (!currentPost) return [];
+      
+      // Guard against null/undefined/empty tags
+      if (!currentPost.tags || !Array.isArray(currentPost.tags) || currentPost.tags.length === 0) {
+        // Fall back to recent posts from same site
+        const recentPosts = await db
+          .select()
+          .from(posts)
+          .where(
+            and(
+              eq(posts.siteId, siteId),
+              sql`${posts.id} != ${postId}`
+            )
+          )
+          .orderBy(desc(posts.createdAt))
+          .limit(6);
+        return recentPosts;
+      }
 
-    const relatedPosts = await db
-      .select()
-      .from(posts)
-      .where(
-        and(
-          eq(posts.siteId, siteId),
-          sql`${posts.id} != ${postId}`,
-          sql`${posts.tags} && ${currentPost.tags}`
+      const relatedPosts = await db
+        .select()
+        .from(posts)
+        .where(
+          and(
+            eq(posts.siteId, siteId),
+            sql`${posts.id} != ${postId}`,
+            sql`${posts.tags} && ${currentPost.tags}`
+          )
         )
-      )
-      .orderBy(desc(posts.createdAt))
-      .limit(6);
+        .orderBy(desc(posts.createdAt))
+        .limit(6);
 
-    return relatedPosts;
+      return relatedPosts;
+    } catch (error) {
+      console.error(`[getRelatedPosts] Error for postId=${postId}, siteId=${siteId}:`, error);
+      return []; // Return empty array instead of throwing
+    }
   }
 
   async createPost(post: InsertPost): Promise<Post> {

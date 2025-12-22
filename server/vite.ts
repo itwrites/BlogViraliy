@@ -241,8 +241,14 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     log(`[getSSRData] Looking up post with slug="${slug}", routeType="${analysis.routeType}"`, "ssr");
     const post = await storage.getPostBySlug(site.id, slug);
     if (post) {
-      const relatedPosts = await storage.getRelatedPosts(post.id, site.id);
-      log(`[getSSRData] Found post id=${post.id}, title="${post.title}"`, "ssr");
+      // Wrap relatedPosts in try/catch so it can't crash SSR
+      let relatedPosts: Post[] = [];
+      try {
+        relatedPosts = await storage.getRelatedPosts(post.id, site.id);
+      } catch (e) {
+        log(`[getSSRData] Error fetching related posts: ${e instanceof Error ? e.message : String(e)}`, "ssr");
+      }
+      log(`[getSSRData] Found post id=${post.id}, title="${post.title}", relatedPosts=${relatedPosts.length}`, "ssr");
       return { post, relatedPosts };
     }
     log(`[getSSRData] No post found for slug="${slug}"`, "ssr");
