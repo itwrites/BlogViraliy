@@ -1,0 +1,227 @@
+
+
+
+BlogViraliy
+Files
+Commands
+Search
+Packager files
+Config files
+/
+
+Databases
+Production Database
+35.66MB / 100GB
+Development Database
+30.94MB / 10GB
+Billing Period
+Renews monthly, 31 Dec
+Hours of Compute Used
+77.8 hours
+Enable "Accessible Terminal" in Workspace Settings to use a screen reader with the shell.
+Production
+Status
+james published 3 days ago
+Visibility
+Public
+Domain
+https://blog-viraliy.replit.app
+https://blog.brandvirality.com
+https://blog.vyfy.co.uk
+https://americkespravy.sk
+https://blogvirality.brandvirality.com
+Type
+Autoscale
+(2 vCPU / 2 GiB RAM / 2 Max)
+See all usage
+Database
+Production database connected
+Your production database is ready! Your app can now save and manage live user data securely.
+4ec86ef7
+JJ
+
+master85
+james
+published 3 days ago
+af0a2c8e
+JJ
+
+master85
+james
+published 4 days ago
+b7e02ab9
+JJ
+
+master85
+james
+published 4 days ago
+32c00b0b
+JJ
+
+master85
+james
+published 4 days ago
+cb9915af
+JJ
+
+master85
+james
+published 4 days ago
+f2051dd0
+JJ
+
+master85
+james
+published 7 days ago
+f2051dd0
+JJ
+
+master85
+james
+published 7 days ago
+ea494c78
+JJ
+
+master85
+james
+published 13 days ago
+b3a10eb0
+JJ
+
+master85
+james
+published 13 days ago
+378c6312
+JJ
+
+master85
+james
+published 13 days ago
+023d80d1
+JJ
+
+master85
+james
+published 13 days ago
+45489311
+JJ
+
+master85
+james
+published 13 days ago
+ecd8d7fb
+JJ
+
+master85
+james
+published 13 days ago
+8948b150
+JJ
+
+master85
+james
+published 13 days ago
+8948b150
+JJ
+
+master85
+james
+published 13 days ago
+41b7875a
+JJ
+
+master85
+james
+published 13 days ago
+b171e75f
+JJ
+
+master85
+james
+published 13 days ago
+dbda9c46
+JJ
+
+master85
+james
+published 13 days ago
+dbda9c46
+JJ
+
+master85
+james
+published 13 days ago
+npm run dev
+30s
+ • 
+Just now
+Secrets
+Secrets are accessible to anyone who has access to this App. To restrict secret access, you must update App invite permissions. For more information, visit our documentation.
+SESSION_SECRET
+••••••••
+AI_INTEGRATIONS_OPENAI_BASE_URL
+••••••••
+AI_INTEGRATIONS_OPENAI_API_KEY
+••••••••
+OPENAI_API_KEY
+••••••••
+PEXELS_API_KEY
+••••••••
+Configurations
+Configurations are similar to secrets, but should only be used for non-sensitive information. They're useful for having a variable that's different between your published app and when testing on Replit.
+Published your App
+
+11 messages & 19 actions
+Now I understand the pattern. The server stores `visitorHost` in the request but the SeoHead component on the frontend uses `site.domain`. I need to see how the frontend receives the visitor host information.
+Saved progress at the end of the loop
+Worked for 3 minutes
+•
+Free
+•
+Publish
+Published your App
+when not using slug /post/ we should as well reflect that in sitemap
+
+
+2 messages & 15 actions
+Now I'll update the sitemap generation to respect the `postUrlFormat` setting:
+Update sitemap to use custom post URL formats
+Worked for 1 minute
+•
+Free
+•
+Publish
+Published your App
+whe menu is on auto mode, allow to choose max limit of menu options to show.
+
+
+2 messages & 15 actions
+I see the `maxNavItems` slider exists in the Design tab, but it would be more intuitive to have it in the Navigation tab specifically when auto mode is selected. Let me add a "Max Menu Items" control that appears when the menu is in automatic mode:
+Add controls for automatic menu item limits
+Worked for 1 minute
+ok, can you make the admin page, more macos like? like the editor page?
+Menu in left side, etc, mac os elements like, font, etc
+
+
+9 messages & 59 actions
+I'll refactor the site config page to have a macOS-like design with a left sidebar, glassmorphism effects, and SF Pro fonts - similar to the admin dashboard.
+Saved progress at the end of the loop
+Worked for 5 minutes
+•
+Free
+•
+Publish
+Published your App
+i still see many menu options when using theme blog
+
+
+3 messages & 23 actions
+Let me check how the menu items are being limited in the public header:
+Ensure a default number of menu items display on all site themes
+Worked for 1 minute
+•
+Free
+•
+Publish
+Published your App
+how hard would it be to migrate the side to SSR react? specially public sites part? where the content loads
