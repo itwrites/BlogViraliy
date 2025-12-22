@@ -113,15 +113,18 @@ async function renderSSR(
   vite: ViteDevServer,
   site: Site,
   routePath: string,
+  fullPath: string,
   template: string
 ): Promise<string> {
   try {
     const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
     const ssrData = await getSSRData(site, routePath);
     
+    // Pass fullPath (with basePath) to wouter's ssrPath, but routePath (stripped) for data
     const { html, dehydratedState } = render({
       site,
       path: routePath,
+      ssrPath: fullPath,
       ...ssrData,
     });
 
@@ -187,13 +190,14 @@ export async function setupVite(app: Express, server: Server) {
       
       if (site && isPublicRoute(url)) {
         const basePath = normalizeBasePath(site.basePath);
-        let routePath = url.split("?")[0];
+        const fullPath = url.split("?")[0];
+        let routePath = fullPath;
         if (basePath && routePath.startsWith(basePath)) {
           routePath = routePath.slice(basePath.length) || "/";
         }
 
-        log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}`, "ssr");
-        const page = await renderSSR(vite, site, routePath, template);
+        log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}`, "ssr");
+        const page = await renderSSR(vite, site, routePath, fullPath, template);
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
@@ -253,17 +257,19 @@ export async function serveStatic(app: Express) {
       
       if (site && ssrRender && isPublicRoute(url)) {
         const basePath = normalizeBasePath(site.basePath);
-        let routePath = url.split("?")[0];
+        const fullPath = url.split("?")[0];
+        let routePath = fullPath;
         if (basePath && routePath.startsWith(basePath)) {
           routePath = routePath.slice(basePath.length) || "/";
         }
 
-        log(`[SSR] Production rendering ${hostname}${url} -> route: ${routePath}`, "ssr");
+        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}`, "ssr");
         
         const ssrData = await getSSRData(site, routePath);
         const { html, dehydratedState } = ssrRender({
           site,
           path: routePath,
+          ssrPath: fullPath,
           ...ssrData,
         });
 
