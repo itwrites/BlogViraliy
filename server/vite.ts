@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { createServer as createViteServer, createLogger, type ViteDevServer } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
@@ -205,14 +205,17 @@ export async function serveStatic(app: Express) {
   
   if (fs.existsSync(ssrPath)) {
     try {
-      const ssrModule = await import(ssrPath);
+      const ssrUrl = pathToFileURL(ssrPath).href;
+      log(`[SSR] Loading SSR bundle from: ${ssrUrl}`, "ssr");
+      const ssrModule = await import(ssrUrl);
       ssrRender = ssrModule.render;
-      log("SSR module loaded successfully", "ssr");
+      log("[SSR] SSR module loaded successfully", "ssr");
     } catch (e) {
       console.error("[SSR] Failed to load SSR module:", e);
+      log(`[SSR] Error loading module: ${e instanceof Error ? e.message : String(e)}`, "ssr");
     }
   } else {
-    log("SSR module not found, falling back to client-only rendering", "ssr");
+    log(`[SSR] SSR module not found at ${ssrPath}, falling back to client-only rendering`, "ssr");
   }
 
   const templatePath = path.resolve(distPath, "index.html");
