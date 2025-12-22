@@ -68,6 +68,13 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Dynamic Robots.txt**: Auto-generates `robots.txt` per site with tenant-specific sitemap URLs. Admin/unknown domains receive `Disallow: /` to block crawling.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles, and site-specific permissions.
 - **SEO Implementation**: Includes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.
+- **Server-Side Rendering (SSR)**: Public pages (homepage, post pages, tag archives) are rendered server-side for improved SEO:
+    - **Vite SSR Integration**: Uses Vite's built-in SSR capabilities without introducing additional frameworks
+    - **Shared PublicApp Component**: Single component (`client/src/public-app.tsx`) shared between SSR and client hydration
+    - **Entry Points**: `entry-server.tsx` for SSR rendering, `entry-client.tsx` for client hydration
+    - **TanStack Query Hydration**: Server prefetches data (site config, posts, tags) and dehydrates state for client hydration
+    - **Domain-Aware Routing**: SSR only triggers for registered domains on public routes; admin routes remain pure SPA
+    - **XSS-Safe State Injection**: Dehydrated state is serialized with JSON escaping to prevent script injection
 
 ## External Dependencies
 - **Database**: PostgreSQL (Neon)
