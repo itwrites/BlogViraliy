@@ -45,6 +45,46 @@ function isPublicRoute(path: string): boolean {
   return !adminPaths.some(p => path.startsWith(p));
 }
 
+function getCanonicalPostRedirect(
+  routePath: string,
+  postUrlFormat: "with-prefix" | "root",
+  basePath: string
+): string | null {
+  const systemRoutes = [
+    "rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png",
+    "manifest.json", "sw.js", "service-worker.js", "about", "contact",
+    "privacy", "terms", "search", "categories", "archives", "tag", "topics"
+  ];
+  
+  // Check if URL is in /post/:slug format
+  const postPrefixMatch = routePath.match(/^\/post\/(.+)$/);
+  if (postPrefixMatch && postUrlFormat === "root") {
+    // URL has /post/ but site uses root format - redirect to /:slug
+    const slug = postPrefixMatch[1];
+    const canonicalPath = basePath ? `${basePath}/${slug}` : `/${slug}`;
+    log(`[Canonical] /post/${slug} -> ${canonicalPath} (postUrlFormat=root)`, "ssr");
+    return canonicalPath;
+  }
+  
+  // Check if URL is in /:slug format (single segment, not a system route)
+  const rootSlugMatch = routePath.match(/^\/([^\/]+)$/);
+  if (rootSlugMatch && postUrlFormat === "with-prefix") {
+    const slug = rootSlugMatch[1];
+    // Skip system routes
+    if (systemRoutes.includes(slug.toLowerCase()) || 
+        routePath.startsWith("/tag/") || 
+        routePath.startsWith("/topics/")) {
+      return null;
+    }
+    // URL is /:slug but site uses with-prefix format - redirect to /post/:slug
+    const canonicalPath = basePath ? `${basePath}/post/${slug}` : `/post/${slug}`;
+    log(`[Canonical] /${slug} -> ${canonicalPath} (postUrlFormat=with-prefix)`, "ssr");
+    return canonicalPath;
+  }
+  
+  return null;
+}
+
 function resolveHostname(req: express.Request): string {
   const xBvVisitorHost = req.headers["x-bv-visitor-host"];
   const xForwardedHost = req.headers["x-forwarded-host"];
@@ -252,6 +292,20 @@ export async function setupVite(app: Express, server: Server) {
           routePath = routePath.slice(basePath.length) || "/";
         }
         
+        // Normalize trailing slashes
+        if (routePath.length > 1 && routePath.endsWith("/")) {
+          routePath = routePath.slice(0, -1);
+        }
+        
+        // Check for canonical URL redirect before SSR
+        const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
+        const canonicalRedirect = getCanonicalPostRedirect(routePath, postUrlFormat, basePath);
+        if (canonicalRedirect) {
+          log(`[SSR-Dev] Canonical redirect: ${routePath} -> ${canonicalRedirect}`, "ssr");
+          res.redirect(308, canonicalRedirect);
+          return;
+        }
+        
         // Determine if accessed via alias domain
         const isAliasDomain = hostname !== site.domain;
 
@@ -320,6 +374,20 @@ export async function serveStatic(app: Express) {
         let routePath = fullPath;
         if (basePath && routePath.startsWith(basePath)) {
           routePath = routePath.slice(basePath.length) || "/";
+        }
+        
+        // Normalize trailing slashes
+        if (routePath.length > 1 && routePath.endsWith("/")) {
+          routePath = routePath.slice(0, -1);
+        }
+        
+        // Check for canonical URL redirect before SSR
+        const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
+        const canonicalRedirect = getCanonicalPostRedirect(routePath, postUrlFormat, basePath);
+        if (canonicalRedirect) {
+          log(`[SSR-Prod] Canonical redirect: ${routePath} -> ${canonicalRedirect}`, "ssr");
+          res.redirect(308, canonicalRedirect);
+          return;
         }
         
         // Determine if accessed via alias domain
