@@ -20,6 +20,10 @@ The system employs a clean, modern UI with consistent spacing and professional d
 **Technical Implementations:**
 - **Domain-Based Routing**: Automatically routes requests to the admin dashboard or the appropriate public site based on the domain. Supports domain aliases allowing multiple URLs to point to the same site.
 - **Optional Base Path Support**: Enables reverse proxy deployments where the blog runs under a subdirectory (e.g., WordPress at ax.com with Blog Virality proxied at ax.com/blog). Configured per-site with automatic normalization (strips trailing slashes, ensures leading slash).
+- **Canonical URL Redirects**: Enforces correct URL structure based on domain type:
+    - **Alias Domains**: URLs containing the basePath are 301 redirected to strip it (e.g., `/blog/post/slug` → `/post/slug`) since the reverse proxy already handles the basePath prefix.
+    - **Primary Domains with basePath**: Root requests are 301 redirected to the basePath (e.g., `/` → `/blog/`).
+    - This prevents duplicate content and ensures search engines index only canonical URLs.
 - **Proxy-Safe API Prefix (/bv_api/)**: All API calls use `/bv_api/` prefix instead of `/api/` to avoid conflicts when deployed behind a reverse proxy alongside other applications (e.g., WordPress). The backend middleware rewrites `/bv_api/*` to `/api/*` internally. Nginx must be configured to forward `/bv_api/` requests to the Replit app.
 - **Admin Dashboard**: Provides secure login, site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**:

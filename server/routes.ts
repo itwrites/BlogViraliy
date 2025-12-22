@@ -69,6 +69,7 @@ interface DomainRequest extends Request {
   siteId?: string;
   siteBasePath?: string;
   siteHostname?: string;  // The hostname used to find this site (could be alias or primary)
+  sitePrimaryDomain?: string;  // The site's primary domain (for alias detection)
 }
 
 interface AuthenticatedRequest extends Request {
@@ -161,6 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
       req.siteHostname = hostname;  // Save the hostname used to find this site
+      req.sitePrimaryDomain = site.domain;  // Save the primary domain for alias detection
       return next();
     }
 
@@ -170,6 +172,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } else {
       // Log when domain is not found for debugging
       console.log(`[Domain Routing] Site not found for hostname: ${hostname}`);
+    }
+    
+    next();
+  });
+
+  // Canonical URL redirect middleware for basePath handling
+  // - Alias domains: Strip basePath from URL (proxy already handles it)
+  // - Primary domains: Redirect root to basePath
+  app.use((req: DomainRequest, res: Response, next: NextFunction) => {
+    const basePath = req.siteBasePath;
+    const hostname = req.siteHostname;
+    const primaryDomain = req.sitePrimaryDomain;
+    
+    // Skip if no basePath, no site found, or if it's an API/asset request
+    if (!basePath || basePath === "/" || !hostname || !primaryDomain) {
+      return next();
+    }
+    
+    // Skip redirects for API calls, assets, and internal paths
+    if (req.path.startsWith("/api/") || req.path.startsWith("/bv_api/") || 
+        req.path.startsWith("/assets/") || req.path.startsWith("/src/") ||
+        req.path.startsWith("/@") || req.path.startsWith("/node_modules/")) {
+      return next();
+    }
+    
+    const isAliasDomain = hostname !== primaryDomain;
+    
+    if (isAliasDomain) {
+      // Alias domain: If URL starts with basePath, redirect to strip it
+      // Because the reverse proxy already handles the basePath prefix
+      if (req.path.startsWith(basePath + "/") || req.path === basePath) {
+        let targetPath = req.path.substring(basePath.length);
+        if (!targetPath.startsWith("/")) {
+          targetPath = "/" + targetPath;
+        }
+        // Preserve query string
+        const queryString = req.originalUrl.includes("?") 
+          ? req.originalUrl.substring(req.originalUrl.indexOf("?")) 
+          : "";
+        const redirectUrl = targetPath + queryString;
+        console.log(`[Canonical Redirect] Alias domain ${hostname}: stripping basePath, ${req.path} -> ${redirectUrl}`);
+        return res.redirect(301, redirectUrl);
+      }
+    } else {
+      // Primary domain: If at root, redirect to basePath
+      if (req.path === "/") {
+        const redirectUrl = basePath + "/";
+        console.log(`[Canonical Redirect] Primary domain ${hostname}: root -> ${redirectUrl}`);
+        return res.redirect(301, redirectUrl);
+      }
     }
     
     next();
