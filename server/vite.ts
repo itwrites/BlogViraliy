@@ -69,33 +69,58 @@ async function getSSRData(site: Site, routePath: string): Promise<{
 }> {
   const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
   
+  log(`[getSSRData] routePath="${routePath}", postUrlFormat="${postUrlFormat}", siteId=${site.id}`, "ssr");
+  
   if (routePath === "/" || routePath === "") {
     const posts = await storage.getPostsBySiteId(site.id);
+    log(`[getSSRData] Home page, found ${posts?.length || 0} posts`, "ssr");
     return { posts };
   }
 
+  // Handle /post/:slug format (always try this first)
   const postMatch = routePath.match(/^\/post\/(.+)$/);
   if (postMatch) {
     const slug = postMatch[1];
+    log(`[getSSRData] Matched /post/:slug format, slug="${slug}"`, "ssr");
     const post = await storage.getPostBySlug(site.id, slug);
     if (post) {
       const relatedPosts = await storage.getRelatedPosts(post.id, site.id);
+      log(`[getSSRData] Found post id=${post.id}, title="${post.title}"`, "ssr");
       return { post, relatedPosts };
     }
+    log(`[getSSRData] No post found for slug="${slug}"`, "ssr");
   }
 
-  if (postUrlFormat === "root") {
-    const slugMatch = routePath.match(/^\/([^\/]+)$/);
-    if (slugMatch && !routePath.startsWith("/tag/") && !routePath.startsWith("/topics/")) {
-      const slug = slugMatch[1];
+  // Handle root format: /:slug (without /post/ prefix)
+  // Try this for any single-segment path that's not a known system route
+  // This ensures SSR works even if URLs don't match the configured format
+  const systemRoutes = [
+    "rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png",
+    "manifest.json", "sw.js", "service-worker.js", "about", "contact",
+    "privacy", "terms", "search", "categories", "archives"
+  ];
+  const slugMatch = routePath.match(/^\/([^\/]+)$/);
+  if (slugMatch) {
+    const slug = slugMatch[1];
+    const isSystemRoute = systemRoutes.includes(slug.toLowerCase()) || 
+                          routePath.startsWith("/tag/") || 
+                          routePath.startsWith("/topics/");
+    
+    if (!isSystemRoute) {
+      log(`[getSSRData] Trying root format, slug="${slug}", postUrlFormat="${postUrlFormat}"`, "ssr");
       const post = await storage.getPostBySlug(site.id, slug);
       if (post) {
         const relatedPosts = await storage.getRelatedPosts(post.id, site.id);
+        log(`[getSSRData] Found post id=${post.id}, title="${post.title}"`, "ssr");
         return { post, relatedPosts };
       }
+      log(`[getSSRData] No post found for root slug="${slug}"`, "ssr");
+    } else {
+      log(`[getSSRData] Skipping system route: "${slug}"`, "ssr");
     }
   }
 
+  // Handle tag archives
   const tagMatch = routePath.match(/^\/tag\/(.+)$/);
   if (tagMatch) {
     const tag = decodeURIComponent(tagMatch[1]);
@@ -103,9 +128,11 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     const tagPosts = allPosts.filter((p: Post) => 
       p.tags?.some((t: string) => t.toLowerCase() === tag.toLowerCase())
     );
+    log(`[getSSRData] Tag archive: tag="${tag}", found ${tagPosts.length} posts`, "ssr");
     return { tagPosts, currentTag: tag };
   }
 
+  log(`[getSSRData] No match found, returning empty`, "ssr");
   return {};
 }
 
@@ -281,9 +308,11 @@ export async function serveStatic(app: Express) {
         // Both alias and primary domains use the same routing structure
         const ssrPath = fullPath;
 
-        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}`, "ssr");
+        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}, basePath=${basePath}`, "ssr");
         
         const ssrData = await getSSRData(site, routePath);
+        log(`[SSR-Prod] SSR data: hasPost=${!!ssrData.post}, hasPosts=${!!ssrData.posts}, hasTagPosts=${!!ssrData.tagPosts}`, "ssr");
+        
         const { html, dehydratedState } = ssrRender({
           site,
           path: routePath,
@@ -292,6 +321,8 @@ export async function serveStatic(app: Express) {
           visitorHostname: hostname,
           ...ssrData,
         });
+
+        log(`[SSR-Prod] Rendered HTML length: ${html?.length || 0}`, "ssr");
 
         const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
           site,
@@ -307,10 +338,12 @@ export async function serveStatic(app: Express) {
 
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
+        log(`[SSR-Prod] Skipping SSR: site=${!!site}, ssrRender=${!!ssrRender}, isPublic=${isPublicRoute(url)}`, "ssr");
         res.sendFile(templatePath);
       }
     } catch (e) {
       console.error("[SSR Error]", e);
+      log(`[SSR-Prod] Error: ${e instanceof Error ? e.message : String(e)}`, "ssr");
       res.sendFile(templatePath);
     }
   });
