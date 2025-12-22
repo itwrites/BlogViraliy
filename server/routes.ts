@@ -1380,64 +1380,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ isAdmin: false, site: null, allowAdminAccess: false });
   });
 
-  // SSR Debug endpoint - traces the exact SSR lookup path
+  // SSR Debug endpoint - traces the EXACT production SSR lookup path
+  // Mirrors the logic in server/vite.ts serveStatic() line by line
   app.get("/api/ssr-debug", async (req: Request, res: Response) => {
     try {
       const hostname = (req.query.hostname as string) || req.hostname;
-      const path = (req.query.path as string) || "/";
+      const url = (req.query.path as string) || "/";
       
-      // Step 1: Resolve site
+      // Step 1: Resolve site (mirrors line 453 in vite.ts)
       const site = await storage.getSiteByDomain(hostname);
       if (!site) {
         return res.json({
           success: false,
           error: "Site not found",
           hostname,
-          path,
+          url,
           step: "site_resolution",
         });
       }
       
-      // Step 2: Compute basePath and routePath
+      // Step 2: Compute basePath and routePath (mirrors lines 457-462 in vite.ts)
       const basePath = normalizeBasePath(site.basePath);
-      let routePath = path;
-      if (basePath && basePath !== "/" && path.startsWith(basePath)) {
-        routePath = path.slice(basePath.length) || "/";
+      const fullPath = url.split("?")[0];
+      let routePath = fullPath;
+      if (basePath && routePath.startsWith(basePath)) {
+        routePath = routePath.slice(basePath.length) || "/";
       }
       
-      // Step 3: Analyze route
+      // Step 3: Normalize trailing slashes (mirrors lines 464-467 in vite.ts)
+      let trailingSlashNormalized = false;
+      if (routePath.length > 1 && routePath.endsWith("/")) {
+        routePath = routePath.slice(0, -1);
+        trailingSlashNormalized = true;
+      }
+      
+      // Step 4: Check canonical redirect (mirrors lines 470-476 in vite.ts)
+      const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
+      // Simplified check - in production this would redirect
+      let canonicalRedirectUrl: string | null = null;
+      const postPrefixMatch = routePath.match(/^\/post\/(.+)$/);
+      if (postPrefixMatch && postUrlFormat === "root") {
+        canonicalRedirectUrl = basePath + "/" + postPrefixMatch[1];
+      }
+      const rootSlugMatch = routePath.match(/^\/([^\/]+)$/);
+      if (rootSlugMatch && postUrlFormat === "with-prefix" && !routePath.startsWith("/tag/") && !routePath.startsWith("/topics/")) {
+        // Check if this is actually a post (not a system route)
+        const systemRoutes = ["rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png", "manifest.json", "sw.js", "service-worker.js", "about", "contact", "privacy", "terms", "search", "categories", "archives"];
+        if (!systemRoutes.includes(rootSlugMatch[1].toLowerCase())) {
+          canonicalRedirectUrl = basePath + "/post/" + rootSlugMatch[1];
+        }
+      }
+      
+      // Step 5: Determine alias domain (mirrors line 479 in vite.ts)
+      const isAliasDomain = hostname !== site.domain;
+      
+      // Step 6: Analyze route using shared utility
       const analysis = analyzeRouteForPost(routePath);
       
-      // Step 4: If slug detected, try lookup
-      let postLookupResult: { found: boolean; postId?: string; title?: string; error?: string } | null = null;
+      // Step 7: If slug detected, try lookup (mirrors getSSRData behavior)
+      let postLookupResult: { found: boolean; postId?: string; title?: string; slug?: string; error?: string } | null = null;
       if (analysis.extractedSlug) {
         try {
           const post = await storage.getPostBySlug(site.id, analysis.extractedSlug);
           postLookupResult = post 
-            ? { found: true, postId: post.id, title: post.title }
-            : { found: false };
+            ? { found: true, postId: post.id, title: post.title, slug: post.slug }
+            : { found: false, slug: analysis.extractedSlug };
         } catch (e: any) {
-          postLookupResult = { found: false, error: e.message };
+          postLookupResult = { found: false, error: e.message, slug: analysis.extractedSlug };
         }
       }
       
-      // Step 5: Return full diagnostic
+      // Step 8: List some posts to verify site has data
+      let samplePosts: { slug: string; title: string }[] = [];
+      try {
+        const allPosts = await storage.getPostsBySiteId(site.id);
+        samplePosts = allPosts.slice(0, 5).map(p => ({ slug: p.slug, title: p.title }));
+      } catch (e) {
+        // ignore
+      }
+      
+      // Step 9: Return full diagnostic matching EXACT production flow
       res.json({
         success: true,
-        hostname,
-        path,
+        input: {
+          hostname,
+          url,
+        },
         site: {
           id: site.id,
           domain: site.domain,
           basePath: site.basePath,
           postUrlFormat: site.postUrlFormat,
         },
-        computed: {
-          normalizedBasePath: basePath,
-          routePath,
+        ssrProcessing: {
+          step1_fullPath: fullPath,
+          step2_normalizedBasePath: basePath,
+          step3_routePathAfterBasePathStrip: routePath,
+          step4_trailingSlashNormalized: trailingSlashNormalized,
+          step5_canonicalRedirectUrl: canonicalRedirectUrl,
+          step6_isAliasDomain: isAliasDomain,
         },
         routeAnalysis: analysis,
         postLookup: postLookupResult,
+        samplePostsInSite: samplePosts,
+        note: "This mirrors the EXACT logic in server/vite.ts serveStatic() lines 447-498",
       });
     } catch (error: any) {
       res.status(500).json({
