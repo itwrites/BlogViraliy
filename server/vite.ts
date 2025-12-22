@@ -217,8 +217,32 @@ export function analyzeRouteForPost(routePath: string): RouteAnalysis {
 }
 
 // Generate SEO meta tags for SSR
-function generateSeoMetaTags(site: Site, post?: Post, currentTag?: string): string {
+interface SeoMetaOptions {
+  site: Site;
+  routePath: string;
+  post?: Post;
+  currentTag?: string;
+}
+
+function generateSeoMetaTags(options: SeoMetaOptions): string {
+  const { site, routePath, post, currentTag } = options;
   const tags: string[] = [];
+  
+  // Build canonical URL - always use primary domain
+  const basePath = normalizeBasePath(site.basePath);
+  let canonicalPath = routePath;
+  
+  // For posts, build proper canonical path based on postUrlFormat
+  if (post) {
+    const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
+    canonicalPath = postUrlFormat === "with-prefix" 
+      ? `/post/${post.slug}` 
+      : `/${post.slug}`;
+  }
+  
+  // Apply basePath to canonical path
+  const fullCanonicalPath = basePath ? `${basePath}${canonicalPath}` : canonicalPath;
+  const canonicalUrl = `https://${site.domain}${fullCanonicalPath}`;
   
   // Determine title and description
   let title = site.metaTitle || site.title;
@@ -256,17 +280,50 @@ function generateSeoMetaTags(site: Site, post?: Post, currentTag?: string): stri
   // Title tag
   tags.push(`<title>${escapeHtml(title)}</title>`);
   
+  // Canonical URL
+  tags.push(`<link rel="canonical" href="${escapeHtml(canonicalUrl)}">`);
+  
   // Basic meta tags
   tags.push(`<meta name="description" content="${escapeHtml(description)}">`);
+  
+  // Language/hreflang
+  const language = site.displayLanguage || 'en';
+  tags.push(`<link rel="alternate" hreflang="${language}" href="${escapeHtml(canonicalUrl)}">`);
+  tags.push(`<link rel="alternate" hreflang="x-default" href="${escapeHtml(canonicalUrl)}">`);
   
   // Open Graph tags
   tags.push(`<meta property="og:title" content="${escapeHtml(title)}">`);
   tags.push(`<meta property="og:description" content="${escapeHtml(description)}">`);
   tags.push(`<meta property="og:type" content="${pageType}">`);
+  tags.push(`<meta property="og:url" content="${escapeHtml(canonicalUrl)}">`);
   tags.push(`<meta property="og:site_name" content="${escapeHtml(site.title)}">`);
+  tags.push(`<meta property="og:locale" content="${language.replace('-', '_')}">`);
   
   if (ogImage) {
     tags.push(`<meta property="og:image" content="${escapeHtml(ogImage)}">`);
+  }
+  
+  // Article-specific meta tags
+  if (post) {
+    // Author - use site title as fallback since posts don't have author field
+    tags.push(`<meta property="article:author" content="${escapeHtml(site.title)}">`);
+    
+    if (post.createdAt) {
+      const publishedTime = new Date(post.createdAt).toISOString();
+      tags.push(`<meta property="article:published_time" content="${publishedTime}">`);
+    }
+    if (post.updatedAt) {
+      const modifiedTime = new Date(post.updatedAt).toISOString();
+      tags.push(`<meta property="article:modified_time" content="${modifiedTime}">`);
+    }
+    // Add article section (first tag if available)
+    if (post.tags && post.tags.length > 0) {
+      tags.push(`<meta property="article:section" content="${escapeHtml(post.tags[0])}">`);
+      // Add all tags
+      post.tags.forEach(tag => {
+        tags.push(`<meta property="article:tag" content="${escapeHtml(tag)}">`);
+      });
+    }
   }
   
   // Twitter Card tags
@@ -285,6 +342,53 @@ function generateSeoMetaTags(site: Site, post?: Post, currentTag?: string): stri
   // Favicon
   if (site.favicon) {
     tags.push(`<link rel="icon" href="${escapeHtml(site.favicon)}">`);
+  }
+  
+  // JSON-LD structured data for articles
+  if (post) {
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": post.title,
+      "description": description,
+      "url": canonicalUrl,
+      "datePublished": post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
+      "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+      "image": ogImage || undefined,
+      "author": {
+        "@type": "Organization",
+        "name": site.title
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": site.title,
+        "logo": site.logoUrl ? {
+          "@type": "ImageObject",
+          "url": site.logoUrl
+        } : undefined
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl
+      },
+      "inLanguage": language,
+      "keywords": post.tags?.join(", ")
+    };
+    
+    // Remove undefined values
+    const cleanJsonLd = JSON.parse(JSON.stringify(jsonLd));
+    tags.push(`<script type="application/ld+json">${JSON.stringify(cleanJsonLd).replace(/</g, '\\u003c')}</script>`);
+  } else {
+    // Website JSON-LD for home page
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": site.title,
+      "url": `https://${site.domain}${basePath || ''}`,
+      "description": description,
+      "inLanguage": language
+    };
+    tags.push(`<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>`);
   }
   
   return tags.join('\n    ');
@@ -395,7 +499,12 @@ async function renderSSR(
     }).replace(/</g, "\\u003c")}</script>`;
 
     // Generate SEO meta tags
-    const seoTags = generateSeoMetaTags(site, ssrData.post, ssrData.currentTag);
+    const seoTags = generateSeoMetaTags({
+      site,
+      routePath,
+      post: ssrData.post,
+      currentTag: ssrData.currentTag,
+    });
 
     // Remove existing <title> tag (from template) to avoid duplicates
     let page = template.replace(/<title>[^<]*<\/title>/i, '');
@@ -595,7 +704,12 @@ export async function serveStatic(app: Express) {
         }).replace(/</g, "\\u003c")}</script>`;
 
         // Generate SEO meta tags
-        const seoTags = generateSeoMetaTags(site, ssrData.post, ssrData.currentTag);
+        const seoTags = generateSeoMetaTags({
+          site,
+          routePath,
+          post: ssrData.post,
+          currentTag: ssrData.currentTag,
+        });
 
         // Remove existing <title> tag (from template) to avoid duplicates
         let page = template.replace(/<title>[^<]*<\/title>/i, '');
