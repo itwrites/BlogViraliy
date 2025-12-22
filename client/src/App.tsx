@@ -1,4 +1,4 @@
-import { Switch, Route, Router, useRoute, useLocation, Redirect } from "wouter";
+import { Switch, Route, Router, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -15,14 +15,8 @@ import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import EditorAnalytics from "@/pages/editor-analytics";
 import SiteNotFound from "@/pages/site-not-found";
-import { ThemedHomePage } from "@/components/themed-home-page";
-import { PublicPostContent } from "@/pages/public-post";
-import { PublicTagArchiveContent } from "@/pages/public-tag-archive";
-import { PublicTopicGroupContent } from "@/pages/public-topic-group";
-import { PublicShell } from "@/components/public-shell";
+import { PublicApp } from "@/public-app";
 import type { Site } from "@shared/schema";
-import { useMemo, memo, useEffect } from "react";
-import { getPostUrl } from "@/lib/get-post-url";
 
 function AdminRouter() {
   return (
@@ -40,98 +34,6 @@ function AdminRouter() {
   );
 }
 
-// Component to handle post routing with URL format awareness
-function PostRouteHandler({ site, slug }: { site: Site; slug: string }) {
-  const [, setLocation] = useLocation();
-  const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
-  
-  // If we're on /post/slug but site uses root format, redirect to /slug
-  useEffect(() => {
-    if (postUrlFormat === "root") {
-      setLocation(`/${slug}`, { replace: true });
-    }
-  }, [postUrlFormat, slug, setLocation]);
-  
-  // If site uses with-prefix format (or redirect hasn't happened yet), show the post
-  if (postUrlFormat === "with-prefix") {
-    return <PublicPostContent site={site} slug={slug} />;
-  }
-  
-  // Show loading while redirecting
-  return null;
-}
-
-// Component to handle root-level slug routing  
-function RootSlugRouteHandler({ site, slug }: { site: Site; slug: string }) {
-  const [, setLocation] = useLocation();
-  const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
-  
-  // If we're on /slug but site uses with-prefix format, redirect to /post/slug
-  useEffect(() => {
-    if (postUrlFormat === "with-prefix") {
-      setLocation(`/post/${slug}`, { replace: true });
-    }
-  }, [postUrlFormat, slug, setLocation]);
-  
-  // If site uses root format (or redirect hasn't happened yet), show the post
-  if (postUrlFormat === "root") {
-    return <PublicPostContent site={site} slug={slug} />;
-  }
-  
-  // Show loading while redirecting
-  return null;
-}
-
-const PublicRoutes = memo(function PublicRoutes({ site }: { site: Site }) {
-  const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
-  
-  return (
-    <Switch>
-      <Route path="/">
-        <ThemedHomePage site={site} />
-      </Route>
-      <Route path="/post/:slug">
-        {(params) => <PostRouteHandler site={site} slug={params.slug} />}
-      </Route>
-      <Route path="/tag/:tag">
-        {(params) => <PublicTagArchiveContent site={site} tag={params.tag} />}
-      </Route>
-      <Route path="/topics/:groupSlug">
-        {(params) => <PublicTopicGroupContent site={site} groupSlug={params.groupSlug} />}
-      </Route>
-      {/* Root-level slug route for sites using "root" URL format */}
-      <Route path="/:slug">
-        {(params) => <RootSlugRouteHandler site={site} slug={params.slug} />}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
-  );
-});
-
-function PublicShellWrapper({ site }: { site: Site }) {
-  const [matchTag, paramsTag] = useRoute("/tag/:tag");
-  const [matchTopics, paramsTopics] = useRoute("/topics/:groupSlug");
-  const currentTag = matchTag ? paramsTag?.tag : null;
-  const currentGroupSlug = matchTopics ? paramsTopics?.groupSlug : null;
-
-  return (
-    <PublicShell site={site} currentTag={currentTag} currentGroupSlug={currentGroupSlug}>
-      <PublicRoutes site={site} />
-    </PublicShell>
-  );
-}
-
-function PublicRouter({ site }: { site: Site }) {
-  const basePath = normalizeBasePath(site.basePath);
-
-  return (
-    <BasePathProvider site={site}>
-      <Router base={basePath}>
-        <PublicShellWrapper site={site} />
-      </Router>
-    </BasePathProvider>
-  );
-}
 
 interface DomainCheckResponse {
   isAdmin: boolean;
@@ -213,7 +115,7 @@ function RouterSwitch() {
     return <SiteNotFound />;
   }
 
-  return <PublicRouter site={siteData.site} />;
+  return <PublicApp site={siteData.site} />;
 }
 
 function App() {
