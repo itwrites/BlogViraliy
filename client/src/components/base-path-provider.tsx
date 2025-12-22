@@ -20,6 +20,7 @@ const BasePathContext = createContext<BasePathContextType>({
 interface BasePathProviderProps {
   site: Site;
   children: React.ReactNode;
+  isAliasDomain?: boolean;
 }
 
 export function normalizeBasePath(path: string | null | undefined): string {
@@ -43,8 +44,10 @@ export function normalizeBasePath(path: string | null | undefined): string {
   return normalized;
 }
 
-export function BasePathProvider({ site, children }: BasePathProviderProps) {
-  const basePath = normalizeBasePath(site.basePath);
+export function BasePathProvider({ site, children, isAliasDomain }: BasePathProviderProps) {
+  // For alias domains, the proxy already handles the basePath, so use empty for routing
+  // But still use basePath for generating URLs (like canonical URLs, sitemaps, etc.)
+  const basePath = isAliasDomain ? "" : normalizeBasePath(site.basePath);
   const domain = site.domain || "";
 
   const prefixPath = useCallback(

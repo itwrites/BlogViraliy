@@ -82,13 +82,16 @@ function PublicShellWrapper({ site }: { site: Site }) {
 interface PublicAppProps {
   site: Site;
   ssrPath?: string;
+  isAliasDomain?: boolean;
 }
 
-export function PublicApp({ site, ssrPath }: PublicAppProps) {
-  const basePath = normalizeBasePath(site.basePath);
+export function PublicApp({ site, ssrPath, isAliasDomain }: PublicAppProps) {
+  // For alias domains, the proxy already stripped the basePath, so use empty base
+  // For primary domains with basePath, use the basePath as router base
+  const basePath = isAliasDomain ? "" : normalizeBasePath(site.basePath);
 
   return (
-    <BasePathProvider site={site}>
+    <BasePathProvider site={site} isAliasDomain={isAliasDomain}>
       <Router base={basePath} ssrPath={ssrPath}>
         <PublicShellWrapper site={site} />
       </Router>

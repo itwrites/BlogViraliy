@@ -114,24 +114,29 @@ async function renderSSR(
   site: Site,
   routePath: string,
   fullPath: string,
-  template: string
+  template: string,
+  isAliasDomain: boolean
 ): Promise<string> {
   try {
     const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
     const ssrData = await getSSRData(site, routePath);
     
     // Pass fullPath (with basePath) to wouter's ssrPath, but routePath (stripped) for data
+    // For alias domains, pass the stripped path to ssrPath since basePath is not in the URL
+    const ssrPath = isAliasDomain ? routePath : fullPath;
     const { html, dehydratedState } = render({
       site,
       path: routePath,
-      ssrPath: fullPath,
+      ssrPath,
+      isAliasDomain,
       ...ssrData,
     });
 
     const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
       site,
       dehydratedState,
-      ssrPath: fullPath,
+      ssrPath,
+      isAliasDomain,
     }).replace(/</g, "\\u003c")}</script>`;
 
     return template
@@ -196,9 +201,12 @@ export async function setupVite(app: Express, server: Server) {
         if (basePath && routePath.startsWith(basePath)) {
           routePath = routePath.slice(basePath.length) || "/";
         }
+        
+        // Determine if accessed via alias domain
+        const isAliasDomain = hostname !== site.domain;
 
-        log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}`, "ssr");
-        const page = await renderSSR(vite, site, routePath, fullPath, template);
+        log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
+        const page = await renderSSR(vite, site, routePath, fullPath, template, isAliasDomain);
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
@@ -263,21 +271,28 @@ export async function serveStatic(app: Express) {
         if (basePath && routePath.startsWith(basePath)) {
           routePath = routePath.slice(basePath.length) || "/";
         }
+        
+        // Determine if accessed via alias domain
+        const isAliasDomain = hostname !== site.domain;
+        // For alias domains, pass stripped path; for primary, pass full path
+        const ssrPathValue = isAliasDomain ? routePath : fullPath;
 
-        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}`, "ssr");
+        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
         
         const ssrData = await getSSRData(site, routePath);
         const { html, dehydratedState } = ssrRender({
           site,
           path: routePath,
-          ssrPath: fullPath,
+          ssrPath: ssrPathValue,
+          isAliasDomain,
           ...ssrData,
         });
 
         const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
           site,
           dehydratedState,
-          ssrPath: fullPath,
+          ssrPath: ssrPathValue,
+          isAliasDomain,
         }).replace(/</g, "\\u003c")}</script>`;
 
         const page = template
