@@ -115,20 +115,22 @@ async function renderSSR(
   routePath: string,
   fullPath: string,
   template: string,
-  isAliasDomain: boolean
+  isAliasDomain: boolean,
+  visitorHostname: string
 ): Promise<string> {
   try {
     const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
     const ssrData = await getSSRData(site, routePath);
     
-    // For alias domains: pass stripped path (no basePath) since Router base is ""
-    // For primary domains: pass full path with basePath since Router base is basePath
-    const ssrPath = isAliasDomain ? routePath : fullPath;
+    // Always use fullPath for SSR since Router base is always basePath
+    // Both alias and primary domains use the same routing structure
+    const ssrPath = fullPath;
     const { html, dehydratedState } = render({
       site,
       path: routePath,
       ssrPath,
       isAliasDomain,
+      visitorHostname,
       ...ssrData,
     });
 
@@ -137,6 +139,7 @@ async function renderSSR(
       dehydratedState,
       ssrPath,
       isAliasDomain,
+      visitorHostname,
     }).replace(/</g, "\\u003c")}</script>`;
 
     return template
@@ -206,7 +209,7 @@ export async function setupVite(app: Express, server: Server) {
         const isAliasDomain = hostname !== site.domain;
 
         log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
-        const page = await renderSSR(vite, site, routePath, fullPath, template, isAliasDomain);
+        const page = await renderSSR(vite, site, routePath, fullPath, template, isAliasDomain, hostname);
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
@@ -274,9 +277,9 @@ export async function serveStatic(app: Express) {
         
         // Determine if accessed via alias domain
         const isAliasDomain = hostname !== site.domain;
-        // For alias domains: pass stripped path (no basePath) since Router base is ""
-        // For primary domains: pass full path with basePath since Router base is basePath
-        const ssrPath = isAliasDomain ? routePath : fullPath;
+        // Always use fullPath for SSR since Router base is always basePath
+        // Both alias and primary domains use the same routing structure
+        const ssrPath = fullPath;
 
         log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}`, "ssr");
         
@@ -286,6 +289,7 @@ export async function serveStatic(app: Express) {
           path: routePath,
           ssrPath,
           isAliasDomain,
+          visitorHostname: hostname,
           ...ssrData,
         });
 
@@ -294,6 +298,7 @@ export async function serveStatic(app: Express) {
           dehydratedState,
           ssrPath,
           isAliasDomain,
+          visitorHostname: hostname,
         }).replace(/</g, "\\u003c")}</script>`;
 
         const page = template

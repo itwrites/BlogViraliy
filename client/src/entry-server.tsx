@@ -9,6 +9,7 @@ export interface SSRContext {
   path: string;
   ssrPath?: string;
   isAliasDomain?: boolean;
+  visitorHostname?: string;
   posts?: Post[];
   post?: Post;
   relatedPosts?: Post[];
@@ -17,7 +18,7 @@ export interface SSRContext {
 }
 
 export function render(ctx: SSRContext): { html: string; dehydratedState: unknown } {
-  const { site, path, ssrPath, isAliasDomain, posts, post, relatedPosts, tagPosts, currentTag } = ctx;
+  const { site, path, ssrPath, isAliasDomain, visitorHostname, posts, post, relatedPosts, tagPosts, currentTag } = ctx;
   
   // Use ssrPath (full path with basePath) for wouter routing, fallback to path
   const routerPath = ssrPath || path;
@@ -59,7 +60,7 @@ export function render(ctx: SSRContext): { html: string; dehydratedState: unknow
   const html = renderToString(
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <PublicApp site={site} ssrPath={routerPath} isAliasDomain={isAliasDomain} />
+        <PublicApp site={site} ssrPath={routerPath} isAliasDomain={isAliasDomain} visitorHostname={visitorHostname} />
       </TooltipProvider>
     </QueryClientProvider>
   );

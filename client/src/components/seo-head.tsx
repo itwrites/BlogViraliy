@@ -34,7 +34,7 @@ type TrackedElement = TrackedMeta | TrackedLink | TrackedScript;
 export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
   const trackedElements = useRef<TrackedElement[]>([]);
   const originalTitle = useRef<string>("");
-  const { basePath: contextBasePath } = useBasePath();
+  const { basePath: contextBasePath, effectiveHostname, getFullUrl } = useBasePath();
 
   useEffect(() => {
     trackedElements.current = [];
@@ -59,15 +59,11 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
     const canonicalUrl = post?.canonicalUrl || null;
     const noindex = post?.noindex || false;
 
-    const currentProtocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
-    const protocol = currentProtocol === 'http:' ? 'http://' : 'https://';
-    // Use the actual visitor hostname (from browser) instead of site.domain
-    // This ensures canonical URLs match the domain the visitor is using (especially for aliases)
-    const visitorHostname = typeof window !== 'undefined' ? window.location.hostname : site.domain;
-    // Use basePath from context - it's already adjusted for alias domains (empty for aliases)
-    const siteBaseUrl = `${protocol}${visitorHostname}${contextBasePath}`;
+    // Use getFullUrl from context which already handles:
+    // 1. effectiveHostname (visitor hostname for alias domains)
+    // 2. basePath prefix via prefixPath
     const currentPath = post ? getPostUrl(post.slug, site) : pagePath;
-    const fullUrl = `${siteBaseUrl}${currentPath}`;
+    const fullUrl = getFullUrl(currentPath);
 
     document.title = title;
 
@@ -218,7 +214,7 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
       trackedElements.current = [];
     };
-  }, [site.id, site.domain, site.basePath, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath, contextBasePath]);
+  }, [site.id, site.domain, site.basePath, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath, contextBasePath, effectiveHostname]);
 
   return null;
 }

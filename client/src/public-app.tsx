@@ -83,15 +83,16 @@ interface PublicAppProps {
   site: Site;
   ssrPath?: string;
   isAliasDomain?: boolean;
+  visitorHostname?: string;
 }
 
-export function PublicApp({ site, ssrPath, isAliasDomain }: PublicAppProps) {
-  // For alias domains, the proxy already stripped the basePath, so use empty base
-  // For primary domains with basePath, use the basePath as router base
-  const basePath = isAliasDomain ? "" : normalizeBasePath(site.basePath);
+export function PublicApp({ site, ssrPath, isAliasDomain, visitorHostname }: PublicAppProps) {
+  // Always use basePath for router base - the proxy expects /blog/... paths
+  // Both alias and primary domains need the basePath prefix for links to work
+  const basePath = normalizeBasePath(site.basePath);
 
   return (
-    <BasePathProvider site={site} isAliasDomain={isAliasDomain}>
+    <BasePathProvider site={site} isAliasDomain={isAliasDomain} visitorHostname={visitorHostname}>
       <Router base={basePath} ssrPath={ssrPath}>
         <PublicShellWrapper site={site} />
       </Router>

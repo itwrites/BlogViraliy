@@ -13,6 +13,7 @@ declare global {
       dehydratedState: unknown;
       ssrPath?: string;
       isAliasDomain?: boolean;
+      visitorHostname?: string;
     };
   }
 }
@@ -39,7 +40,7 @@ if (ssrData) {
     <QueryClientProvider client={queryClient}>
       <HydrationBoundary state={ssrData.dehydratedState}>
         <TooltipProvider>
-          <PublicApp site={ssrData.site} ssrPath={ssrData.ssrPath} isAliasDomain={ssrData.isAliasDomain} />
+          <PublicApp site={ssrData.site} ssrPath={ssrData.ssrPath} isAliasDomain={ssrData.isAliasDomain} visitorHostname={ssrData.visitorHostname} />
         </TooltipProvider>
       </HydrationBoundary>
     </QueryClientProvider>

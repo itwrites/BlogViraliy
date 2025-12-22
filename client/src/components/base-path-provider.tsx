@@ -6,6 +6,7 @@ interface BasePathContextType {
   prefixPath: (path: string) => string;
   getFullUrl: (path: string) => string;
   domain: string;
+  effectiveHostname: string;
   site: Site | null;
 }
 
@@ -14,6 +15,7 @@ const BasePathContext = createContext<BasePathContextType>({
   prefixPath: (path) => path,
   getFullUrl: (path) => path,
   domain: "",
+  effectiveHostname: "",
   site: null,
 });
 
@@ -21,6 +23,7 @@ interface BasePathProviderProps {
   site: Site;
   children: React.ReactNode;
   isAliasDomain?: boolean;
+  visitorHostname?: string;
 }
 
 export function normalizeBasePath(path: string | null | undefined): string {
@@ -44,11 +47,14 @@ export function normalizeBasePath(path: string | null | undefined): string {
   return normalized;
 }
 
-export function BasePathProvider({ site, children, isAliasDomain }: BasePathProviderProps) {
-  // For alias domains, the proxy already handles the basePath, so use empty for routing
-  // But still use basePath for generating URLs (like canonical URLs, sitemaps, etc.)
-  const basePath = isAliasDomain ? "" : normalizeBasePath(site.basePath);
+export function BasePathProvider({ site, children, isAliasDomain: _isAliasDomain, visitorHostname }: BasePathProviderProps) {
+  // Always use the site's basePath for link generation - the proxy expects /blog/... paths
+  // isAliasDomain is no longer used here - it was incorrectly causing links to omit basePath
+  const basePath = normalizeBasePath(site.basePath);
   const domain = site.domain || "";
+  // Use visitorHostname from SSR context, or fall back to window.location.hostname, or site.domain
+  const effectiveHostname = visitorHostname || 
+    (typeof window !== "undefined" ? window.location.hostname : domain);
 
   const prefixPath = useCallback(
     (path: string): string => {
@@ -85,9 +91,9 @@ export function BasePathProvider({ site, children, isAliasDomain }: BasePathProv
         : "https://";
       
       const prefixedPath = prefixPath(path);
-      return `${protocol}${domain}${prefixedPath}`;
+      return `${protocol}${effectiveHostname}${prefixedPath}`;
     },
-    [domain, prefixPath]
+    [effectiveHostname, prefixPath]
   );
 
   const value = useMemo(
@@ -96,9 +102,10 @@ export function BasePathProvider({ site, children, isAliasDomain }: BasePathProv
       prefixPath,
       getFullUrl,
       domain,
+      effectiveHostname,
       site,
     }),
-    [basePath, prefixPath, getFullUrl, domain, site]
+    [basePath, prefixPath, getFullUrl, domain, effectiveHostname, site]
   );
 
   return (
