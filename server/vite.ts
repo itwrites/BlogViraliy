@@ -131,6 +131,7 @@ async function renderSSR(
     const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
       site,
       dehydratedState,
+      ssrPath: fullPath,
     }).replace(/</g, "\\u003c")}</script>`;
 
     return template
@@ -276,6 +277,7 @@ export async function serveStatic(app: Express) {
         const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
           site,
           dehydratedState,
+          ssrPath: fullPath,
         }).replace(/</g, "\\u003c")}</script>`;
 
         const page = template

@@ -36,10 +36,15 @@ export function render(ctx: SSRContext): { html: string; dehydratedState: unknow
   }
 
   if (post) {
+    // Extract slug from the stripped path (without basePath)
     const postSlug = path.match(/^\/post\/(.+)$/)?.[1] || 
                      (site.postUrlFormat === "root" ? path.match(/^\/([^\/]+)$/)?.[1] : null);
+    console.log(`[SSR entry-server] Post found, path="${path}", extracted slug="${postSlug}", post.slug="${post.slug}"`);
     if (postSlug) {
       queryClient.setQueryData(["/api/public/sites", site.id, "posts", postSlug], post);
+      console.log(`[SSR entry-server] Set query data for slug "${postSlug}"`);
+    } else {
+      console.log(`[SSR entry-server] WARNING: Could not extract slug from path "${path}"`);
     }
     if (relatedPosts) {
       queryClient.setQueryData(["/api/public/sites", site.id, "related-posts", post.id], relatedPosts);
