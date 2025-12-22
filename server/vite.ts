@@ -109,16 +109,19 @@ async function getSSRData(site: Site, routePath: string): Promise<{
 }> {
   const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
   
-  log(`[getSSRData] routePath="${routePath}", postUrlFormat="${postUrlFormat}", siteId=${site.id}`, "ssr");
+  // Decode URL-encoded characters in routePath
+  const decodedRoutePath = decodeURIComponent(routePath);
   
-  if (routePath === "/" || routePath === "") {
+  log(`[getSSRData] routePath="${routePath}", decoded="${decodedRoutePath}", postUrlFormat="${postUrlFormat}", siteId=${site.id}`, "ssr");
+  
+  if (decodedRoutePath === "/" || decodedRoutePath === "") {
     const posts = await storage.getPostsBySiteId(site.id);
     log(`[getSSRData] Home page, found ${posts?.length || 0} posts`, "ssr");
     return { posts };
   }
 
   // Handle /post/:slug format (always try this first)
-  const postMatch = routePath.match(/^\/post\/(.+)$/);
+  const postMatch = decodedRoutePath.match(/^\/post\/(.+)$/);
   if (postMatch) {
     const slug = postMatch[1];
     log(`[getSSRData] Matched /post/:slug format, slug="${slug}"`, "ssr");
@@ -132,19 +135,28 @@ async function getSSRData(site: Site, routePath: string): Promise<{
   }
 
   // Handle root format: /:slug (without /post/ prefix)
-  // Try this for any single-segment path that's not a known system route
+  // Try this for any path after the basePath that doesn't match other routes
   // This ensures SSR works even if URLs don't match the configured format
   const systemRoutes = [
     "rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png",
     "manifest.json", "sw.js", "service-worker.js", "about", "contact",
     "privacy", "terms", "search", "categories", "archives"
   ];
-  const slugMatch = routePath.match(/^\/([^\/]+)$/);
+  
+  // Try to extract slug - either single segment or any path that's not a known route
+  const slugMatch = decodedRoutePath.match(/^\/([^\/]+)$/);
+  let slug: string | null = null;
+  
   if (slugMatch) {
-    const slug = slugMatch[1];
-    const isSystemRoute = systemRoutes.includes(slug.toLowerCase()) || 
-                          routePath.startsWith("/tag/") || 
-                          routePath.startsWith("/topics/");
+    slug = slugMatch[1];
+  } else if (decodedRoutePath.startsWith("/") && !decodedRoutePath.startsWith("/tag/") && !decodedRoutePath.startsWith("/topics/") && !decodedRoutePath.startsWith("/post/")) {
+    // For multi-segment paths, try the entire path as a slug (minus leading slash)
+    slug = decodedRoutePath.slice(1);
+    log(`[getSSRData] Multi-segment path detected, trying full path as slug="${slug}"`, "ssr");
+  }
+  
+  if (slug) {
+    const isSystemRoute = systemRoutes.includes(slug.toLowerCase());
     
     if (!isSystemRoute) {
       log(`[getSSRData] Trying root format, slug="${slug}", postUrlFormat="${postUrlFormat}"`, "ssr");
@@ -158,10 +170,12 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     } else {
       log(`[getSSRData] Skipping system route: "${slug}"`, "ssr");
     }
+  } else {
+    log(`[getSSRData] No slug match for routePath="${decodedRoutePath}"`, "ssr");
   }
 
   // Handle tag archives
-  const tagMatch = routePath.match(/^\/tag\/(.+)$/);
+  const tagMatch = decodedRoutePath.match(/^\/tag\/(.+)$/);
   if (tagMatch) {
     const tag = decodeURIComponent(tagMatch[1]);
     const allPosts = await storage.getPostsBySiteId(site.id);
@@ -173,7 +187,7 @@ async function getSSRData(site: Site, routePath: string): Promise<{
   }
 
   // Handle topic group archives (/topics/:groupSlug)
-  const topicsMatch = routePath.match(/^\/topics\/(.+)$/);
+  const topicsMatch = decodedRoutePath.match(/^\/topics\/(.+)$/);
   if (topicsMatch) {
     const groupSlug = decodeURIComponent(topicsMatch[1]);
     // Fetch menu items and find the tag group with this slug
