@@ -45,6 +45,21 @@ function isPublicRoute(path: string): boolean {
   return !adminPaths.some(p => path.startsWith(p));
 }
 
+function resolveHostname(req: express.Request): string {
+  const xBvVisitorHost = req.headers["x-bv-visitor-host"];
+  const xForwardedHost = req.headers["x-forwarded-host"];
+  const xOriginalHost = req.headers["x-original-host"];
+  const xRealHost = req.headers["x-real-host"];
+  
+  return (
+    (typeof xBvVisitorHost === "string" ? xBvVisitorHost.split(",")[0].trim().split(":")[0] : null) ||
+    (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
+    (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
+    (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
+    req.hostname
+  );
+}
+
 async function getSSRData(site: Site, routePath: string): Promise<{
   posts?: Post[];
   post?: Post;
@@ -165,8 +180,10 @@ export async function setupVite(app: Express, server: Server) {
       );
       template = await vite.transformIndexHtml(url, template);
 
-      const hostname = req.hostname;
+      const hostname = resolveHostname(req);
+      log(`[SSR-Dev] Request: ${hostname}${url}`, "ssr");
       const site = await storage.getSiteByDomain(hostname);
+      log(`[SSR-Dev] Site lookup: ${site ? `found (${site.id})` : 'not found'}`, "ssr");
       
       if (site && isPublicRoute(url)) {
         const basePath = normalizeBasePath(site.basePath);
@@ -229,10 +246,10 @@ export async function serveStatic(app: Express) {
     const url = req.originalUrl;
     
     try {
-      const hostname = req.hostname;
-      log(`[SSR] Request: ${hostname}${url}, ssrRender=${!!ssrRender}`, "ssr");
+      const hostname = resolveHostname(req);
+      log(`[SSR-Prod] Request: ${hostname}${url}, ssrRender=${!!ssrRender}`, "ssr");
       const site = await storage.getSiteByDomain(hostname);
-      log(`[SSR] Site lookup result: ${site ? `found (id=${site.id})` : 'not found'}`, "ssr");
+      log(`[SSR-Prod] Site lookup: ${site ? `found (${site.id})` : 'not found'}, isPublic=${isPublicRoute(url)}`, "ssr");
       
       if (site && ssrRender && isPublicRoute(url)) {
         const basePath = normalizeBasePath(site.basePath);
