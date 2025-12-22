@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+        <link rel="icon" type="image/png" href="/blog/favicon.png"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fira+Code:wght@300..700&family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Oxanium:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"/>
+        <script type="module" crossorigin src="/blog/assets/index-CXnt8NC_.js"></script>
+        <link rel="stylesheet" crossorigin href="/blog/assets/index-D5yon1ri.css"/>
+        <title>Tawny Hotel Launches 250-Panel Solar Project in Staffordshire</title>
+        <meta name="description" content="The Tawny begins installing 250 solar panels to power its rural Staffordshire site, generating 175.91 MWh annually and cutting CO2 by 33.96 tonnes by Jan 2026."/>
+        <meta property="og:title" content="Tawny Hotel Launches 250-Panel Solar Project in Staffordshire"/>
+        <meta property="og:description" content="The Tawny begins installing 250 solar panels to power its rural Staffordshire site, generating 175.91 MWh annually and cutting CO2 by 33.96 tonnes by Jan 2026."/>
+        <meta property="og:type" content="article"/>
+        <meta property="og:site_name" content="Vyfy | Hospitality Experts in UK"/>
+        <meta property="og:image" content="https://images.pexels.com/photos/19816447/pexels-photo-19816447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"/>
+        <meta name="twitter:card" content="summary_large_image"/>
+        <meta name="twitter:title" content="Tawny Hotel Launches 250-Panel Solar Project in Staffordshire"/>
+        <meta name="twitter:description" content="The Tawny begins installing 250 solar panels to power its rural Staffordshire site, generating 175.91 MWh annually and cutting CO2 by 33.96 tonnes by Jan 2026."/>
+        <meta name="twitter:image" content="https://images.pexels.com/photos/19816447/pexels-photo-19816447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"/>
+        <link rel="icon" href="https://vyfy.co.uk/wp-content/uploads/2025/02/cropped-VYFY-FAVICON-32x32.png"/>
+        <script>
+            window.__SSR_DATA__ = {
+                "site": {
+                    "id": "abc066e0-7076-4f07-b191-3a523b8f683c",
+                    "domain": "blog.vyfy.co.uk",
+                    "domainAliases": ["vyfy.co.uk"],
+                    "basePath": "/blog",
+                    "title": "Vyfy | Hospitality Experts in UK",
+                    "logoUrl": "https://vyfy.co.uk/wp-content/uploads/2024/02/VYFY-LOGO-5.svg",
+                    "logoTargetUrl": "https://vyfy.co.uk/blog",
+                    "menuMode": "manual",
+                    "siteType": "forbis",
+                    "templateSettings": {
+                        "bodyFont": "modern",
+                        "logoSize": "custom",
+                        "cardStyle": "sharp",
+                        "fontScale": "normal",
+                        "textColor": "#1f2937",
+                        "footerText": "",
+                        "showSearch": true,
+                        "cursorStyle": "default",
+                        "headerStyle": "minimal",
+                        "headingFont": "editorial",
+                        "maxNavItems": 7,
+                        "menuSpacing": "spacious",
+                        "contentWidth": "medium",
+                        "footerLayout": "columns",
+                        "hideLogoText": true,
+                        "postsPerPage": 12,
+                        "primaryColor": "#000000",
+                        "socialGithub": "",
+                        "socialTiktok": "",
+                        "footerLogoUrl": "",
+                        "postCardStyle": "editorial",
+                        "showMenuIcons": false,
+                        "socialTwitter": "",
+                        "socialYoutube": "",
+                        "topBannerLink": "",
+                        "footerShowLogo": true,
+                        "logoSizeCustom": 90,
+                        "secondaryColor": "#000000",
+                        "socialFacebook": "",
+                        "socialLinkedin": "",
+                        "backgroundColor": "#ffffff",
+                        "footerAboutText": "",
+                        "footerColorMode": "custom",
+                        "footerLinkColor": "#ffffff",
+                        "footerTextColor": "#ffffff",
+                        "headerTextColor": "",
+                        "menuActiveStyle": "bold",
+                        "socialInstagram": "",
+                        "socialPinterest": "",
+                        "postCardShowMeta": true,
+                        "postCardShowTags": true,
+                        "showFeaturedHero": true,
+                        "topBannerEnabled": true,
+                        "topBannerMessage": "Welcome to our site! Check out our latest posts.",
+                        "footerAccentColor": "",
+                        "gdprBannerEnabled": false,
+                        "gdprBannerMessage": "We use cookies to improve your experience and for analytics. By continuing to use this site, you consent to our use of cookies.",
+                        "footerHideSiteName": false,
+                        "footerShowNavLinks": true,
+                        "postCardImageRatio": "landscape",
+                        "topBannerTextColor": "#ffffff",
+                        "footerCopyrightText": "",
+                        "footerShowPoweredBy": false,
+                        "gdprBannerTextColor": "#ffffff",
+                        "postCardHoverEffect": "lift",
+                        "postCardShowExcerpt": true,
+                        "gdprBannerButtonText": "Accept",
+                        "topBannerDismissible": true,
+                        "footerBackgroundColor": "#000000",
+                        "footerShowSocialIcons": true,
+                        "gdprBannerDeclineText": "Decline",
+                        "headerBackgroundColor": "",
+                        "footerLogoInvertColors": true,
+                        "headerLogoInvertColors": false,
+                        "topBannerBackgroundColor": "#000000",
+                        "gdprBannerBackgroundColor": "#1f2937"
+                    },
+                    "metaTitle": "",
+                    "metaDescription": "",
+                    "ogImage": "",
+                    "favicon": "https://vyfy.co.uk/wp-content/uploads/2025/02/cropped-VYFY-FAVICON-32x32.png",
+                    "analyticsId": "",
+                    "postUrlFormat": "with-prefix",
+                    "displayLanguage": "en",
+                    "createdAt": "2025-12-02T09:53:51.279Z",
+                    "updatedAt": "2025-12-22T09:57:59.485Z"
+                },
+                "dehydratedState": {
+                    "mutations": [],
+                    "queries": [{
+                        "state": {
+                            "data": {
+                                "id": "3ca74066-6253-4715-b273-6bf297905f14",
+                                "siteId": "abc066e0-7076-4f07-b191-3a523b8f683c",
+                                "authorId": "4745eb3e-54fc-498c-9099-edefb1d21c85",
+                                "title": "Tawny Hotel launches 250-panel solar project in Staffordshire",
+                                "slug": "tawny-hotel-launches-250-panel-solar-project-in-staffordshire",
+                                "content": "# Tawny Hotel Launches 250-Panel Solar Project in Rural Staffordshire\n\n## A Major Step Toward Sustainable Hospitality\nThe Tawny hotel has commenced the installation of **250 solar panels** as part of a broader sustainability programme at its countryside site in Staffordshire. This on-site renewable energy initiative underscores the hotel's commitment to reducing its environmental footprint while future-proofing its operations.\n\n## Key Project Highlights\n- **Scale:** 250 solar panels installed on-site\n- **Annual Output:** Expected to generate **175.91 megawatt hours** of clean electricity per year\n- **Carbon Savings:** Estimated reduction of **33.96 tonnes of CO2** annually\n- **Go-Live Date:** System slated to be fully operational by **January 2026**\n- **Location:** The Tawny, set in **rural Staffordshire**\n\n## Timeline and Next Steps\nInstallation is underway, with commissioning and final testing scheduled ahead of the **January 2026** go-live. The project forms a central pillar of the hotel's wider sustainability strategy, designed to deliver long-term environmental and operational benefits.\n\n## Environmental Impact\nBy generating renewable electricity on-site, the Tawny is set to:\n- **Lower reliance on the grid**, reducing exposure to energy market fluctuations\n- **Cut carbon emissions** by an estimated **33.96 tonnes** each year\n- **Advance its sustainability goals**, aligning with broader industry and community ambitions for net-zero\n\n## Why It Matters for Guests and the Community\nBeyond lowering emissions, the project supports more resilient operations and paves the way for future green initiatives. Guests can expect an experience rooted in **responsible travel**, and the local community benefits from investment in clean energy infrastructure.\n\n### Looking Ahead\nWith the solar system expected to come online in early 2026, the Tawny's sustainability programme continues to evolve, prioritising initiatives that are both environmentally responsible and operationally sound.\n\n> A landmark project that turns ambition into action—powering hospitality with clean energy, right where it matters most.\n",
+                                "imageUrl": "https://images.pexels.com/photos/19816447/pexels-photo-19816447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+                                "tags": ["solar energy", "sustainability", "Staffordshire", "hotel", "renewable energy", "hospitality", "carbon reduction"],
+                                "source": "rss",
+                                "sourceUrl": "https://www.hotelowner.co.uk/208872-the-tawny-begins-work-on-250-panel-solar-project/",
+                                "viewCount": 2,
+                                "metaTitle": "Tawny Hotel Launches 250-Panel Solar Project in Staffordshire",
+                                "metaDescription": "The Tawny begins installing 250 solar panels to power its rural Staffordshire site, generating 175.91 MWh annually and cutting CO2 by 33.96 tonnes by Jan 2026.",
+                                "ogImage": null,
+                                "canonicalUrl": null,
+                                "noindex": false,
+                                "createdAt": "2025-12-19T18:05:04.303Z",
+                                "updatedAt": "2025-12-19T18:05:04.303Z"
+                            },
+                            "dataUpdateCount": 1,
+                            "dataUpdatedAt": 1766437339142,
+                            "error": null,
+                            "errorUpdateCount": 0,
+                            "errorUpdatedAt": 0,
+                            "fetchFailureCount": 0,
+                            "fetchFailureReason": null,
+                            "fetchMeta": null,
+                            "isInvalidated": false,
+                            "status": "success",
+                            "fetchStatus": "idle"
+                        },
+                        "queryKey": ["/api/public/sites", "abc066e0-7076-4f07-b191-3a523b8f683c", "posts", "tawny-hotel-launches-250-panel-solar-project-in-staffordshire"],
+                        "queryHash": "[\"/api/public/sites\",\"abc066e0-7076-4f07-b191-3a523b8f683c\",\"posts\",\"tawny-hotel-launches-250-panel-solar-project-in-staffordshire\"]"
+                    }, {
+                        "state": {
+                            "data": [],
+                            "dataUpdateCount": 1,
+                            "dataUpdatedAt": 1766437339142,
+                            "error": null,
+                            "errorUpdateCount": 0,
+                            "errorUpdatedAt": 0,
+                            "fetchFailureCount": 0,
+                            "fetchFailureReason": null,
+                            "fetchMeta": null,
+                            "isInvalidated": false,
+                            "status": "success",
+                            "fetchStatus": "idle"
+                        },
+                        "queryKey": ["/api/public/sites", "abc066e0-7076-4f07-b191-3a523b8f683c", "related-posts", "3ca74066-6253-4715-b273-6bf297905f14"],
+                        "queryHash": "[\"/api/public/sites\",\"abc066e0-7076-4f07-b191-3a523b8f683c\",\"related-posts\",\"3ca74066-6253-4715-b273-6bf297905f14\"]"
+                    }]
+                },
+                "ssrPath": "/blog/post/tawny-hotel-launches-250-panel-solar-project-in-staffordshire",
+                "isAliasDomain": false,
+                "visitorHostname": "blog.vyfy.co.uk"
+            }
+        </script>
+    </head>
+    <body>
+        <div id="root">
+            <div style="font-family:Inter, system-ui, sans-serif;font-size:1rem;--public-heading-font:Merriweather, Georgia, serif;--public-body-font:Inter, system-ui, sans-serif;--public-font-base:1rem;--public-font-heading:1.875rem;--public-font-hero:3rem" class="public-theme">
+                <div class="relative z-[60] px-4 py-2.5" data-testid="banner-top" style="background-color:#000000;color:#ffffff;opacity:0;transform:translateY(-10px)">
+                    <div class="max-w-7xl mx-auto flex items-center justify-center gap-4">
+                        <span class="flex-1 text-center text-sm font-medium">Welcome to our site! Check out our latest posts.</span>
+                        <button class="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors" aria-label="Dismiss banner" data-testid="button-dismiss-banner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x h-4 w-4">
+                                <path d="M18 6 6 18"/>
+                                <path d="m6 6 12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <header class="border-b-0 bg-background/80 backdrop-blur-sm" style="opacity:0;transform:translateY(-10px)">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                        <div class="flex items-center gap-4 sm:gap-6 py-2">
+                            <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent h-9 w-9 md:hidden" data-testid="button-mobile-menu" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:R6e:" data-state="closed">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5">
+                                    <line x1="4" x2="20" y1="12" y2="12"/>
+                                    <line x1="4" x2="20" y1="6" y2="6"/>
+                                    <line x1="4" x2="20" y1="18" y2="18"/>
+                                </svg>
+                                <span class="sr-only">Open menu</span>
+                            </button>
+                            <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0" style="opacity:0">
+                                <div class="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" data-testid="img-site-logo" style="width:90px;height:auto;opacity:0;transform:scale(0.9)">
+                                    <img src="https://vyfy.co.uk/wp-content/uploads/2024/02/VYFY-LOGO-5.svg" alt="Vyfy | Hospitality Experts in UK logo" class="w-full h-auto object-contain" style="display:block"/>
+                                </div>
+                            </div>
+                            <nav class="hidden md:flex items-center flex-1 overflow-hidden" data-testid="nav-main" style="opacity:0">
+                                <div class="flex items-center flex-wrap gap-4"></div>
+                            </nav>
+                        </div>
+                    </div>
+                </header>
+                <script type="application/ld+json">
+                    [
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "Article",
+                            "mainEntityOfPage": {
+                                "@type": "WebPage",
+                                "@id": "https://blog.vyfy.co.uk/blog/post/tawny-hotel-launches-250-panel-solar-project-in-staffordshire"
+                            },
+                            "headline": "Tawny Hotel Launches 250-Panel Solar Project in Staffordshire",
+                            "description": "The Tawny begins installing 250 solar panels to power its rural Staffordshire site, generating 175.91 MWh annually and cutting CO2 by 33.96 tonnes by Jan 2026.",
+                            "datePublished": "2025-12-19T18:05:04.303Z",
+                            "dateModified": "2025-12-19T18:05:04.303Z",
+                            "publisher": {
+                                "@type": "Organization",
+                                "name": "Vyfy | Hospitality Experts in UK",
+                                "url": "https://blog.vyfy.co.uk/blog",
+                                "logo": {
+                                    "@type": "ImageObject",
+                                    "url": "https://vyfy.co.uk/wp-content/uploads/2024/02/VYFY-LOGO-5.svg"
+                                }
+                            },
+                            "image": {
+                                "@type": "ImageObject",
+                                "url": "https://images.pexels.com/photos/19816447/pexels-photo-19816447.jpeg?auto=compress\u0026cs=tinysrgb\u0026dpr=2\u0026h=650\u0026w=940"
+                            },
+                            "author": {
+                                "@type": "Organization",
+                                "name": "Vyfy | Hospitality Experts in UK",
+                                "url": "https://blog.vyfy.co.uk/blog"
+                            },
+                            "keywords": "solar energy, sustainability, Staffordshire, hotel, renewable energy, hospitality, carbon reduction"
+                        },
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "BreadcrumbList",
+                            "itemListElement": [
+                                {
+                                    "@type": "ListItem",
+                                    "position": 1,
+                                    "name": "Home",
+                                    "item": "https://blog.vyfy.co.uk/blog"
+                                },
+                                {
+                                    "@type": "ListItem",
+                                    "position": 2,
+                                    "name": "Tawny Hotel launches 250-panel solar project in Staffordshire",
+                                    "item": "https://blog.vyfy.co.uk/blog/post/tawny-hotel-launches-250-panel-solar-project-in-staffordshire"
+                                }
+                            ]
+                        }
+                    ]</script>
+                <div class="min-h-screen bg-background text-foreground">
+                    <div class="bg-black text-white py-16 md:py-20">
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                            <div style="opacity:0;transform:translateY(20px)">
+                                <button class="text-sm font-semibold uppercase tracking-wider text-white/70 hover:text-white hover:underline mb-4 block" data-testid="tag-solar energy">solar energy</button>
+                                <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight" style="font-family:var(--public-heading-font)" data-testid="text-post-title">Tawny Hotel launches 250-panel solar project in Staffordshire</h1>
+                                <div class="flex items-center gap-4">
+                                    <p class="text-sm text-white/60">2
+                                    <!-- -->
+                                    min read</p>
+                                </div>
+                                <div class="flex items-center gap-3 mt-6 pt-6 border-t border-white/20">
+                                    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent min-h-8 rounded-md text-xs text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2 w-4 h-4">
+                                            <circle cx="18" cy="5" r="3"/>
+                                            <circle cx="6" cy="12" r="3"/>
+                                            <circle cx="18" cy="19" r="3"/>
+                                            <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+                                            <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+                                        </svg>
+                                    </button>
+                                    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent min-h-8 rounded-md text-xs text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bookmark w-4 h-4">
+                                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border border-transparent min-h-8 rounded-md text-xs text-white/70 hover:text-white hover:bg-white/10 p-2 h-auto">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-printer w-4 h-4">
+                                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                            <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/>
+                                            <rect x="6" y="14" width="12" height="8" rx="1"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="max-w-5xl mx-auto px-4 sm:px-6 -mt-6" style="opacity:0">
+                        <img src="https://images.pexels.com/photos/19816447/pexels-photo-19816447.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="Tawny Hotel launches 250-panel solar project in Staffordshire" class="w-full object-cover aspect-video" data-testid="img-post-hero"/>
+                    </div>
+                    <main class="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+                        <article data-testid="article-3ca74066-6253-4715-b273-6bf297905f14" style="opacity:0;transform:translateY(20px)">
+                            <div class="prose prose-lg max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4" style="font-family:var(--public-body-font)">
+                                <h1>Tawny Hotel Launches 250-Panel Solar Project in Rural Staffordshire</h1>
+                                <h2>A Major Step Toward Sustainable Hospitality</h2>
+                                <p>
+                                    The Tawny hotel has commenced the installation of <strong>250 solar panels</strong>
+                                    as part of a broader sustainability programme at its countryside site in Staffordshire. This on-site renewable energy initiative underscores the hotel's commitment to reducing its environmental footprint while future-proofing its operations.
+                                </p>
+                                <h2>Key Project Highlights</h2>
+                                <ul>
+                                    <li>
+                                        <strong>Scale:</strong>
+                                        250 solar panels installed on-site
+                                    </li>
+                                    <li>
+                                        <strong>Annual Output:</strong>
+                                        Expected to generate <strong>175.91 megawatt hours</strong>
+                                        of clean electricity per year
+                                    </li>
+                                    <li>
+                                        <strong>Carbon Savings:</strong>
+                                        Estimated reduction of <strong>33.96 tonnes of CO2</strong>
+                                        annually
+                                    </li>
+                                    <li>
+                                        <strong>Go-Live Date:</strong>
+                                        System slated to be fully operational by <strong>January 2026</strong>
+                                    </li>
+                                    <li>
+                                        <strong>Location:</strong>
+                                        The Tawny, set in <strong>rural Staffordshire</strong>
+                                    </li>
+                                </ul>
+                                <h2>Timeline and Next Steps</h2>
+                                <p>
+                                    Installation is underway, with commissioning and final testing scheduled ahead of the <strong>January 2026</strong>
+                                    go-live. The project forms a central pillar of the hotel's wider sustainability strategy, designed to deliver long-term environmental and operational benefits.
+                                </p>
+                                <h2>Environmental Impact</h2>
+                                <p>By generating renewable electricity on-site, the Tawny is set to:</p>
+                                <ul>
+                                    <li>
+                                        <strong>Lower reliance on the grid</strong>
+                                        , reducing exposure to energy market fluctuations
+                                    </li>
+                                    <li>
+                                        <strong>Cut carbon emissions</strong>
+                                        by an estimated <strong>33.96 tonnes</strong>
+                                        each year
+                                    </li>
+                                    <li>
+                                        <strong>Advance its sustainability goals</strong>
+                                        , aligning with broader industry and community ambitions for net-zero
+                                    </li>
+                                </ul>
+                                <h2>Why It Matters for Guests and the Community</h2>
+                                <p>
+                                    Beyond lowering emissions, the project supports more resilient operations and paves the way for future green initiatives. Guests can expect an experience rooted in <strong>responsible travel</strong>
+                                    , and the local community benefits from investment in clean energy infrastructure.
+                                </p>
+                                <h3>Looking Ahead</h3>
+                                <p>With the solar system expected to come online in early 2026, the Tawny's sustainability programme continues to evolve, prioritising initiatives that are both environmentally responsible and operationally sound.</p>
+                                <blockquote>
+                                    <p>A landmark project that turns ambition into action—powering hospitality with clean energy, right where it matters most.</p>
+                                </blockquote>
+                            </div>
+                            <div data-orientation="horizontal" role="none" class="shrink-0 bg-border h-[1px] w-full my-10"></div>
+                            <div class="flex flex-wrap gap-2">
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-solar energy">solar energy</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-sustainability">sustainability</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-Staffordshire">Staffordshire</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-hotel">hotel</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-renewable energy">renewable energy</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-hospitality">hospitality</div>
+                                <div class="whitespace-nowrap inline-flex items-center rounded-md text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs cursor-pointer hover:bg-accent px-3 py-1" data-testid="tag-carbon reduction">carbon reduction</div>
+                            </div>
+                            <div class="mt-10 pt-10 border-t">
+                                <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover-elevate active-elevate-2 border [border-color:var(--button-outline)] shadow-xs active:shadow-none min-h-8 rounded-md px-3 text-xs">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left w-4 h-4 mr-2">
+                                        <path d="m12 19-7-7 7-7"/>
+                                        <path d="M19 12H5"/>
+                                    </svg>
+                                    Back to Articles
+                                </button>
+                            </div>
+                        </article>
+                    </main>
+                </div>
+                <footer class="py-12 sm:py-16 mt-16" data-testid="footer-columns" style="background-color:#000000;opacity:0">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+                            <div class="lg:col-span-2 space-y-4" style="opacity:0;transform:translateY(20px)">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://vyfy.co.uk/wp-content/uploads/2024/02/VYFY-LOGO-5.svg" alt="Vyfy | Hospitality Experts in UK" style="height:90px;width:auto;object-fit:contain;filter:invert(1) brightness(2)" class="flex-shrink-0" data-testid="img-footer-logo"/>
+                                    <span class="text-lg font-semibold" style="color:#ffffff" data-testid="text-footer-site-title">Vyfy | Hospitality Experts in UK</span>
+                                </div>
+                                <div class="pt-2"></div>
+                            </div>
+                            <div class="space-y-3" style="opacity:0;transform:translateY(20px)">
+                                <h4 class="text-sm font-semibold uppercase tracking-wider" style="color:#ffffff">Quick Links</h4>
+                                <ul class="space-y-2">
+                                    <li>
+                                        <a href="/" class="text-sm hover:underline transition-colors" style="color:#ffffff" data-testid="link-footer-home">Home</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4" style="border-color:#ffffff20;opacity:0;transform:translateY(20px)">
+                            <p class="text-sm" style="color:#ffffff" data-testid="text-footer-copyright">© 2025 Vyfy | Hospitality Experts in UK. All rights reserved.</p>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </body>
+</html>
