@@ -132,6 +132,26 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     return { tagPosts, currentTag: tag };
   }
 
+  // Handle topic group archives (/topics/:groupSlug)
+  const topicsMatch = routePath.match(/^\/topics\/(.+)$/);
+  if (topicsMatch) {
+    const groupSlug = decodeURIComponent(topicsMatch[1]);
+    // Fetch menu items and find the tag group with this slug
+    const menuItems = await storage.getMenuItemsBySiteId(site.id);
+    const tagGroup = menuItems?.find(item => item.type === 'tag-group' && item.groupSlug === groupSlug);
+    if (tagGroup && tagGroup.tagSlugs) {
+      const allPosts = await storage.getPostsBySiteId(site.id);
+      const tagPosts = allPosts.filter((p: Post) => 
+        p.tags?.some((t: string) => 
+          tagGroup.tagSlugs!.some((groupTag: string) => groupTag.toLowerCase() === t.toLowerCase())
+        )
+      );
+      log(`[getSSRData] Topics archive: groupSlug="${groupSlug}", tags=${JSON.stringify(tagGroup.tagSlugs)}, found ${tagPosts.length} posts`, "ssr");
+      return { tagPosts, currentTag: groupSlug };
+    }
+    log(`[getSSRData] Topics archive: groupSlug="${groupSlug}" not found in menu items`, "ssr");
+  }
+
   log(`[getSSRData] No match found, returning empty`, "ssr");
   return {};
 }
