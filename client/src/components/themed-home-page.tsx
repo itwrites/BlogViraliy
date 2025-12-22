@@ -8,6 +8,7 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, useReducedMotion } from "framer-motion";
 import { getPostUrl } from "@/lib/get-post-url";
+import { JsonLd } from "@/components/json-ld";
 
 interface ThemedHomePageProps {
   site: Site;
@@ -44,23 +45,26 @@ export function ThemedHomePage({ site }: ThemedHomePageProps) {
   const contentWidth = layoutClasses?.contentWidthClass || templateClasses.contentWidth;
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className={`${contentWidth} mx-auto px-4 sm:px-6 py-8`}>
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0 }}
-          animate={prefersReducedMotion ? false : { opacity: 1 }}
-          transition={prefersReducedMotion ? {} : { duration: 0.4 }}
-        >
-          <ThemeCardGrid
-            site={site}
-            posts={posts}
-            onPostClick={handlePostClick}
-            onTagClick={handleTagClick}
-            showPagination={true}
-          />
-        </motion.div>
-      </main>
-    </div>
+    <>
+      <JsonLd site={site} pagePath="/" />
+      <div className="min-h-screen bg-background">
+        <main className={`${contentWidth} mx-auto px-4 sm:px-6 py-8`}>
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0 }}
+            animate={prefersReducedMotion ? false : { opacity: 1 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.4 }}
+          >
+            <ThemeCardGrid
+              site={site}
+              posts={posts}
+              onPostClick={handlePostClick}
+              onTagClick={handleTagClick}
+              showPagination={true}
+            />
+          </motion.div>
+        </main>
+      </div>
+    </>
   );
 }
 

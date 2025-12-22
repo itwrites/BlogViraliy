@@ -8,6 +8,7 @@ import { PostCard } from "@/components/post-cards";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getPostUrl } from "@/lib/get-post-url";
 import { useTranslation } from "@/hooks/use-translation";
+import { JsonLd } from "@/components/json-ld";
 
 interface PublicTagArchiveProps {
   site: Site;
@@ -55,30 +56,32 @@ function ForbisTagArchive({ site, tag }: PublicTagArchiveProps) {
   const gridPosts = posts?.slice(5) || [];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Forbes-style header with tag name */}
-      <div className="border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <motion.div
-            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-            animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
-            transition={prefersReducedMotion ? {} : { duration: 0.3 }}
-          >
-            <h1 
-              className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight"
-              style={{ fontFamily: "var(--public-heading-font)" }}
-              data-testid="text-tag-name"
+    <>
+      <JsonLd site={site} currentTag={decodedTag} />
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Forbes-style header with tag name */}
+        <div className="border-b border-border/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+              animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+              transition={prefersReducedMotion ? {} : { duration: 0.3 }}
             >
-              {decodedTag}
-            </h1>
-            <p className="text-muted-foreground mt-2" data-testid="text-post-count">
-              {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
-            </p>
-          </motion.div>
+              <h1 
+                className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight"
+                style={{ fontFamily: "var(--public-heading-font)" }}
+                data-testid="text-tag-name"
+              >
+                {decodedTag}
+              </h1>
+              <p className="text-muted-foreground mt-2" data-testid="text-post-count">
+                {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
+              </p>
+            </motion.div>
+          </div>
         </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-7">
@@ -242,7 +245,8 @@ function ForbisTagArchive({ site, tag }: PublicTagArchiveProps) {
           </motion.div>
         )}
       </main>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -287,24 +291,26 @@ function StandardTagArchive({ site, tag }: PublicTagArchiveProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-12`}>
-        <motion.div 
-          className="mb-8"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-          animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
-          transition={prefersReducedMotion ? {} : { duration: 0.4 }}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Tag className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-tag-name">
-              {decodedTag}
-            </h1>
-          </div>
-          <p className="text-muted-foreground" data-testid="text-post-count">
-            {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
-          </p>
-        </motion.div>
+    <>
+      <JsonLd site={site} currentTag={decodedTag} />
+      <div className="min-h-screen bg-background text-foreground">
+        <main className={`${templateClasses.contentWidth} mx-auto px-4 sm:px-6 py-8 sm:py-12`}>
+          <motion.div 
+            className="mb-8"
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+            animate={prefersReducedMotion ? false : { opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.4 }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Tag className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--public-heading-font)" }} data-testid="text-tag-name">
+                {decodedTag}
+              </h1>
+            </div>
+            <p className="text-muted-foreground" data-testid="text-post-count">
+              {isLoading ? "Loading..." : `${posts?.length || 0} ${t("articles")}`}
+            </p>
+          </motion.div>
 
         {isLoading ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -347,8 +353,9 @@ function StandardTagArchive({ site, tag }: PublicTagArchiveProps) {
             </p>
           </motion.div>
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
 

@@ -8,6 +8,8 @@ import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/hooks/use-translation";
+import { JsonLd } from "@/components/json-ld";
+import { SeoHead } from "@/components/seo-head";
 
 interface PublicPostProps {
   site: Site;
@@ -101,11 +103,27 @@ export function PublicPostContent({ site, slug }: PublicPostProps) {
     );
   }
 
+  const postWithAuthor = post as Post & { authorName?: string };
+  const author = postWithAuthor.authorName ? {
+    id: post.authorId || "",
+    siteId: site.id,
+    name: postWithAuthor.authorName,
+    slug: postWithAuthor.authorName.toLowerCase().replace(/\s+/g, "-"),
+    bio: null,
+    avatarUrl: null,
+    isDefault: false,
+    createdAt: new Date(),
+  } : null;
+
   return (
-    <ThemePostDetail
-      site={site}
-      post={post}
-      relatedPosts={relatedPosts}
-    />
+    <>
+      <SeoHead site={site} post={post} />
+      <JsonLd site={site} post={post} author={author} />
+      <ThemePostDetail
+        site={site}
+        post={post}
+        relatedPosts={relatedPosts}
+      />
+    </>
   );
 }
