@@ -1,12 +1,23 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { createServer as createViteServer, createLogger, type ViteDevServer } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 import { storage } from "./storage";
 import type { Site, Post } from "@shared/schema";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function getDistDir(): string {
+  if (process.env.NODE_ENV === "production") {
+    return path.dirname(process.argv[1]);
+  }
+  return __dirname;
+}
 
 const viteLogger = createLogger();
 
@@ -141,7 +152,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "..",
         "client",
         "index.html",
@@ -177,8 +188,12 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
-export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+export async function serveStatic(app: Express) {
+  const distDir = getDistDir();
+  const distPath = path.resolve(distDir, "public");
+  const ssrPath = path.resolve(distDir, "server", "entry-server.js");
+  
+  log(`[SSR] distDir: ${distDir}, distPath: ${distPath}, ssrPath: ${ssrPath}`, "ssr");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -186,10 +201,64 @@ export function serveStatic(app: Express) {
     );
   }
 
+  let ssrRender: ((ctx: any) => { html: string; dehydratedState: unknown }) | null = null;
+  
+  if (fs.existsSync(ssrPath)) {
+    try {
+      const ssrModule = await import(ssrPath);
+      ssrRender = ssrModule.render;
+      log("SSR module loaded successfully", "ssr");
+    } catch (e) {
+      console.error("[SSR] Failed to load SSR module:", e);
+    }
+  } else {
+    log("SSR module not found, falling back to client-only rendering", "ssr");
+  }
+
+  const templatePath = path.resolve(distPath, "index.html");
+  const template = fs.readFileSync(templatePath, "utf-8");
+
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  app.use("*", async (req, res) => {
+    const url = req.originalUrl;
+    
+    try {
+      const hostname = req.hostname;
+      const site = await storage.getSiteByDomain(hostname);
+      
+      if (site && ssrRender && isPublicRoute(url)) {
+        const basePath = normalizeBasePath(site.basePath);
+        let routePath = url.split("?")[0];
+        if (basePath && routePath.startsWith(basePath)) {
+          routePath = routePath.slice(basePath.length) || "/";
+        }
+
+        log(`[SSR] Production rendering ${hostname}${url} -> route: ${routePath}`, "ssr");
+        
+        const ssrData = await getSSRData(site, routePath);
+        const { html, dehydratedState } = ssrRender({
+          site,
+          path: routePath,
+          ...ssrData,
+        });
+
+        const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
+          site,
+          dehydratedState,
+        }).replace(/</g, "\\u003c")}</script>`;
+
+        const page = template
+          .replace(`<div id="root"></div>`, `<div id="root">${html}</div>`)
+          .replace(`</head>`, `${ssrDataScript}</head>`);
+
+        res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      } else {
+        res.sendFile(templatePath);
+      }
+    } catch (e) {
+      console.error("[SSR Error]", e);
+      res.sendFile(templatePath);
+    }
   });
 }
