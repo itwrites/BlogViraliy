@@ -100,6 +100,122 @@ function resolveHostname(req: express.Request): string {
   );
 }
 
+// Exported for diagnostic endpoint
+export interface RouteAnalysis {
+  routePath: string;
+  decodedRoutePath: string;
+  routeType: "home" | "post-prefix" | "post-root" | "tag" | "topics" | "system" | "unknown";
+  extractedSlug: string | null;
+  isSystemRoute: boolean;
+  postPrefixMatch: boolean;
+  rootSlugMatch: boolean;
+}
+
+export function analyzeRouteForPost(routePath: string): RouteAnalysis {
+  const decodedRoutePath = decodeURIComponent(routePath);
+  
+  const systemRoutes = [
+    "rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png",
+    "manifest.json", "sw.js", "service-worker.js", "about", "contact",
+    "privacy", "terms", "search", "categories", "archives"
+  ];
+  
+  // Check for home page
+  if (decodedRoutePath === "/" || decodedRoutePath === "") {
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: "home",
+      extractedSlug: null,
+      isSystemRoute: false,
+      postPrefixMatch: false,
+      rootSlugMatch: false,
+    };
+  }
+  
+  // Check for /post/:slug format
+  const postMatch = decodedRoutePath.match(/^\/post\/(.+)$/);
+  if (postMatch) {
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: "post-prefix",
+      extractedSlug: postMatch[1],
+      isSystemRoute: false,
+      postPrefixMatch: true,
+      rootSlugMatch: false,
+    };
+  }
+  
+  // Check for tag archives
+  if (decodedRoutePath.startsWith("/tag/")) {
+    const tagMatch = decodedRoutePath.match(/^\/tag\/(.+)$/);
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: "tag",
+      extractedSlug: tagMatch ? decodeURIComponent(tagMatch[1]) : null,
+      isSystemRoute: false,
+      postPrefixMatch: false,
+      rootSlugMatch: false,
+    };
+  }
+  
+  // Check for topics archives
+  if (decodedRoutePath.startsWith("/topics/")) {
+    const topicsMatch = decodedRoutePath.match(/^\/topics\/(.+)$/);
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: "topics",
+      extractedSlug: topicsMatch ? decodeURIComponent(topicsMatch[1]) : null,
+      isSystemRoute: false,
+      postPrefixMatch: false,
+      rootSlugMatch: false,
+    };
+  }
+  
+  // Try root format: /:slug
+  const slugMatch = decodedRoutePath.match(/^\/([^\/]+)$/);
+  if (slugMatch) {
+    const slug = slugMatch[1];
+    const isSystem = systemRoutes.includes(slug.toLowerCase());
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: isSystem ? "system" : "post-root",
+      extractedSlug: isSystem ? null : slug,
+      isSystemRoute: isSystem,
+      postPrefixMatch: false,
+      rootSlugMatch: true,
+    };
+  }
+  
+  // Multi-segment path - try as slug
+  if (decodedRoutePath.startsWith("/")) {
+    const slug = decodedRoutePath.slice(1);
+    return {
+      routePath,
+      decodedRoutePath,
+      routeType: "post-root",
+      extractedSlug: slug,
+      isSystemRoute: false,
+      postPrefixMatch: false,
+      rootSlugMatch: false,
+    };
+  }
+  
+  return {
+    routePath,
+    decodedRoutePath,
+    routeType: "unknown",
+    extractedSlug: null,
+    isSystemRoute: false,
+    postPrefixMatch: false,
+    rootSlugMatch: false,
+  };
+}
+
 async function getSSRData(site: Site, routePath: string): Promise<{
   posts?: Post[];
   post?: Post;
@@ -108,23 +224,21 @@ async function getSSRData(site: Site, routePath: string): Promise<{
   currentTag?: string;
 }> {
   const postUrlFormat = (site.postUrlFormat as "with-prefix" | "root") || "with-prefix";
+  const analysis = analyzeRouteForPost(routePath);
   
-  // Decode URL-encoded characters in routePath
-  const decodedRoutePath = decodeURIComponent(routePath);
+  log(`[getSSRData] routePath="${routePath}", analysis=${JSON.stringify(analysis)}, postUrlFormat="${postUrlFormat}", siteId=${site.id}`, "ssr");
   
-  log(`[getSSRData] routePath="${routePath}", decoded="${decodedRoutePath}", postUrlFormat="${postUrlFormat}", siteId=${site.id}`, "ssr");
-  
-  if (decodedRoutePath === "/" || decodedRoutePath === "") {
+  // Home page
+  if (analysis.routeType === "home") {
     const posts = await storage.getPostsBySiteId(site.id);
     log(`[getSSRData] Home page, found ${posts?.length || 0} posts`, "ssr");
     return { posts };
   }
 
-  // Handle /post/:slug format (always try this first)
-  const postMatch = decodedRoutePath.match(/^\/post\/(.+)$/);
-  if (postMatch) {
-    const slug = postMatch[1];
-    log(`[getSSRData] Matched /post/:slug format, slug="${slug}"`, "ssr");
+  // Post pages (both /post/:slug and /:slug formats)
+  if ((analysis.routeType === "post-prefix" || analysis.routeType === "post-root") && analysis.extractedSlug) {
+    const slug = analysis.extractedSlug;
+    log(`[getSSRData] Looking up post with slug="${slug}", routeType="${analysis.routeType}"`, "ssr");
     const post = await storage.getPostBySlug(site.id, slug);
     if (post) {
       const relatedPosts = await storage.getRelatedPosts(post.id, site.id);
@@ -134,50 +248,9 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     log(`[getSSRData] No post found for slug="${slug}"`, "ssr");
   }
 
-  // Handle root format: /:slug (without /post/ prefix)
-  // Try this for any path after the basePath that doesn't match other routes
-  // This ensures SSR works even if URLs don't match the configured format
-  const systemRoutes = [
-    "rss.xml", "sitemap.xml", "robots.txt", "favicon.ico", "favicon.png",
-    "manifest.json", "sw.js", "service-worker.js", "about", "contact",
-    "privacy", "terms", "search", "categories", "archives"
-  ];
-  
-  // Try to extract slug - either single segment or any path that's not a known route
-  const slugMatch = decodedRoutePath.match(/^\/([^\/]+)$/);
-  let slug: string | null = null;
-  
-  if (slugMatch) {
-    slug = slugMatch[1];
-  } else if (decodedRoutePath.startsWith("/") && !decodedRoutePath.startsWith("/tag/") && !decodedRoutePath.startsWith("/topics/") && !decodedRoutePath.startsWith("/post/")) {
-    // For multi-segment paths, try the entire path as a slug (minus leading slash)
-    slug = decodedRoutePath.slice(1);
-    log(`[getSSRData] Multi-segment path detected, trying full path as slug="${slug}"`, "ssr");
-  }
-  
-  if (slug) {
-    const isSystemRoute = systemRoutes.includes(slug.toLowerCase());
-    
-    if (!isSystemRoute) {
-      log(`[getSSRData] Trying root format, slug="${slug}", postUrlFormat="${postUrlFormat}"`, "ssr");
-      const post = await storage.getPostBySlug(site.id, slug);
-      if (post) {
-        const relatedPosts = await storage.getRelatedPosts(post.id, site.id);
-        log(`[getSSRData] Found post id=${post.id}, title="${post.title}"`, "ssr");
-        return { post, relatedPosts };
-      }
-      log(`[getSSRData] No post found for root slug="${slug}"`, "ssr");
-    } else {
-      log(`[getSSRData] Skipping system route: "${slug}"`, "ssr");
-    }
-  } else {
-    log(`[getSSRData] No slug match for routePath="${decodedRoutePath}"`, "ssr");
-  }
-
-  // Handle tag archives
-  const tagMatch = decodedRoutePath.match(/^\/tag\/(.+)$/);
-  if (tagMatch) {
-    const tag = decodeURIComponent(tagMatch[1]);
+  // Tag archives
+  if (analysis.routeType === "tag" && analysis.extractedSlug) {
+    const tag = analysis.extractedSlug;
     const allPosts = await storage.getPostsBySiteId(site.id);
     const tagPosts = allPosts.filter((p: Post) => 
       p.tags?.some((t: string) => t.toLowerCase() === tag.toLowerCase())
@@ -186,11 +259,9 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     return { tagPosts, currentTag: tag };
   }
 
-  // Handle topic group archives (/topics/:groupSlug)
-  const topicsMatch = decodedRoutePath.match(/^\/topics\/(.+)$/);
-  if (topicsMatch) {
-    const groupSlug = decodeURIComponent(topicsMatch[1]);
-    // Fetch menu items and find the tag group with this slug
+  // Topics archives
+  if (analysis.routeType === "topics" && analysis.extractedSlug) {
+    const groupSlug = analysis.extractedSlug;
     const menuItems = await storage.getMenuItemsBySiteId(site.id);
     const tagGroup = menuItems?.find(item => item.type === 'tag-group' && item.groupSlug === groupSlug);
     if (tagGroup && tagGroup.tagSlugs) {
@@ -206,7 +277,7 @@ async function getSSRData(site: Site, routePath: string): Promise<{
     log(`[getSSRData] Topics archive: groupSlug="${groupSlug}" not found in menu items`, "ssr");
   }
 
-  log(`[getSSRData] No match found, returning empty`, "ssr");
+  log(`[getSSRData] No match found for routeType="${analysis.routeType}", returning empty`, "ssr");
   return {};
 }
 

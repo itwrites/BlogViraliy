@@ -12,6 +12,7 @@ import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 import { normalizeBasePath } from "./utils";
 import { rewriteHtmlForBasePath } from "./html-rewriter";
+import { analyzeRouteForPost } from "./vite";
 
 async function ensureAdminUser() {
   try {
@@ -1377,6 +1378,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     console.log(`[domain-check] No site found for hostname=${hostname}`);
     res.json({ isAdmin: false, site: null, allowAdminAccess: false });
+  });
+
+  // SSR Debug endpoint - traces the exact SSR lookup path
+  app.get("/api/ssr-debug", async (req: Request, res: Response) => {
+    try {
+      const hostname = (req.query.hostname as string) || req.hostname;
+      const path = (req.query.path as string) || "/";
+      
+      // Step 1: Resolve site
+      const site = await storage.getSiteByDomain(hostname);
+      if (!site) {
+        return res.json({
+          success: false,
+          error: "Site not found",
+          hostname,
+          path,
+          step: "site_resolution",
+        });
+      }
+      
+      // Step 2: Compute basePath and routePath
+      const basePath = normalizeBasePath(site.basePath);
+      let routePath = path;
+      if (basePath && basePath !== "/" && path.startsWith(basePath)) {
+        routePath = path.slice(basePath.length) || "/";
+      }
+      
+      // Step 3: Analyze route
+      const analysis = analyzeRouteForPost(routePath);
+      
+      // Step 4: If slug detected, try lookup
+      let postLookupResult: { found: boolean; postId?: string; title?: string; error?: string } | null = null;
+      if (analysis.extractedSlug) {
+        try {
+          const post = await storage.getPostBySlug(site.id, analysis.extractedSlug);
+          postLookupResult = post 
+            ? { found: true, postId: post.id, title: post.title }
+            : { found: false };
+        } catch (e: any) {
+          postLookupResult = { found: false, error: e.message };
+        }
+      }
+      
+      // Step 5: Return full diagnostic
+      res.json({
+        success: true,
+        hostname,
+        path,
+        site: {
+          id: site.id,
+          domain: site.domain,
+          basePath: site.basePath,
+          postUrlFormat: site.postUrlFormat,
+        },
+        computed: {
+          normalizedBasePath: basePath,
+          routePath,
+        },
+        routeAnalysis: analysis,
+        postLookup: postLookupResult,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: error.stack,
+      });
+    }
   });
 
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {
