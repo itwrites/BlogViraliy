@@ -179,8 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Canonical URL redirect middleware for basePath handling
-  // - Alias domains: Strip basePath from URL (proxy already handles it)
-  // - Primary domains: Redirect root to basePath
+  // - Primary domains with basePath: Redirect root to basePath
+  // - Alias domains: No redirect needed (nginx proxies path directly, e.g., vyfy.co.uk/blog -> /blog)
   app.use((req: DomainRequest, res: Response, next: NextFunction) => {
     const basePath = req.siteBasePath;
     const hostname = req.siteHostname;
@@ -200,29 +200,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const isAliasDomain = hostname !== primaryDomain;
     
-    if (isAliasDomain) {
-      // Alias domain: If URL starts with basePath, redirect to strip it
-      // Because the reverse proxy already handles the basePath prefix
-      if (req.path.startsWith(basePath + "/") || req.path === basePath) {
-        let targetPath = req.path.substring(basePath.length);
-        if (!targetPath.startsWith("/")) {
-          targetPath = "/" + targetPath;
-        }
-        // Preserve query string
-        const queryString = req.originalUrl.includes("?") 
-          ? req.originalUrl.substring(req.originalUrl.indexOf("?")) 
-          : "";
-        const redirectUrl = targetPath + queryString;
-        console.log(`[Canonical Redirect] Alias domain ${hostname}: stripping basePath, ${req.path} -> ${redirectUrl}`);
-        return res.redirect(301, redirectUrl);
-      }
-    } else {
-      // Primary domain: If at root, redirect to basePath
-      if (req.path === "/") {
-        const redirectUrl = basePath + "/";
-        console.log(`[Canonical Redirect] Primary domain ${hostname}: root -> ${redirectUrl}`);
-        return res.redirect(301, redirectUrl);
-      }
+    // Only redirect on primary domain: root -> basePath
+    // Alias domains don't redirect - they serve content at whatever URL nginx proxies to
+    if (!isAliasDomain && req.path === "/") {
+      const redirectUrl = basePath + "/";
+      console.log(`[Canonical Redirect] Primary domain ${hostname}: root -> ${redirectUrl}`);
+      return res.redirect(301, redirectUrl);
     }
     
     next();
