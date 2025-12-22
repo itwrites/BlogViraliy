@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Site, Post } from "@shared/schema";
-import { normalizeBasePath } from "./base-path-provider";
+import { useBasePath } from "./base-path-provider";
 import { getPostUrl } from "@/lib/get-post-url";
 
 interface SeoHeadProps {
@@ -34,6 +34,7 @@ type TrackedElement = TrackedMeta | TrackedLink | TrackedScript;
 export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
   const trackedElements = useRef<TrackedElement[]>([]);
   const originalTitle = useRef<string>("");
+  const { basePath: contextBasePath } = useBasePath();
 
   useEffect(() => {
     trackedElements.current = [];
@@ -63,8 +64,8 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
     // Use the actual visitor hostname (from browser) instead of site.domain
     // This ensures canonical URLs match the domain the visitor is using (especially for aliases)
     const visitorHostname = typeof window !== 'undefined' ? window.location.hostname : site.domain;
-    const basePath = normalizeBasePath(site.basePath);
-    const siteBaseUrl = `${protocol}${visitorHostname}${basePath}`;
+    // Use basePath from context - it's already adjusted for alias domains (empty for aliases)
+    const siteBaseUrl = `${protocol}${visitorHostname}${contextBasePath}`;
     const currentPath = post ? getPostUrl(post.slug, site) : pagePath;
     const fullUrl = `${siteBaseUrl}${currentPath}`;
 
@@ -217,7 +218,7 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
 
       trackedElements.current = [];
     };
-  }, [site.id, site.domain, site.basePath, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath]);
+  }, [site.id, site.domain, site.basePath, site.title, site.metaTitle, site.metaDescription, site.ogImage, site.favicon, site.analyticsId, post?.id, post?.slug, post?.title, post?.metaTitle, post?.metaDescription, post?.ogImage, post?.canonicalUrl, post?.noindex, pagePath, contextBasePath]);
 
   return null;
 }

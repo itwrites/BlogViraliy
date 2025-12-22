@@ -121,8 +121,8 @@ async function renderSSR(
     const { render } = await vite.ssrLoadModule("/src/entry-server.tsx");
     const ssrData = await getSSRData(site, routePath);
     
-    // Pass fullPath (with basePath) to wouter's ssrPath, but routePath (stripped) for data
-    // For alias domains, pass the stripped path to ssrPath since basePath is not in the URL
+    // For alias domains: pass stripped path (no basePath) since Router base is ""
+    // For primary domains: pass full path with basePath since Router base is basePath
     const ssrPath = isAliasDomain ? routePath : fullPath;
     const { html, dehydratedState } = render({
       site,
@@ -274,16 +274,17 @@ export async function serveStatic(app: Express) {
         
         // Determine if accessed via alias domain
         const isAliasDomain = hostname !== site.domain;
-        // For alias domains, pass stripped path; for primary, pass full path
-        const ssrPathValue = isAliasDomain ? routePath : fullPath;
+        // For alias domains: pass stripped path (no basePath) since Router base is ""
+        // For primary domains: pass full path with basePath since Router base is basePath
+        const ssrPath = isAliasDomain ? routePath : fullPath;
 
-        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
+        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}`, "ssr");
         
         const ssrData = await getSSRData(site, routePath);
         const { html, dehydratedState } = ssrRender({
           site,
           path: routePath,
-          ssrPath: ssrPathValue,
+          ssrPath,
           isAliasDomain,
           ...ssrData,
         });
@@ -291,7 +292,7 @@ export async function serveStatic(app: Express) {
         const ssrDataScript = `<script>window.__SSR_DATA__ = ${JSON.stringify({
           site,
           dehydratedState,
-          ssrPath: ssrPathValue,
+          ssrPath,
           isAliasDomain,
         }).replace(/</g, "\\u003c")}</script>`;
 
