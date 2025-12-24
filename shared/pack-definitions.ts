@@ -2,10 +2,12 @@ import type { PackType, ArticleRole } from "./schema";
 
 export type { PackType };
 
+export type AnchorPattern = "exact" | "partial" | "semantic" | "action" | "list";
+
 export interface LinkingRule {
   fromRole: ArticleRole;
   toRoles: ArticleRole[];
-  anchorPattern: "exact" | "partial" | "semantic" | "action" | "list";
+  anchorPattern: AnchorPattern;
   priority: number;
 }
 

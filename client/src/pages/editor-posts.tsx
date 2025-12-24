@@ -74,7 +74,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Site, Post, SiteAuthor } from "@shared/schema";
+import type { Site, Post, SiteAuthor, ArticleRole } from "@shared/schema";
+
+const ARTICLE_ROLES: { value: ArticleRole; label: string; description: string }[] = [
+  { value: "general", label: "General", description: "Standard blog post" },
+  { value: "pillar", label: "Pillar", description: "Comprehensive cornerstone content" },
+  { value: "support", label: "Support", description: "Supporting content for pillars" },
+  { value: "long_tail", label: "Long-tail", description: "Specific keyword targeting" },
+  { value: "rankings", label: "Rankings", description: "Top N lists with rankings" },
+  { value: "best_of", label: "Best Of", description: "Curated recommendations" },
+  { value: "comparison", label: "Comparison", description: "Head-to-head comparisons" },
+  { value: "review", label: "Review", description: "Product/service reviews" },
+  { value: "conversion", label: "Conversion", description: "Sales-focused content" },
+  { value: "case_study", label: "Case Study", description: "Success stories with data" },
+  { value: "benchmark", label: "Benchmark", description: "Research and analysis" },
+  { value: "framework", label: "Framework", description: "Methodologies and models" },
+  { value: "whitepaper", label: "Whitepaper", description: "In-depth thought leadership" },
+  { value: "how_to", label: "How To", description: "Step-by-step tutorials" },
+  { value: "faq", label: "FAQ", description: "Question and answer format" },
+  { value: "listicle", label: "Listicle", description: "Engaging list format" },
+  { value: "news", label: "News", description: "Timely news coverage" },
+];
 
 const POSTS_PER_PAGE = 10;
 
@@ -176,6 +196,7 @@ export default function EditorPosts() {
     tags: "",
     imageUrl: "",
     authorId: "" as string,
+    articleRole: "general" as ArticleRole,
   });
 
   const { data: site } = useQuery<Site>({
@@ -240,11 +261,12 @@ export default function EditorPosts() {
         tags: post.tags.join(", "),
         imageUrl: post.imageUrl || "",
         authorId: post.authorId || "none",
+        articleRole: (post.articleRole as ArticleRole) || "general",
       });
     } else {
       setCurrentPost(null);
       const defaultAuthor = authors?.find(a => a.isDefault);
-      setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: defaultAuthor?.id || "none" });
+      setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: defaultAuthor?.id || "none", articleRole: "general" });
     }
     setEditorOpen(true);
   };
@@ -252,7 +274,7 @@ export default function EditorPosts() {
   const closeEditor = () => {
     setEditorOpen(false);
     setCurrentPost(null);
-    setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: "" });
+    setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: "", articleRole: "general" });
   };
 
   const handleSave = async () => {
@@ -280,6 +302,7 @@ export default function EditorPosts() {
           imageUrl: formData.imageUrl || null,
           authorId: formData.authorId && formData.authorId !== "none" ? formData.authorId : null,
           slug,
+          articleRole: formData.articleRole,
         });
         toast({ title: "Success", description: "Post updated successfully" });
       } else {
@@ -292,6 +315,7 @@ export default function EditorPosts() {
           authorId: formData.authorId && formData.authorId !== "none" ? formData.authorId : null,
           slug,
           source: "manual",
+          articleRole: formData.articleRole,
         });
         toast({ title: "Success", description: "Post created successfully" });
       }
@@ -1220,6 +1244,26 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 <p className="text-xs text-muted-foreground">Select the post author</p>
               </div>
             )}
+            <div className="space-y-2">
+              <Label htmlFor="articleRole" className="text-sm font-medium">Article Role</Label>
+              <Select
+                value={formData.articleRole}
+                onValueChange={(value) => setFormData({ ...formData, articleRole: value as ArticleRole })}
+              >
+                <SelectTrigger data-testid="select-article-role">
+                  <SelectValue placeholder="Select article role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ARTICLE_ROLES.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      <span className="font-medium">{role.label}</span>
+                      <span className="text-muted-foreground ml-2 text-xs">{role.description}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Determines content structure and JSON-LD schema for SEO</p>
+            </div>
           </motion.div>
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={closeEditor} data-testid="button-cancel">

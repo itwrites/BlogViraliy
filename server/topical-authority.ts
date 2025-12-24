@@ -2,8 +2,9 @@ import OpenAI from "openai";
 import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
+import { buildRoleSpecificPrompt, type LinkTarget } from "./role-prompts";
 import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster, ArticleRole } from "@shared/schema";
-import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle } from "@shared/pack-definitions";
+import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle, getPackDefinition } from "@shared/pack-definitions";
 
 let openai: OpenAI | null = null;
 
@@ -224,73 +225,56 @@ export async function generatePillarArticleContent(
   siblingArticles: PillarArticle[],
   parentArticle?: PillarArticle
 ): Promise<GeneratedArticle> {
-  // Build context about related articles for internal linking
-  // Use /post/ prefix for canonical URLs (basePath is added at runtime)
-  const relatedArticlesInfo = siblingArticles
-    .filter(a => a.id !== article.id && a.status === "completed" && a.postId)
-    .slice(0, 5)
-    .map(a => `- "${a.title}" (/post/${a.slug})`)
-    .join("\n");
-
-  const parentInfo = parentArticle
-    ? `Parent topic: "${parentArticle.title}" (/post/${parentArticle.slug})`
-    : "";
-
-  let articleTypeContext = "";
-  if (article.articleType === "pillar") {
-    articleTypeContext = "This is the main PILLAR article - it should provide a comprehensive overview of the entire topic and link to category pages.";
-  } else if (article.articleType === "category") {
-    articleTypeContext = "This is a CATEGORY article - it should cover this subtopic comprehensively and link to both the pillar article and related subtopic articles.";
-  } else {
-    articleTypeContext = "This is a SUBTOPIC article - it should be detailed and focused on this specific long-tail topic, linking to the parent category and pillar.";
-  }
-
   const lang = getLanguageForPrompt(pillar.targetLanguage);
   const languageDirective = buildLanguageDirective(lang);
-
-  const prompt = `${pillar.masterPrompt || ""}
-
-${languageDirective}
-
-Write a comprehensive, SEO-optimized blog post.
-
-Topic: ${article.title}
-Target keywords: ${article.keywords.join(", ")}
-
-${articleTypeContext}
-
-${parentInfo}
-
-${relatedArticlesInfo ? `Related articles to consider linking to:\n${relatedArticlesInfo}` : ""}
-
-IMPORTANT FORMATTING RULES:
-1. Write in Markdown format with proper structure:
-   - Use # for the main title
-   - Use ## for major sections
-   - Use ### for subsections
-   - Use bullet points and numbered lists
-   - Use **bold** and *italics* for emphasis
-
-2. INTERNAL LINKING:
-   - Naturally incorporate internal links to related articles
-   - Use descriptive anchor text (not "click here")
-   - Format links as: [anchor text](/post/slug)
-   ${parentArticle ? `- Link back to the parent article: [${parentArticle.title}](/post/${parentArticle.slug})` : ""}
-
-3. Make the content:
-   - 1500-2500 words for pillar/category articles
-   - 800-1500 words for subtopic articles
-   - Informative and valuable to readers
-   - Naturally incorporate target keywords
-
-Respond with valid JSON:
-{
-  "title": "The optimized article title",
-  "content": "The full article content in Markdown",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "metaTitle": "SEO title (50-60 chars)",
-  "metaDescription": "Meta description (150-160 chars)"
-}`;
+  
+  // Get pack configuration
+  const packType = (pillar.packType as PackType) || "authority";
+  const packDef = getPackDefinition(packType);
+  
+  // Get the article's role
+  const articleRole = (article.articleRole as ArticleRole) || "general";
+  
+  // Build link targets based on pack linking rules
+  const relevantRule = packDef.linkingRules.find(r => r.fromRole === articleRole);
+  const targetRoles = relevantRule?.toRoles || [];
+  
+  // Get completed articles that match target roles for linking
+  const linkTargets: LinkTarget[] = siblingArticles
+    .filter(a => 
+      a.id !== article.id && 
+      a.status === "completed" && 
+      a.postId &&
+      targetRoles.includes(a.articleRole as ArticleRole)
+    )
+    .slice(0, 5)
+    .map(a => ({
+      title: a.title,
+      slug: a.slug,
+      role: (a.articleRole as ArticleRole) || "general",
+      anchorPattern: relevantRule?.anchorPattern || "semantic",
+    }));
+  
+  // Add parent article as link target if applicable
+  if (parentArticle && parentArticle.status === "completed" && parentArticle.postId) {
+    linkTargets.unshift({
+      title: parentArticle.title,
+      slug: parentArticle.slug,
+      role: (parentArticle.articleRole as ArticleRole) || "pillar",
+      anchorPattern: relevantRule?.anchorPattern || "semantic",
+    });
+  }
+  
+  // Build the role-specific prompt
+  const prompt = buildRoleSpecificPrompt(
+    articleRole,
+    packType,
+    article.title,
+    article.keywords,
+    linkTargets,
+    languageDirective,
+    pillar.masterPrompt || ""
+  );
 
   const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-5",
@@ -359,7 +343,7 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
     // Get default author for this site
     const defaultAuthor = await storage.getDefaultAuthor(pillar.siteId);
 
-    // Create post
+    // Create post with article role for role-specific JSON-LD generation
     const post = await storage.createPost({
       siteId: pillar.siteId,
       authorId: defaultAuthor?.id || null,
@@ -371,6 +355,7 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
       source: "topical-authority",
       metaTitle: generated.metaTitle,
       metaDescription: generated.metaDescription,
+      articleRole: article.articleRole || "general",
     });
 
     // Update article with post reference
