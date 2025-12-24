@@ -371,6 +371,43 @@ Link to these related articles naturally within your content:
 ${targetList}`;
 }
 
+export function detectRoleFromKeyword(keyword: string): ArticleRole {
+  const kw = keyword.toLowerCase();
+  
+  if (kw.includes("how to") || kw.includes("guide to") || kw.includes("tutorial")) {
+    return "how_to";
+  }
+  if (kw.includes("best ") || kw.includes("top ")) {
+    return "rankings";
+  }
+  if (kw.includes("vs ") || kw.includes(" vs") || kw.includes("versus") || kw.includes("compare")) {
+    return "comparison";
+  }
+  if (kw.includes("review") || kw.includes("rating")) {
+    return "review";
+  }
+  if (kw.includes("what is") || kw.includes("what are") || kw.includes("meaning of")) {
+    return "pillar";
+  }
+  if (kw.includes("faq") || kw.includes("questions")) {
+    return "faq";
+  }
+  if (kw.includes("list of") || kw.includes("types of") || kw.includes("examples of")) {
+    return "listicle";
+  }
+  if (kw.includes("case study") || kw.includes("success story")) {
+    return "case_study";
+  }
+  if (kw.includes("benchmark") || kw.includes("statistics") || kw.includes("data")) {
+    return "benchmark";
+  }
+  if (kw.includes("buy") || kw.includes("price") || kw.includes("cost") || kw.includes("discount")) {
+    return "conversion";
+  }
+  
+  return "support"; // Default to support articles for general keywords
+}
+
 export function buildRoleSpecificPrompt(
   role: ArticleRole,
   packType: PackType,

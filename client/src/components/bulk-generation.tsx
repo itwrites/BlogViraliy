@@ -9,10 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Upload, Play, X, Clock, CheckCircle, XCircle, Loader2, Trash2, Languages } from "lucide-react";
+import { Upload, Play, X, Clock, CheckCircle, XCircle, Loader2, Trash2, Languages, Link2, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { KeywordBatch, KeywordJob } from "@shared/schema";
-import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
+import type { KeywordBatch, KeywordJob, Pillar, ArticleRole } from "@shared/schema";
+import { languageDisplayNames, type ContentLanguage, articleRoleDisplayNames, articleRoleEnum } from "@shared/schema";
+
+const ARTICLE_ROLES = articleRoleEnum.options.map((value) => ({
+  value,
+  label: articleRoleDisplayNames[value as ArticleRole],
+}));
 
 interface BatchWithJobs extends KeywordBatch {
   jobs: Array<{
@@ -33,14 +38,20 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
   const [keywordsInput, setKeywordsInput] = useState("");
   const [masterPrompt, setMasterPrompt] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("en");
+  const [pillarId, setPillarId] = useState<string>("");
+  const [articleRole, setArticleRole] = useState<string>("auto");
 
   const { data: batches, isLoading: batchesLoading, refetch } = useQuery<BatchWithJobs[]>({
     queryKey: ["/api/sites", siteId, "keyword-batches"],
     refetchInterval: 5000,
   });
 
+  const { data: pillars } = useQuery<Pillar[]>({
+    queryKey: ["/api/sites", siteId, "pillars"],
+  });
+
   const createBatchMutation = useMutation({
-    mutationFn: async (data: { keywords: string[]; masterPrompt?: string; targetLanguage?: string }) => {
+    mutationFn: async (data: { keywords: string[]; masterPrompt?: string; targetLanguage?: string; pillarId?: string; articleRole?: string }) => {
       const res = await apiRequest("POST", `/api/sites/${siteId}/keyword-batches`, data);
       return res.json();
     },
@@ -52,6 +63,8 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
       setKeywordsInput("");
       setMasterPrompt("");
       setTargetLanguage("en");
+      setPillarId("");
+      setArticleRole("auto");
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "keyword-batches"] });
     },
     onError: (error: Error) => {
@@ -110,6 +123,8 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
       keywords,
       masterPrompt: masterPrompt || undefined,
       targetLanguage,
+      pillarId: pillarId || undefined,
+      articleRole: articleRole === "auto" ? undefined : articleRole,
     });
   };
 
@@ -202,6 +217,64 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">All posts will be written in this language</p>
+            </div>
+
+            {pillars && pillars.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="bulkPillar">
+                  <span className="flex items-center gap-2">
+                    <Link2 className="h-4 w-4" />
+                    Link to Pillar (Optional)
+                  </span>
+                </Label>
+                <Select
+                  value={pillarId}
+                  onValueChange={setPillarId}
+                >
+                  <SelectTrigger id="bulkPillar" data-testid="select-bulk-pillar">
+                    <SelectValue placeholder="No pillar - standalone posts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No pillar - standalone posts</SelectItem>
+                    {pillars.map((pillar) => (
+                      <SelectItem key={pillar.id} value={pillar.id}>
+                        {pillar.name} ({pillar.packType})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Link posts to a pillar for internal linking and pack-based content structure
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="bulkArticleRole">
+                <span className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Article Role
+                </span>
+              </Label>
+              <Select
+                value={articleRole}
+                onValueChange={setArticleRole}
+              >
+                <SelectTrigger id="bulkArticleRole" data-testid="select-bulk-article-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto-detect from keyword</SelectItem>
+                  {ARTICLE_ROLES.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Determines content structure and SEO schema. Auto-detect analyzes keywords.
+              </p>
             </div>
           </div>
 

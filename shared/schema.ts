@@ -315,6 +315,8 @@ export const rssAutomationConfigs = pgTable("rss_automation_configs", {
   articlesToFetch: integer("articles_to_fetch").notNull().default(3),
   targetLanguage: text("target_language").notNull().default("en"), // Target language for rewritten content (auto-translate if source differs)
   masterPrompt: text("master_prompt"), // Custom prompt for additional context when rewriting RSS content
+  pillarId: varchar("pillar_id"), // Optional: Link rewritten posts to a pillar for internal linking
+  articleRole: text("article_role"), // Optional: Default article role for rewritten posts (null = auto-detect from content)
 });
 
 // Site Authors (configurable bylines like "Staff Writer", "Editorial Team")
@@ -401,6 +403,8 @@ export const keywordBatches = pgTable("keyword_batches", {
   failedCount: integer("failed_count").notNull().default(0),
   masterPrompt: text("master_prompt"), // Optional override for this batch
   targetLanguage: text("target_language").notNull().default("en"), // Target language for generated content
+  pillarId: varchar("pillar_id"), // Optional: Link batch to pillar for internal linking
+  articleRole: text("article_role"), // Optional: Default article role for generated posts (e.g., 'how_to', 'listicle')
   createdAt: timestamp("created_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
 });

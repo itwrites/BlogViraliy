@@ -16,7 +16,8 @@ import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Setting
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem, SiteAuthor } from "@shared/schema";
+import type { Site, AiAutomationConfig, RssAutomationConfig, TemplateSettings, SiteMenuItem, SiteAuthor, Pillar } from "@shared/schema";
+import { ARTICLE_ROLES, type ArticleRole } from "@shared/pack-definitions";
 import { User, UserPlus, Languages } from "lucide-react";
 import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } from "@shared/schema";
 import { BulkGeneration } from "@/components/bulk-generation";
@@ -75,6 +76,8 @@ export default function SiteConfig() {
     articlesToFetch: 3,
     targetLanguage: "en",
     masterPrompt: "",
+    pillarId: "" as string,
+    articleRole: "" as string,
   });
 
   const [newKeyword, setNewKeyword] = useState("");
@@ -133,6 +136,12 @@ export default function SiteConfig() {
   // Fetch all existing tags for the site (for tag group dropdown)
   const { data: allTags = [] } = useQuery<string[]>({
     queryKey: ["/api/sites", id, "all-tags"],
+    enabled: !isNewSite,
+  });
+
+  // Fetch pillars for RSS internal linking dropdown
+  const { data: pillars = [] } = useQuery<Pillar[]>({
+    queryKey: ["/api/sites", id, "pillars"],
     enabled: !isNewSite,
   });
 
@@ -244,6 +253,8 @@ export default function SiteConfig() {
         articlesToFetch: existingRssConfig.articlesToFetch,
         targetLanguage: existingRssConfig.targetLanguage || "en",
         masterPrompt: existingRssConfig.masterPrompt || "",
+        pillarId: (existingRssConfig as any).pillarId || "",
+        articleRole: (existingRssConfig as any).articleRole || "",
       });
     }
   }, [existingRssConfig]);
@@ -2430,6 +2441,62 @@ export default function SiteConfig() {
                     rows={4}
                   />
                   <p className="text-xs text-muted-foreground">Add extra context or instructions for the AI when rewriting RSS articles</p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="rssPillar">
+                      <span className="flex items-center gap-2">
+                        <Link className="h-4 w-4" />
+                        Link to Pillar (Internal Linking)
+                      </span>
+                    </Label>
+                    <Select
+                      value={rssConfig.pillarId || ""}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, pillarId: value || "" })}
+                      disabled={!rssConfig.enabled}
+                    >
+                      <SelectTrigger id="rssPillar" data-testid="select-rss-pillar">
+                        <SelectValue placeholder="No pillar - standalone posts" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No pillar - standalone posts</SelectItem>
+                        {pillars.map((pillar) => (
+                          <SelectItem key={pillar.id} value={pillar.id}>
+                            {pillar.name} ({pillar.packType})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Link posts to a pillar for internal linking graph</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rssArticleRole">
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Article Role
+                      </span>
+                    </Label>
+                    <Select
+                      value={rssConfig.articleRole || ""}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, articleRole: value || "" })}
+                      disabled={!rssConfig.enabled}
+                    >
+                      <SelectTrigger id="rssArticleRole" data-testid="select-rss-article-role">
+                        <SelectValue placeholder="Auto-detect from title" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Auto-detect from title</SelectItem>
+                        {ARTICLE_ROLES.map((role) => (
+                          <SelectItem key={role.id} value={role.id}>
+                            {role.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Role affects JSON-LD schema and linking rules</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

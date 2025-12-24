@@ -138,3 +138,27 @@ Provide the response in JSON format with the following structure:
     metaDescription: result.metaDescription || undefined,
   };
 }
+
+export async function generateFromPrompt(prompt: string, keyword: string): Promise<AIPostResult> {
+  const response = await getOpenAIClient().chat.completions.create({
+    model: "gpt-5",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_completion_tokens: 8192,
+  });
+
+  const result = JSON.parse(response.choices[0].message.content || "{}");
+  const title = result.title || `Article about ${keyword}`;
+  
+  // Fetch image from Pexels using title keywords
+  const imageUrl = await searchPexelsImage(keyword);
+  
+  return {
+    title,
+    content: result.content || "",
+    tags: Array.isArray(result.tags) ? result.tags : [keyword],
+    imageUrl: imageUrl || undefined,
+    metaTitle: result.metaTitle || title,
+    metaDescription: result.metaDescription || undefined,
+  };
+}

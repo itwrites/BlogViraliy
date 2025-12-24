@@ -1,6 +1,11 @@
 import type { PackType, ArticleRole } from "./schema";
+import { articleRoleDisplayNames } from "./schema";
 
-export type { PackType };
+export type { PackType, ArticleRole };
+
+export const ARTICLE_ROLES: { id: ArticleRole; label: string }[] = Object.entries(articleRoleDisplayNames).map(
+  ([id, label]) => ({ id: id as ArticleRole, label })
+);
 
 export type AnchorPattern = "exact" | "partial" | "semantic" | "action" | "list";
 

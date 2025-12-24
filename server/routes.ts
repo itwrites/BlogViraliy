@@ -1116,7 +1116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sites/:id/keyword-batches", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
-      const { keywords, masterPrompt, targetLanguage } = req.body;
+      const { keywords, masterPrompt, targetLanguage, pillarId, articleRole } = req.body;
       
       if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
         return res.status(400).json({ error: "Keywords array is required" });
@@ -1129,12 +1129,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "At least one valid keyword is required" });
       }
 
-      // Create the batch
+      // Create the batch with optional pillar and article role for internal linking
       const batch = await storage.createKeywordBatch({
         siteId: req.params.id,
         totalKeywords: validKeywords.length,
         masterPrompt: masterPrompt || null,
         targetLanguage: targetLanguage || "en",
+        pillarId: pillarId || null,
+        articleRole: articleRole || null,
         status: "pending",
         processedCount: 0,
         successCount: 0,
