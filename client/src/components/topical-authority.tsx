@@ -35,6 +35,7 @@ import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
 import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
 import { PACK_DEFINITIONS, type PackType, type CustomPackConfig } from "@shared/pack-definitions";
 import { CustomPackCreator } from "./custom-pack-creator";
+import { PillarLinkGraph } from "./pillar-link-graph";
 
 interface PillarWithStats extends Pillar {
   stats: {
@@ -452,6 +453,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
       </Card>
 
       {selectedPillar && pillarDetails && (
+        <>
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -597,6 +599,17 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
             )}
           </CardContent>
         </Card>
+
+        {pillarDetails.clusters.length > 0 && (
+          <PillarLinkGraph
+            pillar={pillarDetails}
+            articles={[
+              ...(pillarDetails.pillarArticle ? [pillarDetails.pillarArticle] : []),
+              ...pillarDetails.clusters.flatMap((c) => c.articles),
+            ]}
+          />
+        )}
+        </>
       )}
     </div>
   );
