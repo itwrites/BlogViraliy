@@ -33,7 +33,8 @@ import {
 } from "lucide-react";
 import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
 import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
-import { PACK_DEFINITIONS, type PackType } from "@shared/pack-definitions";
+import { PACK_DEFINITIONS, type PackType, type CustomPackConfig } from "@shared/pack-definitions";
+import { CustomPackCreator } from "./custom-pack-creator";
 
 interface PillarWithStats extends Pillar {
   stats: {
@@ -88,14 +89,24 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
   const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
   const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
   
-  const [newPillar, setNewPillar] = useState({
+  const [newPillar, setNewPillar] = useState<{
+    name: string;
+    description: string;
+    masterPrompt: string;
+    targetArticleCount: number;
+    publishSchedule: string;
+    targetLanguage: string;
+    packType: PackType;
+    customPackConfig: CustomPackConfig | null;
+  }>({
     name: "",
     description: "",
     masterPrompt: "",
     targetArticleCount: 50,
     publishSchedule: "1_per_day",
     targetLanguage: "en",
-    packType: "authority" as PackType,
+    packType: "authority",
+    customPackConfig: null,
   });
 
   const { data: pillars, isLoading: pillarsLoading } = useQuery<PillarWithStats[]>({
@@ -125,6 +136,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
         publishSchedule: "1_per_day",
         targetLanguage: "en",
         packType: "authority",
+        customPackConfig: null,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
@@ -310,10 +322,16 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                         ))}
                       </SelectContent>
                     </Select>
-                    {newPillar.packType && PACK_DEFINITIONS[newPillar.packType] && (
+                    {newPillar.packType && newPillar.packType !== "custom" && PACK_DEFINITIONS[newPillar.packType] && (
                       <p className="text-xs text-muted-foreground">
                         {PACK_DEFINITIONS[newPillar.packType].description}
                       </p>
+                    )}
+                    {newPillar.packType === "custom" && (
+                      <CustomPackCreator
+                        value={newPillar.customPackConfig}
+                        onChange={(config) => setNewPillar({ ...newPillar, customPackConfig: config })}
+                      />
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">

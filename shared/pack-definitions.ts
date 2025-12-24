@@ -25,6 +25,14 @@ export interface PackDefinition {
   defaultRoleDistribution: { role: ArticleRole; percentage: number }[];
 }
 
+export interface CustomPackConfig {
+  name: string;
+  description: string;
+  allowedRoles: ArticleRole[];
+  linkingRules: LinkingRule[];
+  roleDistribution: { role: ArticleRole; percentage: number }[];
+}
+
 export interface JsonLdSchemaConfig {
   schemaType: string;
   requiredFields: string[];

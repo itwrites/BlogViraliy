@@ -536,6 +536,7 @@ export const pillars = pgTable("pillars", {
   description: text("description"), // Optional description of the pillar topic
   status: text("status").notNull().default("draft"), // draft, mapping, mapped, generating, completed, paused, failed
   packType: text("pack_type").notNull().default("quick_seo"), // Internal linking pack type
+  customPackConfig: jsonb("custom_pack_config"), // Custom pack configuration when packType is "custom"
   masterPrompt: text("master_prompt"), // Custom AI prompt for this pillar's content
   targetArticleCount: integer("target_article_count").notNull().default(50), // Target number of articles (50-200)
   generatedCount: integer("generated_count").notNull().default(0), // Articles successfully generated
