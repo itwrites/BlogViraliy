@@ -2461,7 +2461,7 @@ export default function SiteConfig() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="">No pillar - standalone posts</SelectItem>
-                        {pillars.map((pillar) => (
+                        {(pillars || []).map((pillar) => (
                           <SelectItem key={pillar.id} value={pillar.id}>
                             {pillar.name} ({pillar.packType})
                           </SelectItem>
