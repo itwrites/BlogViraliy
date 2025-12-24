@@ -100,22 +100,24 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
 
     linkingRules.forEach((rule) => {
       const fromArticles = articlesByRole.get(rule.fromRole) || [];
-      const toArticles = rule.toRoles.flatMap((toRole) => articlesByRole.get(toRole) || []);
-
-      fromArticles.forEach((fromArticle) => {
-        toArticles.forEach((toArticle) => {
-          if (fromArticle.id !== toArticle.id) {
-            computedEdges.push({
-              from: fromArticle.id,
-              to: toArticle.id,
-              fromRole: rule.fromRole,
-              toRole: (toArticle.articleRole || "general") as ArticleRole,
-              anchorPattern: rule.anchorPattern,
-            });
-            incomingCount.set(toArticle.id, (incomingCount.get(toArticle.id) || 0) + 1);
-            outgoingCount.set(fromArticle.id, (outgoingCount.get(fromArticle.id) || 0) + 1);
-          }
+      
+      rule.toRoles.forEach((toRole) => {
+        const toArticles = articlesByRole.get(toRole) || [];
+        if (fromArticles.length === 0 || toArticles.length === 0) return;
+        
+        const sampleFrom = fromArticles[0];
+        const sampleTo = toArticles.find(a => a.id !== sampleFrom.id);
+        if (!sampleTo) return;
+        
+        computedEdges.push({
+          from: sampleFrom.id,
+          to: sampleTo.id,
+          fromRole: rule.fromRole,
+          toRole: toRole,
+          anchorPattern: rule.anchorPattern,
         });
+        incomingCount.set(sampleTo.id, (incomingCount.get(sampleTo.id) || 0) + 1);
+        outgoingCount.set(sampleFrom.id, (outgoingCount.get(sampleFrom.id) || 0) + 1);
       });
     });
 
@@ -259,10 +261,10 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
           <div>
             <CardTitle className="flex items-center gap-2" data-testid="text-link-graph-title">
               <Network className="h-5 w-5" />
-              Link Structure
+              Projected Link Structure
             </CardTitle>
             <CardDescription data-testid="text-link-graph-description">
-              {nodes.length} articles, {linkStats.totalLinks} links based on {packDefinitions[pillar.packType as PackType]?.name || pillar.packType}
+              {nodes.length} articles with planned connections based on {packDefinitions[pillar.packType as PackType]?.name || pillar.packType} rules. Actual links are created during content generation.
             </CardDescription>
           </div>
           <div className="flex items-center gap-1">

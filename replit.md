@@ -73,8 +73,13 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Linking Rules**: Each pack defines which roles link to which other roles with anchor pattern preferences (exact, partial, semantic, action, list)
     - **Role Distribution**: Automatic role assignment during topical map generation based on pack's percentage distribution
     - **Role-Specific JSON-LD**: Dynamic structured data generation (Review, HowTo, FAQPage, ItemList, Product, NewsArticle, TechArticle, etc.) based on article role
+    - **Role-Specific AI Prompts**: `server/role-prompts.ts` generates tailored content structure prompts for each article role
+    - **Custom Pack Creator**: UI component (`client/src/components/custom-pack-creator.tsx`) for defining custom linking strategies with roles, rules, and distribution
+    - **Link Structure Visualization**: `client/src/components/pillar-link-graph.tsx` shows projected article connections based on pack rules
     - **Pack Definition File**: `shared/pack-definitions.ts` contains all pack configs, linking rules, and JSON-LD schema mappings
     - **JSON-LD Generator**: `server/json-ld-generator.ts` produces role-appropriate structured data for SSR
+    - **Bulk Keywords Integration**: Keywords can be assigned to pillars with automatic role detection from keyword patterns
+    - **RSS Integration**: RSS rewriting uses role-specific prompts when linked to a pillar
 - **Runtime Link Rewriting**: Internal links in post content are automatically rewritten at render time to include the site's basePath. Users can write simple relative links like `/my-post` and the system adds the basePath prefix (e.g., `/blog/my-post`) when the page is rendered. This ensures links work correctly on both primary and proxy/alias domains without storing the basePath in content.
 - **Dynamic Sitemap**: Generates and caches `sitemap.xml` for each site, including posts and tag archives.
 - **Dynamic Robots.txt**: Auto-generates `robots.txt` per site with tenant-specific sitemap URLs. Admin/unknown domains receive `Disallow: /` to block crawling.
