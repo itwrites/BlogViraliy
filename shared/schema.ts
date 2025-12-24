@@ -341,6 +341,9 @@ export const posts = pgTable("posts", {
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   source: text("source").notNull().default("manual"),
   sourceUrl: text("source_url"), // Original article URL for RSS posts (used for duplicate detection)
+  // Internal linking graph
+  articleRole: text("article_role").default("general"), // Role for linking rules and JSON-LD schema
+  pillarId: varchar("pillar_id"), // Optional pillar association (foreign key added via relations)
   // Analytics
   viewCount: integer("view_count").notNull().default(0), // Total page views
   // SEO settings for individual posts
@@ -426,6 +429,101 @@ export type PillarStatus = z.infer<typeof pillarStatusEnum>;
 export const articleStatusEnum = z.enum(["pending", "generating", "completed", "failed", "skipped"]);
 export type ArticleStatus = z.infer<typeof articleStatusEnum>;
 
+// ========================================
+// INTERNAL LINKING GRAPH - PACK SYSTEM
+// ========================================
+
+// Content Pack Types - each pack defines linking rules and article role patterns
+export const packTypeEnum = z.enum([
+  "quick_seo",      // Basic hub: all articles link to central "What is X" page
+  "traffic_boost",  // Long-tail → Rankings → Yearly best-of pages
+  "buyer_intent",   // Comparisons → Reviews → Conversion pages
+  "authority",      // Case studies/benchmarks → Frameworks → Whitepapers
+  "full_coverage",  // Hub-and-spoke: satellites ↔ main pillar
+  "custom",         // User-defined linking rules
+]);
+export type PackType = z.infer<typeof packTypeEnum>;
+
+// Article Roles - determines content structure, linking priority, and JSON-LD schema
+export const articleRoleEnum = z.enum([
+  // Core roles (all packs)
+  "pillar",         // Main pillar article - receives most internal links
+  "support",        // Supporting article - links to pillar
+  
+  // Traffic Boost pack roles
+  "long_tail",      // Long-tail keyword article
+  "rankings",       // "Top 10" style rankings list
+  "best_of",        // Yearly best-of / roundup
+  
+  // Buyer Intent pack roles
+  "comparison",     // Product/service comparison (e.g., "X vs Y")
+  "review",         // Product/service review with ratings
+  "conversion",     // Conversion-focused page
+  
+  // Authority pack roles
+  "case_study",     // Case study with data/results
+  "benchmark",      // Industry benchmark / statistics
+  "framework",      // Strategic framework / methodology
+  "whitepaper",     // In-depth whitepaper / guide
+  
+  // General content roles
+  "how_to",         // Step-by-step tutorial
+  "faq",            // FAQ page
+  "listicle",       // List-based article
+  "news",           // News/update article
+  "general",        // General article (default)
+]);
+export type ArticleRole = z.infer<typeof articleRoleEnum>;
+
+// Article Role display names
+export const articleRoleDisplayNames: Record<ArticleRole, string> = {
+  pillar: "Pillar Article",
+  support: "Support Article",
+  long_tail: "Long-tail Article",
+  rankings: "Rankings List",
+  best_of: "Best-of Roundup",
+  comparison: "Comparison",
+  review: "Review",
+  conversion: "Conversion Page",
+  case_study: "Case Study",
+  benchmark: "Benchmark",
+  framework: "Framework",
+  whitepaper: "Whitepaper",
+  how_to: "How-to Guide",
+  faq: "FAQ",
+  listicle: "Listicle",
+  news: "News Article",
+  general: "General Article",
+};
+
+// Pack display names and descriptions
+export const packTypeDisplayNames: Record<PackType, { name: string; description: string }> = {
+  quick_seo: {
+    name: "Quick SEO Pack",
+    description: "All articles link to a central 'What is X' pillar page, forming a basic topical hub.",
+  },
+  traffic_boost: {
+    name: "Traffic Boost Pack",
+    description: "Long-tail articles link to rankings; rankings link to yearly best-of pages.",
+  },
+  buyer_intent: {
+    name: "Buyer Intent Pack",
+    description: "Comparisons link to reviews, which link to conversion pages for maximum purchase intent.",
+  },
+  authority: {
+    name: "Authority Pack",
+    description: "Case studies and benchmarks link upward to frameworks and whitepapers for thought leadership.",
+  },
+  full_coverage: {
+    name: "Full Coverage Pack",
+    description: "Hub-and-spoke model where all satellite articles link to the main pillar and back.",
+  },
+  custom: {
+    name: "Custom Pack",
+    description: "Define your own linking rules and article roles.",
+  },
+};
+
 // Pillars (main topics for topical authority)
 export const pillars = pgTable("pillars", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -433,6 +531,7 @@ export const pillars = pgTable("pillars", {
   name: text("name").notNull(), // e.g., "Hospitality", "Real Estate"
   description: text("description"), // Optional description of the pillar topic
   status: text("status").notNull().default("draft"), // draft, mapping, mapped, generating, completed, paused, failed
+  packType: text("pack_type").notNull().default("quick_seo"), // Internal linking pack type
   masterPrompt: text("master_prompt"), // Custom AI prompt for this pillar's content
   targetArticleCount: integer("target_article_count").notNull().default(50), // Target number of articles (50-200)
   generatedCount: integer("generated_count").notNull().default(0), // Articles successfully generated
@@ -466,6 +565,7 @@ export const pillarArticles = pgTable("pillar_articles", {
   slug: text("slug").notNull(), // URL slug
   keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`), // Target keywords
   articleType: text("article_type").notNull().default("subtopic"), // "pillar", "category", "subtopic"
+  articleRole: text("article_role").notNull().default("general"), // Role for pack-based linking and JSON-LD
   status: text("status").notNull().default("pending"), // pending, generating, completed, failed, skipped
   sortOrder: integer("sort_order").notNull().default(0), // Order within cluster
   postId: varchar("post_id").references(() => posts.id, { onDelete: "set null" }), // Link to generated post
@@ -525,6 +625,10 @@ export const postsRelations = relations(posts, ({ one }) => ({
   author: one(siteAuthors, {
     fields: [posts.authorId],
     references: [siteAuthors.id],
+  }),
+  pillar: one(pillars, {
+    fields: [posts.pillarId],
+    references: [pillars.id],
   }),
 }));
 

@@ -67,6 +67,14 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Automatic Internal Linking**: Context-aware links between pillar, cluster, and article content
     - **Scheduled Generation**: Articles are generated automatically via cron scheduler
     - **Status Workflow**: draft → mapping → mapped → generating → completed/paused/failed
+- **Internal Linking Graph System**: Pack-based content strategy with role-specific linking rules:
+    - **Pack Types**: 5 predefined packs (Quick SEO, Traffic Boost, Buyer Intent, Authority, Full Coverage) plus custom
+    - **Article Roles**: 17 specialized roles (pillar, support, long_tail, rankings, best_of, comparison, review, conversion, case_study, benchmark, framework, whitepaper, how_to, faq, listicle, news, general)
+    - **Linking Rules**: Each pack defines which roles link to which other roles with anchor pattern preferences (exact, partial, semantic, action, list)
+    - **Role Distribution**: Automatic role assignment during topical map generation based on pack's percentage distribution
+    - **Role-Specific JSON-LD**: Dynamic structured data generation (Review, HowTo, FAQPage, ItemList, Product, NewsArticle, TechArticle, etc.) based on article role
+    - **Pack Definition File**: `shared/pack-definitions.ts` contains all pack configs, linking rules, and JSON-LD schema mappings
+    - **JSON-LD Generator**: `server/json-ld-generator.ts` produces role-appropriate structured data for SSR
 - **Runtime Link Rewriting**: Internal links in post content are automatically rewritten at render time to include the site's basePath. Users can write simple relative links like `/my-post` and the system adds the basePath prefix (e.g., `/blog/my-post`) when the page is rendered. This ensures links work correctly on both primary and proxy/alias domains without storing the basePath in content.
 - **Dynamic Sitemap**: Generates and caches `sitemap.xml` for each site, including posts and tag archives.
 - **Dynamic Robots.txt**: Auto-generates `robots.txt` per site with tenant-specific sitemap URLs. Admin/unknown domains receive `Disallow: /` to block crawling.

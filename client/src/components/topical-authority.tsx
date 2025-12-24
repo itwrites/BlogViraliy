@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
 import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
+import { PACK_DEFINITIONS, type PackType } from "@shared/pack-definitions";
 
 interface PillarWithStats extends Pillar {
   stats: {
@@ -94,6 +95,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     targetArticleCount: 50,
     publishSchedule: "1_per_day",
     targetLanguage: "en",
+    packType: "authority" as PackType,
   });
 
   const { data: pillars, isLoading: pillarsLoading } = useQuery<PillarWithStats[]>({
@@ -122,6 +124,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
         targetArticleCount: 50,
         publishSchedule: "1_per_day",
         targetLanguage: "en",
+        packType: "authority",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
@@ -290,6 +293,29 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                       Recommended: 50-100 articles for strong topical authority
                     </p>
                   </div>
+                  <div className="space-y-2">
+                    <Label>Content Pack Strategy</Label>
+                    <Select
+                      value={newPillar.packType}
+                      onValueChange={(value) => setNewPillar({ ...newPillar, packType: value as PackType })}
+                    >
+                      <SelectTrigger data-testid="select-pack-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PACK_DEFINITIONS).map(([key, pack]) => (
+                          <SelectItem key={key} value={key}>
+                            {pack.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {newPillar.packType && PACK_DEFINITIONS[newPillar.packType] && (
+                      <p className="text-xs text-muted-foreground">
+                        {PACK_DEFINITIONS[newPillar.packType].description}
+                      </p>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Publishing Schedule</Label>
@@ -381,6 +407,11 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
+                        {pillar.packType && PACK_DEFINITIONS[pillar.packType as PackType] && (
+                          <Badge variant="outline" data-testid={`badge-pillar-pack-${pillar.id}`}>
+                            {PACK_DEFINITIONS[pillar.packType as PackType].name}
+                          </Badge>
+                        )}
                         <Badge className={`${statusColors[pillar.status]} text-white`} data-testid={`badge-pillar-status-${pillar.id}`}>
                           {pillar.status}
                         </Badge>

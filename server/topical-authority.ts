@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
-import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster } from "@shared/schema";
+import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster, ArticleRole } from "@shared/schema";
+import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle } from "@shared/pack-definitions";
 
 let openai: OpenAI | null = null;
 
@@ -114,7 +115,15 @@ Respond with valid JSON in this exact structure:
     await storage.deletePillarArticlesByPillarId(pillar.id);
     await storage.deleteClustersByPillarId(pillar.id);
 
-    // Create pillar article first
+    // Get pack configuration for role assignment
+    const packType = (pillar.packType as PackType) || "authority";
+    const packDef = PACK_DEFINITIONS[packType];
+    const roleDistribution = getPackRoleDistribution(packDef.defaultRoleDistribution);
+    let roleIndex = 0;
+
+    // Create pillar article first - pillar role for the main pillar article
+    const pillarRole: ArticleRole = "pillar";
+    
     const pillarArticle: InsertPillarArticle = {
       pillarId: pillar.id,
       clusterId: null,
@@ -122,6 +131,7 @@ Respond with valid JSON in this exact structure:
       slug: slugify(result.pillarArticle.title),
       keywords: result.pillarArticle.keywords,
       articleType: "pillar",
+      articleRole: pillarRole,
       status: "pending",
       sortOrder: 0,
     };
@@ -145,7 +155,8 @@ Respond with valid JSON in this exact structure:
       };
       const createdCluster = await storage.createCluster(cluster);
 
-      // Create category article
+      // Create category article - assign a role from the pack distribution
+      const categoryRole = selectRoleForArticle(roleDistribution, roleIndex++);
       const categoryArticle: InsertPillarArticle = {
         pillarId: pillar.id,
         clusterId: createdCluster.id,
@@ -153,23 +164,28 @@ Respond with valid JSON in this exact structure:
         slug: slugify(category.name),
         keywords: [category.name.toLowerCase()],
         articleType: "category",
+        articleRole: categoryRole,
         status: "pending",
         sortOrder: sortOrder++,
       };
       await storage.createPillarArticle(categoryArticle);
       totalArticles++;
 
-      // Create subtopic articles
-      const subtopicArticles: InsertPillarArticle[] = category.articles.map((article, j) => ({
-        pillarId: pillar.id,
-        clusterId: createdCluster.id,
-        title: article.title,
-        slug: slugify(article.title),
-        keywords: article.keywords,
-        articleType: "subtopic" as const,
-        status: "pending" as const,
-        sortOrder: sortOrder++,
-      }));
+      // Create subtopic articles - assign roles from the pack distribution
+      const subtopicArticles: InsertPillarArticle[] = category.articles.map((article, j) => {
+        const articleRole = selectRoleForArticle(roleDistribution, roleIndex++);
+        return {
+          pillarId: pillar.id,
+          clusterId: createdCluster.id,
+          title: article.title,
+          slug: slugify(article.title),
+          keywords: article.keywords,
+          articleType: "subtopic" as const,
+          articleRole: articleRole,
+          status: "pending" as const,
+          sortOrder: sortOrder++,
+        };
+      });
 
       await storage.createPillarArticles(subtopicArticles);
       totalArticles += subtopicArticles.length;

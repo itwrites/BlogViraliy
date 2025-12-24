@@ -224,7 +224,7 @@ interface SeoMetaOptions {
   currentTag?: string;
 }
 
-function generateSeoMetaTags(options: SeoMetaOptions): string {
+async function generateSeoMetaTags(options: SeoMetaOptions): Promise<string> {
   const { site, routePath, post, currentTag } = options;
   const tags: string[] = [];
   
@@ -344,36 +344,16 @@ function generateSeoMetaTags(options: SeoMetaOptions): string {
     tags.push(`<link rel="icon" href="${escapeHtml(site.favicon)}">`);
   }
   
-  // JSON-LD structured data for articles
+  // JSON-LD structured data - role-specific for posts
   if (post) {
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      "headline": post.title,
-      "description": description,
-      "url": canonicalUrl,
-      "datePublished": post.createdAt ? new Date(post.createdAt).toISOString() : undefined,
-      "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
-      "image": ogImage || undefined,
-      "author": {
-        "@type": "Organization",
-        "name": site.title
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": site.title,
-        "logo": site.logoUrl ? {
-          "@type": "ImageObject",
-          "url": site.logoUrl
-        } : undefined
-      },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": canonicalUrl
-      },
-      "inLanguage": language,
-      "keywords": post.tags?.join(", ")
-    };
+    const { generateRoleBasedJsonLd } = await import("./json-ld-generator");
+    const jsonLd = generateRoleBasedJsonLd({
+      post,
+      site,
+      canonicalUrl,
+      description,
+      language
+    });
     
     // Remove undefined values
     const cleanJsonLd = JSON.parse(JSON.stringify(jsonLd));
@@ -499,7 +479,7 @@ async function renderSSR(
     }).replace(/</g, "\\u003c")}</script>`;
 
     // Generate SEO meta tags
-    const seoTags = generateSeoMetaTags({
+    const seoTags = await generateSeoMetaTags({
       site,
       routePath,
       post: ssrData.post,
@@ -704,7 +684,7 @@ export async function serveStatic(app: Express) {
         }).replace(/</g, "\\u003c")}</script>`;
 
         // Generate SEO meta tags
-        const seoTags = generateSeoMetaTags({
+        const seoTags = await generateSeoMetaTags({
           site,
           routePath,
           post: ssrData.post,
