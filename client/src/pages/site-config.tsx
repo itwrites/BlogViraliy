@@ -2452,15 +2452,15 @@ export default function SiteConfig() {
                       </span>
                     </Label>
                     <Select
-                      value={rssConfig.pillarId || ""}
-                      onValueChange={(value) => setRssConfig({ ...rssConfig, pillarId: value || "" })}
+                      value={rssConfig.pillarId || "none"}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, pillarId: value === "none" ? "" : value })}
                       disabled={!rssConfig.enabled}
                     >
                       <SelectTrigger id="rssPillar" data-testid="select-rss-pillar">
                         <SelectValue placeholder="No pillar - standalone posts" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No pillar - standalone posts</SelectItem>
+                        <SelectItem value="none">No pillar - standalone posts</SelectItem>
                         {(pillars || []).map((pillar) => (
                           <SelectItem key={pillar.id} value={pillar.id}>
                             {pillar.name} ({pillar.packType})
@@ -2479,15 +2479,15 @@ export default function SiteConfig() {
                       </span>
                     </Label>
                     <Select
-                      value={rssConfig.articleRole || ""}
-                      onValueChange={(value) => setRssConfig({ ...rssConfig, articleRole: value || "" })}
+                      value={rssConfig.articleRole || "auto"}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, articleRole: value === "auto" ? "" : value })}
                       disabled={!rssConfig.enabled}
                     >
                       <SelectTrigger id="rssArticleRole" data-testid="select-rss-article-role">
                         <SelectValue placeholder="Auto-detect from title" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Auto-detect from title</SelectItem>
+                        <SelectItem value="auto">Auto-detect from title</SelectItem>
                         {ARTICLE_ROLES.map((role) => (
                           <SelectItem key={role.id} value={role.id}>
                             {role.label}

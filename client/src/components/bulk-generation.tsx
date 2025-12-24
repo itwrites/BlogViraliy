@@ -38,7 +38,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
   const [keywordsInput, setKeywordsInput] = useState("");
   const [masterPrompt, setMasterPrompt] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("en");
-  const [pillarId, setPillarId] = useState<string>("");
+  const [pillarId, setPillarId] = useState<string>("none");
   const [articleRole, setArticleRole] = useState<string>("auto");
 
   const { data: batches, isLoading: batchesLoading, refetch } = useQuery<BatchWithJobs[]>({
@@ -123,7 +123,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
       keywords,
       masterPrompt: masterPrompt || undefined,
       targetLanguage,
-      pillarId: pillarId || undefined,
+      pillarId: pillarId === "none" ? undefined : pillarId,
       articleRole: articleRole === "auto" ? undefined : articleRole,
     });
   };
@@ -235,7 +235,7 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
                     <SelectValue placeholder="No pillar - standalone posts" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No pillar - standalone posts</SelectItem>
+                    <SelectItem value="none">No pillar - standalone posts</SelectItem>
                     {pillars.map((pillar) => (
                       <SelectItem key={pillar.id} value={pillar.id}>
                         {pillar.name} ({pillar.packType})
