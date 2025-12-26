@@ -52,9 +52,19 @@ export function BasePathProvider({ site, children, isAliasDomain: _isAliasDomain
   // isAliasDomain is no longer used here - it was incorrectly causing links to omit basePath
   const basePath = normalizeBasePath(site.basePath);
   const domain = site.domain || "";
-  // Use visitorHostname from SSR context, or fall back to window.location.hostname, or site.domain
+  
+  // Determine the canonical domain for URL generation:
+  // 1. Use site.domain if not empty
+  // 2. Use site.proxyVisitorHostname if in reverse proxy mode
+  // 3. Fall back to visitorHostname or window.location.hostname
+  let canonicalDomain = domain;
+  if (!canonicalDomain && site.deploymentMode === 'reverse_proxy' && site.proxyVisitorHostname) {
+    canonicalDomain = site.proxyVisitorHostname;
+  }
+  
+  // Use visitorHostname from SSR context, or fall back to window.location.hostname, or canonical domain
   const effectiveHostname = visitorHostname || 
-    (typeof window !== "undefined" ? window.location.hostname : domain);
+    (typeof window !== "undefined" ? window.location.hostname : canonicalDomain);
 
   const prefixPath = useCallback(
     (path: string): string => {

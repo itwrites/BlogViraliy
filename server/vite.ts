@@ -272,13 +272,27 @@ interface SeoMetaOptions {
   routePath: string;
   post?: Post;
   currentTag?: string;
+  visitorHostname?: string;
 }
 
 async function generateSeoMetaTags(options: SeoMetaOptions): Promise<string> {
-  const { site, routePath, post, currentTag } = options;
+  const { site, routePath, post, currentTag, visitorHostname } = options;
   const tags: string[] = [];
   
-  // Build canonical URL - always use primary domain
+  // Determine canonical domain:
+  // 1. Use site.domain if not empty
+  // 2. Use site.proxyVisitorHostname if in reverse proxy mode
+  // 3. Fall back to visitorHostname from request
+  let canonicalDomain = site.domain;
+  if (!canonicalDomain || canonicalDomain.trim() === '') {
+    if (site.deploymentMode === 'reverse_proxy' && site.proxyVisitorHostname) {
+      canonicalDomain = site.proxyVisitorHostname;
+    } else if (visitorHostname) {
+      canonicalDomain = visitorHostname;
+    }
+  }
+  
+  // Build canonical URL
   const basePath = normalizeBasePath(site.basePath);
   let canonicalPath = routePath;
   
@@ -292,7 +306,7 @@ async function generateSeoMetaTags(options: SeoMetaOptions): Promise<string> {
   
   // Apply basePath to canonical path
   const fullCanonicalPath = basePath ? `${basePath}${canonicalPath}` : canonicalPath;
-  const canonicalUrl = `https://${site.domain}${fullCanonicalPath}`;
+  const canonicalUrl = `https://${canonicalDomain}${fullCanonicalPath}`;
   
   // Determine title and description
   let title = site.metaTitle || site.title;
@@ -534,6 +548,7 @@ async function renderSSR(
       routePath,
       post: ssrData.post,
       currentTag: ssrData.currentTag,
+      visitorHostname,
     });
 
     // Remove existing <title> tag (from template) to avoid duplicates
@@ -747,6 +762,7 @@ export async function serveStatic(app: Express) {
           routePath,
           post: ssrData.post,
           currentTag: ssrData.currentTag,
+          visitorHostname,
         });
 
         // Remove existing <title> tag (from template) to avoid duplicates
