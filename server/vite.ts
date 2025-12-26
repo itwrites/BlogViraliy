@@ -45,17 +45,29 @@ function isPublicRoute(path: string): boolean {
   return !adminPaths.some(p => path.startsWith(p));
 }
 
-function getCacheControlHeader(routePath: string): string {
+interface CacheContext {
+  routePath: string;
+  hasPost?: boolean;
+  hasPosts?: boolean;
+  hasTagPosts?: boolean;
+}
+
+function getCacheControlHeader(ctx: CacheContext): string {
+  const { routePath, hasPost, hasPosts, hasTagPosts } = ctx;
   const isHomepage = routePath === "/" || routePath === "";
-  const isPostPage = routePath.startsWith("/post/") || (routePath.length > 1 && !routePath.startsWith("/tag/") && !routePath.startsWith("/topics/") && !routePath.startsWith("/search"));
   const isTagArchive = routePath.startsWith("/tag/") || routePath.startsWith("/topics/");
+  const isSystemRoute = routePath === "/sitemap.xml" || routePath === "/robots.txt" || routePath === "/rss.xml";
   
-  if (isHomepage) {
+  if (isSystemRoute) {
+    return "public, s-maxage=3600, stale-while-revalidate=7200";
+  } else if (isHomepage && hasPosts) {
     return "public, s-maxage=60, stale-while-revalidate=300";
-  } else if (isPostPage) {
+  } else if (hasPost) {
     return "public, s-maxage=300, stale-while-revalidate=600";
-  } else if (isTagArchive) {
+  } else if (isTagArchive && hasTagPosts) {
     return "public, s-maxage=120, stale-while-revalidate=300";
+  } else if (!hasPost && !hasPosts && !hasTagPosts) {
+    return "no-cache, no-store, must-revalidate";
   }
   return "public, s-maxage=60, stale-while-revalidate=300";
 }
@@ -832,8 +844,14 @@ export async function serveStatic(app: Express) {
           .replace(`<div id="root"></div>`, `<div id="root">${html}</div>`)
           .replace(`</head>`, `${seoTags}\n    ${ssrDataScript}\n  </head>`);
 
-        const cacheControl = getCacheControlHeader(routePath);
-        log(`[SSR-Prod] Cache-Control: ${cacheControl} for ${routePath}`, "ssr");
+        const cacheContext: CacheContext = {
+          routePath,
+          hasPost: !!ssrData.post,
+          hasPosts: !!ssrData.posts?.length,
+          hasTagPosts: !!ssrData.tagPosts?.length,
+        };
+        const cacheControl = getCacheControlHeader(cacheContext);
+        log(`[SSR-Prod] Cache-Control: ${cacheControl} for ${routePath} (post=${cacheContext.hasPost}, posts=${cacheContext.hasPosts}, tagPosts=${cacheContext.hasTagPosts})`, "ssr");
         res.status(200).set({ 
           "Content-Type": "text/html",
           "Cache-Control": cacheControl,
