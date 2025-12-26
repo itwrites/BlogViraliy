@@ -55,13 +55,14 @@ async function resolveSite(siteDomain: string, visitorHostname: string): Promise
   // First try to find site by the domain from Host header
   let site = await storage.getSiteByDomain(siteDomain);
   
-  // PROXY MODE: If no site found by domain AND we're on a Replit/shared host with different visitor hostname,
-  // try looking up by visitor hostname (for sites in reverse_proxy deployment mode)
-  if (!site && isReplitDefaultHost(siteDomain) && visitorHostname && visitorHostname !== siteDomain) {
+  // PROXY MODE: If no site found by domain, try looking up by visitor hostname
+  // This supports reverse_proxy deployment mode where primary domain can be empty
+  // and the site is identified by X-BV-Visitor-Host header (proxyVisitorHostname field)
+  if (!site && visitorHostname) {
     log(`[SSR] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`, "ssr");
     site = await storage.getSiteByVisitorHostname(visitorHostname);
     if (site) {
-      log(`[SSR] Found site via proxy mode: ${site.domain}, visitor=${visitorHostname}`, "ssr");
+      log(`[SSR] Found site via proxy mode: domain=${site.domain || '(empty)'}, proxyVisitorHostname=${site.proxyVisitorHostname}, visitor=${visitorHostname}`, "ssr");
     }
   }
   

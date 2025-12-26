@@ -168,13 +168,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Use siteDomain for database lookup (from Host header)
     let site = await storage.getSiteByDomain(siteDomain);
     
-    // PROXY MODE: If no site found by domain AND we're on a Replit/shared host with X-BV-Visitor-Host,
-    // try looking up by visitor hostname (for sites in reverse_proxy deployment mode)
-    if (!site && isReplitDefaultHost && visitorHostname && visitorHostname !== siteDomain) {
+    // PROXY MODE: If no site found by domain, try looking up by visitor hostname
+    // This supports reverse_proxy deployment mode where primary domain can be empty
+    // and the site is identified by X-BV-Visitor-Host header (proxyVisitorHostname field)
+    if (!site && visitorHostname) {
       console.log(`[Domain Routing] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`);
       site = await storage.getSiteByVisitorHostname(visitorHostname);
       if (site) {
-        console.log(`[Domain Routing] Found site via proxy mode: ${site.domain}, visitor=${visitorHostname}`);
+        console.log(`[Domain Routing] Found site via proxy mode: domain=${site.domain || '(empty)'}, proxyVisitorHostname=${site.proxyVisitorHostname}, visitor=${visitorHostname}`);
       }
     }
     
