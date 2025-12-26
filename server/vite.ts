@@ -85,12 +85,39 @@ function getCanonicalPostRedirect(
   return null;
 }
 
-function resolveHostname(req: express.Request): string {
+/**
+ * Resolve the site domain for database lookups.
+ * Prioritizes the Host header (which nginx sets to the registered domain like blog.vyfy.co.uk)
+ * over visitor-facing headers. This ensures we look up the correct site in the database.
+ */
+function resolveSiteDomain(req: express.Request): string {
+  const hostHeader = req.headers["host"];
+  const xOriginalHost = req.headers["x-original-host"];
+  const xRealHost = req.headers["x-real-host"];
+  
+  // For database lookups, prioritize Host header (set by nginx to the registered domain)
+  // This is what nginx sends: proxy_set_header Host blog.vyfy.co.uk;
+  return (
+    (typeof hostHeader === "string" ? hostHeader.split(":")[0] : null) ||
+    (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
+    (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
+    req.hostname
+  );
+}
+
+/**
+ * Resolve the visitor-facing hostname for URL generation.
+ * Prioritizes X-BV-Visitor-Host (which nginx sets to the visitor's actual domain like vyfy.co.uk)
+ * This is used to generate URLs that match what the visitor sees in their browser.
+ */
+function resolveVisitorHostname(req: express.Request): string {
   const xBvVisitorHost = req.headers["x-bv-visitor-host"];
   const xForwardedHost = req.headers["x-forwarded-host"];
   const xOriginalHost = req.headers["x-original-host"];
   const xRealHost = req.headers["x-real-host"];
   
+  // For visitor-facing URLs, prioritize X-BV-Visitor-Host (the actual domain visitor used)
+  // This is what nginx sends: proxy_set_header X-BV-Visitor-Host vyfy.co.uk;
   return (
     (typeof xBvVisitorHost === "string" ? xBvVisitorHost.split(",")[0].trim().split(":")[0] : null) ||
     (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
@@ -542,9 +569,13 @@ export async function setupVite(app: Express, server: Server) {
       );
       template = await vite.transformIndexHtml(url, template);
 
-      const hostname = resolveHostname(req);
-      log(`[SSR-Dev] Request: ${hostname}${url}`, "ssr");
-      const site = await storage.getSiteByDomain(hostname);
+      // Use resolveSiteDomain for database lookup (prioritizes Host header)
+      const siteDomain = resolveSiteDomain(req);
+      // Use resolveVisitorHostname for URL generation (prioritizes X-BV-Visitor-Host)
+      const visitorHostname = resolveVisitorHostname(req);
+      
+      log(`[SSR-Dev] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}`, "ssr");
+      const site = await storage.getSiteByDomain(siteDomain);
       log(`[SSR-Dev] Site lookup: ${site ? `found (${site.id})` : 'not found'}`, "ssr");
       
       if (site && isPublicRoute(url)) {
@@ -569,11 +600,11 @@ export async function setupVite(app: Express, server: Server) {
           return;
         }
         
-        // Determine if accessed via alias domain
-        const isAliasDomain = hostname !== site.domain;
+        // Determine if accessed via alias domain (visitor hostname differs from registered domain)
+        const isAliasDomain = visitorHostname !== site.domain;
 
-        log(`[SSR] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
-        const page = await renderSSR(vite, site, routePath, fullPath, template, isAliasDomain, hostname);
+        log(`[SSR] Rendering siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url} -> route: ${routePath}, fullPath: ${fullPath}, isAlias=${isAliasDomain}`, "ssr");
+        const page = await renderSSR(vite, site, routePath, fullPath, template, isAliasDomain, visitorHostname);
         res.status(200).set({ "Content-Type": "text/html" }).end(page);
       } else {
         res.status(200).set({ "Content-Type": "text/html" }).end(template);
@@ -626,9 +657,13 @@ export async function serveStatic(app: Express) {
     const url = req.originalUrl;
     
     try {
-      const hostname = resolveHostname(req);
-      log(`[SSR-Prod] Request: ${hostname}${url}, ssrRender=${!!ssrRender}`, "ssr");
-      const site = await storage.getSiteByDomain(hostname);
+      // Use resolveSiteDomain for database lookup (prioritizes Host header)
+      const siteDomain = resolveSiteDomain(req);
+      // Use resolveVisitorHostname for URL generation (prioritizes X-BV-Visitor-Host)
+      const visitorHostname = resolveVisitorHostname(req);
+      
+      log(`[SSR-Prod] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}, ssrRender=${!!ssrRender}`, "ssr");
+      const site = await storage.getSiteByDomain(siteDomain);
       log(`[SSR-Prod] Site lookup: ${site ? `found (${site.id})` : 'not found'}, isPublic=${isPublicRoute(url)}`, "ssr");
       
       if (site && ssrRender && isPublicRoute(url)) {
@@ -653,13 +688,13 @@ export async function serveStatic(app: Express) {
           return;
         }
         
-        // Determine if accessed via alias domain
-        const isAliasDomain = hostname !== site.domain;
+        // Determine if accessed via alias domain (visitor hostname differs from registered domain)
+        const isAliasDomain = visitorHostname !== site.domain;
         // Always use fullPath for SSR since Router base is always basePath
         // Both alias and primary domains use the same routing structure
         const ssrPath = fullPath;
 
-        log(`[SSR-Prod] Rendering ${hostname}${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}, basePath=${basePath}`, "ssr");
+        log(`[SSR-Prod] Rendering siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url} -> route: ${routePath}, fullPath: ${fullPath}, ssrPath: ${ssrPath}, isAlias=${isAliasDomain}, basePath=${basePath}`, "ssr");
         
         const ssrData = await getSSRData(site, routePath);
         log(`[SSR-Prod] SSR data: hasPost=${!!ssrData.post}, hasPosts=${!!ssrData.posts}, hasTagPosts=${!!ssrData.tagPosts}`, "ssr");
@@ -669,7 +704,7 @@ export async function serveStatic(app: Express) {
           path: routePath,
           ssrPath,
           isAliasDomain,
-          visitorHostname: hostname,
+          visitorHostname,
           ...ssrData,
         });
 
@@ -680,7 +715,7 @@ export async function serveStatic(app: Express) {
           dehydratedState,
           ssrPath,
           isAliasDomain,
-          visitorHostname: hostname,
+          visitorHostname,
         }).replace(/</g, "\\u003c")}</script>`;
 
         // Generate SEO meta tags

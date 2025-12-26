@@ -129,16 +129,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     // Check multiple headers that proxies might use
-    // X-BV-Visitor-Host is our custom header that won't be stripped by intermediary infrastructure (Google/Replit)
     const xBvVisitorHost = req.headers["x-bv-visitor-host"];
     const xForwardedHost = req.headers["x-forwarded-host"];
     const xOriginalHost = req.headers["x-original-host"];
     const xRealHost = req.headers["x-real-host"];
     const hostHeader = req.headers["host"];
     
-    // Try multiple sources for the original hostname
-    // Priority: X-BV-Visitor-Host (custom, survives intermediaries) > X-Forwarded-Host > X-Original-Host > X-Real-Host > req.hostname
-    const hostname = 
+    // SITE DOMAIN: Used for database lookup - prioritizes Host header
+    // This is what nginx sets to the registered domain: proxy_set_header Host blog.vyfy.co.uk;
+    const siteDomain = 
+      (typeof hostHeader === "string" ? hostHeader.split(":")[0] : null) ||
+      (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
+      (typeof xRealHost === "string" ? xRealHost.split(":")[0] : null) ||
+      req.hostname;
+    
+    // VISITOR HOSTNAME: Used for URL generation - prioritizes X-BV-Visitor-Host
+    // This is what nginx sets to the visitor's actual domain: proxy_set_header X-BV-Visitor-Host vyfy.co.uk;
+    const visitorHostname = 
       (typeof xBvVisitorHost === "string" ? xBvVisitorHost.split(",")[0].trim().split(":")[0] : null) ||
       (typeof xForwardedHost === "string" ? xForwardedHost.split(",")[0].trim().split(":")[0] : null) ||
       (typeof xOriginalHost === "string" ? xOriginalHost.split(":")[0] : null) ||
@@ -146,10 +153,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.hostname;
     
     // Debug logging for domain routing issues - show all relevant headers
-    console.log(`[Domain Routing] Final hostname=${hostname}, Host=${hostHeader}, X-BV-Visitor-Host=${xBvVisitorHost}, X-Forwarded-Host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
+    console.log(`[Domain Routing] siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, Host=${hostHeader}, X-BV-Visitor-Host=${xBvVisitorHost}, X-Forwarded-Host=${xForwardedHost}, req.hostname=${req.hostname}, path=${req.path}`);
     
-    const isExplicitAdminDomain = hostname === ADMIN_DOMAIN;
-    const isReplitDefaultHost = hostname.includes("replit.dev") || hostname.includes("replit.app") || hostname === "blogvirality.brandvirality.com";
+    const isExplicitAdminDomain = siteDomain === ADMIN_DOMAIN;
+    const isReplitDefaultHost = siteDomain.includes("replit.dev") || siteDomain.includes("replit.app") || siteDomain === "blogvirality.brandvirality.com";
     
     if (isExplicitAdminDomain) {
       req.siteId = undefined;
@@ -157,12 +164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
 
-    const site = await storage.getSiteByDomain(hostname);
+    // Use siteDomain for database lookup (from Host header)
+    const site = await storage.getSiteByDomain(siteDomain);
     if (site) {
-      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, via hostname=${hostname}`);
+      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
-      req.siteHostname = hostname;  // Save the hostname used to find this site
+      req.siteHostname = visitorHostname;  // Save visitor hostname for URL generation
       req.sitePrimaryDomain = site.domain;  // Save the primary domain for alias detection
       return next();
     }
@@ -172,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.siteBasePath = "";
     } else {
       // Log when domain is not found for debugging
-      console.log(`[Domain Routing] Site not found for hostname: ${hostname}`);
+      console.log(`[Domain Routing] Site not found for siteDomain: ${siteDomain}`);
     }
     
     next();
