@@ -70,6 +70,7 @@ export interface IStorage {
   getSitesForUserWithPermission(userId: string): Promise<Array<Site & { permission: string }>>;
   getSiteById(id: string): Promise<Site | undefined>;
   getSiteByDomain(domain: string): Promise<Site | undefined>;
+  getSiteByVisitorHostname(visitorHostname: string): Promise<Site | undefined>;
   canUserAccessSite(userId: string, siteId: string): Promise<boolean>;
   createSite(site: InsertSite): Promise<Site>;
   updateSite(id: string, site: Partial<InsertSite>): Promise<Site | undefined>;
@@ -321,6 +322,26 @@ export class DatabaseStorage implements IStorage {
     }
     
     return aliasMatch || undefined;
+  }
+
+  async getSiteByVisitorHostname(visitorHostname: string): Promise<Site | undefined> {
+    console.log(`[getSiteByVisitorHostname] Looking up visitor hostname: "${visitorHostname}"`);
+    
+    // Look up sites in reverse_proxy mode that match this visitor hostname
+    const [site] = await db.select().from(sites).where(
+      and(
+        eq(sites.deploymentMode, "reverse_proxy"),
+        eq(sites.proxyVisitorHostname, visitorHostname)
+      )
+    );
+    
+    if (site) {
+      console.log(`[getSiteByVisitorHostname] Found site: ${site.domain} for visitor hostname: ${visitorHostname}`);
+    } else {
+      console.log(`[getSiteByVisitorHostname] No site found for visitor hostname: "${visitorHostname}"`);
+    }
+    
+    return site || undefined;
   }
 
   async canUserAccessSite(userId: string, siteId: string): Promise<boolean> {

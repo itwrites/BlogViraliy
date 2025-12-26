@@ -257,6 +257,11 @@ export const sites = pgTable("sites", {
   domain: text("domain").notNull().unique(),
   domainAliases: text("domain_aliases").array().notNull().default(sql`ARRAY[]::text[]`), // Additional domains that point to this site
   basePath: text("base_path").notNull().default(""), // Optional path prefix for reverse proxy (e.g., "/blog")
+  // Deployment mode: "standalone" = direct domain access, "reverse_proxy" = accessed via shared deployment domain
+  deploymentMode: text("deployment_mode").notNull().default("standalone"),
+  // Visitor hostname for reverse_proxy mode - the domain visitors see (e.g., "vyfy.co.uk" when proxied to /blog)
+  // Used to identify which site to serve when Host header is the shared deployment domain
+  proxyVisitorHostname: text("proxy_visitor_hostname"),
   title: text("title").notNull(),
   logoUrl: text("logo_url"),
   logoTargetUrl: text("logo_target_url"), // Custom URL for logo click (null = homepage)
