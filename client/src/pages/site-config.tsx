@@ -45,6 +45,8 @@ export default function SiteConfig() {
     domain: "",
     domainAliases: [] as string[],
     basePath: "", // Optional path prefix for reverse proxy (e.g., "/blog")
+    deploymentMode: "standalone" as "standalone" | "reverse_proxy",
+    proxyVisitorHostname: "", // Visitor hostname for reverse_proxy mode
     title: "",
     logoUrl: "",
     logoTargetUrl: "", // Custom URL for logo click (empty = homepage)
@@ -175,6 +177,8 @@ export default function SiteConfig() {
         domain: site.domain,
         domainAliases: site.domainAliases || [],
         basePath: site.basePath || "",
+        deploymentMode: (site.deploymentMode as "standalone" | "reverse_proxy") || "standalone",
+        proxyVisitorHostname: site.proxyVisitorHostname || "",
         title: site.title,
         logoUrl: site.logoUrl || "",
         logoTargetUrl: site.logoTargetUrl || "",
@@ -756,6 +760,53 @@ export default function SiteConfig() {
                       </p>
                     )}
                   </div>
+
+                  <div className="space-y-3 md:col-span-2">
+                    <Label data-testid="label-deployment-mode">Deployment Mode</Label>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Choose how this site is accessed. Use "Standalone" for direct domain access (e.g., blog.example.com), 
+                      or "Reverse Proxy" when accessing via a shared deployment domain with visitor hostname identification.
+                    </p>
+                    <Select
+                      value={siteData.deploymentMode}
+                      onValueChange={(value: "standalone" | "reverse_proxy") => setSiteData({ ...siteData, deploymentMode: value })}
+                    >
+                      <SelectTrigger data-testid="select-deployment-mode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standalone">Standalone (direct domain)</SelectItem>
+                        <SelectItem value="reverse_proxy">Reverse Proxy (shared host)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {siteData.deploymentMode === "reverse_proxy" && (
+                    <div className="space-y-3 md:col-span-2">
+                      <Label htmlFor="proxyVisitorHostname" data-testid="label-proxy-visitor-hostname">Visitor Hostname</Label>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        The domain visitors use to access this site (e.g., vyfy.co.uk). When requests come through 
+                        the shared deployment domain with X-BV-Visitor-Host header matching this value, this site will be served.
+                      </p>
+                      <Input
+                        id="proxyVisitorHostname"
+                        data-testid="input-proxy-visitor-hostname"
+                        placeholder="vyfy.co.uk"
+                        value={siteData.proxyVisitorHostname}
+                        onChange={(e) => {
+                          let value = e.target.value.trim().toLowerCase();
+                          // Clean up the hostname (remove protocol, path, port)
+                          value = value.replace(/^(https?:)?\/\//, "").split("/")[0].split(":")[0];
+                          setSiteData({ ...siteData, proxyVisitorHostname: value });
+                        }}
+                      />
+                      {siteData.proxyVisitorHostname && (
+                        <p className="text-xs text-muted-foreground">
+                          Nginx config: <span className="font-mono text-primary">proxy_set_header X-BV-Visitor-Host {siteData.proxyVisitorHostname};</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
