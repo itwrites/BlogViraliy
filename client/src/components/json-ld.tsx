@@ -12,7 +12,8 @@ interface JsonLdProps {
 function getBaseUrl(site: Site): string {
   const protocol = "https";
   const basePath = site.basePath || "";
-  return `${protocol}://${site.domain}${basePath}`;
+  const hostname = site.domain || site.proxyVisitorHostname || "example.com";
+  return `${protocol}://${hostname}${basePath}`;
 }
 
 function getPostUrl(site: Site, post: Post): string {

@@ -125,7 +125,8 @@ export function SeoHead({ site, post, pagePath = "/" }: SeoHeadProps) {
     setMeta('name', 'twitter:card', ogImage ? 'summary_large_image' : 'summary');
     setMeta('name', 'twitter:title', title);
     setMeta('name', 'twitter:description', description);
-    setMeta('name', 'twitter:site', `@${site.domain.split('.')[0]}`);
+    const twitterHandle = (site.domain || site.proxyVisitorHostname || site.title || 'site').split('.')[0];
+    setMeta('name', 'twitter:site', `@${twitterHandle}`);
 
     if (ogImage) {
       setMeta('name', 'twitter:image', ogImage);
