@@ -229,12 +229,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     if (site) {
-      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, deploymentMode=${site.deploymentMode || 'standalone'}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
+      console.log(`[Domain Routing] Found site: ${site.domain || '(empty)'}, id=${site.id}, deploymentMode=${site.deploymentMode || 'standalone'}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
-      req.siteHostname = site.domain;  // Use site's primary domain for internal logic
+      req.siteHostname = site.domain || undefined;  // Use site's primary domain for internal logic (null -> undefined)
       req.siteVisitorHostname = visitorHostname;  // Save visitor hostname for URL generation and alias detection
-      req.sitePrimaryDomain = site.domain;  // Save the primary domain for alias detection
+      req.sitePrimaryDomain = site.domain || undefined;  // Save the primary domain for alias detection (null -> undefined)
       return next();
     }
 
@@ -1106,12 +1106,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/sites/:id", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
-      const site = await storage.updateSite(req.params.id, req.body);
+      // Convert empty domain string to null for reverse_proxy mode
+      const siteData = { ...req.body };
+      if (siteData.domain === "" || siteData.domain === undefined) {
+        siteData.domain = null;
+      }
+      
+      const site = await storage.updateSite(req.params.id, siteData);
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
       res.json(site);
     } catch (error) {
+      console.error("[updateSite] Error:", error);
       res.status(500).json({ error: "Failed to update site" });
     }
   });
