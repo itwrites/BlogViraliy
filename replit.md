@@ -25,6 +25,12 @@ The system employs a clean, modern UI with consistent spacing and professional d
     - **Primary Domains with basePath**: Root requests are 301 redirected to the basePath (e.g., `/` → `/blog/`).
     - This allows nginx to proxy paths directly (e.g., `vyfy.co.uk/blog/*` → Replit's `/blog/*`).
 - **Proxy-Safe API Prefix (/bv_api/)**: All API calls use `/bv_api/` prefix instead of `/api/` to avoid conflicts when deployed behind a reverse proxy alongside other applications (e.g., WordPress). The backend middleware rewrites `/bv_api/*` to `/api/*` internally. Nginx must be configured to forward `/bv_api/` requests to the Replit app.
+- **Proxy Mode Deployment**: Two deployment modes for flexible hosting:
+    - **Standalone Mode** (default): Direct domain access where the Host header matches the registered site domain.
+    - **Reverse Proxy Mode**: For deployments where multiple visitor domains share the same backend host (e.g., Replit's shared deployment domain). Uses `X-BV-Visitor-Host` header to identify the visitor's actual domain.
+    - **Configuration**: Each site has `deploymentMode` ('standalone' | 'reverse_proxy') and optional `proxyVisitorHostname` fields.
+    - **Lookup Flow**: When Host header is a known shared domain (replit.dev, replit.app, blogvirality.brandvirality.com), the middleware checks `X-BV-Visitor-Host` and performs a visitor hostname lookup using `getSiteByVisitorHostname()`.
+    - **Security**: Proxy mode lookup only activates for trusted shared deployment domains to prevent header spoofing attacks.
 - **Admin Dashboard**: Provides secure login, site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.
