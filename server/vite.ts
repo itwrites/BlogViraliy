@@ -45,6 +45,21 @@ function isPublicRoute(path: string): boolean {
   return !adminPaths.some(p => path.startsWith(p));
 }
 
+function getCacheControlHeader(routePath: string): string {
+  const isHomepage = routePath === "/" || routePath === "";
+  const isPostPage = routePath.startsWith("/post/") || (routePath.length > 1 && !routePath.startsWith("/tag/") && !routePath.startsWith("/topics/") && !routePath.startsWith("/search"));
+  const isTagArchive = routePath.startsWith("/tag/") || routePath.startsWith("/topics/");
+  
+  if (isHomepage) {
+    return "public, s-maxage=60, stale-while-revalidate=300";
+  } else if (isPostPage) {
+    return "public, s-maxage=300, stale-while-revalidate=600";
+  } else if (isTagArchive) {
+    return "public, s-maxage=120, stale-while-revalidate=300";
+  }
+  return "public, s-maxage=60, stale-while-revalidate=300";
+}
+
 function isReplitDefaultHost(domain: string): boolean {
   return domain.includes("replit.dev") || 
          domain.includes("replit.app") || 
@@ -817,9 +832,15 @@ export async function serveStatic(app: Express) {
           .replace(`<div id="root"></div>`, `<div id="root">${html}</div>`)
           .replace(`</head>`, `${seoTags}\n    ${ssrDataScript}\n  </head>`);
 
-        res.status(200).set({ "Content-Type": "text/html" }).end(page);
+        const cacheControl = getCacheControlHeader(routePath);
+        log(`[SSR-Prod] Cache-Control: ${cacheControl} for ${routePath}`, "ssr");
+        res.status(200).set({ 
+          "Content-Type": "text/html",
+          "Cache-Control": cacheControl,
+        }).end(page);
       } else {
         log(`[SSR-Prod] Skipping SSR: site=${!!site}, ssrRender=${!!ssrRender}, isPublic=${isPublicRoute(url)}`, "ssr");
+        res.set({ "Cache-Control": "no-cache" });
         res.sendFile(templatePath);
       }
     } catch (e) {
