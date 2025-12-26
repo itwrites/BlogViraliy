@@ -174,7 +174,7 @@ export default function SiteConfig() {
   useEffect(() => {
     if (site) {
       setSiteData({
-        domain: site.domain,
+        domain: site.domain || "",
         domainAliases: site.domainAliases || [],
         basePath: site.basePath || "",
         deploymentMode: (site.deploymentMode as "standalone" | "reverse_proxy") || "standalone",

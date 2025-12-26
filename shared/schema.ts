@@ -254,7 +254,7 @@ export const defaultTemplateSettings: TemplateSettings = {
 // Sites (multi-tenant websites)
 export const sites = pgTable("sites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  domain: text("domain").notNull().unique(),
+  domain: text("domain").unique(), // Nullable to support reverse_proxy mode without primary domain
   domainAliases: text("domain_aliases").array().notNull().default(sql`ARRAY[]::text[]`), // Additional domains that point to this site
   basePath: text("base_path").notNull().default(""), // Optional path prefix for reverse proxy (e.g., "/blog")
   // Deployment mode: "standalone" = direct domain access, "reverse_proxy" = accessed via shared deployment domain
@@ -730,6 +730,7 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
+  domain: z.string().nullish(), // Allow null/undefined for reverse_proxy mode
   siteType: z.enum(["blog", "news", "magazine", "novapress", "portfolio", "restaurant", "crypto"]),
   templateSettings: templateSettingsSchema.optional(),
   menuMode: menuModeEnum.optional().default("automatic"),
