@@ -166,9 +166,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     // Use siteDomain for database lookup (from Host header)
-    const site = await storage.getSiteByDomain(siteDomain);
+    let site = await storage.getSiteByDomain(siteDomain);
+    
+    // PROXY MODE: If no site found by domain AND we're on a Replit/shared host with X-BV-Visitor-Host,
+    // try looking up by visitor hostname (for sites in reverse_proxy deployment mode)
+    if (!site && isReplitDefaultHost && visitorHostname && visitorHostname !== siteDomain) {
+      console.log(`[Domain Routing] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`);
+      site = await storage.getSiteByVisitorHostname(visitorHostname);
+      if (site) {
+        console.log(`[Domain Routing] Found site via proxy mode: ${site.domain}, visitor=${visitorHostname}`);
+      }
+    }
+    
     if (site) {
-      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
+      console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, deploymentMode=${site.deploymentMode || 'standalone'}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
       req.siteHostname = site.domain;  // Use site's primary domain for internal logic

@@ -45,6 +45,29 @@ function isPublicRoute(path: string): boolean {
   return !adminPaths.some(p => path.startsWith(p));
 }
 
+function isReplitDefaultHost(domain: string): boolean {
+  return domain.includes("replit.dev") || 
+         domain.includes("replit.app") || 
+         domain === "blogvirality.brandvirality.com";
+}
+
+async function resolveSite(siteDomain: string, visitorHostname: string): Promise<Site | undefined> {
+  // First try to find site by the domain from Host header
+  let site = await storage.getSiteByDomain(siteDomain);
+  
+  // PROXY MODE: If no site found by domain AND we're on a Replit/shared host with different visitor hostname,
+  // try looking up by visitor hostname (for sites in reverse_proxy deployment mode)
+  if (!site && isReplitDefaultHost(siteDomain) && visitorHostname && visitorHostname !== siteDomain) {
+    log(`[SSR] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`, "ssr");
+    site = await storage.getSiteByVisitorHostname(visitorHostname);
+    if (site) {
+      log(`[SSR] Found site via proxy mode: ${site.domain}, visitor=${visitorHostname}`, "ssr");
+    }
+  }
+  
+  return site;
+}
+
 function getCanonicalPostRedirect(
   routePath: string,
   postUrlFormat: "with-prefix" | "root",
@@ -575,7 +598,7 @@ export async function setupVite(app: Express, server: Server) {
       const visitorHostname = resolveVisitorHostname(req);
       
       log(`[SSR-Dev] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}`, "ssr");
-      const site = await storage.getSiteByDomain(siteDomain);
+      const site = await resolveSite(siteDomain, visitorHostname);
       log(`[SSR-Dev] Site lookup: ${site ? `found (${site.id})` : 'not found'}`, "ssr");
       
       if (site && isPublicRoute(url)) {
@@ -663,7 +686,7 @@ export async function serveStatic(app: Express) {
       const visitorHostname = resolveVisitorHostname(req);
       
       log(`[SSR-Prod] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}, ssrRender=${!!ssrRender}`, "ssr");
-      const site = await storage.getSiteByDomain(siteDomain);
+      const site = await resolveSite(siteDomain, visitorHostname);
       log(`[SSR-Prod] Site lookup: ${site ? `found (${site.id})` : 'not found'}, isPublic=${isPublicRoute(url)}`, "ssr");
       
       if (site && ssrRender && isPublicRoute(url)) {
