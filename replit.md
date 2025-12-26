@@ -27,10 +27,13 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Proxy-Safe API Prefix (/bv_api/)**: All API calls use `/bv_api/` prefix instead of `/api/` to avoid conflicts when deployed behind a reverse proxy alongside other applications (e.g., WordPress). The backend middleware rewrites `/bv_api/*` to `/api/*` internally. Nginx must be configured to forward `/bv_api/` requests to the Replit app.
 - **Proxy Mode Deployment**: Two deployment modes for flexible hosting:
     - **Standalone Mode** (default): Direct domain access where the Host header matches the registered site domain.
-    - **Reverse Proxy Mode**: For deployments where multiple visitor domains share the same backend host (e.g., Replit's shared deployment domain). Uses `X-BV-Visitor-Host` header to identify the visitor's actual domain.
-    - **Configuration**: Each site has `deploymentMode` ('standalone' | 'reverse_proxy') and optional `proxyVisitorHostname` fields.
-    - **Lookup Flow**: When Host header is a known shared domain (replit.dev, replit.app, blogvirality.brandvirality.com), the middleware checks `X-BV-Visitor-Host` and performs a visitor hostname lookup using `getSiteByVisitorHostname()`.
-    - **Security**: Proxy mode lookup only activates for trusted shared deployment domains to prevent header spoofing attacks.
+    - **Reverse Proxy Mode**: For deployments where the primary domain can be left empty, and the site is identified by the `X-BV-Visitor-Host` header matching the `proxyVisitorHostname` field.
+    - **Configuration**: Each site has `deploymentMode` ('standalone' | 'reverse_proxy') and optional `proxyVisitorHostname` fields. In reverse_proxy mode, the primary domain can be empty.
+    - **Lookup Flow**: When the Host header is from a trusted source and no site is found by primary domain, the middleware checks `X-BV-Visitor-Host` and performs a visitor hostname lookup using `getSiteByVisitorHostname()`.
+    - **Trusted Hosts**: By default, Replit domains (*.replit.dev, *.replit.app) are trusted. Additional hosts can be configured via the `TRUSTED_PROXY_HOSTS` environment variable (comma-separated, supports wildcards like `*.mycompany.com`).
+    - **Proxy Authentication**: For additional security, set `PROXY_SECRET` environment variable. When set, requests must include `X-BV-Proxy-Secret` header with matching value to use visitor hostname lookup. Configure nginx to add: `proxy_set_header X-BV-Proxy-Secret your-secret-here;`
+    - **Security**: Proxy mode lookup only activates for trusted hosts AND valid proxy secret (if configured) to prevent header spoofing attacks.
+    - **Canonical URLs**: When primary domain is empty in reverse_proxy mode, canonical URLs use `proxyVisitorHostname` for proper SEO.
 - **Admin Dashboard**: Provides secure login, site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**:
     - **AI Generation**: Configurable per-site with custom prompts, keyword cycling, and scheduled content creation.

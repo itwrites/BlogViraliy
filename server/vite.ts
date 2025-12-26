@@ -51,18 +51,57 @@ function isReplitDefaultHost(domain: string): boolean {
          domain === "blogvirality.brandvirality.com";
 }
 
-async function resolveSite(siteDomain: string, visitorHostname: string): Promise<Site | undefined> {
+// Trusted proxy hosts that can use X-BV-Visitor-Host for site lookup
+// Format: comma-separated list of domains (supports wildcards with *)
+const TRUSTED_PROXY_HOSTS = (process.env.TRUSTED_PROXY_HOSTS || "").split(",").map(h => h.trim()).filter(Boolean);
+
+// Shared secret for authenticating reverse proxy requests
+const PROXY_SECRET = process.env.PROXY_SECRET || "";
+
+function isTrustedHost(host: string): boolean {
+  if (!host) return false;
+  
+  for (const trusted of TRUSTED_PROXY_HOSTS) {
+    if (trusted.startsWith("*")) {
+      // Wildcard match: *.example.com matches sub.example.com
+      const suffix = trusted.slice(1);
+      if (host.endsWith(suffix)) return true;
+    } else {
+      // Exact match
+      if (host === trusted) return true;
+    }
+  }
+  
+  return false;
+}
+
+function isAuthenticatedProxyRequest(proxySecretHeader: string | undefined): boolean {
+  // If no proxy secret is configured, don't require authentication
+  if (!PROXY_SECRET) return true;
+  return proxySecretHeader === PROXY_SECRET;
+}
+
+async function resolveSite(siteDomain: string, visitorHostname: string, proxySecretHeader?: string): Promise<Site | undefined> {
   // First try to find site by the domain from Host header
   let site = await storage.getSiteByDomain(siteDomain);
   
   // PROXY MODE: If no site found by domain, try looking up by visitor hostname
   // This supports reverse_proxy deployment mode where primary domain can be empty
   // and the site is identified by X-BV-Visitor-Host header (proxyVisitorHostname field)
-  if (!site && visitorHostname) {
-    log(`[SSR] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`, "ssr");
+  // SECURITY: Only honor this fallback when:
+  // 1. Host header is from a trusted source
+  // 2. Request is authenticated with PROXY_SECRET (if configured)
+  const isTrustedProxyHost = isReplitDefaultHost(siteDomain) || isTrustedHost(siteDomain);
+  const isAuthenticated = isAuthenticatedProxyRequest(proxySecretHeader);
+  if (!site && visitorHostname && isTrustedProxyHost && isAuthenticated) {
+    log(`[SSR] Trying proxy mode lookup by visitor hostname: ${visitorHostname} (trusted host: ${siteDomain}, authenticated: ${isAuthenticated})`, "ssr");
     site = await storage.getSiteByVisitorHostname(visitorHostname);
     if (site) {
       log(`[SSR] Found site via proxy mode: domain=${site.domain || '(empty)'}, proxyVisitorHostname=${site.proxyVisitorHostname}, visitor=${visitorHostname}`, "ssr");
+      // Security warning if no proxy secret is configured
+      if (!PROXY_SECRET) {
+        console.warn(`[SECURITY WARNING] Proxy mode lookup succeeded without PROXY_SECRET configured. Set PROXY_SECRET environment variable and configure nginx to send X-BV-Proxy-Secret header for secure proxy mode.`);
+      }
     }
   }
   
@@ -612,9 +651,11 @@ export async function setupVite(app: Express, server: Server) {
       const siteDomain = resolveSiteDomain(req);
       // Use resolveVisitorHostname for URL generation (prioritizes X-BV-Visitor-Host)
       const visitorHostname = resolveVisitorHostname(req);
+      // Get proxy secret for authentication
+      const proxySecret = req.headers["x-bv-proxy-secret"] as string | undefined;
       
       log(`[SSR-Dev] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}`, "ssr");
-      const site = await resolveSite(siteDomain, visitorHostname);
+      const site = await resolveSite(siteDomain, visitorHostname, proxySecret);
       log(`[SSR-Dev] Site lookup: ${site ? `found (${site.id})` : 'not found'}`, "ssr");
       
       if (site && isPublicRoute(url)) {
@@ -700,9 +741,11 @@ export async function serveStatic(app: Express) {
       const siteDomain = resolveSiteDomain(req);
       // Use resolveVisitorHostname for URL generation (prioritizes X-BV-Visitor-Host)
       const visitorHostname = resolveVisitorHostname(req);
+      // Get proxy secret for authentication
+      const proxySecret = req.headers["x-bv-proxy-secret"] as string | undefined;
       
       log(`[SSR-Prod] Request: siteDomain=${siteDomain}, visitorHostname=${visitorHostname}, url=${url}, ssrRender=${!!ssrRender}`, "ssr");
-      const site = await resolveSite(siteDomain, visitorHostname);
+      const site = await resolveSite(siteDomain, visitorHostname, proxySecret);
       log(`[SSR-Prod] Site lookup: ${site ? `found (${site.id})` : 'not found'}, isPublic=${isPublicRoute(url)}`, "ssr");
       
       if (site && ssrRender && isPublicRoute(url)) {

@@ -59,6 +59,42 @@ const viewTrackingLimiter = rateLimit({
 
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
+// Trusted proxy hosts that can use X-BV-Visitor-Host for site lookup
+// Format: comma-separated list of domains (supports wildcards with *)
+// Example: TRUSTED_PROXY_HOSTS=blog.vyfy.co.uk,proxy.example.com,*.mycompany.com
+const TRUSTED_PROXY_HOSTS = (process.env.TRUSTED_PROXY_HOSTS || "").split(",").map(h => h.trim()).filter(Boolean);
+
+// Shared secret for authenticating reverse proxy requests
+// When set, requests must include X-BV-Proxy-Secret header matching this value
+// to use the visitor hostname lookup fallback
+const PROXY_SECRET = process.env.PROXY_SECRET || "";
+
+function isTrustedHost(host: string): boolean {
+  if (!host) return false;
+  
+  for (const trusted of TRUSTED_PROXY_HOSTS) {
+    if (trusted.startsWith("*")) {
+      // Wildcard match: *.example.com matches sub.example.com
+      const suffix = trusted.slice(1); // Remove the *
+      if (host.endsWith(suffix)) return true;
+    } else {
+      // Exact match
+      if (host === trusted) return true;
+    }
+  }
+  
+  return false;
+}
+
+function isAuthenticatedProxyRequest(req: Request): boolean {
+  // If no proxy secret is configured, don't require authentication
+  // (backwards compatible, but less secure)
+  if (!PROXY_SECRET) return true;
+  
+  const proxySecret = req.headers["x-bv-proxy-secret"];
+  return proxySecret === PROXY_SECRET;
+}
+
 declare module "express-session" {
   interface SessionData {
     userId?: string;
@@ -171,12 +207,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // PROXY MODE: If no site found by domain, try looking up by visitor hostname
     // This supports reverse_proxy deployment mode where primary domain can be empty
     // and the site is identified by X-BV-Visitor-Host header (proxyVisitorHostname field)
-    if (!site && visitorHostname) {
-      console.log(`[Domain Routing] Trying proxy mode lookup by visitor hostname: ${visitorHostname}`);
+    // SECURITY: Only honor this fallback when:
+    // 1. Host header is from a trusted source (Replit domains or TRUSTED_PROXY_HOSTS)
+    // 2. Request is authenticated with PROXY_SECRET (if configured)
+    const isTrustedProxyHost = isReplitDefaultHost || isTrustedHost(siteDomain);
+    const isAuthenticated = isAuthenticatedProxyRequest(req);
+    if (!site && visitorHostname && isTrustedProxyHost && isAuthenticated) {
+      console.log(`[Domain Routing] Trying proxy mode lookup by visitor hostname: ${visitorHostname} (trusted host: ${siteDomain}, authenticated: ${isAuthenticated})`);
       site = await storage.getSiteByVisitorHostname(visitorHostname);
       if (site) {
         console.log(`[Domain Routing] Found site via proxy mode: domain=${site.domain || '(empty)'}, proxyVisitorHostname=${site.proxyVisitorHostname}, visitor=${visitorHostname}`);
+        // Security warning if no proxy secret is configured
+        if (!PROXY_SECRET) {
+          console.warn(`[SECURITY WARNING] Proxy mode lookup succeeded without PROXY_SECRET configured. Set PROXY_SECRET environment variable and configure nginx to send X-BV-Proxy-Secret header for secure proxy mode.`);
+        }
       }
+    } else if (!site && visitorHostname && !isTrustedProxyHost) {
+      console.log(`[Domain Routing] Skipping proxy mode lookup - host ${siteDomain} not in trusted list`);
+    } else if (!site && visitorHostname && isTrustedProxyHost && !isAuthenticated) {
+      console.log(`[Domain Routing] Skipping proxy mode lookup - proxy secret mismatch`);
     }
     
     if (site) {
