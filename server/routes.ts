@@ -69,7 +69,8 @@ declare module "express-session" {
 interface DomainRequest extends Request {
   siteId?: string;
   siteBasePath?: string;
-  siteHostname?: string;  // The hostname used to find this site (could be alias or primary)
+  siteHostname?: string;  // The site's primary domain (for internal logic)
+  siteVisitorHostname?: string;  // The visitor's actual hostname (for URL generation, alias detection)
   sitePrimaryDomain?: string;  // The site's primary domain (for alias detection)
 }
 
@@ -170,7 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Domain Routing] Found site: ${site.domain}, id=${site.id}, via siteDomain=${siteDomain}, visitorHostname=${visitorHostname}`);
       req.siteId = site.id;
       req.siteBasePath = normalizeBasePath(site.basePath);
-      req.siteHostname = visitorHostname;  // Save visitor hostname for URL generation
+      req.siteHostname = site.domain;  // Use site's primary domain for internal logic
+      req.siteVisitorHostname = visitorHostname;  // Save visitor hostname for URL generation and alias detection
       req.sitePrimaryDomain = site.domain;  // Save the primary domain for alias detection
       return next();
     }
@@ -191,11 +193,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // - Alias domains: No redirect needed (nginx proxies path directly, e.g., vyfy.co.uk/blog -> /blog)
   app.use((req: DomainRequest, res: Response, next: NextFunction) => {
     const basePath = req.siteBasePath;
-    const hostname = req.siteHostname;
-    const primaryDomain = req.sitePrimaryDomain;
+    const visitorHostname = req.siteVisitorHostname;  // Visitor's actual hostname (e.g., vyfy.co.uk)
+    const primaryDomain = req.sitePrimaryDomain;      // Site's registered domain (e.g., blog.vyfy.co.uk)
     
     // Skip if no basePath, no site found, or if it's an API/asset request
-    if (!basePath || basePath === "/" || !hostname || !primaryDomain) {
+    if (!basePath || basePath === "/" || !visitorHostname || !primaryDomain) {
       return next();
     }
     
@@ -206,13 +208,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
-    const isAliasDomain = hostname !== primaryDomain;
+    // Alias detection: visitor hostname differs from site's primary domain
+    // For vyfy.co.uk/blog/ -> blog.vyfy.co.uk, visitorHostname=vyfy.co.uk, primaryDomain=blog.vyfy.co.uk
+    const isAliasDomain = visitorHostname !== primaryDomain;
+    
+    console.log(`[Canonical Redirect Check] visitorHostname=${visitorHostname}, primaryDomain=${primaryDomain}, isAlias=${isAliasDomain}, path=${req.path}`);
     
     // Only redirect on primary domain: root -> basePath
     // Alias domains don't redirect - they serve content at whatever URL nginx proxies to
     if (!isAliasDomain && req.path === "/") {
       const redirectUrl = basePath + "/";
-      console.log(`[Canonical Redirect] Primary domain ${hostname}: root -> ${redirectUrl}`);
+      console.log(`[Canonical Redirect] Primary domain ${visitorHostname}: root -> ${redirectUrl}`);
       return res.redirect(301, redirectUrl);
     }
     
