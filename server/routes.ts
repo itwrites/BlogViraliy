@@ -1038,6 +1038,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === ADMIN WIKI ===
+
+  app.get("/api/admin/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { adminWikiData } = await import("@shared/admin-wiki");
+      res.json(adminWikiData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to load documentation" });
+    }
+  });
+
   // === SITES CRUD ===
 
   app.get("/api/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {

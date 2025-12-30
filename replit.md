@@ -93,6 +93,14 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Dynamic Sitemap**: Generates and caches `sitemap.xml` for each site, including posts and tag archives.
 - **Dynamic Robots.txt**: Auto-generates `robots.txt` per site with tenant-specific sitemap URLs. Admin/unknown domains receive `Disallow: /` to block crawling.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles, and site-specific permissions.
+- **Admin Documentation Wiki**: Private in-app documentation (`/admin/wiki`) explaining:
+    - System architecture and multi-domain routing
+    - Content Pack Strategies (5 packs + custom)
+    - All 17 Article Roles with purposes and JSON-LD schemas
+    - Topical Authority workflow (Pillars → Clusters → Articles)
+    - RSS automation and AI content generation
+    - Theme system and customization options
+    - SEO features and structured data
 - **SEO Implementation**: Includes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.
 - **Server-Side Rendering (SSR)**: Public pages (homepage, post pages, tag archives) are rendered server-side for improved SEO:
     - **Vite SSR Integration**: Uses Vite's built-in SSR capabilities without introducing additional frameworks

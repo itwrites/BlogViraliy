@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Globe, Users, LogOut, Settings, ChevronRight, LayoutGrid, FileText, Bot, Rss, PenLine, TrendingUp, Eye } from "lucide-react";
+import { Plus, Trash2, Globe, Users, LogOut, Settings, ChevronRight, LayoutGrid, FileText, Bot, Rss, PenLine, TrendingUp, Eye, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -171,6 +171,14 @@ export default function AdminDashboard() {
                   <span className="flex-1 text-left">Manage Users</span>
                 </button>
               )}
+              <button
+                onClick={() => setLocation("/admin/wiki")}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+                data-testid="nav-wiki"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="flex-1 text-left">Documentation</span>
+              </button>
             </div>
 
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">

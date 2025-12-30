@@ -11,6 +11,7 @@ import AdminLogin from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
+import AdminWiki from "@/pages/admin-wiki";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import EditorAnalytics from "@/pages/editor-analytics";
@@ -26,6 +27,7 @@ function AdminRouter() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={SiteConfig} />
       <Route path="/admin/users" component={UserManagement} />
+      <Route path="/admin/wiki" component={AdminWiki} />
       <Route path="/editor" component={EditorDashboard} />
       <Route path="/editor/sites/:id/posts" component={EditorPosts} />
       <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
