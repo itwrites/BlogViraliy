@@ -149,15 +149,24 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
       const isPillarRole = role === "pillar";
       
       if (isPillarRole) {
-        roleArticles.forEach((article) => {
+        const pillarCount = roleArticles.length;
+        roleArticles.forEach((article, idx) => {
+          let px = centerX;
+          let py = centerY;
+          if (pillarCount > 1) {
+            const pillarAngle = (idx / pillarCount) * 2 * Math.PI - Math.PI / 2;
+            const pillarRadius = 40;
+            px = centerX + Math.cos(pillarAngle) * pillarRadius;
+            py = centerY + Math.sin(pillarAngle) * pillarRadius;
+          }
           computedNodes.push({
             id: article.id,
             title: article.title,
             role: role,
             status: article.status,
-            x: centerX,
-            y: centerY,
-            radius: 30,
+            x: px,
+            y: py,
+            radius: 25,
             incomingLinks: incomingCount.get(article.id) || 0,
             outgoingLinks: outgoingCount.get(article.id) || 0,
           });
