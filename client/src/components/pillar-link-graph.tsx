@@ -140,9 +140,11 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
     });
 
     const computedNodes: GraphNode[] = [];
-    let currentAngle = -Math.PI / 2;
+    
+    const nonPillarRoles = sortedRoles.filter(r => r !== "pillar");
+    const numRoles = nonPillarRoles.length;
 
-    sortedRoles.forEach((role, roleIndex) => {
+    sortedRoles.forEach((role) => {
       const roleArticles = articlesByRole.get(role) || [];
       const isPillarRole = role === "pillar";
       
@@ -161,29 +163,77 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
           });
         });
       } else {
-        const tierRadius = 150 + (roleIndex * 15);
-        const angleStep = (2 * Math.PI) / Math.max(sortedRoles.length - 1, 1);
-        const roleAngle = currentAngle + (roleIndex * angleStep);
+        const roleIdx = nonPillarRoles.indexOf(role);
+        const baseAngle = -Math.PI / 2 + (roleIdx / numRoles) * 2 * Math.PI;
+        
+        const innerRadius = 120;
+        const radiusSpacing = 50;
+        const minNodeSpacing = 45;
         
         roleArticles.forEach((article, idx) => {
-          const spread = roleArticles.length > 1 ? (idx - (roleArticles.length - 1) / 2) * 0.15 : 0;
-          const angle = roleAngle + spread;
-          const dist = tierRadius + (idx % 2) * 30;
+          const ring = Math.floor(idx / 8);
+          const posInRing = idx % 8;
+          const ringRadius = innerRadius + ring * radiusSpacing;
+          
+          const articlesInRing = Math.min(8, roleArticles.length - ring * 8);
+          const angleSpread = Math.min(0.4, (articlesInRing * minNodeSpacing) / ringRadius);
+          const angleOffset = articlesInRing > 1 
+            ? (posInRing - (articlesInRing - 1) / 2) * (angleSpread / (articlesInRing - 1 || 1))
+            : 0;
+          
+          const angle = baseAngle + angleOffset;
+          const jitterX = (Math.random() - 0.5) * 10;
+          const jitterY = (Math.random() - 0.5) * 10;
           
           computedNodes.push({
             id: article.id,
             title: article.title,
             role: role,
             status: article.status,
-            x: centerX + Math.cos(angle) * dist,
-            y: centerY + Math.sin(angle) * dist,
-            radius: role === "whitepaper" || role === "framework" ? 20 : 15,
+            x: centerX + Math.cos(angle) * ringRadius + jitterX,
+            y: centerY + Math.sin(angle) * ringRadius + jitterY,
+            radius: role === "whitepaper" || role === "framework" ? 18 : 12,
             incomingLinks: incomingCount.get(article.id) || 0,
             outgoingLinks: outgoingCount.get(article.id) || 0,
           });
         });
       }
     });
+    
+    for (let iteration = 0; iteration < 30; iteration++) {
+      for (let i = 0; i < computedNodes.length; i++) {
+        const nodeA = computedNodes[i];
+        if (nodeA.role === "pillar") continue;
+        
+        for (let j = i + 1; j < computedNodes.length; j++) {
+          const nodeB = computedNodes[j];
+          if (nodeB.role === "pillar") continue;
+          
+          const dx = nodeB.x - nodeA.x;
+          const dy = nodeB.y - nodeA.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const minDist = nodeA.radius + nodeB.radius + 25;
+          
+          if (dist < minDist && dist > 0) {
+            const overlap = (minDist - dist) / 2;
+            const ux = dx / dist;
+            const uy = dy / dist;
+            
+            nodeA.x -= ux * overlap;
+            nodeA.y -= uy * overlap;
+            nodeB.x += ux * overlap;
+            nodeB.y += uy * overlap;
+          }
+        }
+        
+        const distFromCenter = Math.sqrt((nodeA.x - centerX) ** 2 + (nodeA.y - centerY) ** 2);
+        if (distFromCenter < 80) {
+          const angle = Math.atan2(nodeA.y - centerY, nodeA.x - centerX);
+          nodeA.x = centerX + Math.cos(angle) * 90;
+          nodeA.y = centerY + Math.sin(angle) * 90;
+        }
+      }
+    }
 
     const roleConnections: Record<string, number> = {};
     computedEdges.forEach((edge) => {
