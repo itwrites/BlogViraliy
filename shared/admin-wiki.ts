@@ -231,34 +231,51 @@ export default {
           content: `**nginx.conf configuration:**
 
 \`\`\`nginx
-# Blog pages
+# Define upstream server once for consistency
+set $backend "blogvirality.brandvirality.com";
+
+# Blog pages (SSR content)
 location /blog {
-    proxy_pass https://blogvirality.brandvirality.com;
-    proxy_set_header Host blogvirality.brandvirality.com;
+    resolver 8.8.8.8 ipv6=off valid=300s;
+    proxy_pass https://$backend;
+    proxy_set_header Host $backend;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-BV-Visitor-Host $host;
     proxy_set_header X-BV-Proxy-Secret "your-secret-here";
     proxy_ssl_server_name on;
+    proxy_ssl_name $backend;
+    proxy_ssl_protocols TLSv1.2 TLSv1.3;
+    proxy_ssl_verify off;
 }
 
 # API endpoints (required for SPA navigation)
-location /bv_api {
-    proxy_pass https://blogvirality.brandvirality.com;
-    proxy_set_header Host blogvirality.brandvirality.com;
+location /bv_api/ {
+    resolver 8.8.8.8 ipv6=off valid=300s;
+    proxy_pass https://$backend/bv_api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $backend;
+    proxy_set_header X-BV-Visitor-Host yourdomain.com;
+    proxy_set_header X-BV-Proxy-Secret "your-secret-here";
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-BV-Visitor-Host $host;
-    proxy_set_header X-BV-Proxy-Secret "your-secret-here";
+    proxy_set_header X-Forwarded-Proto https;
     proxy_ssl_server_name on;
+    proxy_ssl_name $backend;
+    proxy_ssl_protocols TLSv1.2 TLSv1.3;
+    proxy_ssl_verify off;
 }
 \`\`\`
 
-**Important:**
-- \`proxy_ssl_server_name on\` is required for HTTPS upstream
-- Both \`/blog\` and \`/bv_api\` locations must be configured`,
+**Important Configuration Notes:**
+- Use a \`$backend\` variable to ensure consistency between both location blocks
+- \`resolver 8.8.8.8\` is required for nginx to resolve the upstream domain dynamically
+- \`proxy_ssl_server_name on\` enables SNI for proper HTTPS routing
+- \`proxy_ssl_name $backend\` ensures the SSL certificate matches the upstream
+- \`proxy_http_version 1.1\` in the API block helps with connection handling
+- Replace \`yourdomain.com\` with your actual visitor domain in the X-BV-Visitor-Host header
+- Both \`/blog\` and \`/bv_api/\` locations must use the SAME upstream server`,
         },
         {
           id: "troubleshooting",
