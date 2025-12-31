@@ -1,0 +1,178 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# ========================
+# Blog & API Proxies
+# ========================
+[[redirects]]
+  from = "/blog/*"
+  to = "https://blogvirality.brandvirality.com/:splat"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "brandvirality.com"
+    X-Original-Host = "brandvirality.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "gfj8sjJS483*34224sabV32"
+    X-BV-Visitor-Host = "brandvirality.com"
+
+[[redirects]]
+  from = "/blog"
+  to = "https://blogvirality.brandvirality.com/"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "brandvirality.com"
+    X-Original-Host = "brandvirality.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "gfj8sjJS483*34224sabV32"
+    X-BV-Visitor-Host = "brandvirality.com"
+
+[[redirects]]
+  from = "/bv_api/*"
+  to = "https://blogvirality.brandvirality.com/bv_api/:splat"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "brandvirality.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "gfj8sjJS483*34224sabV32"
+
+# ========================
+# SPA / Local Routes
+# ========================
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/lite"
+  to = "/bevisible"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/bevisible"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/success"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/contact"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/thank-you"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/manage"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/manage/verify"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/privacy"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/terms"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/testimonials/myserenify"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/signature-package"
+  to = "/"
+  status = 301
+  force = true
+
+# ========================
+# Supabase Proxies
+# ========================
+[[redirects]]
+  from = "/ads.txt"
+  to = "https://xtivlqmzdrtchvnfmsas.supabase.co/functions/v1/ads?domain=brandvirality.com"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/manifest.json"
+  to = "https://xtivlqmzdrtchvnfmsas.supabase.co/functions/v1/manifest?domain=brandvirality.com"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/favicon.ico"
+  to = "https://xtivlqmzdrtchvnfmsas.supabase.co/functions/v1/favicon?domain=brandvirality.com"
+  status = 200
+  force = true
+
+
+[[redirects]]
+  from = "/sitemap1.xml"
+  to = "https://xtivlqmzdrtchvnfmsas.supabase.co/functions/v1/sitemap1?domain=brandvirality.com"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap2.xml"
+  to = "https://xtivlqmzdrtchvnfmsas.supabase.co/functions/v1/sitemap2?domain=brandvirality.com"
+  status = 200
+  force = true
+
+# ========================
+# Misc Redirects
+# ========================
+[[redirects]]
+  from = "/sales-form"
+  to = "https://webapp.brandvirality.com/sales-form"
+  status = 301
+  force = true
+
+
+
+# ========================
+# Catch-all Proxies
+# ========================
+[[redirects]]
+  from = "/octo-assets/*"
+  to = "https://octonewsapp.netlify.app/octo-assets/:splat"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/*"
+  to = "https://octonewsapp.netlify.app/brandvirality.com"
+  status = 200
+  force = false

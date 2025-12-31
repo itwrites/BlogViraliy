@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Meditation Generator | MySerenify</title>
+    <meta name="description" content="Experience our AI meditation generator with premium AI meditation voice options. Create personalized AI meditation scripts that adapt to your emotional state. Use any voice" />
+    <meta property="og:title" content="AI Meditation Generator | MySerenify" />
+    <meta property="og:description" content="Experience our AI meditation generator with premium AI meditation voice options. Create personalized AI meditation scripts that adapt to your emotional state." />
+    <meta property="og:url" content="https://myserenify.com" />
+    <meta name="keywords" content="AI meditation generator, AI meditation voice, AI meditation generator free, AI meditation app, AI meditation music generator free, AI meditation script, Vital AI meditation, AI meditation videos" />
+    <link rel="manifest" href="https://cdn2.myserenify.com/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quattrocento:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Quattrocento:wght@700&display=swap">
+    <link rel="preload" as="script" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgeyBCcm93c2VyUm91dGVyIH0gZnJvbSAncmVhY3Qtcm91dGVyLWRvbSc7CmltcG9ydCB7IEhlbG1ldFByb3ZpZGVyIH0gZnJvbSAncmVhY3QtaGVsbWV0LWFzeW5jJzsKaW1wb3J0ICogYXMgU2VudHJ5IGZyb20gIkBzZW50cnkvcmVhY3QiOwppbXBvcnQgeyBCcm93c2VyVHJhY2luZywgUmVwbGF5IH0gZnJvbSAiQHNlbnRyeS9yZWFjdCI7CmltcG9ydCB7IFRoZW1lUHJvdmlkZXIgfSBmcm9tICcuL2hvb2tzL3VzZVRoZW1lJzsKaW1wb3J0IHsgQXV0aFByb3ZpZGVyIH0gZnJvbSAnLi9ob29rcy91c2VBdXRoJzsKaW1wb3J0IHsgTWVtYmVyc2hpcFByb3ZpZGVyIH0gZnJvbSAnLi9ob29rcy91c2VNZW1iZXJzaGlwJzsKaW1wb3J0IHsgaW5pdGlhbGl6ZVJlbW90ZUNvbmZpZyB9IGZyb20gJy4vbGliL3JlbW90ZUNvbmZpZyc7CmltcG9ydCB7IGluaXRpYWxpemVBbmFseXRpY3MgfSBmcm9tICcuL2xpYi9hbmFseXRpY3MvaW5kZXgnOwppbXBvcnQgeyBpbml0aWFsaXplR0E0IH0gZnJvbSAnLi9saWIvYW5hbHl0aWNzL2dvb2dsZSc7CmltcG9ydCAnLi9pMThuJzsgLy8gSW1wb3J0IGkxOG4gY29uZmlndXJhdGlvbgppbXBvcnQgQXBwIGZyb20gJy4vQXBwLnRzeCc7CmltcG9ydCAnLi9pbmRleC5jc3MnOwoKLy8gSW5pdGlhbGl6ZSBSZW1vdGUgQ29uZmlnCmluaXRpYWxpemVSZW1vdGVDb25maWcoKS5jYXRjaChjb25zb2xlLmVycm9yKTsKCi8vIEluaXRpYWxpemUgQW5hbHl0aWNzCmluaXRpYWxpemVBbmFseXRpY3MoKTsKaW5pdGlhbGl6ZUdBNCgpOwoKZnVuY3Rpb24gRXJyb3JGYWxsYmFjayh7IGVycm9yIH06IHsgZXJyb3I6IEVycm9yIH0pIHsKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9Im1pbi1oLXNjcmVlbiBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBiZy1ncmF5LTUwIGRhcms6YmctZ3JheS05MDAgcC00Ij4KICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIGRhcms6YmctZ3JheS04MDAgcm91bmRlZC1sZyBzaGFkb3ctc20gcC02IG1heC13LWxnIHctZnVsbCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIG1iLTQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InctMTAgaC0xMCBiZy1yZWQtMTAwIGRhcms6YmctcmVkLTkwMC8zMCByb3VuZGVkLWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiPgogICAgICAgICAgICA8c3ZnIGNsYXNzTmFtZT0idy01IGgtNSB0ZXh0LXJlZC02MDAgZGFyazp0ZXh0LXJlZC00MDAiIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiPgogICAgICAgICAgICAgIDxwYXRoIHN0cm9rZUxpbmVjYXA9InJvdW5kIiBzdHJva2VMaW5lam9pbj0icm91bmQiIHN0cm9rZVdpZHRoPXsyfSBkPSJNMTIgOXYybTAgNGguMDFtLTYuOTM4IDRoMTMuODU2YzEuNTQgMCAyLjUwMi0xLjY2NyAxLjczMi0zTDEzLjczMiA0Yy0uNzctMS4zMzMtMi42OTQtMS4zMzMtMy40NjQgMEwzLjM0IDE2Yy0uNzcgMS4zMzMuMTkyIDMgMS43MzIgM3oiIC8+CiAgICAgICAgICAgIDwvc3ZnPgogICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtbWVkaXVtIHRleHQtZ3JheS05MDAgZGFyazp0ZXh0LXdoaXRlIj4KICAgICAgICAgICAgICBTb21ldGhpbmcgd2VudCB3cm9uZwogICAgICAgICAgICA8L2gyPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDAiPgogICAgICAgICAgICAgIHtlcnJvci5tZXNzYWdlfQogICAgICAgICAgICA8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgICA8YnV0dG9uCiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB3aW5kb3cubG9jYXRpb24ucmVsb2FkKCl9CiAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBweC00IHB5LTIgYmctaW5kaWdvLTYwMCB0ZXh0LXdoaXRlIHJvdW5kZWQtbGcgaG92ZXI6YmctaW5kaWdvLTcwMCB0cmFuc2l0aW9uLWNvbG9ycyIKICAgICAgICA+CiAgICAgICAgICBUcnkgYWdhaW4KICAgICAgICA8L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KICApOwp9CgpTZW50cnkuaW5pdCh7CiAgZHNuOiBpbXBvcnQubWV0YS5lbnYuVklURV9TRU5UUllfRFNOLAogIGludGVncmF0aW9uczogWwogICAgbmV3IEJyb3dzZXJUcmFjaW5nKHsKICAgICAgdHJhY2VQcm9wYWdhdGlvblRhcmdldHM6IFsibG9jYWxob3N0IiwgIm15c2VyZW5pZnkuY29tIl0sCiAgICB9KSwKICAgIG5ldyBSZXBsYXkoewogICAgICBtYXNrQWxsVGV4dDogdHJ1ZSwKICAgICAgYmxvY2tBbGxNZWRpYTogdHJ1ZSwKICAgIH0pLAogIF0sCiAgLy8gUGVyZm9ybWFuY2UgTW9uaXRvcmluZwogIHRyYWNlc1NhbXBsZVJhdGU6IDEuMCwKICAvLyBTZXNzaW9uIFJlcGxheQogIHJlcGxheXNTZXNzaW9uU2FtcGxlUmF0ZTogMC4xLAogIHJlcGxheXNPbkVycm9yU2FtcGxlUmF0ZTogMS4wLAogIGVudmlyb25tZW50OiBpbXBvcnQubWV0YS5lbnYuTU9ERSwKICAvLyBIb29rIGVycm9yIGhhbmRsaW5nCiAgZW5hYmxlSW5FeHBlY3RlZEVycm9yczogdHJ1ZSwKICBhdHRhY2hTdGFja3RyYWNlOiB0cnVlCn0pOwoKY29uc3QgU2VudHJ5Um91dGVzID0gU2VudHJ5LndpdGhTZW50cnlSZWFjdFJvdXRlclY2Um91dGluZyhCcm93c2VyUm91dGVyKTsKCi8vIENyZWF0ZSBhIHByb2ZpbGVkIGFwcCBjb21wb25lbnQKY29uc3QgUHJvZmlsZWRBcHAgPSBTZW50cnkud2l0aFByb2ZpbGVyKEFwcCk7CgpjcmVhdGVSb290KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyb290JykhKS5yZW5kZXIoCiAgPFJlYWN0LlN0cmljdE1vZGU+CiAgICA8U2VudHJ5LkVycm9yQm91bmRhcnkgZmFsbGJhY2s9e0Vycm9yRmFsbGJhY2t9PgogICAgICA8SGVsbWV0UHJvdmlkZXI+CiAgICAgICAgPFRoZW1lUHJvdmlkZXI+CiAgICAgICAgICA8QXV0aFByb3ZpZGVyPgogICAgICAgICAgICA8TWVtYmVyc2hpcFByb3ZpZGVyPgogICAgICAgICAgICAgIDxTZW50cnlSb3V0ZXM+CiAgICAgICAgICAgICAgICA8UHJvZmlsZWRBcHAgLz4KICAgICAgICAgICAgICA8L1NlbnRyeVJvdXRlcz4KICAgICAgICAgICAgPC9NZW1iZXJzaGlwUHJvdmlkZXI+CiAgICAgICAgICA8L0F1dGhQcm92aWRlcj4KICAgICAgICA8L1RoZW1lUHJvdmlkZXI+CiAgICAgIDwvSGVsbWV0UHJvdmlkZXI+CiAgICA8L1NlbnRyeS5FcnJvckJvdW5kYXJ5PgogIDwvUmVhY3QuU3RyaWN0TW9kZT4KKTs=" type="module">
+    
+    <!-- DNS prefetch -->
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://storage.googleapis.com">
+    
+    <!-- Structured Data for Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "MySerenify AI Meditation Generator",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "AI meditation generator with premium voice options. Create personalized meditation scripts that adapt to your emotional state."
+    }
+    </script>
+
+    <!-- FAQ Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is an AI meditation generator?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An AI meditation generator uses artificial intelligence to create personalized meditation scripts and audio that adapt to your specific emotional needs, preferences, and goals. MySerenify's AI meditation app offers premium AI meditation voice options and customizable soundscapes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a free AI meditation generator?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, MySerenify offers a free AI meditation generator that allows you to create one personalized meditation per month. Our free tier includes basic AI meditation voices and soundscapes to help you start your mindfulness journey."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does an AI meditation voice work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI meditation voices use advanced text-to-speech technology to convert meditation scripts into natural-sounding audio. MySerenify offers a variety of AI meditation voices with different tones, accents, and styles to create a more personalized and immersive meditation experience."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I create my own AI meditation script?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, MySerenify allows you to create custom AI meditation scripts. You can either start from scratch by describing your needs to our AI, or modify existing templates. The AI will generate a personalized script that addresses your specific emotional state and goals."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Organization Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "MySerenify",
+      "url": "https://myserenify.com",
+      "logo": "https://myserenify.com/logo.png",
+      "sameAs": [
+        "https://twitter.com/myserenify",
+        "https://facebook.com/myserenify",
+        "https://instagram.com/myserenify"
+      ],
+      "description": "MySerenify offers AI-powered meditation tools including an AI meditation generator, premium AI meditation voices, and personalized meditation scripts."
+    }
+    </script>
+    
+    <style>
+      #loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f9fafb;
+        transition: opacity 0.3s ease-out;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #loader {
+          background-color: #111827;
+        }
+        #loader .logo-text {
+          color: #fff;
+        }
+        #loader .face-bg {
+          fill: rgba(79, 70, 229, 0.3);
+        }
+        #loader .face-glow {
+          fill: rgba(99, 102, 241, 0.2);
+        }
+        #loader .face-stroke {
+          stroke: #818cf8;
+        }
+      }
+
+      #loader.fade-out {
+        opacity: 0;
+      }
+
+      #loader .logo-container {
+        text-align: center;
+      }
+
+      #loader .logo-svg {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 1rem;
+      }
+
+      #loader .logo-text {
+        font-family: 'Quattrocento', serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #111827;
+        letter-spacing: -0.02em;
+      }
+
+      #loader .face-bg {
+        fill: rgba(224, 231, 255, 0.6);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+
+      #loader .face-glow {
+        fill: rgba(199, 210, 254, 0.8);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        animation-delay: 0.5s;
+      }
+
+      #loader .face-stroke {
+        stroke: #6366f1;
+        stroke-width: 12;
+        stroke-linecap: round;
+      }
+
+      #loader .face-eye {
+        animation: blink 4s ease-in-out infinite;
+      }
+
+      #loader .face-smile {
+        animation: smile 4s ease-in-out infinite;
+      }
+
+      #loader .particle {
+        fill: #6366f1;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      #loader .particle:nth-child(2) {
+        animation-delay: 0.5s;
+      }
+
+      #loader .particle:nth-child(3) {
+        animation-delay: 1s;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+
+      @keyframes blink {
+        0%, 100% {
+          d: path('M150 160 Q160 180 170 160');
+        }
+        50% {
+          d: path('M150 170 Q160 170 170 170');
+        }
+      }
+
+      @keyframes smile {
+        0%, 100% {
+          d: path('M150 240 Q200 280 250 240');
+        }
+        50% {
+          d: path('M150 250 Q200 290 250 250');
+        }
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+    </style>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7VB3KFMW7L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date()); 
+      gtag('config', 'G-7VB3KFMW7L');
+    </script>
+    <script type="module" crossorigin src="https://cdn2.myserenify.com/assets/index-Cs10-weZ.js"></script>
+    <link rel="modulepreload" crossorigin href="https://cdn2.myserenify.com/assets/vendor-core-BLDWMpvC.js">
+    <link rel="modulepreload" crossorigin href="https://cdn2.myserenify.com/assets/vendor-ui-Dm2XwFlv.js">
+    <link rel="modulepreload" crossorigin href="https://cdn2.myserenify.com/assets/vendor-firebase-B9inAk-z.js">
+    <link rel="stylesheet" crossorigin href="https://cdn2.myserenify.com/assets/index-DQKoE8eN.css">
+  </head>
+  <body>
+    <div id="loader">
+      <div class="logo-container">
+        <svg class="logo-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background circle -->
+          <circle cx="200" cy="200" r="180" class="face-bg">
+            <animate attributeName="r" values="175;185;175" dur="4s" repeatCount="indefinite" />
+          </circle>
+
+          <!-- Glow effect -->
+          <circle cx="200" cy="200" r="190" class="face-glow" opacity="0.5">
+            <animate attributeName="r" values="185;195;185" dur="4s" repeatCount="indefinite" />
+          </circle>
+
+          <!-- Face -->
+          <g class="face-stroke">
+            <!-- Left eye -->
+            <path d="M150 160 Q160 180 170 160" class="face-eye">
+              <animate attributeName="d" values="M150 160 Q160 180 170 160;M150 170 Q160 170 170 170;M150 160 Q160 180 170 160" dur="4s" repeatCount="indefinite" />
+            </path>
+
+            <!-- Right eye -->
+            <path d="M230 160 Q240 180 250 160" class="face-eye">
+              <animate attributeName="d" values="M230 160 Q240 180 250 160;M230 170 Q240 170 250 170;M230 160 Q240 180 250 160" dur="4s" repeatCount="indefinite" />
+            </path>
+
+            <!-- Smile -->
+            <path d="M150 240 Q200 280 250 240" class="face-smile">
+              <animate attributeName="d" values="M150 240 Q200 280 250 240;M150 250 Q200 290 250 250;M150 240 Q200 280 250 240" dur="4s" repeatCount="indefinite" />
+            </path>
+          </g>
+
+          <!-- Floating particles -->
+          <g>
+            <circle cx="120" cy="150" r="4" class="particle">
+              <animate attributeName="cy" values="150;140;150" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="280" cy="150" r="4" class="particle">
+              <animate attributeName="cy" values="150;160;150" dur="2.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="200" cy="100" r="4" class="particle">
+              <animate attributeName="cy" values="100;90;100" dur="3.5s" repeatCount="indefinite" />
+            </circle>
+          </g>
+        </svg>
+        <div class="logo-text">myserenify</div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script>
+      // Remove loader once React is mounted
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+          loader.classList.add('fade-out');
+          setTimeout(() => {
+            loader.remove();
+          }, 300);
+        }
+      });
+    </script>
+  </body>
+</html>
