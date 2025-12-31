@@ -68,8 +68,8 @@ Provide the response in JSON format with the following structure:
   const result = JSON.parse(response.choices[0].message.content || "{}");
   const title = result.title || `Post about ${keyword}`;
   
-  // Fetch image from Pexels
-  const imageUrl = await searchPexelsImage(keyword);
+  // Fetch image from Pexels with title as fallback for variety
+  const imageUrl = await searchPexelsImage(keyword, [title]);
   
   return {
     title,
@@ -126,8 +126,8 @@ Provide the response in JSON format with the following structure:
   const result = JSON.parse(response.choices[0].message.content || "{}");
   const title = result.title || originalTitle;
   
-  // Fetch image from Pexels using title keywords
-  const imageUrl = await searchPexelsImage(title);
+  // Fetch image from Pexels using title with original title as fallback
+  const imageUrl = await searchPexelsImage(title, [originalTitle]);
   
   return {
     title,
@@ -150,8 +150,8 @@ export async function generateFromPrompt(prompt: string, keyword: string): Promi
   const result = JSON.parse(response.choices[0].message.content || "{}");
   const title = result.title || `Article about ${keyword}`;
   
-  // Fetch image from Pexels using title keywords
-  const imageUrl = await searchPexelsImage(keyword);
+  // Fetch image from Pexels with title as fallback for variety
+  const imageUrl = await searchPexelsImage(keyword, [title]);
   
   return {
     title,

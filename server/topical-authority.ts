@@ -337,8 +337,14 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
     // Generate content
     const generated = await generatePillarArticleContent(article, pillar, siblingArticles, parentArticle);
 
-    // Fetch image
-    const imageUrl = await searchPexelsImage(article.keywords[0] || article.title);
+    // Fetch image with fallback queries for variety
+    // Use all keywords and title as fallback options
+    const fallbackQueries = [
+      ...article.keywords.slice(1), // Additional keywords after the first
+      article.title,
+      pillar.name, // Pillar name as final fallback
+    ].filter(Boolean);
+    const imageUrl = await searchPexelsImage(article.keywords[0] || article.title, fallbackQueries);
 
     // Get default author for this site
     const defaultAuthor = await storage.getDefaultAuthor(pillar.siteId);
