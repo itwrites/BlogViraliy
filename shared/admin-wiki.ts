@@ -15,7 +15,7 @@ export interface WikiData {
 export const adminWikiData: WikiData = {
   title: "Blog Virality Documentation",
   description: "Complete guide to the Blog Virality multi-tenant content management system",
-  lastUpdated: "2024-12-30",
+  lastUpdated: "2024-12-31",
   sections: [
     {
       id: "overview",
@@ -47,6 +47,255 @@ export const adminWikiData: WikiData = {
 **Domain Aliases:** Multiple URLs can point to the same site content.
 
 **Base Path Support:** Sites can run under a subdirectory (e.g., /blog) with automatic URL normalization.`,
+    },
+    {
+      id: "reverse-proxy",
+      title: "Reverse Proxy Configuration",
+      content: `When deploying Blog Virality behind a reverse proxy (Cloudflare, Netlify, nginx, etc.), you must configure specific headers and ensure both the blog pages and API endpoints are proxied correctly.`,
+      subsections: [
+        {
+          id: "required-headers",
+          title: "Required Headers",
+          content: `**Essential Headers:**
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| \`X-BV-Visitor-Host\` | Identifies the visitor's domain for site lookup | \`mysite.com\` |
+| \`X-BV-Proxy-Secret\` | Security token (must match server config) | Your secret key |
+| \`X-Real-IP\` | Original client IP address | \`203.0.113.50\` |
+| \`X-Forwarded-For\` | IP chain through proxies | \`203.0.113.50, 10.0.0.1\` |
+
+**Important Notes:**
+- \`X-BV-Visitor-Host\` is the domain the visitor sees in their browser (e.g., \`mysite.com\`), NOT the Blog Virality server domain
+- The proxy secret must match the \`PROXY_SECRET\` environment variable on the server
+
+**Host Header Handling (varies by platform):**
+- **Cloudflare Workers:** Delete the Host header - it's automatically set by fetch() based on the target URL
+- **Netlify/nginx:** Set Host to the upstream server (e.g., \`blogvirality.brandvirality.com\`) - this is required for proper routing`,
+        },
+        {
+          id: "proxy-routes",
+          title: "Required Routes",
+          content: `**Critical:** You must proxy BOTH the blog pages AND the API endpoints.
+
+**Routes to proxy:**
+- \`/blog\` and \`/blog/*\` - Blog pages (SSR content)
+- \`/bv_api\` and \`/bv_api/*\` - API endpoints (JSON data)
+
+**Why both are required:**
+1. Initial page loads use SSR (rendered on Blog Virality server)
+2. Client-side navigation (clicking links) makes API calls to \`/bv_api/*\`
+3. If only \`/blog/*\` is proxied, clicking links within the blog will fail
+
+**Common Issue:** Homepage loads but clicking posts shows "Post not found"
+- This happens when \`/bv_api\` routes aren't proxied
+- The SPA makes API calls that return your main site's HTML instead of JSON`,
+        },
+        {
+          id: "cloudflare-worker",
+          title: "Cloudflare Worker Example",
+          content: `**Complete Cloudflare Worker configuration:**
+
+\`\`\`javascript
+const ORIGIN_HOST = "blogvirality.brandvirality.com";
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    // Check if path should be proxied
+    const isBlog =
+      url.pathname === "/blog" || url.pathname.startsWith("/blog/");
+    const isApi =
+      url.pathname === "/bv_api" || url.pathname.startsWith("/bv_api/");
+
+    if (!isBlog && !isApi) {
+      return fetch(request);
+    }
+
+    // Build target URL
+    const target = new URL(request.url);
+    target.protocol = "https:";
+    target.hostname = ORIGIN_HOST;
+
+    const headers = new Headers(request.headers);
+    
+    // IMPORTANT: Never set Host manually in Workers - delete it
+    headers.delete("host");
+
+    // Required Blog Virality headers
+    headers.set("X-BV-Visitor-Host", url.hostname);
+    headers.set(
+      "X-BV-Proxy-Secret",
+      env?.BV_PROXY_SECRET || "your-secret-here"
+    );
+
+    // IP forwarding (equivalent to nginx proxy_set_header)
+    const clientIp =
+      request.headers.get("CF-Connecting-IP") ||
+      request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim();
+
+    if (clientIp) {
+      headers.set("X-Real-IP", clientIp);
+    }
+
+    // Preserve/extend X-Forwarded-For chain
+    const existingXff = request.headers.get("X-Forwarded-For");
+    headers.set(
+      "X-Forwarded-For",
+      existingXff ? \`\${existingXff}, \${clientIp}\` : clientIp
+    );
+
+    return fetch(target.toString(), {
+      method: request.method,
+      headers,
+      body:
+        request.method !== "GET" && request.method !== "HEAD"
+          ? request.body
+          : undefined,
+      redirect: "manual",
+      // Disable Cloudflare caching for dynamic content
+      cf: { cacheTtl: 0, cacheEverything: false },
+    });
+  },
+};
+\`\`\`
+
+**Critical Cloudflare Setup:**
+
+1. **Worker Routes (Triggers)** - In Cloudflare Dashboard:
+   - Go to Workers & Pages > Your Worker > Settings > Triggers
+   - Add route: \`yourdomain.com/blog*\`
+   - Add route: \`yourdomain.com/bv_api*\`
+   
+   Without BOTH routes, the worker code won't execute for API calls!
+
+2. **Environment Variables:**
+   - Add \`BV_PROXY_SECRET\` in Worker settings for security`,
+        },
+        {
+          id: "netlify-config",
+          title: "Netlify Configuration Example",
+          content: `**netlify.toml configuration:**
+
+\`\`\`toml
+# Blog pages proxy
+[[redirects]]
+  from = "/blog/*"
+  to = "https://blogvirality.brandvirality.com/blog/:splat"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "yourdomain.com"
+    X-Original-Host = "yourdomain.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "your-secret-here"
+    X-BV-Visitor-Host = "yourdomain.com"
+
+# Blog root (without trailing content)
+[[redirects]]
+  from = "/blog"
+  to = "https://blogvirality.brandvirality.com/blog/"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "yourdomain.com"
+    X-Original-Host = "yourdomain.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "your-secret-here"
+    X-BV-Visitor-Host = "yourdomain.com"
+
+# API proxy (required for SPA navigation)
+[[redirects]]
+  from = "/bv_api/*"
+  to = "https://blogvirality.brandvirality.com/bv_api/:splat"
+  status = 200
+  force = true
+  [redirects.headers]
+    Host = "blogvirality.brandvirality.com"
+    X-Forwarded-Host = "yourdomain.com"
+    X-Forwarded-Proto = "https"
+    X-BV-Proxy-Secret = "your-secret-here"
+\`\`\`
+
+**Notes:**
+- Replace \`yourdomain.com\` with your actual domain
+- Replace \`your-secret-here\` with your proxy secret
+- The \`:splat\` captures the path after the prefix`,
+        },
+        {
+          id: "nginx-config",
+          title: "Nginx Configuration Example",
+          content: `**nginx.conf configuration:**
+
+\`\`\`nginx
+# Blog pages
+location /blog {
+    proxy_pass https://blogvirality.brandvirality.com;
+    proxy_set_header Host blogvirality.brandvirality.com;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-BV-Visitor-Host $host;
+    proxy_set_header X-BV-Proxy-Secret "your-secret-here";
+    proxy_ssl_server_name on;
+}
+
+# API endpoints (required for SPA navigation)
+location /bv_api {
+    proxy_pass https://blogvirality.brandvirality.com;
+    proxy_set_header Host blogvirality.brandvirality.com;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-BV-Visitor-Host $host;
+    proxy_set_header X-BV-Proxy-Secret "your-secret-here";
+    proxy_ssl_server_name on;
+}
+\`\`\`
+
+**Important:**
+- \`proxy_ssl_server_name on\` is required for HTTPS upstream
+- Both \`/blog\` and \`/bv_api\` locations must be configured`,
+        },
+        {
+          id: "troubleshooting",
+          title: "Troubleshooting",
+          content: `**Common Issues:**
+
+**1. Homepage loads but clicking posts shows "Post not found"**
+- Cause: \`/bv_api\` routes not proxied
+- Fix: Add proxy rules for \`/bv_api/*\` path
+- Test: Visit \`yourdomain.com/bv_api/public/sites\` - should return JSON, not HTML
+
+**2. API returns your main site's HTML instead of JSON**
+- Cause: Requests bypassing proxy, going to origin
+- Fix (Cloudflare): Add \`/bv_api*\` route in Worker Triggers
+- Fix (Netlify): Add \`/bv_api/*\` redirect rule
+
+**3. "Site not found" errors**
+- Cause: \`X-BV-Visitor-Host\` header missing or incorrect
+- Fix: Ensure header contains visitor's domain (e.g., \`mysite.com\`)
+
+**4. "Unauthorized" errors**
+- Cause: \`X-BV-Proxy-Secret\` doesn't match server config
+- Fix: Verify secret matches \`PROXY_SECRET\` environment variable
+
+**5. SSR works but client navigation fails**
+- This is the classic symptom of missing \`/bv_api\` proxy
+- Initial page load = SSR (data embedded in HTML)
+- Link clicks = SPA navigation (API calls to \`/bv_api\`)
+
+**Verification Steps:**
+1. Open browser DevTools > Network tab
+2. Click a post link
+3. Find the \`/bv_api/...\` request
+4. Check response - should be JSON, not HTML
+5. If HTML, your proxy isn't handling \`/bv_api\` routes`,
+        },
+      ],
     },
     {
       id: "content-packs",
