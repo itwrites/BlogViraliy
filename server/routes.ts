@@ -1650,7 +1650,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/robots.txt", async (req: DomainRequest, res: Response) => {
     try {
       let site = null;
-      let robotsHostname = req.siteHostname || req.hostname;
+      // For robots.txt URLs, prioritize visitor hostname (from X-BV-Visitor-Host header)
+      // This ensures proxy deployments (Netlify, nginx) get correct sitemap URL
+      let robotsHostname = req.siteVisitorHostname || req.siteHostname || req.hostname;
       let basePath = req.siteBasePath || "";
       
       // If siteId is already set by middleware, use that
@@ -1696,10 +1698,12 @@ Sitemap: ${sitemapUrl}
   app.get("/sitemap.xml", async (req: DomainRequest, res: Response) => {
     try {
       // Log the request for debugging
-      console.log(`[Sitemap] Request: siteId=${req.siteId}, siteHostname=${req.siteHostname}, siteBasePath=${req.siteBasePath}, req.hostname=${req.hostname}`);
+      console.log(`[Sitemap] Request: siteId=${req.siteId}, siteHostname=${req.siteHostname}, siteVisitorHostname=${req.siteVisitorHostname}, siteBasePath=${req.siteBasePath}, req.hostname=${req.hostname}`);
       
       let site = null;
-      let sitemapHostname = req.siteHostname || req.hostname;
+      // For sitemap URLs, prioritize visitor hostname (from X-BV-Visitor-Host header)
+      // This ensures proxy deployments (Netlify, nginx) get correct URLs in the sitemap
+      let sitemapHostname = req.siteVisitorHostname || req.siteHostname || req.hostname;
       let basePath = req.siteBasePath || "";
       
       // If siteId is already set by middleware, use that
