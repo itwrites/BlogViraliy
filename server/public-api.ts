@@ -131,7 +131,20 @@ export function apiKeyAuth(requiredPermission?: keyof ApiKeyPermissions) {
           .where(eq(apiKeys.id, apiKeyRecord.id));
       }
 
-      const permissions = apiKeyRecord.permissions as ApiKeyPermissions;
+      // Parse permissions - handle both object and string formats from JSONB
+      let permissions: ApiKeyPermissions;
+      if (typeof apiKeyRecord.permissions === "string") {
+        try {
+          permissions = JSON.parse(apiKeyRecord.permissions) as ApiKeyPermissions;
+        } catch {
+          permissions = {} as ApiKeyPermissions;
+        }
+      } else if (apiKeyRecord.permissions && typeof apiKeyRecord.permissions === "object") {
+        permissions = apiKeyRecord.permissions as ApiKeyPermissions;
+      } else {
+        permissions = {} as ApiKeyPermissions;
+      }
+      
       if (requiredPermission && !permissions[requiredPermission]) {
         await logApiRequest(apiKeyRecord.id, req.path, req.method, 403, Date.now() - startTime, req, `Missing permission: ${requiredPermission}`);
         return res.status(403).json({
