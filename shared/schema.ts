@@ -708,6 +708,72 @@ export const pillarArticlesRelations = relations(pillarArticles, ({ one }) => ({
   }),
 }));
 
+// API Key Permissions Schema
+export const apiKeyPermissionsSchema = z.object({
+  posts_read: z.boolean().default(true),
+  posts_write: z.boolean().default(false),
+  pillars_read: z.boolean().default(true),
+  pillars_manage: z.boolean().default(false),
+  stats_read: z.boolean().default(true),
+});
+export type ApiKeyPermissions = z.infer<typeof apiKeyPermissionsSchema>;
+
+// Default API key permissions
+export const defaultApiKeyPermissions: ApiKeyPermissions = {
+  posts_read: true,
+  posts_write: false,
+  pillars_read: true,
+  pillars_manage: false,
+  stats_read: true,
+};
+
+// API Keys (for public API access)
+export const apiKeys = pgTable("api_keys", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Human-readable name for the key
+  keyHash: text("key_hash").notNull(), // SHA-256 hash of the API key
+  keyPrefix: text("key_prefix").notNull(), // First 8 chars for display (e.g., "bv_abc123")
+  permissions: jsonb("permissions").$type<ApiKeyPermissions>().notNull().default(defaultApiKeyPermissions),
+  rateLimit: integer("rate_limit").notNull().default(1000), // Requests per hour
+  requestCount: integer("request_count").notNull().default(0), // Rolling count for rate limiting
+  rateLimitResetAt: timestamp("rate_limit_reset_at"), // When rate limit resets
+  lastUsedAt: timestamp("last_used_at"),
+  expiresAt: timestamp("expires_at"), // Optional expiry
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// API Key Usage Logs (for analytics and debugging)
+export const apiKeyLogs = pgTable("api_key_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiKeyId: varchar("api_key_id").notNull().references(() => apiKeys.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull(), // e.g., "/v1/posts"
+  method: text("method").notNull(), // GET, POST, etc.
+  statusCode: integer("status_code").notNull(),
+  responseTimeMs: integer("response_time_ms"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// API Key Relations
+export const apiKeysRelations = relations(apiKeys, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [apiKeys.siteId],
+    references: [sites.id],
+  }),
+  logs: many(apiKeyLogs),
+}));
+
+export const apiKeyLogsRelations = relations(apiKeyLogs, ({ one }) => ({
+  apiKey: one(apiKeys, {
+    fields: [apiKeyLogs.apiKeyId],
+    references: [apiKeys.id],
+  }),
+}));
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -855,3 +921,28 @@ export const insertSiteDailyStatsSchema = createInsertSchema(siteDailyStats).omi
 
 export type InsertSiteDailyStats = z.infer<typeof insertSiteDailyStatsSchema>;
 export type SiteDailyStats = typeof siteDailyStats.$inferSelect;
+
+// API Key Insert Schemas
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
+  id: true,
+  requestCount: true,
+  rateLimitResetAt: true,
+  lastUsedAt: true,
+  createdAt: true,
+}).extend({
+  permissions: apiKeyPermissionsSchema.optional().default(defaultApiKeyPermissions),
+  rateLimit: z.number().min(100).max(100000).optional().default(1000),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const insertApiKeyLogSchema = createInsertSchema(apiKeyLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+// API Key Types
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+export type ApiKey = typeof apiKeys.$inferSelect;
+
+export type InsertApiKeyLog = z.infer<typeof insertApiKeyLogSchema>;
+export type ApiKeyLog = typeof apiKeyLogs.$inferSelect;
