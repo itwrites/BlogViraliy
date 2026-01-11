@@ -14,6 +14,7 @@ import {
   siteMenuItems,
   siteAuthors,
   siteDailyStats,
+  apiKeys,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -28,6 +29,7 @@ import {
   type SiteMenuItem,
   type SiteAuthor,
   type SiteDailyStats,
+  type ApiKey,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -42,6 +44,7 @@ import {
   type InsertSiteMenuItem,
   type InsertSiteAuthor,
   type InsertSiteDailyStats,
+  type InsertApiKey,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -170,6 +173,13 @@ export interface IStorage {
   getDailyStatsRange(siteId: string, startDate: string, endDate: string): Promise<SiteDailyStats[]>;
   upsertDailyStats(siteId: string, date: string, updates: Partial<InsertSiteDailyStats>): Promise<SiteDailyStats>;
   recordPageView(siteId: string, postSlug: string, deviceType: string, browserName: string, country: string, isNewUniqueVisitor?: boolean): Promise<void>;
+
+  // API Keys
+  getApiKeysBySiteId(siteId: string): Promise<ApiKey[]>;
+  getApiKeyById(id: string): Promise<ApiKey | undefined>;
+  createApiKey(apiKey: InsertApiKey): Promise<ApiKey>;
+  updateApiKey(id: string, apiKey: Partial<InsertApiKey>): Promise<ApiKey | undefined>;
+  deleteApiKey(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1087,6 +1097,30 @@ export class DatabaseStorage implements IStorage {
         postViewBreakdown: { [postSlug]: 1 },
       });
     }
+  }
+
+  // API Keys
+  async getApiKeysBySiteId(siteId: string): Promise<ApiKey[]> {
+    return await db.select().from(apiKeys).where(eq(apiKeys.siteId, siteId)).orderBy(desc(apiKeys.createdAt));
+  }
+
+  async getApiKeyById(id: string): Promise<ApiKey | undefined> {
+    const [apiKey] = await db.select().from(apiKeys).where(eq(apiKeys.id, id));
+    return apiKey || undefined;
+  }
+
+  async createApiKey(insertApiKey: InsertApiKey): Promise<ApiKey> {
+    const [apiKey] = await db.insert(apiKeys).values(insertApiKey).returning();
+    return apiKey;
+  }
+
+  async updateApiKey(id: string, updates: Partial<InsertApiKey>): Promise<ApiKey | undefined> {
+    const [apiKey] = await db.update(apiKeys).set(updates).where(eq(apiKeys.id, id)).returning();
+    return apiKey || undefined;
+  }
+
+  async deleteApiKey(id: string): Promise<void> {
+    await db.delete(apiKeys).where(eq(apiKeys.id, id));
   }
 }
 

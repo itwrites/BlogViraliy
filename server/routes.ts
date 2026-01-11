@@ -13,6 +13,7 @@ import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./site
 import { normalizeBasePath } from "./utils";
 import { rewriteHtmlForBasePath } from "./html-rewriter";
 import { analyzeRouteForPost } from "./vite";
+import { createPublicApiRouter, generateApiKey } from "./public-api";
 
 async function ensureAdminUser() {
   try {
@@ -478,6 +479,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next();
     };
   };
+
+  // === PUBLIC API v1 (for external access) ===
+  app.use("/api", createPublicApiRouter());
 
   // === AUTH ROUTES ===
 
@@ -1140,6 +1144,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete site" });
+    }
+  });
+
+  // === API KEYS MANAGEMENT ===
+
+  app.get("/api/sites/:id/api-keys", requireAuth, requireSiteAccess("id", "manage"), async (req: Request, res: Response) => {
+    try {
+      const apiKeys = await storage.getApiKeysBySiteId(req.params.id);
+      res.json(apiKeys.map(key => ({
+        ...key,
+        keyHash: undefined,
+      })));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch API keys" });
+    }
+  });
+
+  app.post("/api/sites/:id/api-keys", requireAuth, requireSiteAccess("id", "manage"), async (req: Request, res: Response) => {
+    try {
+      const { name, permissions, rateLimit, expiresAt } = req.body;
+      
+      if (!name || typeof name !== "string") {
+        return res.status(400).json({ error: "Name is required" });
+      }
+
+      const { key, prefix, hash } = generateApiKey();
+      
+      const apiKey = await storage.createApiKey({
+        siteId: req.params.id,
+        name,
+        keyHash: hash,
+        keyPrefix: prefix,
+        permissions: permissions || undefined,
+        rateLimit: rateLimit || 1000,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      res.json({
+        ...apiKey,
+        keyHash: undefined,
+        key,
+      });
+    } catch (error) {
+      console.error("[createApiKey] Error:", error);
+      res.status(500).json({ error: "Failed to create API key" });
+    }
+  });
+
+  app.put("/api/sites/:siteId/api-keys/:keyId", requireAuth, requireSiteAccess("siteId", "manage"), async (req: Request, res: Response) => {
+    try {
+      const { name, permissions, rateLimit, isActive, expiresAt } = req.body;
+      
+      const apiKey = await storage.getApiKeyById(req.params.keyId);
+      if (!apiKey || apiKey.siteId !== req.params.siteId) {
+        return res.status(404).json({ error: "API key not found" });
+      }
+
+      const updates: any = {};
+      if (name !== undefined) updates.name = name;
+      if (permissions !== undefined) updates.permissions = permissions;
+      if (rateLimit !== undefined) updates.rateLimit = rateLimit;
+      if (isActive !== undefined) updates.isActive = isActive;
+      if (expiresAt !== undefined) updates.expiresAt = expiresAt ? new Date(expiresAt) : null;
+
+      const updated = await storage.updateApiKey(req.params.keyId, updates);
+      res.json({
+        ...updated,
+        keyHash: undefined,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update API key" });
+    }
+  });
+
+  app.delete("/api/sites/:siteId/api-keys/:keyId", requireAuth, requireSiteAccess("siteId", "manage"), async (req: Request, res: Response) => {
+    try {
+      const apiKey = await storage.getApiKeyById(req.params.keyId);
+      if (!apiKey || apiKey.siteId !== req.params.siteId) {
+        return res.status(404).json({ error: "API key not found" });
+      }
+
+      await storage.deleteApiKey(req.params.keyId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete API key" });
     }
   });
 
