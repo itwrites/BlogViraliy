@@ -165,19 +165,28 @@ export function apiKeyAuth(requiredPermission?: keyof ApiKeyPermissions) {
 export function createPublicApiRouter(): Router {
   const router = Router();
 
+  // CORS middleware for public API - allows cross-origin requests
+  router.use((req: Request, res: Response, next: NextFunction) => {
+    // Allow requests from any origin
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    res.header("Access-Control-Max-Age", "86400"); // 24 hours preflight cache
+    
+    // Handle preflight OPTIONS requests
+    if (req.method === "OPTIONS") {
+      return res.status(204).end();
+    }
+    
+    next();
+  });
+
   router.get("/v1/posts", apiKeyAuth("posts_read"), async (req: Request, res: Response) => {
     try {
-      const { page = "1", limit = "20", tag, published = "true" } = req.query;
+      const { page = "1", limit = "20", tag } = req.query;
       const siteId = req.apiKey!.siteId;
 
       const conditions = [eq(posts.siteId, siteId)];
-
-      // Filter by published status (default: show only published posts)
-      if (published === "true" || published === "1") {
-        conditions.push(eq(posts.published, true));
-      } else if (published === "false" || published === "0") {
-        conditions.push(eq(posts.published, false));
-      }
 
       // Filter by tag using PostgreSQL array containment
       if (tag && typeof tag === "string") {
