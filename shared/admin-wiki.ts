@@ -775,5 +775,216 @@ Each article role generates appropriate JSON-LD:
         },
       ],
     },
+    {
+      id: "public-api",
+      title: "Public API",
+      content: `Blog Virality provides a RESTful public API for external access to your site's content. The API allows third-party applications, mobile apps, and external services to read posts, access topical authority data, and retrieve analytics.
+
+**Base URL:**
+\`https://your-domain.com/bv_api/v1\`
+
+**Authentication:**
+All API requests require a Bearer token in the Authorization header:
+\`Authorization: Bearer bv_your_api_key_here\`
+
+**Response Format:**
+All responses are JSON with consistent structure for errors and pagination.`,
+      subsections: [
+        {
+          id: "api-authentication",
+          title: "Authentication & API Keys",
+          content: `**Creating API Keys:**
+1. Go to Site Settings > API Keys
+2. Click "Create Key"
+3. Configure name, permissions, and rate limit
+4. Copy the key immediately - it's only shown once!
+
+**Key Format:**
+Keys start with \`bv_\` prefix (e.g., \`bv_abc123def456...\`)
+
+**Security:**
+- Keys are stored as SHA-256 hashes - the actual key is never stored
+- Set expiration dates for temporary access
+- Disable keys instantly without deleting them
+- Monitor usage with request counts and last-used timestamps
+
+**Rate Limiting:**
+- Default: 1000 requests per hour
+- Configurable per key (100-10,000)
+- Returns 429 status when exceeded
+- Rate limit resets hourly`,
+        },
+        {
+          id: "api-permissions",
+          title: "Permission System",
+          content: `**Available Permissions:**
+
+| Permission | Description |
+|------------|-------------|
+| \`posts_read\` | List and read published posts |
+| \`posts_write\` | Create, update, delete posts |
+| \`pillars_read\` | View topical authority pillars and articles |
+| \`pillars_manage\` | Create and manage pillars |
+| \`stats_read\` | Access site statistics and analytics |
+
+**Best Practices:**
+- Grant only necessary permissions
+- Use separate keys for different applications
+- Rotate keys periodically for security`,
+        },
+        {
+          id: "api-posts",
+          title: "Posts Endpoints",
+          content: `**List Posts**
+\`GET /bv_api/v1/posts\`
+
+Query Parameters:
+- \`page\` (default: 1) - Page number
+- \`limit\` (default: 20, max: 100) - Posts per page
+- \`tag\` - Filter by tag
+- \`published\` (default: true) - Show only published posts
+
+Response:
+\`\`\`json
+{
+  "posts": [
+    {
+      "id": "uuid",
+      "title": "Post Title",
+      "slug": "post-slug",
+      "description": "Summary text",
+      "content": "Full HTML content",
+      "tags": ["tag1", "tag2"],
+      "imageUrl": "https://...",
+      "publishedAt": "2024-01-15T10:30:00Z",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "totalPages": 8
+  }
+}
+\`\`\`
+
+**Get Single Post**
+\`GET /bv_api/v1/posts/:slug\`
+
+Returns the full post object for the given slug.
+
+**Post Statistics**
+\`GET /bv_api/v1/posts/stats\`
+Requires: \`stats_read\` permission
+
+Returns aggregate statistics about the site's posts.`,
+        },
+        {
+          id: "api-pillars",
+          title: "Topical Authority Endpoints",
+          content: `**List Pillars**
+\`GET /bv_api/v1/pillars\`
+Requires: \`pillars_read\` permission
+
+Query Parameters:
+- \`page\` (default: 1) - Page number
+- \`limit\` (default: 20, max: 50) - Pillars per page
+
+Response:
+\`\`\`json
+{
+  "pillars": [
+    {
+      "id": "uuid",
+      "name": "Topic Name",
+      "status": "completed",
+      "packType": "full_coverage",
+      "articleCount": 150,
+      "completedArticles": 148,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {...}
+}
+\`\`\`
+
+**Get Pillar Details**
+\`GET /bv_api/v1/pillars/:id\`
+
+Returns full pillar information including clusters.
+
+**List Pillar Articles**
+\`GET /bv_api/v1/pillars/:id/articles\`
+
+Query Parameters:
+- \`page\`, \`limit\` - Pagination
+- \`status\` - Filter by status (pending, generating, completed, failed)
+- \`cluster\` - Filter by cluster ID
+
+Returns articles associated with the pillar.`,
+        },
+        {
+          id: "api-errors",
+          title: "Error Handling",
+          content: `**Error Response Format:**
+\`\`\`json
+{
+  "error": "Error message description",
+  "code": "ERROR_CODE"
+}
+\`\`\`
+
+**Status Codes:**
+
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 400 | Bad request (invalid parameters) |
+| 401 | Unauthorized (missing or invalid API key) |
+| 403 | Forbidden (insufficient permissions) |
+| 404 | Resource not found |
+| 429 | Rate limit exceeded |
+| 500 | Internal server error |
+
+**Rate Limit Headers:**
+- \`X-RateLimit-Limit\`: Your rate limit
+- \`X-RateLimit-Remaining\`: Requests remaining
+- \`X-RateLimit-Reset\`: Unix timestamp when limit resets`,
+        },
+        {
+          id: "api-examples",
+          title: "Code Examples",
+          content: `**cURL Example:**
+\`\`\`bash
+curl -X GET "https://your-domain.com/bv_api/v1/posts?limit=10" \\
+  -H "Authorization: Bearer bv_your_api_key" \\
+  -H "Content-Type: application/json"
+\`\`\`
+
+**JavaScript (fetch):**
+\`\`\`javascript
+const response = await fetch('https://your-domain.com/bv_api/v1/posts', {
+  headers: {
+    'Authorization': 'Bearer bv_your_api_key',
+    'Content-Type': 'application/json'
+  }
+});
+const data = await response.json();
+\`\`\`
+
+**Python (requests):**
+\`\`\`python
+import requests
+
+response = requests.get(
+    'https://your-domain.com/bv_api/v1/posts',
+    headers={'Authorization': 'Bearer bv_your_api_key'}
+)
+data = response.json()
+\`\`\``,
+        },
+      ],
+    },
   ],
 };

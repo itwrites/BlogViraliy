@@ -167,38 +167,38 @@ export function createPublicApiRouter(): Router {
 
   router.get("/v1/posts", apiKeyAuth("posts_read"), async (req: Request, res: Response) => {
     try {
-      const { status, from, to, limit = "50", offset = "0", tag } = req.query;
+      const { page = "1", limit = "20", tag, published = "true" } = req.query;
       const siteId = req.apiKey!.siteId;
 
       const conditions = [eq(posts.siteId, siteId)];
 
-      if (status && typeof status === "string") {
-        conditions.push(eq(posts.source, status));
+      // Filter by published status (default: show only published posts)
+      if (published === "true" || published === "1") {
+        conditions.push(eq(posts.published, true));
+      } else if (published === "false" || published === "0") {
+        conditions.push(eq(posts.published, false));
       }
 
-      if (from && typeof from === "string") {
-        conditions.push(gte(posts.createdAt, new Date(from)));
+      // Filter by tag using PostgreSQL array containment
+      if (tag && typeof tag === "string") {
+        conditions.push(sql`${posts.tags} @> ARRAY[${tag}]::text[]`);
       }
 
-      if (to && typeof to === "string") {
-        conditions.push(lte(posts.createdAt, new Date(to)));
-      }
+      const limitNum = Math.min(parseInt(limit as string) || 20, 100);
+      const pageNum = Math.max(parseInt(page as string) || 1, 1);
+      const offsetNum = (pageNum - 1) * limitNum;
 
-      const limitNum = Math.min(parseInt(limit as string) || 50, 100);
-      const offsetNum = parseInt(offset as string) || 0;
-
-      let query = db
+      const results = await db
         .select({
           id: posts.id,
-          slug: posts.slug,
           title: posts.title,
-          metaDescription: posts.metaDescription,
-          imageUrl: posts.imageUrl,
+          slug: posts.slug,
+          description: posts.metaDescription,
+          content: posts.content,
           tags: posts.tags,
-          source: posts.source,
-          authorId: posts.authorId,
+          imageUrl: posts.imageUrl,
+          publishedAt: posts.createdAt,
           createdAt: posts.createdAt,
-          updatedAt: posts.updatedAt,
         })
         .from(posts)
         .where(and(...conditions))
@@ -206,20 +206,21 @@ export function createPublicApiRouter(): Router {
         .limit(limitNum)
         .offset(offsetNum);
 
-      const results = await query;
-
       const [countResult] = await db
         .select({ total: count() })
         .from(posts)
         .where(and(...conditions));
 
+      const total = countResult.total;
+      const totalPages = Math.ceil(total / limitNum);
+
       res.json({
-        data: results,
+        posts: results,
         pagination: {
-          total: countResult.total,
+          page: pageNum,
           limit: limitNum,
-          offset: offsetNum,
-          hasMore: offsetNum + results.length < countResult.total,
+          total,
+          totalPages,
         },
       });
     } catch (err) {
@@ -310,7 +311,7 @@ export function createPublicApiRouter(): Router {
 
   router.get("/v1/pillars", apiKeyAuth("pillars_read"), async (req: Request, res: Response) => {
     try {
-      const { status, limit = "50", offset = "0" } = req.query;
+      const { page = "1", limit = "20", status } = req.query;
       const siteId = req.apiKey!.siteId;
 
       const conditions = [eq(pillars.siteId, siteId)];
@@ -319,8 +320,9 @@ export function createPublicApiRouter(): Router {
         conditions.push(eq(pillars.status, status));
       }
 
-      const limitNum = Math.min(parseInt(limit as string) || 50, 100);
-      const offsetNum = parseInt(offset as string) || 0;
+      const limitNum = Math.min(parseInt(limit as string) || 20, 50);
+      const pageNum = Math.max(parseInt(page as string) || 1, 1);
+      const offsetNum = (pageNum - 1) * limitNum;
 
       const results = await db
         .select({
@@ -379,13 +381,16 @@ export function createPublicApiRouter(): Router {
         .from(pillars)
         .where(and(...conditions));
 
+      const total = countResult.total;
+      const totalPages = Math.ceil(total / limitNum);
+
       res.json({
-        data: enrichedResults,
+        pillars: enrichedResults,
         pagination: {
-          total: countResult.total,
+          page: pageNum,
           limit: limitNum,
-          offset: offsetNum,
-          hasMore: offsetNum + results.length < countResult.total,
+          total,
+          totalPages,
         },
       });
     } catch (err) {
@@ -427,7 +432,7 @@ export function createPublicApiRouter(): Router {
         .where(eq(pillarArticles.pillarId, id));
 
       res.json({
-        data: {
+        pillar: {
           ...pillar,
           clusters: pillarClusters,
           progress: {
@@ -449,7 +454,7 @@ export function createPublicApiRouter(): Router {
   router.get("/v1/pillars/:id/articles", apiKeyAuth("pillars_read"), async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { status, cluster, limit = "50", offset = "0" } = req.query;
+      const { page = "1", limit = "20", status, cluster } = req.query;
       const siteId = req.apiKey!.siteId;
 
       const [pillar] = await db
@@ -472,8 +477,9 @@ export function createPublicApiRouter(): Router {
         conditions.push(eq(pillarArticles.clusterId, cluster));
       }
 
-      const limitNum = Math.min(parseInt(limit as string) || 50, 100);
-      const offsetNum = parseInt(offset as string) || 0;
+      const limitNum = Math.min(parseInt(limit as string) || 20, 100);
+      const pageNum = Math.max(parseInt(page as string) || 1, 1);
+      const offsetNum = (pageNum - 1) * limitNum;
 
       const results = await db
         .select({
@@ -500,13 +506,16 @@ export function createPublicApiRouter(): Router {
         .from(pillarArticles)
         .where(and(...conditions));
 
+      const total = countResult.total;
+      const totalPages = Math.ceil(total / limitNum);
+
       res.json({
-        data: results,
+        articles: results,
         pagination: {
-          total: countResult.total,
+          page: pageNum,
           limit: limitNum,
-          offset: offsetNum,
-          hasMore: offsetNum + results.length < countResult.total,
+          total,
+          totalPages,
         },
       });
     } catch (err) {

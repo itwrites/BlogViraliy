@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import { Slider } from "@/components/ui/slider";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -23,7 +24,377 @@ import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } f
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 
-type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts";
+type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api";
+
+interface ApiKeyData {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  permissions: string[] | null;
+  rateLimit: number;
+  isActive: boolean;
+  expiresAt: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  requestCount: number;
+}
+
+const AVAILABLE_PERMISSIONS = [
+  { id: "posts_read", label: "Read Posts", description: "List and read published posts" },
+  { id: "posts_write", label: "Write Posts", description: "Create, update, and delete posts" },
+  { id: "pillars_read", label: "Read Pillars", description: "View topical authority pillars and articles" },
+  { id: "pillars_manage", label: "Manage Pillars", description: "Create and manage pillars" },
+  { id: "stats_read", label: "Read Stats", description: "Access site statistics and analytics" },
+];
+
+function ApiKeysSection({ siteId }: { siteId: string }) {
+  const { toast } = useToast();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [newKeyPermissions, setNewKeyPermissions] = useState<string[]>(["posts_read"]);
+  const [newKeyRateLimit, setNewKeyRateLimit] = useState(1000);
+  const [newKeyExpiry, setNewKeyExpiry] = useState("");
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [showKey, setShowKey] = useState(false);
+
+  const { data: apiKeys = [], isLoading } = useQuery<ApiKeyData[]>({
+    queryKey: ["/api/sites", siteId, "api-keys"],
+    queryFn: async () => {
+      const res = await fetch(`/api/sites/${siteId}/api-keys`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch API keys");
+      return res.json();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { name: string; permissions: string[]; rateLimit: number; expiresAt?: string }) => {
+      const res = await apiRequest("POST", `/api/sites/${siteId}/api-keys`, data);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "api-keys"] });
+      setCreatedKey(data.key);
+      setShowCreateForm(false);
+      setNewKeyName("");
+      setNewKeyPermissions(["posts_read"]);
+      setNewKeyRateLimit(1000);
+      setNewKeyExpiry("");
+      toast({ title: "API key created", description: "Copy your key now - it won't be shown again" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create API key", variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (keyId: string) => {
+      await apiRequest("DELETE", `/api/sites/${siteId}/api-keys/${keyId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "api-keys"] });
+      toast({ title: "API key deleted" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete API key", variant: "destructive" });
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ keyId, isActive }: { keyId: string; isActive: boolean }) => {
+      await apiRequest("PUT", `/api/sites/${siteId}/api-keys/${keyId}`, { isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "api-keys"] });
+    },
+  });
+
+  const handleCreate = () => {
+    if (!newKeyName.trim()) {
+      toast({ title: "Name required", description: "Please enter a name for the API key", variant: "destructive" });
+      return;
+    }
+    createMutation.mutate({
+      name: newKeyName,
+      permissions: newKeyPermissions,
+      rateLimit: newKeyRateLimit,
+      expiresAt: newKeyExpiry || undefined,
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copied to clipboard" });
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Never";
+    return new Date(dateStr).toLocaleDateString();
+  };
+
+  return (
+    <div className="space-y-6">
+      {createdKey && (
+        <Card className="border-green-500/50 bg-green-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-green-600">
+              <Check className="w-5 h-5" />
+              API Key Created
+            </CardTitle>
+            <CardDescription>
+              Copy this key now. For security, it will never be shown again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-muted p-3 rounded font-mono text-sm break-all">
+                {showKey ? createdKey : createdKey.replace(/./g, "*")}
+              </code>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowKey(!showKey)}
+                data-testid="button-toggle-key-visibility"
+              >
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => copyToClipboard(createdKey)}
+                data-testid="button-copy-key"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => setCreatedKey(null)}
+              data-testid="button-dismiss-key"
+            >
+              I've copied the key
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2" data-testid="text-api-title">
+                <Key className="w-5 h-5" />
+                Public API Keys
+              </CardTitle>
+              <CardDescription data-testid="text-api-description">
+                Manage API keys for external access to your content
+              </CardDescription>
+            </div>
+            {!showCreateForm && (
+              <Button onClick={() => setShowCreateForm(true)} data-testid="button-create-api-key">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Key
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {showCreateForm && (
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/50">
+              <h4 className="font-medium">Create New API Key</h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="keyName">Key Name</Label>
+                <Input
+                  id="keyName"
+                  placeholder="e.g., Mobile App, External Service"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  data-testid="input-api-key-name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Permissions</Label>
+                <div className="space-y-2">
+                  {AVAILABLE_PERMISSIONS.map((perm) => (
+                    <div key={perm.id} className="flex items-start gap-3">
+                      <Checkbox
+                        id={perm.id}
+                        checked={newKeyPermissions.includes(perm.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewKeyPermissions([...newKeyPermissions, perm.id]);
+                          } else {
+                            setNewKeyPermissions(newKeyPermissions.filter((p) => p !== perm.id));
+                          }
+                        }}
+                        data-testid={`checkbox-permission-${perm.id}`}
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={perm.id} className="text-sm font-medium cursor-pointer">
+                          {perm.label}
+                        </label>
+                        <p className="text-xs text-muted-foreground">{perm.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="rateLimit">Rate Limit (requests/hour)</Label>
+                  <Input
+                    id="rateLimit"
+                    type="number"
+                    min={100}
+                    max={10000}
+                    value={newKeyRateLimit}
+                    onChange={(e) => setNewKeyRateLimit(parseInt(e.target.value) || 1000)}
+                    data-testid="input-rate-limit"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expiry">Expiration Date (optional)</Label>
+                  <Input
+                    id="expiry"
+                    type="date"
+                    value={newKeyExpiry}
+                    onChange={(e) => setNewKeyExpiry(e.target.value)}
+                    data-testid="input-expiry-date"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={handleCreate} disabled={createMutation.isPending} data-testid="button-submit-create-key">
+                  {createMutation.isPending ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Create Key
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreateForm(false)} data-testid="button-cancel-create-key">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading API keys...</div>
+          ) : apiKeys.length === 0 ? (
+            <div className="text-center py-8">
+              <Key className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">No API keys yet</p>
+              <p className="text-sm text-muted-foreground">Create a key to enable external API access</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {apiKeys.map((key) => (
+                <div
+                  key={key.id}
+                  className={`border rounded-lg p-4 ${!key.isActive ? "opacity-60 bg-muted/30" : ""}`}
+                  data-testid={`api-key-item-${key.id}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{key.name}</span>
+                        <code className="text-xs bg-muted px-2 py-0.5 rounded">{key.keyPrefix}...</code>
+                        {!key.isActive && (
+                          <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                        )}
+                        {key.expiresAt && new Date(key.expiresAt) < new Date() && (
+                          <Badge variant="destructive" className="text-xs">Expired</Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {(key.permissions || []).map((perm) => (
+                          <Badge key={perm} variant="outline" className="text-xs">
+                            {AVAILABLE_PERMISSIONS.find((p) => p.id === perm)?.label || perm}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="text-xs text-muted-foreground space-x-4">
+                        <span>Created: {formatDate(key.createdAt)}</span>
+                        <span>Last used: {formatDate(key.lastUsedAt)}</span>
+                        <span>Requests: {key.requestCount.toLocaleString()}</span>
+                        <span>Limit: {key.rateLimit.toLocaleString()}/hr</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={key.isActive}
+                        onCheckedChange={(checked) => toggleActiveMutation.mutate({ keyId: key.id, isActive: checked })}
+                        data-testid={`switch-active-${key.id}`}
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this API key? This action cannot be undone.")) {
+                            deleteMutation.mutate(key.id);
+                          }
+                        }}
+                        data-testid={`button-delete-key-${key.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2" data-testid="text-api-usage-title">
+            <Globe className="w-5 h-5" />
+            API Usage
+          </CardTitle>
+          <CardDescription>Quick reference for using the public API</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Base URL</Label>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-muted p-2 rounded text-sm font-mono">
+                https://your-domain.com/bv_api/v1
+              </code>
+              <Button size="icon" variant="ghost" onClick={() => copyToClipboard("https://your-domain.com/bv_api/v1")}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Authentication</Label>
+            <code className="block bg-muted p-2 rounded text-sm font-mono">
+              Authorization: Bearer bv_your_api_key_here
+            </code>
+          </div>
+          <div className="space-y-2">
+            <Label>Example Request</Label>
+            <code className="block bg-muted p-2 rounded text-sm font-mono whitespace-pre">
+{`curl -X GET "https://your-domain.com/bv_api/v1/posts" \\
+  -H "Authorization: Bearer bv_..." \\
+  -H "Content-Type: application/json"`}
+            </code>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            See the Admin Wiki for full API documentation including all endpoints, request/response formats, and error handling.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 const sidebarVariants = {
   initial: { opacity: 0, x: -20 },
@@ -450,6 +821,7 @@ export default function SiteConfig() {
     { id: "topical", label: "Topical", icon: BookOpen, disabled: isNewSite },
     { id: "bulk", label: "Bulk", icon: FileText, disabled: isNewSite },
     { id: "posts", label: "Posts", icon: Layout, disabled: isNewSite },
+    { id: "api", label: "API Keys", icon: Key, disabled: isNewSite },
   ];
 
   const handleNavClick = (section: ActiveSection) => {
@@ -2615,6 +2987,10 @@ export default function SiteConfig() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {activeSection === "api" && !isNewSite && id && (
+              <ApiKeysSection siteId={id} />
             )}
           </motion.div>
         </main>
