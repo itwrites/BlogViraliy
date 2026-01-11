@@ -13,7 +13,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,7 +24,7 @@ import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } f
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 
-type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api";
+type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business";
 
 interface ApiKeyData {
   id: string;
@@ -430,6 +430,12 @@ export default function SiteConfig() {
     ogImage: "",
     favicon: "",
     analyticsId: "",
+    businessDescription: "",
+    targetAudience: "",
+    brandVoice: "",
+    valuePropositions: "",
+    industry: "",
+    competitors: "",
   });
 
   const [templateSettings, setTemplateSettings] = useState<TemplateSettings>(defaultTemplateSettings);
@@ -562,6 +568,12 @@ export default function SiteConfig() {
         ogImage: site.ogImage || "",
         favicon: site.favicon || "",
         analyticsId: site.analyticsId || "",
+        businessDescription: site.businessDescription || "",
+        targetAudience: site.targetAudience || "",
+        brandVoice: site.brandVoice || "",
+        valuePropositions: site.valuePropositions || "",
+        industry: site.industry || "",
+        competitors: site.competitors || "",
       });
       if (site.templateSettings) {
         setTemplateSettings({ ...defaultTemplateSettings, ...site.templateSettings });
@@ -812,6 +824,7 @@ export default function SiteConfig() {
   // Navigation items for sidebar
   const navItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
     { id: "general", label: "General", icon: Settings },
+    { id: "business", label: "Business", icon: Building2 },
     { id: "navigation", label: "Navigation", icon: Menu },
     { id: "design", label: "Design", icon: Palette },
     { id: "seo", label: "SEO", icon: Search },
@@ -1182,6 +1195,124 @@ export default function SiteConfig() {
                 </div>
               </CardContent>
             </Card>
+              </div>
+            )}
+
+            {activeSection === "business" && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2" data-testid="text-business-title">
+                      <Building2 className="h-5 w-5" />
+                      Business Profile
+                    </CardTitle>
+                    <CardDescription data-testid="text-business-description">
+                      Define your business context to help AI generate more relevant, on-brand content
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="businessDescription" data-testid="label-business-description">Business Description</Label>
+                        <Textarea
+                          id="businessDescription"
+                          data-testid="textarea-business-description"
+                          placeholder="Describe what your business does, your mission, and what makes you unique..."
+                          value={siteData.businessDescription}
+                          onChange={(e) => setSiteData({ ...siteData, businessDescription: e.target.value })}
+                          rows={4}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          This context helps AI understand your business and generate content that aligns with your core offerings
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="targetAudience" data-testid="label-target-audience">Target Audience / ICP</Label>
+                        <Textarea
+                          id="targetAudience"
+                          data-testid="textarea-target-audience"
+                          placeholder="Describe your ideal customer profile: demographics, pain points, goals, and what they're looking for..."
+                          value={siteData.targetAudience}
+                          onChange={(e) => setSiteData({ ...siteData, targetAudience: e.target.value })}
+                          rows={4}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Understanding your audience helps AI craft content that resonates and addresses their specific needs
+                        </p>
+                      </div>
+
+                      <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label data-testid="label-brand-voice">Brand Voice</Label>
+                          <Select
+                            value={siteData.brandVoice}
+                            onValueChange={(value) => setSiteData({ ...siteData, brandVoice: value })}
+                          >
+                            <SelectTrigger data-testid="select-brand-voice">
+                              <SelectValue placeholder="Select a tone..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="professional">Professional</SelectItem>
+                              <SelectItem value="casual">Casual</SelectItem>
+                              <SelectItem value="authoritative">Authoritative</SelectItem>
+                              <SelectItem value="friendly">Friendly</SelectItem>
+                              <SelectItem value="technical">Technical</SelectItem>
+                              <SelectItem value="conversational">Conversational</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            Sets the tone and style for AI-generated content
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="industry" data-testid="label-industry">Industry / Niche</Label>
+                          <Input
+                            id="industry"
+                            data-testid="input-industry"
+                            placeholder="e.g., SaaS, E-commerce, Healthcare, Finance..."
+                            value={siteData.industry}
+                            onChange={(e) => setSiteData({ ...siteData, industry: e.target.value })}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Helps AI use industry-appropriate terminology and examples
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="valuePropositions" data-testid="label-value-propositions">Value Propositions</Label>
+                        <Textarea
+                          id="valuePropositions"
+                          data-testid="textarea-value-propositions"
+                          placeholder="List your key selling points, unique benefits, and competitive advantages..."
+                          value={siteData.valuePropositions}
+                          onChange={(e) => setSiteData({ ...siteData, valuePropositions: e.target.value })}
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          AI will weave these value props naturally into generated content where appropriate
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="competitors" data-testid="label-competitors">Competitors</Label>
+                        <Textarea
+                          id="competitors"
+                          data-testid="textarea-competitors"
+                          placeholder="List your main competitors (one per line or comma-separated)..."
+                          value={siteData.competitors}
+                          onChange={(e) => setSiteData({ ...siteData, competitors: e.target.value })}
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Helps AI understand your competitive landscape and differentiate your content
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 

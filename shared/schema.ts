@@ -279,6 +279,13 @@ export const sites = pgTable("sites", {
   postUrlFormat: text("post_url_format").notNull().default("with-prefix"),
   // Display language for public site UI elements (hardcoded phrases)
   displayLanguage: text("display_language").notNull().default("en"),
+  // Business context for AI content generation
+  businessDescription: text("business_description"), // What the business/site does
+  targetAudience: text("target_audience"), // ICP - Ideal Customer Profile
+  brandVoice: text("brand_voice"), // Tone: professional, casual, authoritative, friendly
+  valuePropositions: text("value_propositions"), // Key selling points
+  industry: text("industry"), // Market/niche
+  competitors: text("competitors"), // Key competitors
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
