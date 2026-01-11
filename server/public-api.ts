@@ -131,16 +131,38 @@ export function apiKeyAuth(requiredPermission?: keyof ApiKeyPermissions) {
           .where(eq(apiKeys.id, apiKeyRecord.id));
       }
 
-      // Parse permissions - handle both object and string formats from JSONB
+      // Parse permissions - handle array, object, and string formats from JSONB
       let permissions: ApiKeyPermissions;
-      if (typeof apiKeyRecord.permissions === "string") {
+      const rawPermissions = apiKeyRecord.permissions;
+      
+      if (typeof rawPermissions === "string") {
+        // JSON string - parse it
         try {
-          permissions = JSON.parse(apiKeyRecord.permissions) as ApiKeyPermissions;
+          const parsed = JSON.parse(rawPermissions);
+          if (Array.isArray(parsed)) {
+            // Array format: ["posts_read", "stats_read"] -> {posts_read: true, stats_read: true}
+            permissions = {} as ApiKeyPermissions;
+            for (const perm of parsed) {
+              if (typeof perm === "string") {
+                (permissions as Record<string, boolean>)[perm] = true;
+              }
+            }
+          } else {
+            permissions = parsed as ApiKeyPermissions;
+          }
         } catch {
           permissions = {} as ApiKeyPermissions;
         }
-      } else if (apiKeyRecord.permissions && typeof apiKeyRecord.permissions === "object") {
-        permissions = apiKeyRecord.permissions as ApiKeyPermissions;
+      } else if (Array.isArray(rawPermissions)) {
+        // Array format stored directly: ["posts_read", "stats_read"] -> {posts_read: true, stats_read: true}
+        permissions = {} as ApiKeyPermissions;
+        for (const perm of rawPermissions) {
+          if (typeof perm === "string") {
+            (permissions as Record<string, boolean>)[perm] = true;
+          }
+        }
+      } else if (rawPermissions && typeof rawPermissions === "object") {
+        permissions = rawPermissions as ApiKeyPermissions;
       } else {
         permissions = {} as ApiKeyPermissions;
       }
