@@ -3,8 +3,50 @@ import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 import { buildRoleSpecificPrompt, type LinkTarget } from "./role-prompts";
-import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster, ArticleRole } from "@shared/schema";
+import type { BusinessContext } from "./openai";
+import type { Pillar, PillarArticle, InsertPillarArticle, InsertCluster, ArticleRole, Site } from "@shared/schema";
 import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle, getPackDefinition } from "@shared/pack-definitions";
+
+function extractBusinessContext(site: Site): BusinessContext {
+  return {
+    businessDescription: site.businessDescription,
+    targetAudience: site.targetAudience,
+    brandVoice: site.brandVoice,
+    valuePropositions: site.valuePropositions,
+    industry: site.industry,
+    competitors: site.competitors,
+  };
+}
+
+function buildBusinessContextForMap(context: BusinessContext): string {
+  const lines: string[] = [];
+  
+  if (context.businessDescription) {
+    lines.push(`Business: ${context.businessDescription}`);
+  }
+  if (context.targetAudience) {
+    lines.push(`Target Audience: ${context.targetAudience}`);
+  }
+  if (context.brandVoice) {
+    lines.push(`Brand Voice: ${context.brandVoice}`);
+  }
+  if (context.valuePropositions) {
+    lines.push(`Value Propositions: ${context.valuePropositions}`);
+  }
+  if (context.industry) {
+    lines.push(`Industry: ${context.industry}`);
+  }
+  if (context.competitors) {
+    lines.push(`Competitors: ${context.competitors}`);
+  }
+  
+  if (lines.length === 0) return "";
+  
+  return `
+BUSINESS CONTEXT (use this to align content with brand and audience):
+${lines.join("\n")}
+`;
+}
 
 let openai: OpenAI | null = null;
 
@@ -58,10 +100,15 @@ export async function generateTopicalMap(pillar: Pillar): Promise<{
   const lang = getLanguageForPrompt(pillar.targetLanguage);
   const languageDirective = buildLanguageDirective(lang);
 
+  // Get business context from site
+  const site = await storage.getSiteById(pillar.siteId);
+  const businessContext = site ? extractBusinessContext(site) : {};
+  const businessContextPrompt = buildBusinessContextForMap(businessContext);
+
   const prompt = `You are an SEO expert creating a topical authority map for the topic: "${pillar.name}"
 
 ${languageDirective}
-
+${businessContextPrompt}
 ${pillar.description ? `Topic description: ${pillar.description}` : ""}
 ${pillar.masterPrompt ? `Additional context: ${pillar.masterPrompt}` : ""}
 
@@ -223,7 +270,8 @@ export async function generatePillarArticleContent(
   article: PillarArticle,
   pillar: Pillar,
   siblingArticles: PillarArticle[],
-  parentArticle?: PillarArticle
+  parentArticle?: PillarArticle,
+  businessContext?: BusinessContext
 ): Promise<GeneratedArticle> {
   const lang = getLanguageForPrompt(pillar.targetLanguage);
   const languageDirective = buildLanguageDirective(lang);
@@ -265,7 +313,7 @@ export async function generatePillarArticleContent(
     });
   }
   
-  // Build the role-specific prompt
+  // Build the role-specific prompt with business context
   const prompt = buildRoleSpecificPrompt(
     articleRole,
     packType,
@@ -273,7 +321,8 @@ export async function generatePillarArticleContent(
     article.keywords,
     linkTargets,
     languageDirective,
-    pillar.masterPrompt || ""
+    pillar.masterPrompt || "",
+    businessContext
   );
 
   const response = await getOpenAIClient().chat.completions.create({
@@ -334,8 +383,12 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
       parentArticle = allArticles.find(a => a.articleType === "pillar");
     }
 
-    // Generate content
-    const generated = await generatePillarArticleContent(article, pillar, siblingArticles, parentArticle);
+    // Get business context from site
+    const site = await storage.getSiteById(pillar.siteId);
+    const businessContext = site ? extractBusinessContext(site) : undefined;
+
+    // Generate content with business context
+    const generated = await generatePillarArticleContent(article, pillar, siblingArticles, parentArticle, businessContext);
 
     // Fetch image with fallback queries for variety
     // Use all keywords and title as fallback options

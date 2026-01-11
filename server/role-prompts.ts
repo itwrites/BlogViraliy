@@ -1,5 +1,6 @@
 import type { ArticleRole } from "@shared/schema";
 import { getPackDefinition, type PackType, type AnchorPattern } from "@shared/pack-definitions";
+import type { BusinessContext } from "./openai";
 
 export interface RolePromptConfig {
   structureGuidelines: string;
@@ -408,6 +409,40 @@ export function detectRoleFromKeyword(keyword: string): ArticleRole {
   return "support"; // Default to support articles for general keywords
 }
 
+function buildBusinessContextPrompt(context?: BusinessContext): string {
+  if (!context) return "";
+  
+  const lines: string[] = [];
+  
+  if (context.businessDescription) {
+    lines.push(`- Business: ${context.businessDescription}`);
+  }
+  if (context.targetAudience) {
+    lines.push(`- Target Audience: ${context.targetAudience}`);
+  }
+  if (context.brandVoice) {
+    lines.push(`- Brand Voice: ${context.brandVoice}`);
+  }
+  if (context.valuePropositions) {
+    lines.push(`- Value Propositions: ${context.valuePropositions}`);
+  }
+  if (context.industry) {
+    lines.push(`- Industry: ${context.industry}`);
+  }
+  if (context.competitors) {
+    lines.push(`- Competitors: ${context.competitors}`);
+  }
+  
+  if (lines.length === 0) return "";
+  
+  return `
+BUSINESS CONTEXT:
+${lines.join("\n")}
+
+Write content that aligns with this brand voice and resonates with the target audience.
+`;
+}
+
 export function buildRoleSpecificPrompt(
   role: ArticleRole,
   packType: PackType,
@@ -415,13 +450,15 @@ export function buildRoleSpecificPrompt(
   keywords: string[],
   linkTargets: LinkTarget[],
   languageDirective: string,
-  masterPrompt: string
+  masterPrompt: string,
+  businessContext?: BusinessContext
 ): string {
   const config = getRolePromptConfig(role);
   const linkingInstructions = getLinkingInstructions(role, packType, linkTargets);
+  const businessContextPrompt = buildBusinessContextPrompt(businessContext);
 
   return `${masterPrompt}
-
+${businessContextPrompt}
 ${languageDirective}
 
 Write a ${role.replace(/_/g, " ").toUpperCase()} article optimized for SEO.

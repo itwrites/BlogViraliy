@@ -29,14 +29,58 @@ interface AIPostResult {
   metaDescription?: string;
 }
 
-export async function generateAIPost(masterPrompt: string, keyword: string, targetLanguage?: string): Promise<AIPostResult> {
+export interface BusinessContext {
+  businessDescription?: string | null;
+  targetAudience?: string | null;
+  brandVoice?: string | null;
+  valuePropositions?: string | null;
+  industry?: string | null;
+  competitors?: string | null;
+}
+
+function buildBusinessContextPrompt(context?: BusinessContext): string {
+  if (!context) return "";
+  
+  const lines: string[] = [];
+  
+  if (context.businessDescription) {
+    lines.push(`- Business: ${context.businessDescription}`);
+  }
+  if (context.targetAudience) {
+    lines.push(`- Target Audience: ${context.targetAudience}`);
+  }
+  if (context.brandVoice) {
+    lines.push(`- Brand Voice: ${context.brandVoice}`);
+  }
+  if (context.valuePropositions) {
+    lines.push(`- Value Props: ${context.valuePropositions}`);
+  }
+  if (context.industry) {
+    lines.push(`- Industry: ${context.industry}`);
+  }
+  if (context.competitors) {
+    lines.push(`- Competitors: ${context.competitors}`);
+  }
+  
+  if (lines.length === 0) return "";
+  
+  return `
+BUSINESS CONTEXT:
+${lines.join("\n")}
+
+Write content that aligns with this brand voice and resonates with the target audience.
+`;
+}
+
+export async function generateAIPost(masterPrompt: string, keyword: string, targetLanguage?: string, businessContext?: BusinessContext): Promise<AIPostResult> {
   const lang = getLanguageForPrompt(targetLanguage);
   const languageDirective = buildLanguageDirective(lang);
+  const businessContextPrompt = buildBusinessContextPrompt(businessContext);
   
   const prompt = `${masterPrompt}
 
 ${languageDirective}
-
+${businessContextPrompt}
 Write a compelling blog post about: ${keyword}
 
 IMPORTANT: Write the content in Markdown format with proper formatting:
@@ -81,16 +125,18 @@ Provide the response in JSON format with the following structure:
   };
 }
 
-export async function rewriteArticle(originalContent: string, originalTitle: string, targetLanguage?: string, masterPrompt?: string): Promise<AIPostResult> {
+export async function rewriteArticle(originalContent: string, originalTitle: string, targetLanguage?: string, masterPrompt?: string, businessContext?: BusinessContext): Promise<AIPostResult> {
   const lang = getLanguageForPrompt(targetLanguage);
   const { buildTranslationDirective } = await import("./language-utils");
   const translationDirective = buildTranslationDirective(lang);
+  const businessContextPrompt = buildBusinessContextPrompt(businessContext);
   
   const customContext = masterPrompt ? `\nAdditional Context and Instructions:\n${masterPrompt}\n` : "";
   
   const prompt = `Rewrite the following article to make it completely unique while preserving the key information. Make it engaging and well-written.
 ${customContext}
 ${translationDirective}
+${businessContextPrompt}
 
 Original Title: ${originalTitle}
 

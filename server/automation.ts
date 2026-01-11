@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import Parser from "rss-parser";
 import { storage } from "./storage";
-import { generateAIPost, rewriteArticle, generateFromPrompt } from "./openai";
+import { generateAIPost, rewriteArticle, generateFromPrompt, type BusinessContext } from "./openai";
 import { processNextPillarArticle } from "./topical-authority";
 import { buildRoleSpecificPrompt, detectRoleFromKeyword } from "./role-prompts";
 import type { Site, ArticleRole } from "@shared/schema";
@@ -32,9 +32,18 @@ export async function processAIAutomation() {
       const nextKeywordIndex = (aiConfig.lastKeywordIndex + 1) % aiConfig.keywords.length;
       const targetLanguage = aiConfig.targetLanguage || "en";
 
+      const businessContext: BusinessContext = {
+        businessDescription: site.businessDescription,
+        targetAudience: site.targetAudience,
+        brandVoice: site.brandVoice,
+        valuePropositions: site.valuePropositions,
+        industry: site.industry,
+        competitors: site.competitors,
+      };
+
       console.log(`[AI] Generating post for ${site.domain} with keyword: ${keyword} (language: ${targetLanguage})`);
       
-      const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(aiConfig.masterPrompt, keyword, targetLanguage);
+      const { title, content, tags, imageUrl, metaTitle, metaDescription } = await generateAIPost(aiConfig.masterPrompt, keyword, targetLanguage, businessContext);
       const slug = createSlug(title);
 
       // Get default author for this site
@@ -181,11 +190,27 @@ export async function processRSSAutomation() {
                 console.log(`[RSS] Using role-specific prompt for "${articleRole}" role with internal linking (pillar: ${pillar.name})`);
               } else {
                 // Pillar not found, fall back to standard rewriting
-                result = await rewriteArticle(originalContent, originalTitle, targetLanguage, masterPrompt);
+                const businessContext: BusinessContext = {
+                  businessDescription: site.businessDescription,
+                  targetAudience: site.targetAudience,
+                  brandVoice: site.brandVoice,
+                  valuePropositions: site.valuePropositions,
+                  industry: site.industry,
+                  competitors: site.competitors,
+                };
+                result = await rewriteArticle(originalContent, originalTitle, targetLanguage, masterPrompt, businessContext);
               }
             } else {
               // No pillar linked, use standard rewriting
-              result = await rewriteArticle(originalContent, originalTitle, targetLanguage, masterPrompt);
+              const businessContext: BusinessContext = {
+                businessDescription: site.businessDescription,
+                targetAudience: site.targetAudience,
+                brandVoice: site.brandVoice,
+                valuePropositions: site.valuePropositions,
+                industry: site.industry,
+                competitors: site.competitors,
+              };
+              result = await rewriteArticle(originalContent, originalTitle, targetLanguage, masterPrompt, businessContext);
             }
             
             const { title, content, tags, imageUrl, metaTitle, metaDescription } = result;
@@ -320,12 +345,28 @@ export async function processKeywordBatches() {
             console.log(`[Bulk] Using role-specific prompt for "${articleRole}" role (pillar: ${pillar.name})`);
           } else {
             // Pillar not found, fall back to standard generation
-            result = await generateAIPost(masterPrompt, nextJob.keyword, targetLanguage);
+            const businessContext: BusinessContext = {
+              businessDescription: site.businessDescription,
+              targetAudience: site.targetAudience,
+              brandVoice: site.brandVoice,
+              valuePropositions: site.valuePropositions,
+              industry: site.industry,
+              competitors: site.competitors,
+            };
+            result = await generateAIPost(masterPrompt, nextJob.keyword, targetLanguage, businessContext);
           }
         } else {
           // No pillar linked, use standard generation with auto-detected role
           articleRole = (batch.articleRole as ArticleRole) || detectRoleFromKeyword(nextJob.keyword);
-          result = await generateAIPost(masterPrompt, nextJob.keyword, targetLanguage);
+          const businessContext: BusinessContext = {
+            businessDescription: site.businessDescription,
+            targetAudience: site.targetAudience,
+            brandVoice: site.brandVoice,
+            valuePropositions: site.valuePropositions,
+            industry: site.industry,
+            competitors: site.competitors,
+          };
+          result = await generateAIPost(masterPrompt, nextJob.keyword, targetLanguage, businessContext);
         }
         
         const { title, content, tags, imageUrl, metaTitle, metaDescription } = result;
