@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
@@ -428,6 +429,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
   const [pexelsKeywords, setPexelsKeywords] = useState("");
   const [isAutoFixing, setIsAutoFixing] = useState(false);
   const [autoFixResults, setAutoFixResults] = useState<AutoFixResult[] | null>(null);
+  const [autoFixProgress, setAutoFixProgress] = useState<{ current: number; total: number } | null>(null);
 
   const { data: featuredImages = [], isLoading: loadingImages } = useQuery<ImageInfo[]>({
     queryKey: ["/api/sites", siteId, "featured-images"],
@@ -579,6 +581,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
     
     setIsAutoFixing(true);
     setAutoFixResults(null);
+    setAutoFixProgress({ current: 0, total: matchingPosts.length });
     
     try {
       const res = await apiRequest("POST", `/api/sites/${siteId}/bulk-auto-replace`, {
@@ -587,28 +590,39 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
       const data = await res.json();
       
       setAutoFixResults(data.results);
+      setAutoFixProgress(null);
       
-      if (data.updated > 0) {
+      // Always invalidate caches after the operation
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "featured-images"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
+      
+      if (data.failed > 0) {
+        // Mixed or full failure - show error and keep results visible
+        toast({ 
+          title: data.updated > 0 ? "Partial success" : "Auto-fix failed", 
+          description: `Updated ${data.updated} of ${data.total} posts. ${data.failed} failed. Review results below.`,
+          variant: "destructive"
+        });
+        // Do NOT clear the search/posts - let user review what happened
+      } else if (data.updated > 0) {
+        // Full success
         toast({ 
           title: "Auto-fix complete", 
-          description: `Updated ${data.updated} of ${data.total} posts with unique Pexels images` 
+          description: `Successfully updated all ${data.updated} posts with unique Pexels images` 
         });
-        
-        // Clear the matching posts since they've been updated
+        // Clear only on full success
         setMatchingPosts([]);
         setSelectedPostIds(new Set());
         setSearchImageUrl("");
-        
-        queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "featured-images"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
-      } else if (data.failed > 0) {
+      } else {
         toast({ 
-          title: "Auto-fix had issues", 
-          description: `Failed to update ${data.failed} posts. Check results below.`,
+          title: "No posts updated", 
+          description: "No matching posts found or all updates failed",
           variant: "destructive"
         });
       }
     } catch (error) {
+      setAutoFixProgress(null);
       toast({ title: "Auto-fix failed", variant: "destructive" });
     } finally {
       setIsAutoFixing(false);
@@ -722,9 +736,26 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
                       )}
                     </Button>
                   </div>
-                  {isAutoFixing && (
-                    <div className="text-sm text-muted-foreground">
-                      Extracting keywords from each post title and finding unique images from Pexels...
+                  {isAutoFixing && autoFixProgress && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Processing {autoFixProgress.total} posts... This may take a minute.
+                      </div>
+                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
+                        <div className="absolute inset-0 h-full w-1/3 rounded-full bg-primary animate-[progress-indeterminate_1.5s_ease-in-out_infinite]" 
+                          style={{ animation: "progress-indeterminate 1.5s ease-in-out infinite" }} />
+                      </div>
+                      <style>{`
+                        @keyframes progress-indeterminate {
+                          0% { transform: translateX(-100%); }
+                          50% { transform: translateX(200%); }
+                          100% { transform: translateX(-100%); }
+                        }
+                      `}</style>
+                      <p className="text-xs text-muted-foreground">
+                        Extracting keywords from each post title and finding unique images from Pexels
+                      </p>
                     </div>
                   )}
                 </div>
