@@ -2256,7 +2256,7 @@ export default function SiteConfig() {
                       <Label htmlFor="headingFont" data-testid="label-heading-font">Heading Font</Label>
                       <Select
                         value={templateSettings.headingFont}
-                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant") => 
+                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant" | "system") => 
                           setTemplateSettings({ ...templateSettings, headingFont: value })
                         }
                       >
@@ -2269,6 +2269,7 @@ export default function SiteConfig() {
                           <SelectItem value="editorial">Editorial (Merriweather)</SelectItem>
                           <SelectItem value="tech">Tech (JetBrains Mono)</SelectItem>
                           <SelectItem value="elegant">Elegant (Playfair Display)</SelectItem>
+                          <SelectItem value="system">System (Native UI)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -2276,7 +2277,7 @@ export default function SiteConfig() {
                       <Label htmlFor="bodyFont" data-testid="label-body-font">Body Font</Label>
                       <Select
                         value={templateSettings.bodyFont}
-                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant") => 
+                        onValueChange={(value: "modern" | "classic" | "editorial" | "tech" | "elegant" | "system") => 
                           setTemplateSettings({ ...templateSettings, bodyFont: value })
                         }
                       >
@@ -2289,6 +2290,7 @@ export default function SiteConfig() {
                           <SelectItem value="editorial">Editorial (Source Serif)</SelectItem>
                           <SelectItem value="tech">Tech (IBM Plex Sans)</SelectItem>
                           <SelectItem value="elegant">Elegant (Lora)</SelectItem>
+                          <SelectItem value="system">System (Native UI)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

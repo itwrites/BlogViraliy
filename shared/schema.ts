@@ -114,8 +114,8 @@ export const templateSettingsSchema = z.object({
   textColor: z.string().default("#1f2937"),
   headerBackgroundColor: z.string().default("").optional(), // Empty = use card color, or custom hex
   headerTextColor: z.string().default("").optional(), // Empty = use foreground, or custom hex
-  headingFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
-  bodyFont: z.enum(["modern", "classic", "editorial", "tech", "elegant"]).default("modern"),
+  headingFont: z.enum(["modern", "classic", "editorial", "tech", "elegant", "system"]).default("modern"),
+  bodyFont: z.enum(["modern", "classic", "editorial", "tech", "elegant", "system"]).default("modern"),
   fontScale: z.enum(["compact", "normal", "spacious"]).default("normal"),
   headerStyle: z.enum(["minimal", "standard", "full"]).default("standard"),
   cardStyle: z.enum(["rounded", "sharp", "borderless"]).default("rounded"),

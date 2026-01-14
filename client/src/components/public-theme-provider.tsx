@@ -13,6 +13,7 @@ const fontFamilies: Record<string, string> = {
   editorial: "Merriweather, Georgia, serif",
   tech: "JetBrains Mono, Roboto Mono, monospace",
   elegant: "Playfair Display, Georgia, serif",
+  system: 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
 };
 
 const fontScales: Record<string, { base: string; heading: string; hero: string }> = {
