@@ -1661,15 +1661,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get all valid slugs for a site
+  // Includes both existing posts AND pillar articles (from topical map)
+  // This allows internal links to future posts that will be generated
+  async function getValidSlugsForSite(siteId: string): Promise<Set<string>> {
+    const validSlugs = new Set<string>();
+    
+    // Add all existing post slugs
+    const allPosts = await storage.getPostsBySiteId(siteId);
+    allPosts.forEach(p => validSlugs.add(p.slug));
+    
+    // Also add all pillar article slugs (from topical map) - these will become posts
+    const pillars = await storage.getPillarsBySiteId(siteId);
+    for (const pillar of pillars) {
+      const pillarArticles = await storage.getPillarArticlesByPillarId(pillar.id);
+      pillarArticles.forEach(a => validSlugs.add(a.slug));
+    }
+    
+    return validSlugs;
+  }
+
   // Helper function to rewrite internal links in post content based on site URL config
   // Also validates links - broken links are converted to plain text
   async function rewritePostContent<T extends { content: string }>(post: T, siteId: string): Promise<T> {
     const site = await storage.getSiteById(siteId);
     if (!site) return post;
     
-    // Get all valid slugs for this site to validate internal links
-    const allPosts = await storage.getPostsBySiteId(siteId);
-    const validSlugs = new Set(allPosts.map(p => p.slug));
+    // Get all valid slugs for this site (existing posts + pillar articles)
+    const validSlugs = await getValidSlugsForSite(siteId);
     
     const urlConfig: SiteUrlConfig = {
       basePath: site.basePath || "",
@@ -1687,9 +1706,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const site = await storage.getSiteById(siteId);
     if (!site) return posts;
     
-    // Get all valid slugs for this site to validate internal links
-    const allPosts = await storage.getPostsBySiteId(siteId);
-    const validSlugs = new Set(allPosts.map(p => p.slug));
+    // Get all valid slugs for this site (existing posts + pillar articles)
+    const validSlugs = await getValidSlugsForSite(siteId);
     
     const urlConfig: SiteUrlConfig = {
       basePath: site.basePath || "",

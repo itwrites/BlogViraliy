@@ -284,15 +284,16 @@ export async function generatePillarArticleContent(
   const articleRole = (article.articleRole as ArticleRole) || "general";
   
   // Build link targets based on pack linking rules
+  // Since we have the full topical map with all slugs defined upfront,
+  // we link to ALL articles regardless of their generation status.
+  // Links to pending articles will work once those articles are generated.
   const relevantRule = packDef.linkingRules.find(r => r.fromRole === articleRole);
   const targetRoles = relevantRule?.toRoles || [];
   
-  // Get completed articles that match target roles for linking
+  // Get articles that match target roles for linking (any status - slugs are predefined)
   let linkTargets: LinkTarget[] = siblingArticles
     .filter(a => 
       a.id !== article.id && 
-      a.status === "completed" && 
-      a.postId &&
       targetRoles.includes(a.articleRole as ArticleRole)
     )
     .slice(0, 5)
@@ -303,15 +304,11 @@ export async function generatePillarArticleContent(
       anchorPattern: relevantRule?.anchorPattern || "semantic",
     }));
   
-  // If no articles match target roles, fall back to any completed articles in the pillar
+  // If no articles match target roles, fall back to any articles in the pillar
   // This ensures internal linking even when pack rules can't be satisfied
   if (linkTargets.length === 0) {
     linkTargets = siblingArticles
-      .filter(a => 
-        a.id !== article.id && 
-        a.status === "completed" && 
-        a.postId
-      )
+      .filter(a => a.id !== article.id)
       .slice(0, 5)
       .map(a => ({
         title: a.title,
@@ -321,8 +318,8 @@ export async function generatePillarArticleContent(
       }));
   }
   
-  // Add parent article as link target if applicable
-  if (parentArticle && parentArticle.status === "completed" && parentArticle.postId) {
+  // Add parent article as link target if applicable (regardless of completion status)
+  if (parentArticle) {
     // Avoid duplicates
     if (!linkTargets.some(t => t.slug === parentArticle.slug)) {
       linkTargets.unshift({
