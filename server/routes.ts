@@ -1509,6 +1509,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search posts by image URL (for bulk image replacement)
+  app.get("/api/sites/:id/posts/search-by-image", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const imageUrl = req.query.imageUrl as string;
+      if (!imageUrl) {
+        return res.status(400).json({ error: "imageUrl query parameter required" });
+      }
+      
+      const posts = await storage.getPostsBySiteId(req.params.id);
+      const matchingPosts = posts.filter(post => post.imageUrl === imageUrl);
+      
+      res.json(matchingPosts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to search posts by image" });
+    }
+  });
+
+  // Bulk replace image URL in posts
+  app.post("/api/sites/:id/posts/bulk-replace-image", requireAuth, requireSiteAccess(), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { oldImageUrl, newImageUrl, postIds } = req.body;
+      
+      if (!oldImageUrl || !newImageUrl) {
+        return res.status(400).json({ error: "oldImageUrl and newImageUrl are required" });
+      }
+      
+      if (!postIds || !Array.isArray(postIds) || postIds.length === 0) {
+        return res.status(400).json({ error: "postIds array is required" });
+      }
+      
+      let updatedCount = 0;
+      for (const postId of postIds) {
+        const post = await storage.getPostById(postId);
+        if (post && post.siteId === req.params.id && post.imageUrl === oldImageUrl) {
+          await storage.updatePost(postId, { imageUrl: newImageUrl });
+          updatedCount++;
+        }
+      }
+      
+      res.json({ success: true, updatedCount });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to bulk replace images" });
+    }
+  });
+
+  // Get all unique featured images for a site (for troubleshooting)
+  app.get("/api/sites/:id/featured-images", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const posts = await storage.getPostsBySiteId(req.params.id);
+      const imageMap = new Map<string, { url: string; count: number }>();
+      
+      for (const post of posts) {
+        if (post.imageUrl) {
+          const existing = imageMap.get(post.imageUrl);
+          if (existing) {
+            existing.count++;
+          } else {
+            imageMap.set(post.imageUrl, { url: post.imageUrl, count: 1 });
+          }
+        }
+      }
+      
+      const images = Array.from(imageMap.values())
+        .sort((a, b) => b.count - a.count);
+      
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch featured images" });
+    }
+  });
+
   // === PUBLIC ROUTES ===
 
   app.get("/api/domain-check", async (req: DomainRequest, res: Response) => {

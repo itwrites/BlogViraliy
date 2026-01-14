@@ -13,7 +13,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2 } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2, Wrench, ImageIcon, Replace } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,7 +24,7 @@ import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } f
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 
-type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business";
+type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business" | "troubleshooting";
 
 interface ApiKeyData {
   id: string;
@@ -390,6 +390,304 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
           <p className="text-sm text-muted-foreground">
             See the Admin Wiki for full API documentation including all endpoints, request/response formats, and error handling.
           </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+interface ImageInfo {
+  url: string;
+  count: number;
+}
+
+interface PostWithImage {
+  id: string;
+  title: string;
+  slug: string;
+  imageUrl: string | null;
+}
+
+function TroubleshootingSection({ siteId }: { siteId: string }) {
+  const { toast } = useToast();
+  const [searchImageUrl, setSearchImageUrl] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [matchingPosts, setMatchingPosts] = useState<PostWithImage[]>([]);
+  const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
+  const [isSearching, setIsSearching] = useState(false);
+  const [isReplacing, setIsReplacing] = useState(false);
+
+  const { data: featuredImages = [], isLoading: loadingImages } = useQuery<ImageInfo[]>({
+    queryKey: ["/api/sites", siteId, "featured-images"],
+    queryFn: async () => {
+      const res = await fetch(`/api/sites/${siteId}/featured-images`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch featured images");
+      return res.json();
+    },
+  });
+
+  const searchByImage = async (imageUrlOverride?: string) => {
+    const urlToSearch = imageUrlOverride ?? searchImageUrl;
+    if (!urlToSearch.trim()) {
+      toast({ title: "Enter an image URL to search", variant: "destructive" });
+      return;
+    }
+    
+    if (imageUrlOverride) {
+      setSearchImageUrl(imageUrlOverride);
+    }
+    
+    setIsSearching(true);
+    try {
+      const res = await fetch(`/api/sites/${siteId}/posts/search-by-image?imageUrl=${encodeURIComponent(urlToSearch)}`, {
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Search failed");
+      const posts = await res.json();
+      setMatchingPosts(posts);
+      setSelectedPostIds(new Set(posts.map((p: PostWithImage) => p.id)));
+      
+      if (posts.length === 0) {
+        toast({ title: "No posts found with that image" });
+      } else {
+        toast({ title: `Found ${posts.length} post(s) with that image` });
+      }
+    } catch (error) {
+      toast({ title: "Search failed", variant: "destructive" });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const bulkReplaceImages = async () => {
+    if (!newImageUrl.trim()) {
+      toast({ title: "Enter a new image URL", variant: "destructive" });
+      return;
+    }
+    
+    if (selectedPostIds.size === 0) {
+      toast({ title: "Select at least one post", variant: "destructive" });
+      return;
+    }
+    
+    setIsReplacing(true);
+    try {
+      const res = await apiRequest("POST", `/api/sites/${siteId}/posts/bulk-replace-image`, {
+        oldImageUrl: searchImageUrl,
+        newImageUrl: newImageUrl,
+        postIds: Array.from(selectedPostIds),
+      });
+      const result = await res.json();
+      
+      toast({ 
+        title: "Images replaced", 
+        description: `Updated ${result.updatedCount} post(s)` 
+      });
+      
+      setMatchingPosts([]);
+      setSelectedPostIds(new Set());
+      setSearchImageUrl("");
+      setNewImageUrl("");
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "featured-images"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
+    } catch (error) {
+      toast({ title: "Replace failed", variant: "destructive" });
+    } finally {
+      setIsReplacing(false);
+    }
+  };
+
+  const togglePostSelection = (postId: string) => {
+    const newSelected = new Set(selectedPostIds);
+    if (newSelected.has(postId)) {
+      newSelected.delete(postId);
+    } else {
+      newSelected.add(postId);
+    }
+    setSelectedPostIds(newSelected);
+  };
+
+  const selectAll = () => {
+    setSelectedPostIds(new Set(matchingPosts.map(p => p.id)));
+  };
+
+  const selectNone = () => {
+    setSelectedPostIds(new Set());
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Replace className="w-5 h-5" />
+            Bulk Image Replacement
+          </CardTitle>
+          <CardDescription>
+            Find all posts using a specific featured image and replace it with a different one
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="searchImage">Image URL to Find</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="searchImage"
+                  placeholder="https://example.com/old-image.jpg"
+                  value={searchImageUrl}
+                  onChange={(e) => setSearchImageUrl(e.target.value)}
+                  data-testid="input-search-image-url"
+                />
+                <Button 
+                  onClick={searchByImage} 
+                  disabled={isSearching}
+                  data-testid="button-search-image"
+                >
+                  {isSearching ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {matchingPosts.length > 0 && (
+              <>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Matching Posts ({matchingPosts.length})</Label>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={selectAll}>
+                        Select All
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={selectNone}>
+                        Select None
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="border rounded-lg max-h-64 overflow-y-auto">
+                    {matchingPosts.map((post) => (
+                      <div
+                        key={post.id}
+                        className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/50"
+                        data-testid={`post-item-${post.id}`}
+                      >
+                        <Checkbox
+                          checked={selectedPostIds.has(post.id)}
+                          onCheckedChange={() => togglePostSelection(post.id)}
+                          data-testid={`checkbox-post-${post.id}`}
+                        />
+                        {post.imageUrl && (
+                          <img
+                            src={post.imageUrl}
+                            alt=""
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{post.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{post.slug}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newImage">New Image URL</Label>
+                  <Input
+                    id="newImage"
+                    placeholder="https://example.com/new-image.jpg"
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    data-testid="input-new-image-url"
+                  />
+                </div>
+
+                {newImageUrl && (
+                  <div className="space-y-2">
+                    <Label>Preview</Label>
+                    <img
+                      src={newImageUrl}
+                      alt="New image preview"
+                      className="max-w-xs max-h-40 object-cover rounded border"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+
+                <Button
+                  onClick={bulkReplaceImages}
+                  disabled={isReplacing || selectedPostIds.size === 0 || !newImageUrl.trim()}
+                  className="w-full"
+                  data-testid="button-replace-images"
+                >
+                  {isReplacing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Replacing...
+                    </>
+                  ) : (
+                    <>
+                      <Replace className="w-4 h-4 mr-2" />
+                      Replace Image in {selectedPostIds.size} Post(s)
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5" />
+            All Featured Images
+          </CardTitle>
+          <CardDescription>
+            Click on an image URL to search for posts using it
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingImages ? (
+            <div className="text-center py-8 text-muted-foreground">Loading images...</div>
+          ) : featuredImages.length === 0 ? (
+            <div className="text-center py-8">
+              <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">No featured images found</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {featuredImages.map((img, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => searchByImage(img.url)}
+                  data-testid={`image-item-${idx}`}
+                >
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="w-10 h-10 object-cover rounded"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21,15 16,10 5,21'/%3E%3C/svg%3E";
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-mono truncate text-muted-foreground">{img.url}</p>
+                  </div>
+                  <Badge variant="secondary">{img.count} post{img.count !== 1 ? "s" : ""}</Badge>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -835,6 +1133,7 @@ export default function SiteConfig() {
     { id: "bulk", label: "Bulk", icon: FileText, disabled: isNewSite },
     { id: "posts", label: "Posts", icon: Layout, disabled: isNewSite },
     { id: "api", label: "API Keys", icon: Key, disabled: isNewSite },
+    { id: "troubleshooting", label: "Troubleshooting", icon: Wrench, disabled: isNewSite },
   ];
 
   const handleNavClick = (section: ActiveSection) => {
@@ -3122,6 +3421,10 @@ export default function SiteConfig() {
 
             {activeSection === "api" && !isNewSite && id && (
               <ApiKeysSection siteId={id} />
+            )}
+
+            {activeSection === "troubleshooting" && !isNewSite && id && (
+              <TroubleshootingSection siteId={id} />
             )}
           </motion.div>
         </main>
