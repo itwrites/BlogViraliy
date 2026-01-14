@@ -121,8 +121,8 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
       });
     });
 
-    const width = 800;
-    const height = 500;
+    const width = 1000;
+    const height = 700;
     const centerX = width / 2;
     const centerY = height / 2;
 
@@ -175,9 +175,9 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
         const roleIdx = nonPillarRoles.indexOf(role);
         const baseAngle = -Math.PI / 2 + (roleIdx / numRoles) * 2 * Math.PI;
         
-        const innerRadius = 120;
-        const radiusSpacing = 50;
-        const minNodeSpacing = 45;
+        const innerRadius = 180;
+        const radiusSpacing = 80;
+        const minNodeSpacing = 70;
         
         roleArticles.forEach((article, idx) => {
           const ring = Math.floor(idx / 8);
@@ -221,7 +221,7 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
           const dx = nodeB.x - nodeA.x;
           const dy = nodeB.y - nodeA.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const minDist = nodeA.radius + nodeB.radius + 25;
+          const minDist = nodeA.radius + nodeB.radius + 50;
           
           if (dist < minDist && dist > 0) {
             const overlap = (minDist - dist) / 2;
@@ -236,10 +236,10 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
         }
         
         const distFromCenter = Math.sqrt((nodeA.x - centerX) ** 2 + (nodeA.y - centerY) ** 2);
-        if (distFromCenter < 80) {
+        if (distFromCenter < 120) {
           const angle = Math.atan2(nodeA.y - centerY, nodeA.x - centerX);
-          nodeA.x = centerX + Math.cos(angle) * 90;
-          nodeA.y = centerY + Math.sin(angle) * 90;
+          nodeA.x = centerX + Math.cos(angle) * 140;
+          nodeA.y = centerY + Math.sin(angle) * 140;
         }
       }
     }
@@ -340,11 +340,11 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="border rounded-md bg-muted/20 overflow-hidden" style={{ height: 400 }}>
+        <div className="border rounded-md bg-muted/20 overflow-hidden" style={{ height: 500 }}>
           <svg
             width="100%"
             height="100%"
-            viewBox="0 0 800 500"
+            viewBox="0 0 1000 700"
             className="cursor-grab active:cursor-grabbing"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
