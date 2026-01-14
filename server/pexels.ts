@@ -33,7 +33,8 @@ async function fetchPexelsImages(
 
 export async function searchPexelsImage(
   query: string,
-  fallbackQueries?: string[]
+  fallbackQueries?: string[],
+  excludeUrls?: Set<string>
 ): Promise<string | null> {
   try {
     const apiKey = process.env.PEXELS_API_KEY;
@@ -81,9 +82,23 @@ export async function searchPexelsImage(
     }
 
     if (photos.length > 0) {
-      // Randomly select an image from results to avoid duplicate images
-      const randomIndex = Math.floor(Math.random() * photos.length);
-      const selectedPhoto = photos[randomIndex];
+      // Filter out already-used URLs if exclusion set provided
+      let availablePhotos = photos;
+      if (excludeUrls && excludeUrls.size > 0) {
+        availablePhotos = photos.filter(photo => {
+          const url = photo.src.large2x || photo.src.large;
+          return !excludeUrls.has(url);
+        });
+      }
+      
+      // If all photos are excluded, use original list (better than nothing)
+      if (availablePhotos.length === 0) {
+        availablePhotos = photos;
+      }
+      
+      // Randomly select an image from available results
+      const randomIndex = Math.floor(Math.random() * availablePhotos.length);
+      const selectedPhoto = availablePhotos[randomIndex];
 
       // Use large2x for high-resolution retina quality (940×650px @ DPR 2)
       // Falls back to large if large2x is unavailable

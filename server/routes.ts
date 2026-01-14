@@ -1603,6 +1603,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk auto-replace images with Pexels (fully automated)
+  app.post("/api/sites/:id/bulk-auto-replace", requireAuth, requireSiteAccess(), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const { oldImageUrl } = req.body;
+      
+      if (!oldImageUrl || typeof oldImageUrl !== "string") {
+        return res.status(400).json({ error: "oldImageUrl is required" });
+      }
+      
+      // Get all posts for this site
+      const allPosts = await storage.getPostsBySiteId(siteId);
+      
+      // Find posts with the old image
+      const postsToUpdate = allPosts.filter((p: { imageUrl?: string | null }) => p.imageUrl === oldImageUrl);
+      
+      if (postsToUpdate.length === 0) {
+        return res.json({ success: true, updated: 0, failed: 0, results: [], message: "No posts found with that image" });
+      }
+      
+      // Get all currently used image URLs to avoid duplicates
+      const usedImageUrls = new Set<string>();
+      for (const post of allPosts) {
+        if (post.imageUrl && post.imageUrl !== oldImageUrl) {
+          usedImageUrls.add(post.imageUrl);
+        }
+      }
+      
+      // Stop words to filter out when extracting keywords
+      const stopWords = new Set([
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+        "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+        "being", "have", "has", "had", "do", "does", "did", "will", "would",
+        "could", "should", "may", "might", "must", "shall", "can", "need",
+        "this", "that", "these", "those", "i", "you", "he", "she", "it", "we",
+        "they", "what", "which", "who", "whom", "how", "why", "when", "where",
+        "your", "my", "our", "their", "its", "his", "her", "as", "if", "so",
+        "than", "then", "just", "only", "also", "even", "more", "most", "very",
+        "too", "now", "here", "there", "all", "any", "each", "every", "both",
+        "few", "many", "some", "such", "no", "not", "own", "same", "other"
+      ]);
+      
+      const extractKeywords = (title: string): string => {
+        const words = title.toLowerCase()
+          .replace(/[^\w\s]/g, "")
+          .split(/\s+/)
+          .filter(w => w.length > 2 && !stopWords.has(w));
+        return words.slice(0, 4).join(" ");
+      };
+      
+      const results: Array<{ postId: string; title: string; success: boolean; newImageUrl?: string; error?: string }> = [];
+      let updated = 0;
+      let failed = 0;
+      
+      // Process each post
+      for (const post of postsToUpdate) {
+        try {
+          const keywords = extractKeywords(post.title);
+          
+          if (!keywords) {
+            results.push({ postId: post.id, title: post.title, success: false, error: "Could not extract keywords from title" });
+            failed++;
+            continue;
+          }
+          
+          // Search Pexels with exclusion of already-used URLs
+          const newImageUrl = await searchPexelsImage(keywords, undefined, usedImageUrls);
+          
+          if (!newImageUrl) {
+            results.push({ postId: post.id, title: post.title, success: false, error: "No Pexels image found for keywords: " + keywords });
+            failed++;
+            continue;
+          }
+          
+          // Update the post
+          await storage.updatePost(post.id, { imageUrl: newImageUrl });
+          
+          // Add the new URL to the exclusion set for future posts
+          usedImageUrls.add(newImageUrl);
+          
+          results.push({ postId: post.id, title: post.title, success: true, newImageUrl });
+          updated++;
+          
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          results.push({ postId: post.id, title: post.title, success: false, error: errorMessage });
+          failed++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        updated,
+        failed,
+        total: postsToUpdate.length,
+        results
+      });
+      
+    } catch (error) {
+      console.error("[Bulk Auto-Replace] Error:", error);
+      res.status(500).json({ error: "Failed to bulk replace images" });
+    }
+  });
+
   // === PUBLIC ROUTES ===
 
   app.get("/api/domain-check", async (req: DomainRequest, res: Response) => {

@@ -13,7 +13,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2, Wrench, ImageIcon, Replace } from "lucide-react";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2, Wrench, ImageIcon, Replace, Wand2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -408,6 +408,14 @@ interface PostWithImage {
   imageUrl: string | null;
 }
 
+interface AutoFixResult {
+  postId: string;
+  title: string;
+  success: boolean;
+  newImageUrl?: string;
+  error?: string;
+}
+
 function TroubleshootingSection({ siteId }: { siteId: string }) {
   const { toast } = useToast();
   const [searchImageUrl, setSearchImageUrl] = useState("");
@@ -418,6 +426,8 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
   const [isReplacing, setIsReplacing] = useState(false);
   const [isFetchingPexels, setIsFetchingPexels] = useState(false);
   const [pexelsKeywords, setPexelsKeywords] = useState("");
+  const [isAutoFixing, setIsAutoFixing] = useState(false);
+  const [autoFixResults, setAutoFixResults] = useState<AutoFixResult[] | null>(null);
 
   const { data: featuredImages = [], isLoading: loadingImages } = useQuery<ImageInfo[]>({
     queryKey: ["/api/sites", siteId, "featured-images"],
@@ -556,6 +566,55 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
     }
   };
 
+  const autoFixAllImages = async () => {
+    if (!searchImageUrl.trim()) {
+      toast({ title: "Search for posts first", variant: "destructive" });
+      return;
+    }
+    
+    if (matchingPosts.length === 0) {
+      toast({ title: "No posts to fix", variant: "destructive" });
+      return;
+    }
+    
+    setIsAutoFixing(true);
+    setAutoFixResults(null);
+    
+    try {
+      const res = await apiRequest("POST", `/api/sites/${siteId}/bulk-auto-replace`, {
+        oldImageUrl: searchImageUrl,
+      });
+      const data = await res.json();
+      
+      setAutoFixResults(data.results);
+      
+      if (data.updated > 0) {
+        toast({ 
+          title: "Auto-fix complete", 
+          description: `Updated ${data.updated} of ${data.total} posts with unique Pexels images` 
+        });
+        
+        // Clear the matching posts since they've been updated
+        setMatchingPosts([]);
+        setSelectedPostIds(new Set());
+        setSearchImageUrl("");
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "featured-images"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
+      } else if (data.failed > 0) {
+        toast({ 
+          title: "Auto-fix had issues", 
+          description: `Failed to update ${data.failed} posts. Check results below.`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({ title: "Auto-fix failed", variant: "destructive" });
+    } finally {
+      setIsAutoFixing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -636,11 +695,89 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
                   </div>
                 </div>
 
+                <div className="p-4 border-2 border-primary/50 rounded-lg bg-primary/5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-base font-semibold">Auto-Fix All ({matchingPosts.length} posts)</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Automatically assigns a unique Pexels image to each post based on its title
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={autoFixAllImages}
+                      disabled={isAutoFixing || matchingPosts.length === 0}
+                      size="lg"
+                      data-testid="button-auto-fix-all"
+                    >
+                      {isAutoFixing ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Auto-Fix All
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {isAutoFixing && (
+                    <div className="text-sm text-muted-foreground">
+                      Extracting keywords from each post title and finding unique images from Pexels...
+                    </div>
+                  )}
+                </div>
+
+                {autoFixResults && autoFixResults.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Auto-Fix Results</Label>
+                    <div className="border rounded-lg max-h-64 overflow-y-auto">
+                      {autoFixResults.map((result, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-3 border-b last:border-b-0 ${result.success ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}
+                        >
+                          {result.success ? (
+                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          ) : (
+                            <X className="w-5 h-5 text-red-600 flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{result.title}</p>
+                            {result.success ? (
+                              <p className="text-xs text-green-600 truncate">New image assigned</p>
+                            ) : (
+                              <p className="text-xs text-red-600">{result.error}</p>
+                            )}
+                          </div>
+                          {result.success && result.newImageUrl && (
+                            <img
+                              src={result.newImageUrl}
+                              alt=""
+                              className="w-12 h-12 object-cover rounded flex-shrink-0"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">or manually select one image for all</span>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
                     <Label className="flex items-center gap-2">
                       <ImageIcon className="w-4 h-4" />
-                      Auto-Fetch from Pexels
+                      Manual: Fetch Single Image from Pexels
                     </Label>
                     <div className="flex gap-2">
                       <Input
