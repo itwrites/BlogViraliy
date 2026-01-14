@@ -288,7 +288,7 @@ export async function generatePillarArticleContent(
   const targetRoles = relevantRule?.toRoles || [];
   
   // Get completed articles that match target roles for linking
-  const linkTargets: LinkTarget[] = siblingArticles
+  let linkTargets: LinkTarget[] = siblingArticles
     .filter(a => 
       a.id !== article.id && 
       a.status === "completed" && 
@@ -303,14 +303,35 @@ export async function generatePillarArticleContent(
       anchorPattern: relevantRule?.anchorPattern || "semantic",
     }));
   
+  // If no articles match target roles, fall back to any completed articles in the pillar
+  // This ensures internal linking even when pack rules can't be satisfied
+  if (linkTargets.length === 0) {
+    linkTargets = siblingArticles
+      .filter(a => 
+        a.id !== article.id && 
+        a.status === "completed" && 
+        a.postId
+      )
+      .slice(0, 5)
+      .map(a => ({
+        title: a.title,
+        slug: a.slug,
+        role: (a.articleRole as ArticleRole) || "general",
+        anchorPattern: "semantic",
+      }));
+  }
+  
   // Add parent article as link target if applicable
   if (parentArticle && parentArticle.status === "completed" && parentArticle.postId) {
-    linkTargets.unshift({
-      title: parentArticle.title,
-      slug: parentArticle.slug,
-      role: (parentArticle.articleRole as ArticleRole) || "pillar",
-      anchorPattern: relevantRule?.anchorPattern || "semantic",
-    });
+    // Avoid duplicates
+    if (!linkTargets.some(t => t.slug === parentArticle.slug)) {
+      linkTargets.unshift({
+        title: parentArticle.title,
+        slug: parentArticle.slug,
+        role: (parentArticle.articleRole as ArticleRole) || "pillar",
+        anchorPattern: relevantRule?.anchorPattern || "semantic",
+      });
+    }
   }
   
   // Build the role-specific prompt with business context

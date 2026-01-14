@@ -346,30 +346,36 @@ export function getLinkingInstructions(
   const packDef = getPackDefinition(packType);
   const relevantRule = packDef.linkingRules.find(r => r.fromRole === currentRole);
   
-  if (!relevantRule) {
-    return `Include natural internal links to related articles where relevant.`;
-  }
+  // First try to get targets matching pack rules
+  let filteredTargets = relevantRule 
+    ? availableTargets.filter(t => relevantRule.toRoles.includes(t.role)).slice(0, 5)
+    : [];
 
-  const filteredTargets = availableTargets.filter(t => 
-    relevantRule.toRoles.includes(t.role)
-  ).slice(0, 5);
+  // If no matching targets, use all available targets (ensures internal linking)
+  if (filteredTargets.length === 0) {
+    filteredTargets = availableTargets.slice(0, 5);
+  }
 
   if (filteredTargets.length === 0) {
     return "";
   }
 
-  const anchorGuidance = getAnchorPatternGuidance(relevantRule.anchorPattern);
+  const anchorGuidance = relevantRule 
+    ? getAnchorPatternGuidance(relevantRule.anchorPattern)
+    : getAnchorPatternGuidance("semantic");
   
   const targetList = filteredTargets
-    .map(t => `- "${t.title}" (/post/${t.slug}) - ${anchorGuidance}`)
+    .map(t => `- "${t.title}" (/post/${t.slug})`)
     .join("\n");
 
   return `
-INTERNAL LINKING STRATEGY (${packDef.name} Pack):
+INTERNAL LINKING STRATEGY${packDef ? ` (${packDef.name} Pack)` : ""}:
 ${anchorGuidance}
 
-Link to these related articles naturally within your content:
-${targetList}`;
+You MUST include internal links to these related articles naturally within your content. Each link should use the format [anchor text](/post/slug):
+${targetList}
+
+IMPORTANT: Include at least 2-3 internal links to these articles using descriptive, contextual anchor text.`;
 }
 
 export function detectRoleFromKeyword(keyword: string): ArticleRole {
