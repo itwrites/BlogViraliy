@@ -1662,13 +1662,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Helper function to rewrite internal links in post content based on site URL config
+  // Also validates links - broken links are converted to plain text
   async function rewritePostContent<T extends { content: string }>(post: T, siteId: string): Promise<T> {
     const site = await storage.getSiteById(siteId);
     if (!site) return post;
     
+    // Get all valid slugs for this site to validate internal links
+    const allPosts = await storage.getPostsBySiteId(siteId);
+    const validSlugs = new Set(allPosts.map(p => p.slug));
+    
     const urlConfig: SiteUrlConfig = {
       basePath: site.basePath || "",
       postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
+      validSlugs, // Include valid slugs for link validation
     };
     
     return {
@@ -1681,9 +1687,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const site = await storage.getSiteById(siteId);
     if (!site) return posts;
     
+    // Get all valid slugs for this site to validate internal links
+    const allPosts = await storage.getPostsBySiteId(siteId);
+    const validSlugs = new Set(allPosts.map(p => p.slug));
+    
     const urlConfig: SiteUrlConfig = {
       basePath: site.basePath || "",
       postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
+      validSlugs, // Include valid slugs for link validation
     };
     
     return posts.map(post => ({

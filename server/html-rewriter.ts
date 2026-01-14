@@ -5,11 +5,15 @@ import render from "dom-serializer";
 export interface SiteUrlConfig {
   basePath: string;
   postUrlFormat: "with-prefix" | "root";
+  validSlugs?: Set<string>; // Optional set of valid slugs for validation
 }
 
 /**
  * Rewrites internal post links in content (Markdown/HTML) based on site URL configuration.
  * Transforms /post/slug to the correct format based on postUrlFormat and basePath.
+ * 
+ * If validSlugs is provided, links to non-existent posts are converted to plain text
+ * (the anchor text is kept, but the link is removed).
  * 
  * Examples:
  * - postUrlFormat="root", basePath="" -> /slug
@@ -20,25 +24,67 @@ export interface SiteUrlConfig {
 export function rewriteInternalPostLinks(content: string, config: SiteUrlConfig): string {
   if (!content) return content;
   
-  const { basePath, postUrlFormat } = config;
+  const { basePath, postUrlFormat, validSlugs } = config;
   
-  // Pattern to match internal post links: /post/slug-name
-  // Handles both Markdown links [text](/post/slug) and HTML href="/post/slug"
-  const postLinkPattern = /(\[([^\]]+)\]\(|\bhref=["'])\/post\/([a-z0-9-]+)(["'\)])/gi;
+  // Pattern to match Markdown internal post links: [text](/post/slug)
+  const markdownLinkPattern = /\[([^\]]+)\]\(\/post\/([a-z0-9-]+)\)/gi;
   
-  return content.replace(postLinkPattern, (match, prefix, linkText, slug, suffix) => {
-    let newUrl: string;
+  // First pass: handle Markdown links
+  let result = content.replace(markdownLinkPattern, (match, linkText, slug) => {
+    // If validSlugs provided and slug is not valid, convert to plain text
+    if (validSlugs && !validSlugs.has(slug)) {
+      return linkText; // Just return the anchor text without the link
+    }
     
+    let newUrl: string;
     if (postUrlFormat === "root") {
-      // Root level: /slug or /basePath/slug
       newUrl = basePath ? `${basePath}/${slug}` : `/${slug}`;
     } else {
-      // With prefix: /post/slug or /basePath/post/slug
+      newUrl = basePath ? `${basePath}/post/${slug}` : `/post/${slug}`;
+    }
+    
+    return `[${linkText}](${newUrl})`;
+  });
+  
+  // Pattern to match HTML internal post links: href="/post/slug"
+  const htmlLinkPattern = /(<a[^>]*href=["'])\/post\/([a-z0-9-]+)(["'][^>]*>)([^<]*)<\/a>/gi;
+  
+  // Second pass: handle HTML links
+  result = result.replace(htmlLinkPattern, (match, prefix, slug, middle, linkText) => {
+    // If validSlugs provided and slug is not valid, convert to plain text
+    if (validSlugs && !validSlugs.has(slug)) {
+      return linkText; // Just return the text without the link
+    }
+    
+    let newUrl: string;
+    if (postUrlFormat === "root") {
+      newUrl = basePath ? `${basePath}/${slug}` : `/${slug}`;
+    } else {
+      newUrl = basePath ? `${basePath}/post/${slug}` : `/post/${slug}`;
+    }
+    
+    return `${prefix}${newUrl}${middle}${linkText}</a>`;
+  });
+  
+  // Also handle simple href attributes without full anchor context
+  const simpleHrefPattern = /(\bhref=["'])\/post\/([a-z0-9-]+)(["'])/gi;
+  result = result.replace(simpleHrefPattern, (match, prefix, slug, suffix) => {
+    // If validSlugs provided and slug is not valid, keep original (can't easily remove in this context)
+    if (validSlugs && !validSlugs.has(slug)) {
+      return match; // Keep original - will result in 404 which is acceptable
+    }
+    
+    let newUrl: string;
+    if (postUrlFormat === "root") {
+      newUrl = basePath ? `${basePath}/${slug}` : `/${slug}`;
+    } else {
       newUrl = basePath ? `${basePath}/post/${slug}` : `/post/${slug}`;
     }
     
     return `${prefix}${newUrl}${suffix}`;
   });
+  
+  return result;
 }
 
 /**

@@ -155,16 +155,8 @@ export async function processRSSAutomation() {
                     anchorPattern: "semantic" as const,
                   }));
                 
-                // If no link targets exist, create a placeholder for the pillar itself
-                if (linkTargets.length === 0) {
-                  // Use pillar name as a link target placeholder to encourage internal linking
-                  linkTargets = [{
-                    title: pillar.name,
-                    slug: pillar.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
-                    role: "pillar" as ArticleRole,
-                    anchorPattern: "semantic" as const,
-                  }];
-                }
+                // If no link targets exist, don't create fake placeholders - only link to real posts
+                // This prevents broken internal links to non-existent articles
                 
                 // Build role-specific prompt that incorporates original content
                 const { buildLanguageDirective, getLanguageForPrompt } = await import("./language-utils");
