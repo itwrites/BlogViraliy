@@ -416,6 +416,8 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
   const [selectedPostIds, setSelectedPostIds] = useState<Set<string>>(new Set());
   const [isSearching, setIsSearching] = useState(false);
   const [isReplacing, setIsReplacing] = useState(false);
+  const [isFetchingPexels, setIsFetchingPexels] = useState(false);
+  const [pexelsKeywords, setPexelsKeywords] = useState("");
 
   const { data: featuredImages = [], isLoading: loadingImages } = useQuery<ImageInfo[]>({
     queryKey: ["/api/sites", siteId, "featured-images"],
@@ -516,6 +518,44 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
     setSelectedPostIds(new Set());
   };
 
+  // Extract keywords from post titles for Pexels search
+  const extractKeywordsFromPosts = () => {
+    if (matchingPosts.length === 0) return "";
+    // Take first post's title and extract key words
+    const title = matchingPosts[0].title;
+    // Remove common words and get first 3-4 meaningful words
+    const stopWords = new Set(["the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "could", "should", "may", "might", "must", "shall", "can", "need", "dare", "ought", "used", "how", "what", "why", "when", "where", "who", "which", "that", "this", "these", "those", "your", "our", "my"]);
+    const words = title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !stopWords.has(w))
+      .slice(0, 4);
+    return words.join(" ");
+  };
+
+  const fetchFromPexels = async () => {
+    const keywords = pexelsKeywords.trim() || extractKeywordsFromPosts();
+    if (!keywords) {
+      toast({ title: "Enter keywords or search for posts first", variant: "destructive" });
+      return;
+    }
+    
+    setIsFetchingPexels(true);
+    try {
+      const res = await apiRequest("POST", `/api/sites/${siteId}/pexels-search`, { keywords });
+      const data = await res.json();
+      
+      if (data.imageUrl) {
+        setNewImageUrl(data.imageUrl);
+        toast({ title: "Found image from Pexels", description: `Keywords: ${keywords}` });
+      }
+    } catch (error) {
+      toast({ title: "No images found", description: "Try different keywords", variant: "destructive" });
+    } finally {
+      setIsFetchingPexels(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -596,15 +636,56 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="newImage">New Image URL</Label>
-                  <Input
-                    id="newImage"
-                    placeholder="https://example.com/new-image.jpg"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    data-testid="input-new-image-url"
-                  />
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" />
+                      Auto-Fetch from Pexels
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={extractKeywordsFromPosts() || "Enter keywords (e.g., nature, business, technology)"}
+                        value={pexelsKeywords}
+                        onChange={(e) => setPexelsKeywords(e.target.value)}
+                        data-testid="input-pexels-keywords"
+                      />
+                      <Button 
+                        onClick={fetchFromPexels} 
+                        disabled={isFetchingPexels}
+                        variant="secondary"
+                        data-testid="button-fetch-pexels"
+                      >
+                        {isFetchingPexels ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Fetch"
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Keywords are auto-extracted from post titles. Click Fetch to get a random matching image.
+                    </p>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">or enter URL manually</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newImage">New Image URL</Label>
+                    <Input
+                      id="newImage"
+                      placeholder="https://example.com/new-image.jpg"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      data-testid="input-new-image-url"
+                    />
+                  </div>
                 </div>
 
                 {newImageUrl && (

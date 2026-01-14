@@ -14,6 +14,7 @@ import { normalizeBasePath } from "./utils";
 import { rewriteHtmlForBasePath, rewriteInternalPostLinks, SiteUrlConfig } from "./html-rewriter";
 import { analyzeRouteForPost } from "./vite";
 import { createPublicApiRouter, generateApiKey } from "./public-api";
+import { searchPexelsImage } from "./pexels";
 
 async function ensureAdminUser() {
   try {
@@ -1577,6 +1578,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(images);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch featured images" });
+    }
+  });
+
+  // Search Pexels for replacement images (for troubleshooting)
+  app.post("/api/sites/:id/pexels-search", requireAuth, requireSiteAccess(), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { keywords } = req.body;
+      
+      if (!keywords || typeof keywords !== "string" || !keywords.trim()) {
+        return res.status(400).json({ error: "keywords string is required" });
+      }
+      
+      const imageUrl = await searchPexelsImage(keywords.trim());
+      
+      if (!imageUrl) {
+        return res.status(404).json({ error: "No images found for those keywords" });
+      }
+      
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error("[Pexels Search] Error:", error);
+      res.status(500).json({ error: "Failed to search Pexels" });
     }
   });
 
