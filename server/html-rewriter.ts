@@ -2,6 +2,45 @@ import { parseDocument } from "htmlparser2";
 import { Element } from "domhandler";
 import render from "dom-serializer";
 
+export interface SiteUrlConfig {
+  basePath: string;
+  postUrlFormat: "with-prefix" | "root";
+}
+
+/**
+ * Rewrites internal post links in content (Markdown/HTML) based on site URL configuration.
+ * Transforms /post/slug to the correct format based on postUrlFormat and basePath.
+ * 
+ * Examples:
+ * - postUrlFormat="root", basePath="" -> /slug
+ * - postUrlFormat="root", basePath="/blog" -> /blog/slug
+ * - postUrlFormat="with-prefix", basePath="" -> /post/slug
+ * - postUrlFormat="with-prefix", basePath="/blog" -> /blog/post/slug
+ */
+export function rewriteInternalPostLinks(content: string, config: SiteUrlConfig): string {
+  if (!content) return content;
+  
+  const { basePath, postUrlFormat } = config;
+  
+  // Pattern to match internal post links: /post/slug-name
+  // Handles both Markdown links [text](/post/slug) and HTML href="/post/slug"
+  const postLinkPattern = /(\[([^\]]+)\]\(|\bhref=["'])\/post\/([a-z0-9-]+)(["'\)])/gi;
+  
+  return content.replace(postLinkPattern, (match, prefix, linkText, slug, suffix) => {
+    let newUrl: string;
+    
+    if (postUrlFormat === "root") {
+      // Root level: /slug or /basePath/slug
+      newUrl = basePath ? `${basePath}/${slug}` : `/${slug}`;
+    } else {
+      // With prefix: /post/slug or /basePath/post/slug
+      newUrl = basePath ? `${basePath}/post/${slug}` : `/post/${slug}`;
+    }
+    
+    return `${prefix}${newUrl}${suffix}`;
+  });
+}
+
 /**
  * Rewrites HTML content to prefix root-relative URLs with the given basePath.
  * This handles both attribute URLs (href, src, etc.) and inline script content.

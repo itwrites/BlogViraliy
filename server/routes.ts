@@ -11,7 +11,7 @@ import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchem
 import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 import { normalizeBasePath } from "./utils";
-import { rewriteHtmlForBasePath } from "./html-rewriter";
+import { rewriteHtmlForBasePath, rewriteInternalPostLinks, SiteUrlConfig } from "./html-rewriter";
 import { analyzeRouteForPost } from "./vite";
 import { createPublicApiRouter, generateApiKey } from "./public-api";
 
@@ -1661,11 +1661,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to rewrite internal links in post content based on site URL config
+  async function rewritePostContent<T extends { content: string }>(post: T, siteId: string): Promise<T> {
+    const site = await storage.getSiteById(siteId);
+    if (!site) return post;
+    
+    const urlConfig: SiteUrlConfig = {
+      basePath: site.basePath || "",
+      postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
+    };
+    
+    return {
+      ...post,
+      content: rewriteInternalPostLinks(post.content, urlConfig),
+    };
+  }
+  
+  async function rewritePostsContent<T extends { content: string }>(posts: T[], siteId: string): Promise<T[]> {
+    const site = await storage.getSiteById(siteId);
+    if (!site) return posts;
+    
+    const urlConfig: SiteUrlConfig = {
+      basePath: site.basePath || "",
+      postUrlFormat: (site.postUrlFormat as "with-prefix" | "root") || "with-prefix",
+    };
+    
+    return posts.map(post => ({
+      ...post,
+      content: rewriteInternalPostLinks(post.content, urlConfig),
+    }));
+  }
+
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {
     try {
       // Use method with authors to include author names in public posts
       const posts = await storage.getPostsBySiteIdWithAuthors(req.params.id);
-      res.json(posts);
+      const rewrittenPosts = await rewritePostsContent(posts, req.params.id);
+      res.json(rewrittenPosts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
     }
@@ -1678,7 +1710,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
-      res.json(post);
+      const rewrittenPost = await rewritePostContent(post, req.params.id);
+      res.json(rewrittenPost);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch post" });
     }
@@ -1687,7 +1720,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/public/sites/:id/posts-by-tag/:tag", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getPostsByTag(req.params.id, decodeURIComponent(req.params.tag));
-      res.json(posts);
+      const rewrittenPosts = await rewritePostsContent(posts, req.params.id);
+      res.json(rewrittenPosts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
     }
@@ -1700,7 +1734,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       const posts = await storage.getPostsByTags(req.params.id, tags);
-      res.json(posts);
+      const rewrittenPosts = await rewritePostsContent(posts, req.params.id);
+      res.json(rewrittenPosts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
     }
@@ -1728,7 +1763,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/public/sites/:id/related-posts/:postId", async (req: Request, res: Response) => {
     try {
       const posts = await storage.getRelatedPosts(req.params.postId, req.params.id);
-      res.json(posts);
+      const rewrittenPosts = await rewritePostsContent(posts, req.params.id);
+      res.json(rewrittenPosts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch related posts" });
     }
