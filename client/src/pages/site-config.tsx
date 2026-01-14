@@ -581,7 +581,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
                   data-testid="input-search-image-url"
                 />
                 <Button 
-                  onClick={searchByImage} 
+                  onClick={() => searchByImage()} 
                   disabled={isSearching}
                   data-testid="button-search-image"
                 >
