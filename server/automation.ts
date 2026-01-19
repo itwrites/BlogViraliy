@@ -60,6 +60,7 @@ export async function processAIAutomation() {
         metaTitle,
         metaDescription,
         source: "ai",
+        status: aiConfig.defaultPostStatus || "published",
       });
 
       await storage.createOrUpdateAiConfig({
@@ -225,6 +226,7 @@ export async function processRSSAutomation() {
               sourceUrl, // Store original URL for future duplicate detection
               articleRole, // Link to internal linking graph
               pillarId: (rssConfig as any).pillarId || null,
+              status: rssConfig.defaultPostStatus || "published",
             });
 
             console.log(`[RSS] Created post "${title}" for ${site.domain}`);
@@ -367,6 +369,9 @@ export async function processKeywordBatches() {
         // Get default author for this site
         const defaultAuthor = await storage.getDefaultAuthor(site.id);
 
+        // Get the AI config for default post status
+        const aiConfig = await storage.getAiConfigBySiteId(site.id);
+        
         // Create the post with article role
         const post = await storage.createPost({
           siteId: site.id,
@@ -380,6 +385,7 @@ export async function processKeywordBatches() {
           metaDescription,
           source: "ai-bulk",
           articleRole,
+          status: aiConfig?.defaultPostStatus || "published",
         });
 
         // Mark job as completed

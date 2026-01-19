@@ -433,6 +433,7 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
       metaTitle: generated.metaTitle,
       metaDescription: generated.metaDescription,
       articleRole: article.articleRole || "general",
+      status: pillar.defaultPostStatus || "published",
     });
 
     // Update article with post reference
