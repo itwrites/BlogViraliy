@@ -315,6 +315,7 @@ export const aiAutomationConfigs = pgTable("ai_automation_configs", {
   keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
   lastKeywordIndex: integer("last_keyword_index").notNull().default(0),
   targetLanguage: text("target_language").notNull().default("en"), // Target language for generated content
+  defaultPostStatus: text("default_post_status").notNull().default("published"), // published or draft
 });
 
 // RSS Automation Configuration
@@ -329,6 +330,7 @@ export const rssAutomationConfigs = pgTable("rss_automation_configs", {
   masterPrompt: text("master_prompt"), // Custom prompt for additional context when rewriting RSS content
   pillarId: varchar("pillar_id"), // Optional: Link rewritten posts to a pillar for internal linking
   articleRole: text("article_role"), // Optional: Default article role for rewritten posts (null = auto-detect from content)
+  defaultPostStatus: text("default_post_status").notNull().default("published"), // published or draft
 });
 
 // Site Authors (configurable bylines like "Staff Writer", "Editorial Team")
@@ -343,6 +345,10 @@ export const siteAuthors = pgTable("site_authors", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Post status enum
+export const postStatusEnum = z.enum(["published", "draft"]);
+export type PostStatus = z.infer<typeof postStatusEnum>;
+
 // Posts
 export const posts = pgTable("posts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -353,6 +359,7 @@ export const posts = pgTable("posts", {
   content: text("content").notNull(),
   imageUrl: text("image_url"),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+  status: text("status").notNull().default("published"), // published or draft
   source: text("source").notNull().default("manual"),
   sourceUrl: text("source_url"), // Original article URL for RSS posts (used for duplicate detection)
   // Internal linking graph
@@ -555,6 +562,7 @@ export const pillars = pgTable("pillars", {
   failedCount: integer("failed_count").notNull().default(0), // Articles that failed generation
   publishSchedule: text("publish_schedule").default("1_per_day"), // Publishing frequency
   targetLanguage: text("target_language").notNull().default("en"), // Target language for generated articles
+  defaultPostStatus: text("default_post_status").notNull().default("published"), // published or draft for generated articles
   nextPublishAt: timestamp("next_publish_at"), // Next scheduled publish time
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
