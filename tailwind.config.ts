@@ -6,12 +6,29 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: "0.75rem", /* 12px for cards */
+        md: "0.5rem", /* 8px for smaller elements */
+        sm: "0.25rem", /* 4px */
+        xl: "1rem", /* 16px for larger containers */
+        "2xl": "1.5rem", /* 24px for modals/drawers */
+        "3xl": "2rem",
+      },
+      fontFamily: {
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "SF Pro Display",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif"
+        ],
+        serif: ["New York", "Georgia", "serif"],
+        mono: ["SF Mono", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       colors: {
-        // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border) / <alpha-value>)",
@@ -82,17 +99,7 @@ export default {
           offline: "rgb(156 163 175)",
         },
       },
-      fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
-        mono: ["var(--font-mono)"],
-        blog: ["Merriweather", "serif"],
-        news: ["Roboto Condensed", "sans-serif"],
-        magazine: ["Georgia", "serif"],
-        portfolio: ["Inter", "sans-serif"],
-        restaurant: ["Playfair Display", "serif"],
-        crypto: ["Fira Code", "monospace"],
-      },
+
       maxWidth: {
         "3xl": "48rem",
         "4xl": "56rem",

@@ -24,8 +24,8 @@ import { useState, useEffect, useMemo } from "react";
 // macOS-inspired soft animations with reduced stiffness
 const sidebarVariants = {
   initial: { opacity: 0, x: -20 },
-  animate: { 
-    opacity: 1, 
+  animate: {
+    opacity: 1,
     x: 0,
     transition: { type: "spring", stiffness: 120, damping: 20, duration: 0.5 }
   },
@@ -44,16 +44,16 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 12, scale: 0.97 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
+  show: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: { 
-      type: "spring", 
-      stiffness: 120, 
+    transition: {
+      type: "spring",
+      stiffness: 120,
       damping: 18,
       duration: 0.4
-    } 
+    }
   }
 };
 
@@ -131,56 +131,59 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+  return (
+    <div className="min-h-screen bg-background font-sans selection:bg-primary/20 selection:text-primary">
       <div className="flex">
         <motion.aside
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-72 bg-card/60 backdrop-blur-2xl border-r border-border/30 z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-[280px] bg-sidebar/70 backdrop-blur-xl border-r border-sidebar-border z-50 flex flex-col shadow-2xl shadow-black/5"
         >
-          <div className="p-6 border-b border-border/30">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-sm">
-                <LayoutGrid className="w-5 h-5 text-primary-foreground" />
+          <div className="p-5 pt-6">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <LayoutGrid className="w-4 h-4 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-[17px] font-semibold tracking-tight truncate" data-testid="text-app-title">
+                <h1 className="text-[15px] font-bold tracking-tight text-sidebar-foreground truncate" data-testid="text-app-title">
                   Blog Virality
                 </h1>
-                <p className="text-[13px] text-muted-foreground/70 truncate">Admin Dashboard</p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 p-4 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
-              Navigation
-            </p>
-            <div className="space-y-1 mb-4">
+          <div className="flex-1 px-3 py-2 space-y-6 overflow-y-auto">
+            <div className="space-y-0.5">
+              <div className="px-3 mb-2 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Platform</span>
+              </div>
+
               <button
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-primary text-primary-foreground"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[14px] font-medium transition-all duration-200 bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                 data-testid="nav-sites"
               >
-                <Globe className="w-4 h-4" />
+                <Globe className="w-4 h-4 text-primary" />
                 <span className="flex-1 text-left">Websites</span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-foreground/20 text-primary-foreground">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-background/50 text-foreground border border-black/5 dark:border-white/5">
                   {stats.total}
                 </span>
               </button>
+
               {isAdmin && (
                 <button
                   onClick={() => setLocation("/admin/users")}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[14px] font-medium transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                   data-testid="nav-users"
                 >
                   <Users className="w-4 h-4" />
-                  <span className="flex-1 text-left">Manage Users</span>
+                  <span className="flex-1 text-left">Users</span>
                 </button>
               )}
+
               <button
                 onClick={() => setLocation("/admin/wiki")}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[14px] font-medium transition-all duration-200 text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                 data-testid="nav-wiki"
               >
                 <BookOpen className="w-4 h-4" />
@@ -188,95 +191,78 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
-              Quick Stats
-            </p>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="space-y-2"
-            >
-              <div className="bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl p-3 text-center border border-primary/20">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <TrendingUp className="w-4 h-4 text-primary" />
-                </div>
-                <p className="text-2xl font-bold text-primary">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Sites</p>
+            <div className="space-y-2">
+              <div className="px-3 mb-1">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Overview</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-emerald-500">{stats.blog}</p>
-                  <p className="text-[10px] text-muted-foreground">Blog</p>
+
+              <div className="grid grid-cols-2 gap-2 px-1">
+                <div className="bg-background/50 p-3 rounded-xl border border-sidebar-border/50">
+                  <div className="text-2xl font-semibold tracking-tight text-foreground">{stats.blog}</div>
+                  <div className="text-[11px] font-medium text-muted-foreground mt-0.5">Blogs</div>
                 </div>
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-violet-500">{stats.news}</p>
-                  <p className="text-[10px] text-muted-foreground">News</p>
-                </div>
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-orange-500">{stats.magazine}</p>
-                  <p className="text-[10px] text-muted-foreground">Magazine</p>
+                <div className="bg-background/50 p-3 rounded-xl border border-sidebar-border/50">
+                  <div className="text-2xl font-semibold tracking-tight text-foreground">{stats.news}</div>
+                  <div className="text-[11px] font-medium text-muted-foreground mt-0.5">News</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          <div className="p-4 border-t border-border/30 space-y-3">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/30">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <span className="text-[15px] font-medium text-primary">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </span>
+          <div className="p-4 border-t border-sidebar-border/50 bg-sidebar/30">
+            <div className="flex items-center gap-3 px-2 py-1 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-violet-500 flex items-center justify-center text-[13px] font-semibold text-white shadow-md">
+                {user?.username?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-medium truncate">{user?.username}</p>
-                {isAdmin && (
-                  <Badge variant="secondary" className="text-[10px] mt-0.5">Admin</Badge>
-                )}
+                <p className="text-[13px] font-medium truncate text-foreground">{user?.username}</p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {isAdmin ? 'Administrator' : 'Editor'}
+                </p>
               </div>
             </div>
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full justify-start gap-3 text-muted-foreground/80 hover:text-foreground rounded-xl"
+              className="w-full h-8 justify-start gap-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg text-[13px]"
               data-testid="button-logout"
             >
-              <LogOut className="w-4 h-4" />
-              Logout
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
             </Button>
           </div>
         </motion.aside>
 
-        <main className="flex-1 ml-72 min-h-screen p-8 lg:p-10">
+        <main className="flex-1 ml-[280px] min-h-screen p-8 lg:p-12 max-w-[1600px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="mb-10 flex items-center justify-between gap-4 flex-wrap"
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="mb-10 flex items-end justify-between gap-4 border-b border-border/40 pb-6"
           >
             <div>
-              <h2 className="text-[28px] font-semibold tracking-tight text-foreground" data-testid="text-section-title">Your Websites</h2>
-              <p className="text-[15px] text-muted-foreground/80 mt-1" data-testid="text-section-description">
-                {isAdmin 
-                  ? "Manage all multi-tenant websites from one dashboard"
-                  : "Manage the websites you have access to"
+              <h1 className="text-3xl font-bold tracking-tight text-foreground" data-testid="text-section-title">Websites</h1>
+              <p className="text-[15px] text-muted-foreground mt-2 max-w-2xl" data-testid="text-section-description">
+                {isAdmin
+                  ? "Manage and configure your multi-tenant digital properties."
+                  : "Access and manage your assigned websites."
                 }
               </p>
             </div>
             <Button
               onClick={() => setLocation("/admin/sites/new")}
-              className="gap-2 rounded-xl shadow-sm"
+              className="h-10 px-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               data-testid="button-add-site"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-2" />
               New Site
             </Button>
           </motion.div>
 
           {isLoading ? (
-            <div className="grid gap-6 auto-rows-fr" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-48 bg-muted/50 animate-pulse rounded-2xl" />
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-[200px] bg-muted/30 animate-pulse rounded-2xl border border-border/40" />
               ))}
             </div>
           ) : sites && sites.length > 0 ? (
@@ -284,118 +270,107 @@ export default function AdminDashboard() {
               variants={container}
               initial="hidden"
               animate="show"
-              className="grid gap-6 auto-rows-fr"
-              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
+              className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
             >
               {sites.map((site) => (
-                <motion.div 
-                  key={site.id} 
+                <motion.div
+                  key={site.id}
                   variants={item}
                   whileHover={cardHover}
+                  className="h-full"
                 >
-                  <Card 
-                    data-testid={`card-site-${site.id}`} 
-                    className="group cursor-pointer border-border/30 shadow-sm hover:shadow-lg bg-card/90 backdrop-blur-xl rounded-2xl h-full transition-shadow duration-300"
+                  <Card
+                    data-testid={`card-site-${site.id}`}
+                    className="group cursor-pointer border-0 shadow-sm hover:shadow-xl bg-card transition-all duration-300 rounded-[20px] h-full flex flex-col overflow-hidden ring-1 ring-black/5 hover:ring-black/10 dark:ring-white/10"
                     onClick={() => setLocation(`/admin/sites/${site.id}`)}
                   >
-                    <CardHeader className="pb-4 pt-6 px-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4 min-w-0 flex-1">
-                          {/* Logo container with fixed size, proper object-contain, and fallback gradient */}
-                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted/80 to-muted flex items-center justify-center flex-shrink-0 overflow-hidden border border-border/20">
-                            {site.logoUrl ? (
-                              <img 
-                                src={site.logoUrl} 
-                                alt={`${site.title} logo`} 
-                                className="w-full h-full object-contain p-1.5"
-                                data-testid={`img-site-logo-${site.id}`}
-                              />
-                            ) : (
-                              <Globe className="h-7 w-7 text-muted-foreground/70" />
-                            )}
-                          </div>
-                          {/* Title and domain with proper truncation */}
-                          <div className="min-w-0 flex-1">
-                            <CardTitle 
-                              className="text-[17px] font-semibold tracking-tight truncate max-w-[200px]" 
-                              data-testid={`text-site-title-${site.id}`}
-                              title={site.title}
-                            >
-                              {site.title}
-                            </CardTitle>
-                            <CardDescription 
-                              className="font-mono text-xs text-muted-foreground/70 truncate max-w-[200px] mt-1" 
-                              data-testid={`text-site-domain-${site.id}`}
-                              title={site.domain || site.proxyVisitorHostname || 'No domain'}
-                            >
-                              {site.domain || site.proxyVisitorHostname || 'No domain configured'}
-                            </CardDescription>
-                          </div>
+                    <div className="p-6 flex-1">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-white/5 dark:to-white/10 flex items-center justify-center border border-black/5 shadow-inner">
+                          {site.logoUrl ? (
+                            <img
+                              src={site.logoUrl}
+                              alt={`${site.title} logo`}
+                              className="w-12 h-12 object-contain"
+                            />
+                          ) : (
+                            <Globe className="h-8 w-8 text-muted-foreground/40" />
+                          )}
                         </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex-shrink-0 group-hover:translate-x-0.5" />
+                        <Badge
+                          variant="secondary"
+                          className="bg-secondary/50 backdrop-blur-md text-secondary-foreground font-medium border-0 px-3 py-1 rounded-full text-xs"
+                        >
+                          {site.siteType}
+                        </Badge>
                       </div>
-                    </CardHeader>
-                    <CardContent className="px-6 pb-5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs capitalize font-medium px-2.5 py-0.5">
-                            {site.siteType}
-                          </Badge>
+
+                      <div className="space-y-1">
+                        <h3 className="text-[19px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
+                          {site.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-[13px] text-muted-foreground font-medium font-mono">
+                          <Globe className="w-3 h-3" />
+                          <span className="truncate">{site.domain || site.proxyVisitorHostname || 'No domain'}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                      </div>
+                    </div>
+
+                    <div className="px-6 py-4 bg-muted/30 border-t border-border/40 flex items-center justify-between mt-auto">
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Last updated recently
+                      </span>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {isAdmin && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 rounded-xl"
+                            className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLocation(`/admin/sites/${site.id}`);
+                              openDeleteDialog(site);
                             }}
-                            data-testid={`button-edit-${site.id}`}
                           >
-                            <Settings className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
-                          {isAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 rounded-xl text-destructive/70 hover:text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDeleteDialog(site);
-                              }}
-                              data-testid={`button-delete-${site.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CardContent>
+                    </div>
                   </Card>
                 </motion.div>
               ))}
             </motion.div>
           ) : (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="text-center py-20"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center justify-center py-32 text-center"
             >
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-muted/80 to-muted flex items-center justify-center mx-auto mb-8 border border-border/20">
-                <Globe className="w-12 h-12 text-muted-foreground/60" />
+              <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center mb-6 border border-border/50 shadow-sm">
+                <Globe className="w-10 h-10 text-muted-foreground/40" />
               </div>
-              <h3 className="text-[22px] font-semibold tracking-tight mb-2" data-testid="text-empty-state-title">No websites yet</h3>
-              <p className="text-[15px] text-muted-foreground/80 max-w-sm mx-auto mb-8" data-testid="text-empty-state-description">
-                {isAdmin 
-                  ? "Get started by creating your first multi-tenant website"
-                  : "You don't have access to any websites yet. Contact an admin to get access."
+              <h3 className="text-2xl font-bold tracking-tight mb-3">No websites created</h3>
+              <p className="text-muted-foreground text-[15px] max-w-md mb-8 leading-relaxed">
+                {isAdmin
+                  ? "Start building your network by creating your first multi-tenant website."
+                  : "You don't have access to any websites yet."
                 }
               </p>
-              <Button onClick={() => setLocation("/admin/sites/new")} size="lg" className="rounded-xl shadow-sm" data-testid="button-add-first-site">
+              <Button
+                onClick={() => setLocation("/admin/sites/new")}
+                size="lg"
+                className="rounded-full px-8 h-12 shadow-xl shadow-primary/20 text-[15px] bg-primary hover:bg-primary/90"
+              >
                 <Plus className="h-5 w-5 mr-2" />
-                Add New Site
+                Create First Site
               </Button>
             </motion.div>
           )}
@@ -403,17 +378,20 @@ export default function AdminDashboard() {
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle data-testid="text-delete-dialog-title">Delete Website</AlertDialogTitle>
-            <AlertDialogDescription data-testid="text-delete-dialog-description">
-              Are you sure you want to delete <strong data-testid="text-delete-site-name">{siteToDelete?.title}</strong>? This will permanently remove all posts and configuration. This action cannot be undone.
+            <AlertDialogTitle>Delete Website?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete <strong>{siteToDelete?.title}</strong> and remove all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} data-testid="button-confirm-delete">
-              Delete
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full"
+            >
+              Delete Website
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -421,3 +399,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
