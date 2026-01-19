@@ -406,6 +406,27 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  // Get only published posts for public site display
+  async getPublishedPostsBySiteIdWithAuthors(siteId: string): Promise<(Post & { authorName?: string })[]> {
+    const result = await db
+      .select({
+        post: posts,
+        authorName: siteAuthors.name,
+      })
+      .from(posts)
+      .leftJoin(siteAuthors, eq(posts.authorId, siteAuthors.id))
+      .where(and(
+        eq(posts.siteId, siteId),
+        sql`COALESCE(${posts.status}, 'published') = 'published'`
+      ))
+      .orderBy(desc(posts.createdAt));
+    
+    return result.map(r => ({
+      ...r.post,
+      authorName: r.authorName ?? undefined,
+    }));
+  }
+
   async getPostById(id: string): Promise<Post | undefined> {
     const [post] = await db.select().from(posts).where(eq(posts.id, id));
     return post || undefined;
@@ -448,7 +469,11 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(posts)
-      .where(and(eq(posts.siteId, siteId), sql`${tag} = ANY(${posts.tags})`))
+      .where(and(
+        eq(posts.siteId, siteId), 
+        sql`${tag} = ANY(${posts.tags})`,
+        sql`COALESCE(${posts.status}, 'published') = 'published'`
+      ))
       .orderBy(desc(posts.createdAt));
   }
 
@@ -459,7 +484,11 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(posts)
-      .where(and(eq(posts.siteId, siteId), orCondition))
+      .where(and(
+        eq(posts.siteId, siteId), 
+        orCondition,
+        sql`COALESCE(${posts.status}, 'published') = 'published'`
+      ))
       .orderBy(desc(posts.createdAt));
   }
 
@@ -470,14 +499,15 @@ export class DatabaseStorage implements IStorage {
       
       // Guard against null/undefined/empty tags
       if (!currentPost.tags || !Array.isArray(currentPost.tags) || currentPost.tags.length === 0) {
-        // Fall back to recent posts from same site
+        // Fall back to recent posts from same site (only published)
         const recentPosts = await db
           .select()
           .from(posts)
           .where(
             and(
               eq(posts.siteId, siteId),
-              sql`${posts.id} != ${postId}`
+              sql`${posts.id} != ${postId}`,
+              sql`COALESCE(${posts.status}, 'published') = 'published'`
             )
           )
           .orderBy(desc(posts.createdAt))
@@ -492,7 +522,8 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(posts.siteId, siteId),
             sql`${posts.id} != ${postId}`,
-            sql`${posts.tags} && ${currentPost.tags}`
+            sql`${posts.tags} && ${currentPost.tags}`,
+            sql`COALESCE(${posts.status}, 'published') = 'published'`
           )
         )
         .orderBy(desc(posts.createdAt))
@@ -530,7 +561,10 @@ export class DatabaseStorage implements IStorage {
         count: sql<number>`count(*)`,
       })
       .from(posts)
-      .where(eq(posts.siteId, siteId))
+      .where(and(
+        eq(posts.siteId, siteId),
+        sql`COALESCE(${posts.status}, 'published') = 'published'`
+      ))
       .groupBy(sql`unnest(${posts.tags})`)
       .orderBy(desc(sql`count(*)`))
       .limit(limit);
@@ -709,7 +743,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(posts.siteId, siteId),
-          sql`COALESCE(${posts.noindex}, false) = false`
+          sql`COALESCE(${posts.noindex}, false) = false`,
+          sql`COALESCE(${posts.status}, 'published') = 'published'`
         )
       )
       .orderBy(desc(posts.updatedAt));

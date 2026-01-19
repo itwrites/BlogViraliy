@@ -1921,8 +1921,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/public/sites/:id/posts", async (req: Request, res: Response) => {
     try {
-      // Use method with authors to include author names in public posts
-      const posts = await storage.getPostsBySiteIdWithAuthors(req.params.id);
+      // Use method with authors to include author names in public posts (only published)
+      const posts = await storage.getPublishedPostsBySiteIdWithAuthors(req.params.id);
       const rewrittenPosts = await rewritePostsContent(posts, req.params.id);
       res.json(rewrittenPosts);
     } catch (error) {
@@ -1935,6 +1935,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use method with author to include author name in public post detail
       const post = await storage.getPostBySlugWithAuthor(req.params.id, req.params.slug);
       if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      // Only show published posts on public site
+      if (post.status === "draft") {
         return res.status(404).json({ error: "Post not found" });
       }
       const rewrittenPost = await rewritePostContent(post, req.params.id);

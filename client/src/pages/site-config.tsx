@@ -3355,7 +3355,7 @@ export default function SiteConfig() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Posting Frequency</Label>
                     <Select
@@ -3396,6 +3396,24 @@ export default function SiteConfig() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">AI will write all posts in this language</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="aiPostStatus" data-testid="label-ai-post-status">Post Status</Label>
+                    <Select
+                      value={(aiConfig as any).defaultPostStatus || "published"}
+                      onValueChange={(value) => setAiConfig({ ...aiConfig, defaultPostStatus: value } as any)}
+                      disabled={!aiConfig.enabled}
+                    >
+                      <SelectTrigger id="aiPostStatus" data-testid="select-ai-post-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
                   </div>
                 </div>
 
@@ -3474,7 +3492,7 @@ export default function SiteConfig() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="rssSchedule">Check Frequency</Label>
                     <Select
@@ -3515,6 +3533,24 @@ export default function SiteConfig() {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">Rewritten articles will be in this language</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rssPostStatus">Post Status</Label>
+                    <Select
+                      value={(rssConfig as any).defaultPostStatus || "published"}
+                      onValueChange={(value) => setRssConfig({ ...rssConfig, defaultPostStatus: value } as any)}
+                      disabled={!rssConfig.enabled}
+                    >
+                      <SelectTrigger id="rssPostStatus" data-testid="select-rss-post-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
                   </div>
                 </div>
 

@@ -33,7 +33,8 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Topical Authority System**: Automated SEO content generation using the Pillar-Cluster model, including AI-generated categories, automatic internal linking, and scheduled generation with a clear workflow.
 - **Internal Linking Graph System**: Pack-based content strategy with 5 predefined and custom pack types, 17 article roles (each with role-specific JSON-LD and AI prompts), and visualization of link structures.
 - **Runtime Link Rewriting**: Internal links in post content are automatically rewritten at render time to include the site's basePath, ensuring correct routing in all deployment scenarios.
-- **Dynamic Sitemap & Robots.txt**: Auto-generates and caches `sitemap.xml` and `robots.txt` per site, with tenant-specific URLs and access control.
+- **Dynamic Sitemap & Robots.txt**: Auto-generates and caches `sitemap.xml` and `robots.txt` per site, with tenant-specific URLs and access control. Only published posts are included.
+- **Post Status System**: Posts support `published`/`draft` status. Draft posts are completely hidden from public-facing endpoints (post lists, tag queries, related posts, sitemaps, top tags). All automation workflows (AI, RSS, Topical Authority) respect the `defaultPostStatus` setting.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles and site-specific permissions.
 - **Admin Documentation Wiki**: In-app documentation covering system architecture, content strategies, automation, themes, and SEO features.
 - **SEO Implementation**: Utilizes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.

@@ -97,6 +97,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     targetArticleCount: number;
     publishSchedule: string;
     targetLanguage: string;
+    defaultPostStatus: string;
     packType: PackType;
     customPackConfig: CustomPackConfig | null;
   }>({
@@ -106,6 +107,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     targetArticleCount: 50,
     publishSchedule: "1_per_day",
     targetLanguage: "en",
+    defaultPostStatus: "published",
     packType: "authority",
     customPackConfig: null,
   });
@@ -136,6 +138,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
         targetArticleCount: 50,
         publishSchedule: "1_per_day",
         targetLanguage: "en",
+        defaultPostStatus: "published",
         packType: "authority",
         customPackConfig: null,
       });
@@ -335,7 +338,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                       />
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Publishing Schedule</Label>
                       <Select
@@ -374,6 +377,22 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Post Status</Label>
+                      <Select
+                        value={newPillar.defaultPostStatus}
+                        onValueChange={(value) => setNewPillar({ ...newPillar, defaultPostStatus: value })}
+                      >
+                        <SelectTrigger data-testid="select-pillar-post-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="published">Published</SelectItem>
+                          <SelectItem value="draft">Draft</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
                     </div>
                   </div>
                 </div>
