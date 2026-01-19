@@ -131,7 +131,6 @@ export default function AdminDashboard() {
   }
 
   return (
-  return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary/20 selection:text-primary">
       <div className="flex">
         <motion.aside
