@@ -56,6 +56,7 @@ import {
   FileSpreadsheet,
   AlertCircle,
   CheckCircle,
+  Settings,
 } from "lucide-react";
 import {
   Dialog,
@@ -526,6 +527,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </h1>
                 <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/admin/sites/${siteId}`)}
+                data-testid="button-site-settings"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 

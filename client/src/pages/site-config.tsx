@@ -1578,7 +1578,7 @@ export default function SiteConfig() {
         </motion.aside>
 
         {/* Main Content */}
-        <main className="flex-1 ml-72 min-h-screen p-10 bg-gradient-to-br from-black/40 via-background to-background">
+        <main className="flex-1 ml-72 min-h-screen p-10 bg-background">
           <motion.div
             key={activeSection}
             variants={contentVariants}
@@ -1592,17 +1592,17 @@ export default function SiteConfig() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-                className="mb-8 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-2xl rounded-3xl p-8 border border-white/10 shadow-2xl shadow-black/20"
+                className="mb-8 bg-card/80 backdrop-blur-xl rounded-3xl p-8 border border-border shadow-lg"
               >
                 <div className="flex items-start gap-6">
                   <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
                     <Sparkles className="w-8 h-8 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold tracking-tight text-white mb-2">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground mb-2">
                       Welcome to your site settings
                     </h2>
-                    <p className="text-white/60 leading-relaxed max-w-xl">
+                    <p className="text-muted-foreground leading-relaxed max-w-xl">
                       We've simplified the experience for you. Configure your site in just a few steps — 
                       start with the essentials and add more as you grow.
                     </p>
@@ -1613,10 +1613,10 @@ export default function SiteConfig() {
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                             activeSection === item.id 
                               ? "bg-primary/20 text-primary border border-primary/30" 
-                              : "bg-white/5 text-white/40 border border-white/10"
+                              : "bg-muted text-muted-foreground border border-border"
                           }`}
                         >
-                          <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
+                          <span className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-[10px]">
                             {i + 1}
                           </span>
                           {item.label}
@@ -1635,10 +1635,10 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                  <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <Card className="rounded-2xl overflow-hidden">
                     <CardHeader className="pb-4">
                       <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">General Settings</CardTitle>
-                      <CardDescription className="text-white/50" data-testid="text-general-description">Configure the basic information for your website</CardDescription>
+                      <CardDescription data-testid="text-general-description">Configure the basic information for your website</CardDescription>
                     </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
@@ -1901,13 +1901,13 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-business-title">
                       <Building2 className="h-5 w-5" />
                       Business Profile
                     </CardTitle>
-                    <CardDescription className="text-white/50" data-testid="text-business-description">
+                    <CardDescription data-testid="text-business-description">
                       Define your business context to help AI generate more relevant, on-brand content
                     </CardDescription>
                   </CardHeader>
@@ -2026,13 +2026,13 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-navigation-title">
                       <Menu className="h-5 w-5" />
                       Navigation Settings
                     </CardTitle>
-                    <CardDescription className="text-white/50" data-testid="text-navigation-description">
+                    <CardDescription data-testid="text-navigation-description">
                       Configure your site's navigation menu and logo behavior
                     </CardDescription>
                   </CardHeader>
@@ -2424,10 +2424,10 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-xl tracking-tight" data-testid="text-design-title">Template Design Settings</CardTitle>
-                    <CardDescription className="text-white/50" data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
+                    <CardDescription data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     <div className="space-y-4">
@@ -3296,10 +3296,10 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-xl tracking-tight" data-testid="text-seo-title">SEO Settings</CardTitle>
-                    <CardDescription className="text-white/50" data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
+                    <CardDescription data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
@@ -3376,7 +3376,7 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-authors-title">
                       <User className="w-5 h-5" />
@@ -3528,12 +3528,12 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <CardTitle className="text-xl tracking-tight" data-testid="text-ai-title">AI-Driven Content Generation</CardTitle>
-                        <CardDescription className="text-white/50" data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
+                        <CardDescription data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
                       </div>
                       <Switch
                         checked={aiConfig.enabled}
@@ -3672,7 +3672,7 @@ export default function SiteConfig() {
                   initial="initial"
                   animate="animate"
                 >
-                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                <Card className="rounded-2xl overflow-hidden">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
