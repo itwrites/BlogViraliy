@@ -1197,6 +1197,18 @@ export default function SiteConfig() {
     }
   }, [existingRssConfig]);
 
+  // Reset to a valid section when switching modes if current section isn't available
+  // Beginner mode sections: general, design, ai, posts
+  // Advanced mode: all sections
+  useEffect(() => {
+    if (modeLoaded && !isNewSite) {
+      const beginnerSections = ['general', 'design', 'ai', 'posts'];
+      if (mode === 'beginner' && !beginnerSections.includes(activeSection)) {
+        setActiveSection('general');
+      }
+    }
+  }, [mode, modeLoaded, activeSection, isNewSite]);
+
   const handleSave = async () => {
     try {
       let siteId = id;
@@ -1422,17 +1434,6 @@ export default function SiteConfig() {
       </div>
     );
   }
-
-  // Reset to a valid section when switching modes if current section isn't available
-  useEffect(() => {
-    if (modeLoaded && !isNewSite) {
-      const currentNavItems = mode === 'beginner' ? beginnerNavItems : allNavItems;
-      const isCurrentSectionAvailable = currentNavItems.some(item => item.id === activeSection && !item.disabled);
-      if (!isCurrentSectionAvailable) {
-        setActiveSection('general');
-      }
-    }
-  }, [mode, modeLoaded]);
 
   return (
     <div
