@@ -1276,7 +1276,7 @@ export default function SiteConfig() {
       queryClient.invalidateQueries({ queryKey: ["/api/sites", id] });
 
       if (isNewSite) {
-        setLocation(`/admin/sites/${siteId}`);
+        setLocation(`/admin/sites/${siteId}/settings`);
       }
     } catch (error) {
       toast({ title: "Failed to save site", variant: "destructive" });

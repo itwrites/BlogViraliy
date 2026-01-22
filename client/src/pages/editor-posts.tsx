@@ -530,7 +530,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setLocation(`/admin/sites/${siteId}`)}
+                onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
                 data-testid="button-site-settings"
               >
                 <Settings className="w-4 h-4" />

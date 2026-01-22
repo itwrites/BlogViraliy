@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                   <Card
                     data-testid={`card-site-${site.id}`}
                     className="group cursor-pointer border-0 shadow-sm hover:shadow-xl bg-card transition-all duration-300 rounded-[20px] h-full flex flex-col overflow-hidden ring-1 ring-black/5 hover:ring-black/10 dark:ring-white/10"
-                    onClick={() => setLocation(`/admin/sites/${site.id}`)}
+                    onClick={() => setLocation(`/editor/sites/${site.id}/posts`)}
                   >
                     <div className="p-6 flex-1">
                       <div className="flex items-start justify-between mb-6">

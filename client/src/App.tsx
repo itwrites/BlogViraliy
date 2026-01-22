@@ -25,7 +25,8 @@ function AdminRouter() {
       <Route path="/" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/sites/:id" component={SiteConfig} />
+      <Route path="/admin/sites/:id" component={EditorPosts} />
+      <Route path="/admin/sites/:id/settings" component={SiteConfig} />
       <Route path="/admin/users" component={UserManagement} />
       <Route path="/admin/wiki" component={AdminWiki} />
       <Route path="/editor" component={EditorDashboard} />
