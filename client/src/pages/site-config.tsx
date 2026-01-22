@@ -947,13 +947,55 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
 }
 
 const sidebarVariants = {
-  initial: { opacity: 0, x: -20 },
-  animate: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } }
+  initial: { opacity: 0, x: -24 },
+  animate: { 
+    opacity: 1, 
+    x: 0, 
+    transition: { 
+      duration: 0.5, 
+      ease: [0.32, 0.72, 0, 1] 
+    } 
+  }
 };
 
 const contentVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } }
+  initial: { opacity: 0, y: 20, scale: 0.98 },
+  animate: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { 
+      delay: 0.15, 
+      duration: 0.5, 
+      ease: [0.32, 0.72, 0, 1] 
+    } 
+  }
+};
+
+const cardVariants = {
+  initial: { opacity: 0, y: 16 },
+  animate: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.1 + i * 0.08,
+      duration: 0.4,
+      ease: [0.32, 0.72, 0, 1]
+    }
+  })
+};
+
+const navItemVariants = {
+  initial: { opacity: 0, x: -12 },
+  animate: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      delay: 0.2 + i * 0.05,
+      duration: 0.3,
+      ease: [0.32, 0.72, 0, 1]
+    }
+  })
 };
 
 export default function SiteConfig() {
@@ -1446,64 +1488,89 @@ export default function SiteConfig() {
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-64 bg-card/50 backdrop-blur-xl border-r z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-72 bg-black/80 backdrop-blur-2xl border-r border-white/10 z-40 flex flex-col"
         >
           {/* Sidebar Header */}
-          <div className="p-5 border-b">
+          <div className="p-6 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation("/admin/dashboard")}
-                className="h-8 w-8"
+                className="rounded-xl bg-white/5 border border-white/10"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-sm" data-testid="text-page-title">
+                <h1 className="font-semibold truncate text-sm tracking-tight text-white" data-testid="text-page-title">
                   {isNewSite ? "New Site" : site?.title || "Site Config"}
                 </h1>
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-xs text-white/50 truncate">
                   {isNewSite ? "Create new website" : "Configuration"}
                 </p>
               </div>
             </div>
 
             {!isNewSite && (
-              <div className="mt-4">
-                <ModeToggle mode={mode} onModeChange={(m) => setMode(m)} className="w-full justify-center bg-background/50" />
+              <div className="mt-5">
+                <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                  <ModeToggle mode={mode} onModeChange={(m) => setMode(m)} className="w-full justify-center bg-white/5 border-white/10" />
+                  <p className="text-[11px] text-white/40 text-center mt-3 leading-relaxed">
+                    {mode === 'beginner' 
+                      ? "Simplified view for essential settings" 
+                      : "Full access to all configuration options"}
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
           {/* Navigation */}
-          <div className="flex-1 p-3 space-y-1 overflow-y-auto">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+          <div className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest px-3 mb-4">
               Settings
             </p>
-            {navItems.map((item) => (
-              <button
+            {navItems.map((item, index) => (
+              <motion.button
                 key={item.id}
+                custom={index}
+                variants={navItemVariants}
+                initial="initial"
+                animate="animate"
                 onClick={() => !item.disabled && handleNavClick(item.id)}
                 disabled={item.disabled}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${activeSection === item.id
-                  ? "bg-primary text-primary-foreground"
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 ${activeSection === item.id
+                  ? "bg-white/10 text-white shadow-lg shadow-white/5 ring-1 ring-white/20"
                   : item.disabled
-                    ? "opacity-40 cursor-not-allowed text-muted-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    ? "opacity-30 cursor-not-allowed text-white/40"
+                    : "hover-elevate text-white/60 hover:text-white/90"
                   }`}
                 data-testid={`nav-${item.id}`}
               >
-                <item.icon className="w-4 h-4" />
-                <span className="flex-1 text-left">{item.label}</span>
-              </button>
+                <div className={`p-1.5 rounded-lg transition-all duration-300 ${
+                  activeSection === item.id 
+                    ? "bg-primary/20 text-primary" 
+                    : "bg-white/5 text-white/50"
+                }`}>
+                  <item.icon className="w-3.5 h-3.5" />
+                </div>
+                <span className="flex-1 text-left font-medium">{item.label}</span>
+                {activeSection === item.id && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                )}
+              </motion.button>
             ))}
           </div>
 
           {/* Save Button at Bottom */}
-          <div className="p-4 border-t">
-            <Button onClick={handleSave} className="w-full gap-2" data-testid="button-save">
+          <div className="p-5 border-t border-white/5">
+            <Button 
+              onClick={handleSave} 
+              size="lg"
+              className="w-full gap-2 rounded-xl shadow-lg shadow-primary/20" 
+              data-testid="button-save"
+            >
               <Save className="h-4 w-4" />
               Save Changes
             </Button>
@@ -1511,21 +1578,68 @@ export default function SiteConfig() {
         </motion.aside>
 
         {/* Main Content */}
-        <main className="flex-1 ml-64 min-h-screen p-8">
+        <main className="flex-1 ml-72 min-h-screen p-10 bg-gradient-to-br from-black/40 via-background to-background">
           <motion.div
             key={activeSection}
             variants={contentVariants}
             initial="initial"
             animate="animate"
-            className="max-w-4xl"
+            className="max-w-4xl mx-auto"
           >
+            {/* Beginner Mode Welcome Hero */}
+            {mode === 'beginner' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                className="mb-8 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-2xl rounded-3xl p-8 border border-white/10 shadow-2xl shadow-black/20"
+              >
+                <div className="flex items-start gap-6">
+                  <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+                    <Sparkles className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-white mb-2">
+                      Welcome to your site settings
+                    </h2>
+                    <p className="text-white/60 leading-relaxed max-w-xl">
+                      We've simplified the experience for you. Configure your site in just a few steps — 
+                      start with the essentials and add more as you grow.
+                    </p>
+                    <div className="flex items-center gap-3 mt-5">
+                      {beginnerNavItems.map((item, i) => (
+                        <div 
+                          key={item.id}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            activeSection === item.id 
+                              ? "bg-primary/20 text-primary border border-primary/30" 
+                              : "bg-white/5 text-white/40 border border-white/10"
+                          }`}
+                        >
+                          <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
+                            {i + 1}
+                          </span>
+                          {item.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
             {activeSection === "general" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle data-testid="text-general-title">General Settings</CardTitle>
-                    <CardDescription data-testid="text-general-description">Configure the basic information for your website</CardDescription>
-                  </CardHeader>
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                  <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">General Settings</CardTitle>
+                      <CardDescription className="text-white/50" data-testid="text-general-description">Configure the basic information for your website</CardDescription>
+                    </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-2">
@@ -1775,18 +1889,25 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "business" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2" data-testid="text-business-title">
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-business-title">
                       <Building2 className="h-5 w-5" />
                       Business Profile
                     </CardTitle>
-                    <CardDescription data-testid="text-business-description">
+                    <CardDescription className="text-white/50" data-testid="text-business-description">
                       Define your business context to help AI generate more relevant, on-brand content
                     </CardDescription>
                   </CardHeader>
@@ -1893,18 +2014,25 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "navigation" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2" data-testid="text-navigation-title">
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-navigation-title">
                       <Menu className="h-5 w-5" />
                       Navigation Settings
                     </CardTitle>
-                    <CardDescription data-testid="text-navigation-description">
+                    <CardDescription className="text-white/50" data-testid="text-navigation-description">
                       Configure your site's navigation menu and logo behavior
                     </CardDescription>
                   </CardHeader>
@@ -2284,15 +2412,22 @@ export default function SiteConfig() {
                     )}
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "design" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle data-testid="text-design-title">Template Design Settings</CardTitle>
-                    <CardDescription data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl tracking-tight" data-testid="text-design-title">Template Design Settings</CardTitle>
+                    <CardDescription className="text-white/50" data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     <div className="space-y-4">
@@ -3149,15 +3284,22 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "seo" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle data-testid="text-seo-title">SEO Settings</CardTitle>
-                    <CardDescription data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl tracking-tight" data-testid="text-seo-title">SEO Settings</CardTitle>
+                    <CardDescription className="text-white/50" data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
@@ -3222,14 +3364,21 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "authors" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2" data-testid="text-authors-title">
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl tracking-tight" data-testid="text-authors-title">
                       <User className="w-5 h-5" />
                       Content Authors
                     </CardTitle>
@@ -3367,17 +3516,24 @@ export default function SiteConfig() {
                     )}
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "ai" && (
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <CardTitle data-testid="text-ai-title">AI-Driven Content Generation</CardTitle>
-                        <CardDescription data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
+                        <CardTitle className="text-xl tracking-tight" data-testid="text-ai-title">AI-Driven Content Generation</CardTitle>
+                        <CardDescription className="text-white/50" data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
                       </div>
                       <Switch
                         checked={aiConfig.enabled}
@@ -3504,12 +3660,19 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
             {activeSection === "rss" && (
-              <div className="space-y-6">
-                <Card>
+              <div className="space-y-8">
+                <motion.div
+                  custom={0}
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                <Card className="bg-white/[0.03] backdrop-blur-xl border-white/10 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -3713,6 +3876,7 @@ export default function SiteConfig() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               </div>
             )}
 
