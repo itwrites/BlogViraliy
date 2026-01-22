@@ -135,6 +135,16 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
 
   return (
     <div className="space-y-6">
+      <div className="bg-muted/50 rounded-xl p-4 border border-border">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium">API keys allow external applications to read or write content on your site</p>
+            <p className="text-xs text-muted-foreground mt-1">Treat keys like passwords - never share them publicly.</p>
+          </div>
+        </div>
+      </div>
+
       {createdKey && (
         <Card className="border-green-500/50 bg-green-500/5">
           <CardHeader className="pb-3">
@@ -189,7 +199,7 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
                 Public API Keys
               </CardTitle>
               <CardDescription data-testid="text-api-description">
-                Manage API keys for external access to your content
+                Generate API keys to access your site's content programmatically. Use these for integrations, mobile apps, or third-party services.
               </CardDescription>
             </div>
             {!showCreateForm && (
@@ -214,10 +224,12 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
                   onChange={(e) => setNewKeyName(e.target.value)}
                   data-testid="input-api-key-name"
                 />
+                <p className="text-xs text-muted-foreground">A label to identify this key (e.g., 'Mobile App', 'Zapier Integration')</p>
               </div>
 
               <div className="space-y-2">
                 <Label>Permissions</Label>
+                <p className="text-xs text-muted-foreground mb-2">Select what this key can access. Use minimal permissions for security.</p>
                 <div className="space-y-2">
                   {AVAILABLE_PERMISSIONS.map((perm) => (
                     <div key={perm.id} className="flex items-start gap-3">
@@ -256,6 +268,7 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
                     onChange={(e) => setNewKeyRateLimit(parseInt(e.target.value) || 1000)}
                     data-testid="input-rate-limit"
                   />
+                  <p className="text-xs text-muted-foreground">Maximum requests per hour. Higher limits may impact performance.</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="expiry">Expiration Date (optional)</Label>
@@ -1966,6 +1979,16 @@ export default function SiteConfig() {
 
             {activeSection === "navigation" && (
               <div className="space-y-8">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Menu className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Navigation appears in your site's header</p>
+                      <p className="text-xs text-muted-foreground mt-1">You can let the system automatically create a menu from your content tags, or build a custom menu with your own links.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -1979,11 +2002,13 @@ export default function SiteConfig() {
                       Navigation Settings
                     </CardTitle>
                     <CardDescription data-testid="text-navigation-description">
-                      Configure your site's navigation menu and logo behavior
+                      Configure your site's navigation menu. Choose between auto-generated menus or manually define custom links.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-4">Menu Type</h4>
+                      <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="logoTargetUrl" data-testid="label-logo-target-url">Logo Click URL</Label>
                         <Input
@@ -2014,8 +2039,8 @@ export default function SiteConfig() {
                         </Select>
                         <p className="text-xs text-muted-foreground">
                           {siteData.menuMode === "automatic"
-                            ? "Navigation is auto-generated from your most popular tags"
-                            : "Create custom menu items with URLs or tag groups"}
+                            ? "Automatically builds your menu from popular content tags"
+                            : "Create your own menu structure with custom links and dropdowns"}
                         </p>
                       </div>
 
@@ -2060,11 +2085,12 @@ export default function SiteConfig() {
                         </p>
                       </div>
                     </div>
+                    </div>
 
                     {siteData.menuMode === "automatic" && (
                       <div className="space-y-4 pt-4 border-t">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">Automatic Menu Settings</h3>
+                          <h4 className="text-sm font-semibold text-foreground">Menu Settings</h4>
                         </div>
                         <div className="grid gap-6 md:grid-cols-2">
                           <div className="space-y-2">
@@ -2092,7 +2118,7 @@ export default function SiteConfig() {
                     {siteData.menuMode === "manual" && (
                       <div className="space-y-4 pt-4 border-t">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">Menu Items</h3>
+                          <h4 className="text-sm font-semibold text-foreground">Custom Menu Items</h4>
                           <span className="text-sm text-muted-foreground">{menuItems.length} items</span>
                         </div>
 
@@ -2364,6 +2390,16 @@ export default function SiteConfig() {
 
             {activeSection === "design" && (
               <div className="space-y-8">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Palette className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Design settings control the visual appearance of your public site</p>
+                      <p className="text-xs text-muted-foreground mt-1">Customize typography, colors, layout, and visual effects to match your brand identity.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -2373,17 +2409,21 @@ export default function SiteConfig() {
                 <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-xl tracking-tight" data-testid="text-design-title">Template Design Settings</CardTitle>
-                    <CardDescription data-testid="text-design-description">Customize the visual appearance of your website</CardDescription>
+                    <CardDescription data-testid="text-design-description">Fine-tune fonts, colors, spacing, and visual effects for a cohesive look and feel</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Palette className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold">Colors</h3>
-                      </div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Colors & Accents
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Define your site's color palette. These colors are used throughout your public pages for branding consistency.</p>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-2">
-                          <Label htmlFor="primaryColor" data-testid="label-primary-color">Primary Color</Label>
+                          <Label htmlFor="primaryColor" className="flex items-center gap-2" data-testid="label-primary-color">
+                            <span className="w-3 h-3 rounded-sm border" style={{ backgroundColor: templateSettings.primaryColor }} />
+                            Primary Color
+                          </Label>
                           <div className="flex gap-2">
                             <Input
                               id="primaryColor"
@@ -2400,9 +2440,13 @@ export default function SiteConfig() {
                               data-testid="input-primary-color-hex"
                             />
                           </div>
+                          <p className="text-xs text-muted-foreground">Used for links, buttons, and highlights throughout your site</p>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="secondaryColor" data-testid="label-secondary-color">Secondary Color</Label>
+                          <Label htmlFor="secondaryColor" className="flex items-center gap-2" data-testid="label-secondary-color">
+                            <span className="w-3 h-3 rounded-sm border" style={{ backgroundColor: templateSettings.secondaryColor }} />
+                            Secondary Color
+                          </Label>
                           <div className="flex gap-2">
                             <Input
                               id="secondaryColor"
@@ -2419,9 +2463,13 @@ export default function SiteConfig() {
                               data-testid="input-secondary-color-hex"
                             />
                           </div>
+                          <p className="text-xs text-muted-foreground">Accent color for secondary elements and hover states</p>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="backgroundColor" data-testid="label-background-color">Background Color</Label>
+                          <Label htmlFor="backgroundColor" className="flex items-center gap-2" data-testid="label-background-color">
+                            <span className="w-3 h-3 rounded-sm border" style={{ backgroundColor: templateSettings.backgroundColor }} />
+                            Background Color
+                          </Label>
                           <div className="flex gap-2">
                             <Input
                               id="backgroundColor"
@@ -2438,9 +2486,13 @@ export default function SiteConfig() {
                               data-testid="input-background-color-hex"
                             />
                           </div>
+                          <p className="text-xs text-muted-foreground">Main background color for your site's pages</p>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="textColor" data-testid="label-text-color">Text Color</Label>
+                          <Label htmlFor="textColor" className="flex items-center gap-2" data-testid="label-text-color">
+                            <span className="w-3 h-3 rounded-sm border" style={{ backgroundColor: templateSettings.textColor }} />
+                            Text Color
+                          </Label>
                           <div className="flex gap-2">
                             <Input
                               id="textColor"
@@ -2457,6 +2509,7 @@ export default function SiteConfig() {
                               data-testid="input-text-color-hex"
                             />
                           </div>
+                          <p className="text-xs text-muted-foreground">Default color for body text and headings</p>
                         </div>
                       </div>
                       <div className="grid gap-4 md:grid-cols-2 pt-4">
@@ -2528,10 +2581,11 @@ export default function SiteConfig() {
                     </div>
 
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Type className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold">Typography</h3>
-                      </div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Type className="h-4 w-4" />
+                        Typography
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Choose fonts that reflect your brand personality. These fonts are used across all your public pages.</p>
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className="space-y-2">
                           <Label htmlFor="headingFont" data-testid="label-heading-font">Heading Font</Label>
@@ -2553,6 +2607,7 @@ export default function SiteConfig() {
                               <SelectItem value="system">System (Native UI)</SelectItem>
                             </SelectContent>
                           </Select>
+                          <p className="text-xs text-muted-foreground">The font used for titles and section headers</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="bodyFont" data-testid="label-body-font">Body Font</Label>
@@ -2574,6 +2629,7 @@ export default function SiteConfig() {
                               <SelectItem value="system">System (Native UI)</SelectItem>
                             </SelectContent>
                           </Select>
+                          <p className="text-xs text-muted-foreground">The primary font for your site's content and paragraphs</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="fontScale" data-testid="label-font-scale">Font Size Scale</Label>
@@ -2592,15 +2648,17 @@ export default function SiteConfig() {
                               <SelectItem value="spacious">Spacious</SelectItem>
                             </SelectContent>
                           </Select>
+                          <p className="text-xs text-muted-foreground">Controls overall text size throughout the site</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Layout className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold">Layout & Style</h3>
-                      </div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Layout className="h-4 w-4" />
+                        Layout & Spacing
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Control how content is arranged and spaced on your pages for optimal readability.</p>
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-2">
                           <Label htmlFor="logoSize" data-testid="label-logo-size">Logo Size</Label>
@@ -2637,6 +2695,7 @@ export default function SiteConfig() {
                               <span className="text-sm text-muted-foreground">px</span>
                             </div>
                           )}
+                          <p className="text-xs text-muted-foreground">Adjust the size of your logo in the header</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="headerStyle" data-testid="label-header-style">Header Style</Label>
@@ -2691,6 +2750,7 @@ export default function SiteConfig() {
                               <SelectItem value="wide">Wide (1280px)</SelectItem>
                             </SelectContent>
                           </Select>
+                          <p className="text-xs text-muted-foreground">Controls how wide the content area appears. Narrower is better for readability.</p>
                         </div>
                       </div>
                       <div className="grid gap-4 md:grid-cols-3 pt-4">
@@ -2778,8 +2838,15 @@ export default function SiteConfig() {
                           data-testid="switch-show-menu-icons"
                         />
                       </div>
+                    </div>
 
-                      <div className="grid gap-4 md:grid-cols-2 pt-4">
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Visual Effects
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Add visual flair with custom cursors and card styles to enhance user experience.</p>
+                      <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="postCardStyle" data-testid="label-post-card-style">Post Card Design</Label>
                           <Select
@@ -2800,7 +2867,7 @@ export default function SiteConfig() {
                               <SelectItem value="overlay">Overlay (text over image)</SelectItem>
                             </SelectContent>
                           </Select>
-                          <p className="text-xs text-muted-foreground">Choose the visual style for post cards</p>
+                          <p className="text-xs text-muted-foreground">How article previews appear on listing pages</p>
                         </div>
 
                         <div className="space-y-2">
@@ -3236,6 +3303,16 @@ export default function SiteConfig() {
 
             {activeSection === "seo" && (
               <div className="space-y-8">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Search className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Good SEO helps your content rank higher in search results</p>
+                      <p className="text-xs text-muted-foreground mt-1">Complete these fields to improve visibility on Google and social media. Well-optimized pages get more organic traffic.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -3245,12 +3322,17 @@ export default function SiteConfig() {
                 <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-xl tracking-tight" data-testid="text-seo-title">SEO Settings</CardTitle>
-                    <CardDescription data-testid="text-seo-description">Configure search engine optimization for better visibility</CardDescription>
+                    <CardDescription data-testid="text-seo-description">Optimize your site for search engines. These settings affect how your site appears in Google and social media.</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-8">
                     <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Meta Information
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Control how your site appears in search engine results pages (SERPs).</p>
                       <div className="space-y-2">
-                        <Label htmlFor="metaTitle" data-testid="label-meta-title">Meta Title</Label>
+                        <Label htmlFor="metaTitle" data-testid="label-meta-title">Meta Title Format</Label>
                         <Input
                           id="metaTitle"
                           placeholder="Your Site Title | Brand Name"
@@ -3258,7 +3340,7 @@ export default function SiteConfig() {
                           onChange={(e) => setSiteData({ ...siteData, metaTitle: e.target.value })}
                           data-testid="input-meta-title"
                         />
-                        <p className="text-xs text-muted-foreground">The title that appears in search results and browser tabs (50-60 characters recommended)</p>
+                        <p className="text-xs text-muted-foreground">Use {"{title}"} as a placeholder for the page title. Example: '{"{title}"} | My Blog' (50-60 characters recommended)</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="metaDescription" data-testid="label-meta-description">Meta Description</Label>
@@ -3270,8 +3352,16 @@ export default function SiteConfig() {
                           rows={3}
                           data-testid="input-meta-description"
                         />
-                        <p className="text-xs text-muted-foreground">Description shown in search results (150-160 characters recommended)</p>
+                        <p className="text-xs text-muted-foreground">A brief summary of your site shown in search results (max 160 characters). Make it compelling to improve click-through rates.</p>
                       </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        Social Sharing
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Configure how your content looks when shared on social media platforms.</p>
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="ogImage" data-testid="label-og-image">Social Share Image (OG Image)</Label>
@@ -3282,7 +3372,7 @@ export default function SiteConfig() {
                             onChange={(e) => setSiteData({ ...siteData, ogImage: e.target.value })}
                             data-testid="input-og-image"
                           />
-                          <p className="text-xs text-muted-foreground">Image shown when shared on social media (1200x630px recommended)</p>
+                          <p className="text-xs text-muted-foreground">The image shown when your site is shared on social media. Recommended: 1200x630 pixels.</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="favicon" data-testid="label-favicon">Favicon URL</Label>
@@ -3296,6 +3386,14 @@ export default function SiteConfig() {
                           <p className="text-xs text-muted-foreground">Small icon shown in browser tabs (32x32px recommended)</p>
                         </div>
                       </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Technical SEO
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Analytics and tracking settings to measure your site's performance.</p>
                       <div className="space-y-2">
                         <Label htmlFor="analyticsId" data-testid="label-analytics">Google Analytics ID</Label>
                         <Input
@@ -3305,7 +3403,7 @@ export default function SiteConfig() {
                           onChange={(e) => setSiteData({ ...siteData, analyticsId: e.target.value })}
                           data-testid="input-analytics"
                         />
-                        <p className="text-xs text-muted-foreground">Your Google Analytics tracking ID for visitor analytics</p>
+                        <p className="text-xs text-muted-foreground">Your Google Analytics tracking ID for visitor analytics. This enables traffic insights and user behavior tracking.</p>
                       </div>
                     </div>
                   </CardContent>
@@ -3316,6 +3414,16 @@ export default function SiteConfig() {
 
             {activeSection === "authors" && (
               <div className="space-y-8">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Authors appear on post bylines</p>
+                      <p className="text-xs text-muted-foreground mt-1">Add team members with their bio and avatar to personalize your content.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -3329,7 +3437,7 @@ export default function SiteConfig() {
                       Content Authors
                     </CardTitle>
                     <CardDescription data-testid="text-authors-description">
-                      Create and manage authors for your posts. The default author will be used for AI-generated and RSS-imported content.
+                      Manage the authors and team members who write for your site. Author bylines add credibility to your content.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -3352,6 +3460,7 @@ export default function SiteConfig() {
                             }}
                             data-testid="input-author-name"
                           />
+                          <p className="text-xs text-muted-foreground">The display name shown on posts</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="authorSlug">URL Slug</Label>
@@ -3373,6 +3482,7 @@ export default function SiteConfig() {
                             rows={2}
                             data-testid="input-author-bio"
                           />
+                          <p className="text-xs text-muted-foreground">A brief description shown on the author's profile</p>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="authorAvatar">Avatar URL (optional)</Label>
@@ -3383,14 +3493,18 @@ export default function SiteConfig() {
                             onChange={(e) => setNewAuthor({ ...newAuthor, avatarUrl: e.target.value })}
                             data-testid="input-author-avatar"
                           />
+                          <p className="text-xs text-muted-foreground">Profile picture URL (square image recommended)</p>
                         </div>
-                        <div className="flex items-center gap-2 pt-6">
-                          <Switch
-                            id="authorDefault"
-                            checked={newAuthor.isDefault}
-                            onCheckedChange={(checked) => setNewAuthor({ ...newAuthor, isDefault: checked })}
-                          />
-                          <Label htmlFor="authorDefault">Set as default author</Label>
+                        <div className="space-y-2 pt-6">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id="authorDefault"
+                              checked={newAuthor.isDefault}
+                              onCheckedChange={(checked) => setNewAuthor({ ...newAuthor, isDefault: checked })}
+                            />
+                            <Label htmlFor="authorDefault">Set as default author</Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">This author will be assigned to new posts automatically</p>
                         </div>
                       </div>
                       <Button onClick={addAuthor} className="gap-2" data-testid="button-add-author">
