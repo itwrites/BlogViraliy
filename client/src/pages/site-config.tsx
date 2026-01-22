@@ -349,7 +349,7 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive"
                         onClick={() => {
                           if (confirm("Are you sure you want to delete this API key? This action cannot be undone.")) {
                             deleteMutation.mutate(key.id);
