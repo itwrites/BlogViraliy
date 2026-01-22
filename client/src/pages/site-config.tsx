@@ -25,8 +25,6 @@ import { defaultTemplateSettings, languageDisplayNames, type ContentLanguage } f
 import { BulkGeneration } from "@/components/bulk-generation";
 import { TopicalAuthority } from "@/components/topical-authority";
 import { SetupWizard } from "@/pages/setup-wizard";
-import { ModeToggle } from "@/components/mode-toggle";
-import { useSiteMode } from "@/hooks/use-site-mode";
 
 type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business" | "troubleshooting";
 
@@ -1003,7 +1001,6 @@ export default function SiteConfig() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const isNewSite = id === "new";
-  const { mode, setMode, isLoaded: modeLoaded } = useSiteMode(isNewSite ? undefined : id);
 
   const [siteData, setSiteData] = useState({
     domain: "",
@@ -1239,17 +1236,6 @@ export default function SiteConfig() {
     }
   }, [existingRssConfig]);
 
-  // Reset to a valid section when switching modes if current section isn't available
-  // Beginner mode sections: general, design, ai, posts
-  // Advanced mode: all sections
-  useEffect(() => {
-    if (modeLoaded && !isNewSite) {
-      const beginnerSections = ['general', 'design', 'ai', 'posts'];
-      if (mode === 'beginner' && !beginnerSections.includes(activeSection)) {
-        setActiveSection('general');
-      }
-    }
-  }, [mode, modeLoaded, activeSection, isNewSite]);
 
   const handleSave = async () => {
     try {
@@ -1427,33 +1413,21 @@ export default function SiteConfig() {
   };
 
   // Navigation items for sidebar
-  // Full nav items for advanced mode
-  const allNavItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
-    { id: "general", label: "General", icon: Settings },
-    { id: "business", label: "Business", icon: Building2 },
-    { id: "navigation", label: "Navigation", icon: Menu },
-    { id: "design", label: "Design", icon: Palette },
-    { id: "seo", label: "SEO", icon: Search },
-    { id: "authors", label: "Authors", icon: Users, disabled: isNewSite },
-    { id: "ai", label: "AI Content", icon: Sparkles },
-    { id: "rss", label: "RSS Feeds", icon: Rss },
-    { id: "topical", label: "Topical", icon: BookOpen, disabled: isNewSite },
-    { id: "bulk", label: "Bulk", icon: FileText, disabled: isNewSite },
-    { id: "posts", label: "Posts", icon: Layout, disabled: isNewSite },
-    { id: "api", label: "API Keys", icon: Key, disabled: isNewSite },
-    { id: "troubleshooting", label: "Troubleshooting", icon: Wrench, disabled: isNewSite },
+  const navItems: { id: ActiveSection; label: string; description: string; icon: typeof Settings; disabled?: boolean }[] = [
+    { id: "general", label: "Site Info", description: "Domain, title, and basic settings", icon: Settings },
+    { id: "business", label: "Business Profile", description: "Brand voice and target audience", icon: Building2 },
+    { id: "navigation", label: "Menu & Navigation", description: "Configure your site's menu", icon: Menu },
+    { id: "design", label: "Look & Feel", description: "Theme, colors, and typography", icon: Palette },
+    { id: "seo", label: "SEO & Meta", description: "Search engine optimization", icon: Search },
+    { id: "authors", label: "Authors & Team", description: "Manage content creators", icon: Users, disabled: isNewSite },
+    { id: "ai", label: "AI Writing", description: "Automated content generation", icon: Sparkles },
+    { id: "rss", label: "RSS Imports", description: "Import from external feeds", icon: Rss },
+    { id: "topical", label: "Topical Authority", description: "Pillar content strategy", icon: BookOpen, disabled: isNewSite },
+    { id: "bulk", label: "Bulk Generation", description: "Create multiple posts", icon: FileText, disabled: isNewSite },
+    { id: "posts", label: "View Posts", description: "Manage your content", icon: Layout, disabled: isNewSite },
+    { id: "api", label: "Public API", description: "API access for developers", icon: Key, disabled: isNewSite },
+    { id: "troubleshooting", label: "Tools & Debug", description: "Diagnostics and tools", icon: Wrench, disabled: isNewSite },
   ];
-
-  // Simplified nav items for beginner mode - only essential sections
-  const beginnerNavItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
-    { id: "general", label: "Site Info", icon: Settings },
-    { id: "design", label: "Look & Feel", icon: Palette },
-    { id: "ai", label: "AI Writing", icon: Sparkles },
-    { id: "posts", label: "Your Posts", icon: Layout, disabled: isNewSite },
-  ];
-
-  // Choose nav items based on mode
-  const navItems = mode === 'beginner' ? beginnerNavItems : allNavItems;
 
   const handleNavClick = (section: ActiveSection) => {
     if (section === "posts" && id && !isNewSite) {
@@ -1512,18 +1486,6 @@ export default function SiteConfig() {
               </div>
             </div>
 
-            {!isNewSite && (
-              <div className="mt-5">
-                <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                  <ModeToggle mode={mode} onModeChange={(m) => setMode(m)} className="w-full justify-center bg-white/5 border-white/10" />
-                  <p className="text-[11px] text-white/40 text-center mt-3 leading-relaxed">
-                    {mode === 'beginner' 
-                      ? "Simplified view for essential settings" 
-                      : "Full access to all configuration options"}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Navigation */}
@@ -1555,7 +1517,10 @@ export default function SiteConfig() {
                 }`}>
                   <item.icon className="w-3.5 h-3.5" />
                 </div>
-                <span className="flex-1 text-left font-medium">{item.label}</span>
+                <div className="flex-1 text-left">
+                  <span className="block font-medium">{item.label}</span>
+                  <span className="block text-[11px] text-white/40 leading-tight mt-0.5">{item.description}</span>
+                </div>
                 {activeSection === item.id && (
                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 )}
@@ -1586,47 +1551,6 @@ export default function SiteConfig() {
             animate="animate"
             className="max-w-4xl mx-auto"
           >
-            {/* Beginner Mode Welcome Hero */}
-            {mode === 'beginner' && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
-                className="mb-8 bg-card/80 backdrop-blur-xl rounded-3xl p-8 border border-border shadow-lg"
-              >
-                <div className="flex items-start gap-6">
-                  <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                    <Sparkles className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground mb-2">
-                      Welcome to your site settings
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed max-w-xl">
-                      We've simplified the experience for you. Configure your site in just a few steps — 
-                      start with the essentials and add more as you grow.
-                    </p>
-                    <div className="flex items-center gap-3 mt-5">
-                      {beginnerNavItems.map((item, i) => (
-                        <div 
-                          key={item.id}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                            activeSection === item.id 
-                              ? "bg-primary/20 text-primary border border-primary/30" 
-                              : "bg-muted text-muted-foreground border border-border"
-                          }`}
-                        >
-                          <span className="w-4 h-4 rounded-full bg-muted-foreground/20 flex items-center justify-center text-[10px]">
-                            {i + 1}
-                          </span>
-                          {item.label}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
             {activeSection === "general" && (
               <div className="space-y-8">
                 <motion.div
