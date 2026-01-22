@@ -1373,7 +1373,8 @@ export default function SiteConfig() {
   };
 
   // Navigation items for sidebar
-  const navItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
+  // Full nav items for advanced mode
+  const allNavItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
     { id: "general", label: "General", icon: Settings },
     { id: "business", label: "Business", icon: Building2 },
     { id: "navigation", label: "Navigation", icon: Menu },
@@ -1388,6 +1389,17 @@ export default function SiteConfig() {
     { id: "api", label: "API Keys", icon: Key, disabled: isNewSite },
     { id: "troubleshooting", label: "Troubleshooting", icon: Wrench, disabled: isNewSite },
   ];
+
+  // Simplified nav items for beginner mode - only essential sections
+  const beginnerNavItems: { id: ActiveSection; label: string; icon: typeof Settings; disabled?: boolean }[] = [
+    { id: "general", label: "Site Info", icon: Settings },
+    { id: "design", label: "Look & Feel", icon: Palette },
+    { id: "ai", label: "AI Writing", icon: Sparkles },
+    { id: "posts", label: "Your Posts", icon: Layout, disabled: isNewSite },
+  ];
+
+  // Choose nav items based on mode
+  const navItems = mode === 'beginner' ? beginnerNavItems : allNavItems;
 
   const handleNavClick = (section: ActiveSection) => {
     if (section === "posts" && id && !isNewSite) {
@@ -1411,9 +1423,16 @@ export default function SiteConfig() {
     );
   }
 
-  if (!isNewSite && mode === 'beginner' && modeLoaded && site) {
-    return <SetupWizard site={site} />;
-  }
+  // Reset to a valid section when switching modes if current section isn't available
+  useEffect(() => {
+    if (modeLoaded && !isNewSite) {
+      const currentNavItems = mode === 'beginner' ? beginnerNavItems : allNavItems;
+      const isCurrentSectionAvailable = currentNavItems.some(item => item.id === activeSection && !item.disabled);
+      if (!isCurrentSectionAvailable) {
+        setActiveSection('general');
+      }
+    }
+  }, [mode, modeLoaded]);
 
   return (
     <div
@@ -1452,7 +1471,7 @@ export default function SiteConfig() {
 
             {!isNewSite && (
               <div className="mt-4">
-                <ModeToggle mode="advanced" onModeChange={(m) => setMode(m)} className="w-full justify-center bg-background/50" />
+                <ModeToggle mode={mode} onModeChange={(m) => setMode(m)} className="w-full justify-center bg-background/50" />
               </div>
             )}
           </div>
