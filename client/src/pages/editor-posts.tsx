@@ -506,15 +506,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-72 bg-card/50 backdrop-blur-xl border-r z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-72 bg-black/80 backdrop-blur-2xl border-r border-white/10 z-40 flex flex-col"
         >
-          <div className="p-6 border-b">
+          <div className="p-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               {site?.logoUrl ? (
                 <img 
                   src={site.logoUrl} 
                   alt={site.title} 
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/10" 
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/20" 
                 />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
@@ -522,15 +522,16 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate" data-testid="text-site-title">
+                <h1 className="font-semibold truncate text-white" data-testid="text-site-title">
                   {site?.title || "Loading..."}
                 </h1>
-                <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
+                <p className="text-xs text-white/60 truncate">{site?.domain}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
+                className="text-white/60"
                 data-testid="button-site-settings"
               >
                 <Settings className="w-4 h-4" />
@@ -539,23 +540,23 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
 
           <div className="flex-1 p-4 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+            <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
               Navigation
             </p>
             <div className="space-y-1 mb-4">
               <button
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-primary text-primary-foreground"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-white/10 text-white"
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
                 <span className="flex-1 text-left">Posts</span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-foreground/20 text-primary-foreground">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/20 text-white">
                   {stats.total}
                 </span>
               </button>
               <button
                 onClick={() => setLocation(`/editor/sites/${siteId}/analytics`)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover-elevate text-white/60 hover:text-white"
                 data-testid="nav-analytics"
               >
                 <BarChart3 className="w-4 h-4" />
@@ -563,7 +564,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </button>
             </div>
 
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+            <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
               Quick Stats
             </p>
             <motion.div
@@ -572,35 +573,35 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               transition={{ delay: 0.1 }}
               className="space-y-2"
             >
-              <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-xl p-3 text-center border border-blue-500/20">
+              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl p-3 text-center border border-blue-500/30">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Eye className="w-4 h-4 text-blue-500" />
+                  <Eye className="w-4 h-4 text-blue-400" />
                 </div>
-                <p className="text-2xl font-bold text-blue-500">{stats.totalViews.toLocaleString()}</p>
-                <p className="text-xs text-muted-foreground">Total Views</p>
+                <p className="text-2xl font-bold text-blue-400">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-xs text-white/60">Total Views</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Total Posts</p>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-white">{stats.total}</p>
+                  <p className="text-xs text-white/60">Total Posts</p>
                 </div>
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-emerald-500">{stats.manual}</p>
-                  <p className="text-xs text-muted-foreground">Manual</p>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-emerald-400">{stats.manual}</p>
+                  <p className="text-xs text-white/60">Manual</p>
                 </div>
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-violet-500">{stats.ai}</p>
-                  <p className="text-xs text-muted-foreground">AI Generated</p>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-violet-400">{stats.ai}</p>
+                  <p className="text-xs text-white/60">AI Generated</p>
                 </div>
-                <div className="bg-background/60 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-orange-500">{stats.rss}</p>
-                  <p className="text-xs text-muted-foreground">RSS Imports</p>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-orange-400">{stats.rss}</p>
+                  <p className="text-xs text-white/60">RSS Imports</p>
                 </div>
               </div>
             </motion.div>
 
             <div className="pt-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-3">
+              <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
                 Filter by Source
               </p>
               <div className="space-y-1">
@@ -618,8 +619,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                       sourceFilter === item.value
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                        ? "bg-white/10 text-white"
+                        : "hover-elevate text-white/60 hover:text-white"
                     }`}
                     data-testid={`filter-${item.value}`}
                   >
@@ -627,8 +628,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <span className="flex-1 text-left">{item.label}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       sourceFilter === item.value
-                        ? "bg-primary-foreground/20 text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-white/20 text-white"
+                        : "bg-white/10 text-white/60"
                     }`}>
                       {item.count}
                     </span>
@@ -638,11 +639,11 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
           </div>
 
-          <div className="p-4 border-t space-y-2">
+          <div className="p-4 border-t border-white/10 space-y-2">
             {!hasSiteContext && (
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3"
+                className="w-full justify-start gap-3 text-white/60"
                 onClick={() => setLocation("/editor")}
                 data-testid="button-back"
               >
@@ -653,7 +654,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             {site && (
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3"
+                className="w-full justify-start gap-3 text-white/60"
                 onClick={() => window.open(`https://${site.domain}`, "_blank")}
                 data-testid="button-view-site"
               >
@@ -662,20 +663,20 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </Button>
             )}
             <div className="flex items-center gap-2 px-3 py-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">
+              <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                <span className="text-sm font-medium text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.username}</p>
-                <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+                <p className="text-sm font-medium truncate text-white">{user?.username}</p>
+                <p className="text-xs text-white/60 capitalize">{user?.role}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="shrink-0"
+                className="shrink-0 text-white/60"
                 data-testid="button-logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -722,7 +723,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <Button
                       variant={viewMode === "list" ? "secondary" : "ghost"}
                       size="icon"
-                      className="h-8 w-8"
                       onClick={() => setViewMode("list")}
                       data-testid="view-list"
                     >
@@ -731,7 +731,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <Button
                       variant={viewMode === "grid" ? "secondary" : "ghost"}
                       size="icon"
-                      className="h-8 w-8"
                       onClick={() => setViewMode("grid")}
                       data-testid="view-grid"
                     >

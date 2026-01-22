@@ -59,6 +59,8 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
           <Route path="/editor">
             <EditorDashboard />
           </Route>
+          <Route path="/admin/sites/:id" component={EditorPosts} />
+          <Route path="/admin/sites/:id/settings" component={SiteConfig} />
           <Route path="/editor/sites/:id/posts" component={EditorPosts} />
           <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
           <Route component={NotFound} />
