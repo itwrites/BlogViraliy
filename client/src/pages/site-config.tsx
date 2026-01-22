@@ -1561,10 +1561,13 @@ export default function SiteConfig() {
                 >
                   <Card className="rounded-2xl overflow-hidden">
                     <CardHeader className="pb-4">
-                      <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">General Settings</CardTitle>
-                      <CardDescription data-testid="text-general-description">Configure the basic information for your website</CardDescription>
+                      <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">Site Information</CardTitle>
+                      <CardDescription data-testid="text-general-description">Set up your site's identity, domain, and branding. These settings affect how your site appears to visitors.</CardDescription>
                     </CardHeader>
                   <CardContent className="space-y-6">
+                    <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                      <Globe className="w-4 h-4" /> Basic Information
+                    </div>
                     <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="domain" data-testid="label-domain">Primary Domain</Label>
@@ -1575,7 +1578,7 @@ export default function SiteConfig() {
                           value={siteData.domain}
                           onChange={(e) => setSiteData({ ...siteData, domain: e.target.value })}
                         />
-                        <p className="text-xs text-muted-foreground" data-testid="text-domain-hint">The main domain this site will respond to</p>
+                        <p className="text-xs text-muted-foreground" data-testid="text-domain-hint">Enter your domain without https:// (e.g., myblog.com). This must match your DNS configuration.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -1587,8 +1590,16 @@ export default function SiteConfig() {
                           value={siteData.title}
                           onChange={(e) => setSiteData({ ...siteData, title: e.target.value })}
                         />
+                        <p className="text-xs text-muted-foreground">Displayed in the browser tab and site header. Keep it short and memorable.</p>
                       </div>
+                    </div>
 
+                    <div className="border-t pt-6 mt-6">
+                      <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" /> Branding
+                      </div>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="logoUrl" data-testid="label-logo">Logo URL</Label>
                         <Input
@@ -1598,6 +1609,7 @@ export default function SiteConfig() {
                           value={siteData.logoUrl}
                           onChange={(e) => setSiteData({ ...siteData, logoUrl: e.target.value })}
                         />
+                        <p className="text-xs text-muted-foreground">Link to your logo image (PNG or SVG recommended). Ideal size: 200x60 pixels.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -1609,13 +1621,13 @@ export default function SiteConfig() {
                           value={siteData.favicon}
                           onChange={(e) => setSiteData({ ...siteData, favicon: e.target.value })}
                         />
-                        <p className="text-xs text-muted-foreground" data-testid="text-favicon-hint">Browser tab icon (32x32 or 64x64 recommended)</p>
+                        <p className="text-xs text-muted-foreground" data-testid="text-favicon-hint">The small icon shown in browser tabs. Use a square image, 32x32 or 64x64 pixels.</p>
                       </div>
 
                       <div className="flex items-center justify-between space-x-4">
                         <div className="space-y-0.5">
                           <Label htmlFor="hideLogoText" data-testid="label-hide-logo-text">Hide Logo Text</Label>
-                          <p className="text-xs text-muted-foreground">Only show logo image when present, hide site title</p>
+                          <p className="text-xs text-muted-foreground">Only show logo image when present, hide site title in the header.</p>
                         </div>
                         <Switch
                           id="hideLogoText"
@@ -1628,7 +1640,7 @@ export default function SiteConfig() {
                       <div className="flex items-center justify-between space-x-4">
                         <div className="space-y-0.5">
                           <Label htmlFor="headerLogoInvertColors" data-testid="label-header-logo-invert">Invert Header Logo</Label>
-                          <p className="text-xs text-muted-foreground">Invert logo colors for dark header backgrounds</p>
+                          <p className="text-xs text-muted-foreground">Invert logo colors for dark header backgrounds. Useful for light logos.</p>
                         </div>
                         <Switch
                           id="headerLogoInvertColors"
@@ -1832,10 +1844,13 @@ export default function SiteConfig() {
                       Business Profile
                     </CardTitle>
                     <CardDescription data-testid="text-business-description">
-                      Define your business context to help AI generate more relevant, on-brand content
+                      Your business profile powers smarter AI content generation. The more detail you provide, the more accurately AI can match your brand voice, speak to your audience, and highlight what makes you unique.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                      <FileText className="w-4 h-4" /> Core Identity
+                    </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="businessDescription" data-testid="label-business-description">Business Description</Label>
@@ -1848,26 +1863,25 @@ export default function SiteConfig() {
                           rows={4}
                         />
                         <p className="text-xs text-muted-foreground">
-                          This context helps AI understand your business and generate content that aligns with your core offerings
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="targetAudience" data-testid="label-target-audience">Target Audience / ICP</Label>
-                        <Textarea
-                          id="targetAudience"
-                          data-testid="textarea-target-audience"
-                          placeholder="Describe your ideal customer profile: demographics, pain points, goals, and what they're looking for..."
-                          value={siteData.targetAudience}
-                          onChange={(e) => setSiteData({ ...siteData, targetAudience: e.target.value })}
-                          rows={4}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Understanding your audience helps AI craft content that resonates and addresses their specific needs
+                          Used by AI to understand your core offerings and generate content that accurately represents your business.
                         </p>
                       </div>
 
                       <div className="grid gap-6 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="industry" data-testid="label-industry">Industry / Niche</Label>
+                          <Input
+                            id="industry"
+                            data-testid="input-industry"
+                            placeholder="e.g., SaaS, E-commerce, Healthcare, Finance..."
+                            value={siteData.industry}
+                            onChange={(e) => setSiteData({ ...siteData, industry: e.target.value })}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Helps AI use industry-specific terminology, examples, and best practices.
+                          </p>
+                        </div>
+
                         <div className="space-y-2">
                           <Label data-testid="label-brand-voice">Brand Voice</Label>
                           <Select
@@ -1887,23 +1901,31 @@ export default function SiteConfig() {
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground">
-                            Sets the tone and style for AI-generated content
+                            Used by AI to write content that matches your brand's personality and communication style.
                           </p>
                         </div>
+                      </div>
+                    </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="industry" data-testid="label-industry">Industry / Niche</Label>
-                          <Input
-                            id="industry"
-                            data-testid="input-industry"
-                            placeholder="e.g., SaaS, E-commerce, Healthcare, Finance..."
-                            value={siteData.industry}
-                            onChange={(e) => setSiteData({ ...siteData, industry: e.target.value })}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Helps AI use industry-appropriate terminology and examples
-                          </p>
-                        </div>
+                    <div className="border-t pt-6 mt-6">
+                      <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Users className="w-4 h-4" /> Audience & Positioning
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="targetAudience" data-testid="label-target-audience">Target Audience / ICP</Label>
+                        <Textarea
+                          id="targetAudience"
+                          data-testid="textarea-target-audience"
+                          placeholder="Describe your ideal customer profile: demographics, pain points, goals, and what they're looking for..."
+                          value={siteData.targetAudience}
+                          onChange={(e) => setSiteData({ ...siteData, targetAudience: e.target.value })}
+                          rows={4}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          AI uses this to craft content that speaks directly to your audience's needs, challenges, and goals.
+                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -1917,7 +1939,7 @@ export default function SiteConfig() {
                           rows={3}
                         />
                         <p className="text-xs text-muted-foreground">
-                          AI will weave these value props naturally into generated content where appropriate
+                          AI will naturally incorporate these selling points into generated content to reinforce your unique value.
                         </p>
                       </div>
 
@@ -1932,7 +1954,7 @@ export default function SiteConfig() {
                           rows={3}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Helps AI understand your competitive landscape and differentiate your content
+                          Helps AI understand your market position and create content that differentiates you from alternatives.
                         </p>
                       </div>
                     </div>
@@ -3445,7 +3467,17 @@ export default function SiteConfig() {
             )}
 
             {activeSection === "ai" && (
-              <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">AI Writing automatically creates blog posts for your site</p>
+                      <p className="text-xs text-muted-foreground mt-1">Configure your topics below and the AI will generate SEO-optimized content on your schedule.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -3457,130 +3489,153 @@ export default function SiteConfig() {
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <CardTitle className="text-xl tracking-tight" data-testid="text-ai-title">AI-Driven Content Generation</CardTitle>
-                        <CardDescription data-testid="text-ai-description">Automatically generate posts using AI</CardDescription>
+                        <CardDescription data-testid="text-ai-description">Let AI write and publish blog posts automatically based on your configured topics and schedule</CardDescription>
                       </div>
-                      <Switch
-                        checked={aiConfig.enabled}
-                        onCheckedChange={(checked) => setAiConfig({ ...aiConfig, enabled: checked })}
-                        data-testid="switch-ai-enabled"
-                      />
+                      <div className="flex flex-col items-end gap-1">
+                        <Switch
+                          checked={aiConfig.enabled}
+                          onCheckedChange={(checked) => setAiConfig({ ...aiConfig, enabled: checked })}
+                          data-testid="switch-ai-enabled"
+                        />
+                        <span className="text-xs text-muted-foreground">Enable AI Automation</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Posting Frequency</Label>
-                        <Select
-                          value={aiConfig.schedule}
-                          onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
-                          disabled={!aiConfig.enabled}
-                        >
-                          <SelectTrigger id="aiSchedule" data-testid="select-ai-schedule">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1_per_day">1 post per day</SelectItem>
-                            <SelectItem value="3_per_day">3 posts per day</SelectItem>
-                            <SelectItem value="1_per_week">1 post per week</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="aiLanguage" data-testid="label-ai-language">
-                          <span className="flex items-center gap-2">
-                            <Languages className="h-4 w-4" />
-                            Content Language
-                          </span>
-                        </Label>
-                        <Select
-                          value={aiConfig.targetLanguage}
-                          onValueChange={(value) => setAiConfig({ ...aiConfig, targetLanguage: value })}
-                          disabled={!aiConfig.enabled}
-                        >
-                          <SelectTrigger id="aiLanguage" data-testid="select-ai-language">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(languageDisplayNames).map(([code, name]) => (
-                              <SelectItem key={code} value={code}>{name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">AI will write all posts in this language</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="aiPostStatus" data-testid="label-ai-post-status">Post Status</Label>
-                        <Select
-                          value={(aiConfig as any).defaultPostStatus || "published"}
-                          onValueChange={(value) => setAiConfig({ ...aiConfig, defaultPostStatus: value } as any)}
-                          disabled={!aiConfig.enabled}
-                        >
-                          <SelectTrigger id="aiPostStatus" data-testid="select-ai-post-status">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="published">Published</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="masterPrompt" data-testid="label-master-prompt">Master Prompt</Label>
-                      <Textarea
-                        id="masterPrompt"
-                        data-testid="textarea-master-prompt"
-                        placeholder="You are an expert food critic for budget restaurants. Write in a witty, informal tone..."
-                        value={aiConfig.masterPrompt}
-                        onChange={(e) => setAiConfig({ ...aiConfig, masterPrompt: e.target.value })}
-                        disabled={!aiConfig.enabled}
-                        rows={6}
-                      />
-                      <p className="text-xs text-muted-foreground">Define the AI's writing style and expertise</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label data-testid="label-keywords">Keywords / Topics</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Enter a keyword"
-                          value={newKeyword}
-                          onChange={(e) => setNewKeyword(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
-                          disabled={!aiConfig.enabled}
-                          data-testid="input-keyword"
-                        />
-                        <Button
-                          onClick={addKeyword}
-                          disabled={!aiConfig.enabled}
-                          data-testid="button-add-keyword"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {aiConfig.keywords.map((keyword) => (
-                          <div
-                            key={keyword}
-                            className="flex items-center gap-1 bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm"
-                            data-testid={`keyword-${keyword}`}
+                  <CardContent className="space-y-8">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Automation Settings
+                      </h4>
+                      <p className="text-xs text-muted-foreground -mt-2">When enabled, the system will automatically generate new posts based on your keywords</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Post Schedule</Label>
+                          <Select
+                            value={aiConfig.schedule}
+                            onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
+                            disabled={!aiConfig.enabled}
                           >
-                            <span>{keyword}</span>
-                            <button
-                              onClick={() => removeKeyword(keyword)}
-                              className="hover-elevate rounded-full"
-                              data-testid={`button-remove-keyword-${keyword}`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ))}
+                            <SelectTrigger id="aiSchedule" data-testid="select-ai-schedule">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1_per_day">1 post per day</SelectItem>
+                              <SelectItem value="3_per_day">3 posts per day</SelectItem>
+                              <SelectItem value="1_per_week">1 post per week</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">How often new AI posts are created. Choose based on your content strategy.</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="aiLanguage" data-testid="label-ai-language">
+                            <span className="flex items-center gap-2">
+                              <Languages className="h-4 w-4" />
+                              Content Language
+                            </span>
+                          </Label>
+                          <Select
+                            value={aiConfig.targetLanguage}
+                            onValueChange={(value) => setAiConfig({ ...aiConfig, targetLanguage: value })}
+                            disabled={!aiConfig.enabled}
+                          >
+                            <SelectTrigger id="aiLanguage" data-testid="select-ai-language">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(languageDisplayNames).map(([code, name]) => (
+                                <SelectItem key={code} value={code}>{name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">AI will write all posts in this language</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="aiPostStatus" data-testid="label-ai-post-status">Default Post Status</Label>
+                          <Select
+                            value={(aiConfig as any).defaultPostStatus || "published"}
+                            onValueChange={(value) => setAiConfig({ ...aiConfig, defaultPostStatus: value } as any)}
+                            disabled={!aiConfig.enabled}
+                          >
+                            <SelectTrigger id="aiPostStatus" data-testid="select-ai-post-status">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="published">Published</SelectItem>
+                              <SelectItem value="draft">Draft</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">Choose whether AI-generated posts go live immediately or as drafts for review</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">AI will cycle through these topics when generating posts</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Content Topics
+                      </h4>
+                      <div className="space-y-2">
+                        <Label data-testid="label-keywords">Keywords / Topics</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter a keyword or topic"
+                            value={newKeyword}
+                            onChange={(e) => setNewKeyword(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
+                            disabled={!aiConfig.enabled}
+                            data-testid="input-keyword"
+                          />
+                          <Button
+                            onClick={addKeyword}
+                            disabled={!aiConfig.enabled}
+                            data-testid="button-add-keyword"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {aiConfig.keywords.map((keyword) => (
+                            <div
+                              key={keyword}
+                              className="flex items-center gap-1 bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm"
+                              data-testid={`keyword-${keyword}`}
+                            >
+                              <span>{keyword}</span>
+                              <button
+                                onClick={() => removeKeyword(keyword)}
+                                className="hover-elevate rounded-full"
+                                data-testid={`button-remove-keyword-${keyword}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Add topics or phrases. The AI will cycle through these to generate relevant content.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Wrench className="h-4 w-4" />
+                        Advanced Options
+                      </h4>
+                      <div className="space-y-2">
+                        <Label htmlFor="masterPrompt" data-testid="label-master-prompt">Custom Prompt (Optional)</Label>
+                        <Textarea
+                          id="masterPrompt"
+                          data-testid="textarea-master-prompt"
+                          placeholder="You are an expert food critic for budget restaurants. Write in a witty, informal tone..."
+                          value={aiConfig.masterPrompt}
+                          onChange={(e) => setAiConfig({ ...aiConfig, masterPrompt: e.target.value })}
+                          disabled={!aiConfig.enabled}
+                          rows={6}
+                        />
+                        <p className="text-xs text-muted-foreground">Advanced: Provide specific instructions for the AI writer to define writing style, tone, and expertise</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -3589,7 +3644,17 @@ export default function SiteConfig() {
             )}
 
             {activeSection === "rss" && (
-              <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                  <div className="flex items-start gap-3">
+                    <Rss className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">RSS Imports let you curate content from other sources</p>
+                      <p className="text-xs text-muted-foreground mt-1">Articles are automatically rewritten by AI to be unique and SEO-friendly for your site.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <motion.div
                   custom={0}
                   variants={cardVariants}
@@ -3598,205 +3663,234 @@ export default function SiteConfig() {
                 >
                 <Card className="rounded-2xl overflow-hidden">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <CardTitle>RSS Feed Rewriter</CardTitle>
-                        <CardDescription>Automatically fetch and rewrite articles from RSS feeds</CardDescription>
+                        <CardTitle>RSS Feed Importer</CardTitle>
+                        <CardDescription>Import articles from external RSS feeds and automatically rewrite them with AI to create unique, original content for your blog</CardDescription>
                       </div>
-                      <Switch
-                        checked={rssConfig.enabled}
-                        onCheckedChange={(checked) => setRssConfig({ ...rssConfig, enabled: checked })}
-                        data-testid="switch-rss-enabled"
-                      />
+                      <div className="flex flex-col items-end gap-1">
+                        <Switch
+                          checked={rssConfig.enabled}
+                          onCheckedChange={(checked) => setRssConfig({ ...rssConfig, enabled: checked })}
+                          data-testid="switch-rss-enabled"
+                        />
+                        <span className="text-xs text-muted-foreground">Enable RSS Automation</span>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="rssSchedule">Check Frequency</Label>
-                        <Select
-                          value={rssConfig.schedule}
-                          onValueChange={(value) => setRssConfig({ ...rssConfig, schedule: value })}
-                          disabled={!rssConfig.enabled}
-                        >
-                          <SelectTrigger id="rssSchedule" data-testid="select-rss-schedule">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="every_1_hour">Every 1 hour</SelectItem>
-                            <SelectItem value="every_6_hours">Every 6 hours</SelectItem>
-                            <SelectItem value="once_per_day">Once per day</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="rssLanguage">
-                          <span className="flex items-center gap-2">
-                            <Languages className="h-4 w-4" />
-                            Content Language
-                          </span>
-                        </Label>
-                        <Select
-                          value={rssConfig.targetLanguage}
-                          onValueChange={(value) => setRssConfig({ ...rssConfig, targetLanguage: value })}
-                          disabled={!rssConfig.enabled}
-                        >
-                          <SelectTrigger id="rssLanguage" data-testid="select-rss-language">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(languageDisplayNames).map(([code, name]) => (
-                              <SelectItem key={code} value={code}>{name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Rewritten articles will be in this language</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="rssPostStatus">Post Status</Label>
-                        <Select
-                          value={(rssConfig as any).defaultPostStatus || "published"}
-                          onValueChange={(value) => setRssConfig({ ...rssConfig, defaultPostStatus: value } as any)}
-                          disabled={!rssConfig.enabled}
-                        >
-                          <SelectTrigger id="rssPostStatus" data-testid="select-rss-post-status">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="published">Published</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="articlesToFetch">Articles to Fetch</Label>
-                      <Input
-                        id="articlesToFetch"
-                        data-testid="input-articles-to-fetch"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={rssConfig.articlesToFetch}
-                        onChange={(e) => setRssConfig({ ...rssConfig, articlesToFetch: parseInt(e.target.value) || 3 })}
-                        disabled={!rssConfig.enabled}
-                      />
-                      <p className="text-xs text-muted-foreground">Number of newest articles to fetch from each feed</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="rssMasterPrompt">Custom Prompt (Optional)</Label>
-                      <Textarea
-                        id="rssMasterPrompt"
-                        data-testid="input-rss-master-prompt"
-                        placeholder="Add additional context or instructions for rewriting articles. E.g., 'Focus on UK hospitality industry. Include relevant statistics. Write in a professional tone.'"
-                        value={rssConfig.masterPrompt}
-                        onChange={(e) => setRssConfig({ ...rssConfig, masterPrompt: e.target.value })}
-                        disabled={!rssConfig.enabled}
-                        rows={4}
-                      />
-                      <p className="text-xs text-muted-foreground">Add extra context or instructions for the AI when rewriting RSS articles</p>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="rssPillar">
-                          <span className="flex items-center gap-2">
-                            <Link className="h-4 w-4" />
-                            Link to Pillar (Internal Linking)
-                          </span>
-                        </Label>
-                        <Select
-                          value={rssConfig.pillarId || "none"}
-                          onValueChange={(value) => setRssConfig({ ...rssConfig, pillarId: value === "none" ? "" : value })}
-                          disabled={!rssConfig.enabled}
-                        >
-                          <SelectTrigger id="rssPillar" data-testid="select-rss-pillar">
-                            <SelectValue placeholder="No pillar - standalone posts" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No pillar - standalone posts</SelectItem>
-                            {(pillars || []).map((pillar) => (
-                              <SelectItem key={pillar.id} value={pillar.id}>
-                                {pillar.name} ({pillar.packType})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Link posts to a pillar for internal linking graph</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="rssArticleRole">
-                          <span className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            Article Role
-                          </span>
-                        </Label>
-                        <Select
-                          value={rssConfig.articleRole || "auto"}
-                          onValueChange={(value) => setRssConfig({ ...rssConfig, articleRole: value === "auto" ? "" : value })}
-                          disabled={!rssConfig.enabled}
-                        >
-                          <SelectTrigger id="rssArticleRole" data-testid="select-rss-article-role">
-                            <SelectValue placeholder="Auto-detect from title" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="auto">Auto-detect from title</SelectItem>
-                            {ARTICLE_ROLES.map((role) => (
-                              <SelectItem key={role.id} value={role.id}>
-                                {role.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">Role affects JSON-LD schema and linking rules</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>RSS Feed URLs</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="https://example.com/feed.xml"
-                          value={newFeedUrl}
-                          onChange={(e) => setNewFeedUrl(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addFeedUrl())}
-                          disabled={!rssConfig.enabled}
-                          data-testid="input-feed-url"
-                        />
-                        <Button
-                          onClick={addFeedUrl}
-                          disabled={!rssConfig.enabled}
-                          data-testid="button-add-feed"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="space-y-2 mt-2">
-                        {(rssConfig.feedUrls || []).map((url) => (
-                          <div
-                            key={url}
-                            className="flex items-center justify-between bg-muted px-3 py-2 rounded-md"
-                            data-testid={`feed-url-${url}`}
+                  <CardContent className="space-y-8">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Import Settings
+                      </h4>
+                      <p className="text-xs text-muted-foreground -mt-2">Automatically import and rewrite articles from external RSS feeds</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="rssSchedule">Poll Interval</Label>
+                          <Select
+                            value={rssConfig.schedule}
+                            onValueChange={(value) => setRssConfig({ ...rssConfig, schedule: value })}
+                            disabled={!rssConfig.enabled}
                           >
-                            <span className="text-sm font-mono truncate flex-1">{url}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeFeedUrl(url)}
-                              data-testid={`button-remove-feed-${url}`}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                            <SelectTrigger id="rssSchedule" data-testid="select-rss-schedule">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="every_1_hour">Every 1 hour</SelectItem>
+                              <SelectItem value="every_6_hours">Every 6 hours</SelectItem>
+                              <SelectItem value="once_per_day">Once per day</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">How often to check feeds for new content</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="rssLanguage">
+                            <span className="flex items-center gap-2">
+                              <Languages className="h-4 w-4" />
+                              Content Language
+                            </span>
+                          </Label>
+                          <Select
+                            value={rssConfig.targetLanguage}
+                            onValueChange={(value) => setRssConfig({ ...rssConfig, targetLanguage: value })}
+                            disabled={!rssConfig.enabled}
+                          >
+                            <SelectTrigger id="rssLanguage" data-testid="select-rss-language">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(languageDisplayNames).map(([code, name]) => (
+                                <SelectItem key={code} value={code}>{name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">When enabled, imported articles are rewritten to be unique in this language</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="rssPostStatus">Default Post Status</Label>
+                          <Select
+                            value={(rssConfig as any).defaultPostStatus || "published"}
+                            onValueChange={(value) => setRssConfig({ ...rssConfig, defaultPostStatus: value } as any)}
+                            disabled={!rssConfig.enabled}
+                          >
+                            <SelectTrigger id="rssPostStatus" data-testid="select-rss-post-status">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="published">Published</SelectItem>
+                              <SelectItem value="draft">Draft</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">Choose whether imported posts go live immediately or as drafts</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">Articles will be rewritten by AI to ensure uniqueness</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Rss className="h-4 w-4" />
+                        Feed Sources
+                      </h4>
+                      <div className="space-y-2">
+                        <Label>RSS Feed URLs</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="https://example.com/feed.xml"
+                            value={newFeedUrl}
+                            onChange={(e) => setNewFeedUrl(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addFeedUrl())}
+                            disabled={!rssConfig.enabled}
+                            data-testid="input-feed-url"
+                          />
+                          <Button
+                            onClick={addFeedUrl}
+                            disabled={!rssConfig.enabled}
+                            data-testid="button-add-feed"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="space-y-2 mt-2">
+                          {(rssConfig.feedUrls || []).map((url) => (
+                            <div
+                              key={url}
+                              className="flex items-center justify-between bg-muted px-3 py-2 rounded-md"
+                              data-testid={`feed-url-${url}`}
+                            >
+                              <span className="text-sm font-mono truncate flex-1">{url}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFeedUrl(url)}
+                                data-testid={`button-remove-feed-${url}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Paste RSS feed URLs here. The system will check for new articles periodically.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="articlesToFetch">Articles per Feed</Label>
+                        <Input
+                          id="articlesToFetch"
+                          data-testid="input-articles-to-fetch"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={rssConfig.articlesToFetch}
+                          onChange={(e) => setRssConfig({ ...rssConfig, articlesToFetch: parseInt(e.target.value) || 3 })}
+                          disabled={!rssConfig.enabled}
+                          className="w-32"
+                        />
+                        <p className="text-xs text-muted-foreground">Number of newest articles to import from each feed per check</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Link className="h-4 w-4" />
+                        Content Organization
+                      </h4>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="rssPillar">
+                            <span className="flex items-center gap-2">
+                              Link to Pillar (Internal Linking)
+                            </span>
+                          </Label>
+                          <Select
+                            value={rssConfig.pillarId || "none"}
+                            onValueChange={(value) => setRssConfig({ ...rssConfig, pillarId: value === "none" ? "" : value })}
+                            disabled={!rssConfig.enabled}
+                          >
+                            <SelectTrigger id="rssPillar" data-testid="select-rss-pillar">
+                              <SelectValue placeholder="No pillar - standalone posts" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No pillar - standalone posts</SelectItem>
+                              {(pillars || []).map((pillar) => (
+                                <SelectItem key={pillar.id} value={pillar.id}>
+                                  {pillar.name} ({pillar.packType})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">Link imported posts to a pillar for internal linking</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="rssArticleRole">
+                            <span className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              Article Role
+                            </span>
+                          </Label>
+                          <Select
+                            value={rssConfig.articleRole || "auto"}
+                            onValueChange={(value) => setRssConfig({ ...rssConfig, articleRole: value === "auto" ? "" : value })}
+                            disabled={!rssConfig.enabled}
+                          >
+                            <SelectTrigger id="rssArticleRole" data-testid="select-rss-article-role">
+                              <SelectValue placeholder="Auto-detect from title" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="auto">Auto-detect from title</SelectItem>
+                              {ARTICLE_ROLES.map((role) => (
+                                <SelectItem key={role.id} value={role.id}>
+                                  {role.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">Role affects JSON-LD schema and linking rules</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Wrench className="h-4 w-4" />
+                        Advanced Options
+                      </h4>
+                      <div className="space-y-2">
+                        <Label htmlFor="rssMasterPrompt">Custom Rewrite Prompt (Optional)</Label>
+                        <Textarea
+                          id="rssMasterPrompt"
+                          data-testid="input-rss-master-prompt"
+                          placeholder="Add additional context or instructions for rewriting articles. E.g., 'Focus on UK hospitality industry. Include relevant statistics. Write in a professional tone.'"
+                          value={rssConfig.masterPrompt}
+                          onChange={(e) => setRssConfig({ ...rssConfig, masterPrompt: e.target.value })}
+                          disabled={!rssConfig.enabled}
+                          rows={4}
+                        />
+                        <p className="text-xs text-muted-foreground">Advanced: Add extra context or instructions for the AI when rewriting imported articles</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
