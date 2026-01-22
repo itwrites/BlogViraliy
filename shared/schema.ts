@@ -286,6 +286,7 @@ export const sites = pgTable("sites", {
   valuePropositions: text("value_propositions"), // Key selling points
   industry: text("industry"), // Market/niche
   competitors: text("competitors"), // Key competitors
+  wizardProgress: integer("wizard_progress").notNull().default(0), // 0=Not started, 5=Completed
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
