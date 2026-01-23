@@ -87,27 +87,15 @@ const articleStatusIcons: Record<string, JSX.Element> = {
 const topicIdeaPresets = [
   {
     name: "Beginner's guide to [industry]",
-    description: "Core concepts, terminology, and first steps for newcomers.",
-  },
-  {
-    name: "How to choose the right [product/service]",
-    description: "Comparisons, checklists, and decision frameworks.",
+    description: "Foundations and first steps for newcomers.",
   },
   {
     name: "Best practices for [role]",
-    description: "Playbooks and repeatable processes for your audience.",
+    description: "Practical playbook your audience can follow.",
   },
   {
-    name: "Common mistakes in [topic]",
-    description: "Pitfalls, fixes, and lessons learned.",
-  },
-  {
-    name: "Trends and stats in [industry]",
-    description: "Benchmarks, reports, and data-backed insights.",
-  },
-  {
-    name: "Case studies in [niche]",
-    description: "Before/after results and real-world stories.",
+    name: "How to choose the right [product/service]",
+    description: "Clear comparisons and decision criteria.",
   },
 ];
 
@@ -268,64 +256,45 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
   return (
     <div className="space-y-6">
       <Card className="border border-primary/10 bg-primary/5">
-        <CardHeader>
-          <CardTitle>Topical Authority 101</CardTitle>
-          <CardDescription>Simple, beginner-friendly guidance for building topic dominance.</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle>Topical Authority</CardTitle>
+          <CardDescription>Build SEO trust by covering one topic deeply and consistently.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">What it is</p>
-              <ul className="list-disc pl-4 text-sm text-muted-foreground space-y-1">
-                <li>Pillar = the main topic you want to rank for.</li>
-                <li>Clusters = supporting articles that link back to the pillar.</li>
-                <li>Internal links show search engines you cover the topic deeply.</li>
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">How to use it</p>
-              <ol className="list-decimal pl-4 text-sm text-muted-foreground space-y-1">
-                <li>Create 1-3 pillars aligned with your business focus.</li>
-                <li>Generate a topical map to create categories and articles.</li>
-                <li>Start generation and publish on a steady schedule.</li>
-                <li>Review performance and add more clusters over time.</li>
-              </ol>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge variant="secondary">1) Create a pillar</Badge>
+            <Badge variant="secondary">2) Generate the map</Badge>
+            <Badge variant="secondary">3) Start publishing</Badge>
           </div>
-          <div className="border-t pt-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">Topic ideas to dominate</p>
-                <p className="text-xs text-muted-foreground">Replace bracketed parts with your niche or audience.</p>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Pillar
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Starter topics</p>
+              <p className="text-xs text-muted-foreground">Tap a template to prefill the pillar form.</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Pillar
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {topicIdeaPresets.map((idea) => (
+              <Button
+                key={idea.name}
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setNewPillar((prev) => ({
+                    ...prev,
+                    name: idea.name,
+                    description: idea.description,
+                  }));
+                  setIsCreateOpen(true);
+                }}
+              >
+                <Target className="h-3 w-3 mr-2" />
+                {idea.name}
               </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {topicIdeaPresets.map((idea) => (
-                <Button
-                  key={idea.name}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setNewPillar((prev) => ({
-                      ...prev,
-                      name: idea.name,
-                      description: idea.description,
-                    }));
-                    setIsCreateOpen(true);
-                  }}
-                >
-                  <Target className="h-3 w-3 mr-2" />
-                  {idea.name}
-                </Button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tip: Use your Business Profile details (industry + audience) to choose the best pillar topics.
-            </p>
+            ))}
           </div>
         </CardContent>
       </Card>
