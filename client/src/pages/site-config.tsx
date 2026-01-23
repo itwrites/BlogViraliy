@@ -1427,10 +1427,10 @@ export default function SiteConfig() {
 
   // Navigation items for sidebar
   const navItems: { id: ActiveSection; label: string; description: string; icon: typeof Settings; disabled?: boolean }[] = [
-    { id: "general", label: "Site Info", description: "Domain, title, and basic settings", icon: Settings },
+    { id: "general", label: "Site Info", description: "Domain, title, and routing", icon: Settings },
     { id: "business", label: "Business Profile", description: "Brand voice and target audience", icon: Building2 },
     { id: "navigation", label: "Menu & Navigation", description: "Configure your site's menu", icon: Menu },
-    { id: "design", label: "Look & Feel", description: "Theme, colors, and typography", icon: Palette },
+    { id: "design", label: "Look & Feel", description: "Theme, branding, colors, and typography", icon: Palette },
     { id: "seo", label: "SEO & Meta", description: "Search engine optimization", icon: Search },
     { id: "authors", label: "Authors & Team", description: "Manage content creators", icon: Users, disabled: isNewSite },
     { id: "ai", label: "AI Writing", description: "Automated content generation", icon: Sparkles },
@@ -1573,13 +1573,13 @@ export default function SiteConfig() {
                   animate="animate"
                 >
                   <Card className="rounded-2xl overflow-hidden">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">Site Information</CardTitle>
-                      <CardDescription data-testid="text-general-description">Set up your site's identity, domain, and branding. These settings affect how your site appears to visitors.</CardDescription>
-                    </CardHeader>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-xl tracking-tight" data-testid="text-general-title">Site Information</CardTitle>
+                    <CardDescription data-testid="text-general-description">Set up your site's identity and routing. Visual branding and themes live in Look & Feel.</CardDescription>
+                  </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
-                      <Globe className="w-4 h-4" /> Basic Information
+                      <Globe className="w-4 h-4" /> Site Identity
                     </div>
                     <div className="grid gap-6 md:grid-cols-2">
                       <div className="space-y-2">
@@ -1607,107 +1607,15 @@ export default function SiteConfig() {
                       </div>
                     </div>
 
+                    <p className="text-xs text-muted-foreground">Branding assets and theme presets live in Look & Feel.</p>
+
                     <div className="border-t pt-6 mt-6">
-                      <div className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" /> Branding
+                      <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                        <Link className="w-4 h-4" /> Domains & Routing
                       </div>
+                      <p className="text-xs text-muted-foreground">Use aliases for www/alternate domains and configure reverse proxy access when needed.</p>
                     </div>
                     <div className="grid gap-6 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="logoUrl" data-testid="label-logo">Logo URL</Label>
-                        <Input
-                          id="logoUrl"
-                          data-testid="input-logo"
-                          placeholder="https://example.com/logo.png"
-                          value={siteData.logoUrl}
-                          onChange={(e) => setSiteData({ ...siteData, logoUrl: e.target.value })}
-                        />
-                        <p className="text-xs text-muted-foreground">Link to your logo image (PNG or SVG recommended). Ideal size: 200x60 pixels.</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="favicon" data-testid="label-favicon">Favicon URL</Label>
-                        <Input
-                          id="favicon"
-                          data-testid="input-favicon"
-                          placeholder="https://example.com/favicon.ico"
-                          value={siteData.favicon}
-                          onChange={(e) => setSiteData({ ...siteData, favicon: e.target.value })}
-                        />
-                        <p className="text-xs text-muted-foreground" data-testid="text-favicon-hint">The small icon shown in browser tabs. Use a square image, 32x32 or 64x64 pixels.</p>
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-4">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="hideLogoText" data-testid="label-hide-logo-text">Hide Logo Text</Label>
-                          <p className="text-xs text-muted-foreground">Only show logo image when present, hide site title in the header.</p>
-                        </div>
-                        <Switch
-                          id="hideLogoText"
-                          checked={templateSettings.hideLogoText}
-                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, hideLogoText: checked })}
-                          data-testid="switch-hide-logo-text"
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between space-x-4">
-                        <div className="space-y-0.5">
-                          <Label htmlFor="headerLogoInvertColors" data-testid="label-header-logo-invert">Invert Header Logo</Label>
-                          <p className="text-xs text-muted-foreground">Invert logo colors for dark header backgrounds. Useful for light logos.</p>
-                        </div>
-                        <Switch
-                          id="headerLogoInvertColors"
-                          checked={templateSettings.headerLogoInvertColors}
-                          onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, headerLogoInvertColors: checked })}
-                          data-testid="switch-header-logo-invert"
-                        />
-                      </div>
-
-                      <div className="space-y-3 md:col-span-2">
-                        <Label data-testid="label-site-type">Theme</Label>
-                        <p className="text-xs text-muted-foreground mb-3">Choose a visual theme that best matches your content style</p>
-                        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-                          {[
-                            { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
-                            { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
-                            { value: "forbis", label: "Forbis", desc: "Forbes-style 3-column, business publication" },
-                            { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
-                            { value: "novapress", label: "NovaPress", desc: "Modern editorial, grid-based, premium magazine" },
-                            { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
-                            { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
-                            { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
-                            { value: "aurora", label: "Aurora", desc: "Dreamy pastel gradients, soft shadows" },
-                            { value: "carbon", label: "Carbon", desc: "Bold brutalist, dark mode, sharp edges" },
-                            { value: "soho", label: "Soho", desc: "Sophisticated serif, editorial elegance" },
-                            { value: "citrine", label: "Citrine", desc: "Warm golden accents, magazine style" },
-                            { value: "verve", label: "Verve", desc: "Vibrant creative, high-energy gradients" },
-                            { value: "minimal", label: "Minimal", desc: "Ultra-clean, maximum whitespace" },
-                            { value: "ocean", label: "Ocean", desc: "Calming blue tones, serene vibes" },
-                            { value: "forest", label: "Forest", desc: "Natural green palette, organic feel" },
-                          ].map((theme) => (
-                            <Card
-                              key={theme.value}
-                              className={`cursor-pointer transition-all ${siteData.siteType === theme.value
-                                ? "ring-2 ring-primary"
-                                : "hover-elevate"
-                                }`}
-                              onClick={() => setSiteData({ ...siteData, siteType: theme.value })}
-                              data-testid={`card-theme-${theme.value}`}
-                            >
-                              <CardContent className="p-4">
-                                <div className="aspect-video bg-muted rounded mb-3 flex items-center justify-center">
-                                  <div className="text-center">
-                                    <div className="text-2xl font-bold text-muted-foreground">{theme.label.substring(0, 1)}</div>
-                                  </div>
-                                </div>
-                                <h4 className="font-semibold text-sm mb-1" data-testid={`text-theme-name-${theme.value}`}>{theme.label}</h4>
-                                <p className="text-xs text-muted-foreground line-clamp-2" data-testid={`text-theme-desc-${theme.value}`}>{theme.desc}</p>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-
                       <div className="space-y-3 md:col-span-2">
                         <Label data-testid="label-domain-aliases">Domain Aliases</Label>
                         <p className="text-xs text-muted-foreground mb-3">Additional domains that will also serve this site's content</p>
@@ -2395,7 +2303,7 @@ export default function SiteConfig() {
                     <Palette className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium">Design settings control the visual appearance of your public site</p>
-                      <p className="text-xs text-muted-foreground mt-1">Customize typography, colors, layout, and visual effects to match your brand identity.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Pick a theme and brand assets, then customize typography, colors, layout, and visual effects.</p>
                     </div>
                   </div>
                 </div>
@@ -2408,11 +2316,125 @@ export default function SiteConfig() {
                 >
                 <Card className="rounded-2xl overflow-hidden">
                   <CardHeader className="pb-4">
-                    <CardTitle className="text-xl tracking-tight" data-testid="text-design-title">Template Design Settings</CardTitle>
-                    <CardDescription data-testid="text-design-description">Fine-tune fonts, colors, spacing, and visual effects for a cohesive look and feel</CardDescription>
+                    <CardTitle className="text-xl tracking-tight" data-testid="text-design-title">Look & Feel Settings</CardTitle>
+                    <CardDescription data-testid="text-design-description">Choose a theme and branding, then fine-tune fonts, colors, spacing, and visual effects</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Theme & Branding
+                      </h3>
+                      <p className="text-xs text-muted-foreground -mt-2">Choose a theme preset and set your brand assets. You can still customize colors, fonts, and layout below.</p>
+                      <div className="space-y-3">
+                        <Label data-testid="label-site-type">Theme Preset</Label>
+                        <p className="text-xs text-muted-foreground mb-3">Themes apply layout and typography defaults. Pick one that matches your content style.</p>
+                        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+                          {[
+                            { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
+                            { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
+                            { value: "forbis", label: "Forbis", desc: "Forbes-style 3-column, business publication" },
+                            { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
+                            { value: "novapress", label: "NovaPress", desc: "Modern editorial, grid-based, premium magazine" },
+                            { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
+                            { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
+                            { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
+                            { value: "aurora", label: "Aurora", desc: "Dreamy pastel gradients, soft shadows" },
+                            { value: "carbon", label: "Carbon", desc: "Bold brutalist, dark mode, sharp edges" },
+                            { value: "soho", label: "Soho", desc: "Sophisticated serif, editorial elegance" },
+                            { value: "citrine", label: "Citrine", desc: "Warm golden accents, magazine style" },
+                            { value: "verve", label: "Verve", desc: "Vibrant creative, high-energy gradients" },
+                            { value: "minimal", label: "Minimal", desc: "Ultra-clean, maximum whitespace" },
+                            { value: "ocean", label: "Ocean", desc: "Calming blue tones, serene vibes" },
+                            { value: "forest", label: "Forest", desc: "Natural green palette, organic feel" },
+                          ].map((theme) => (
+                            <Card
+                              key={theme.value}
+                              className={`cursor-pointer transition-all ${siteData.siteType === theme.value
+                                ? "ring-2 ring-primary"
+                                : "hover-elevate"
+                                }`}
+                              onClick={() => setSiteData({ ...siteData, siteType: theme.value })}
+                              data-testid={`card-theme-${theme.value}`}
+                            >
+                              <CardContent className="p-4">
+                                <div className="aspect-video bg-muted rounded mb-3 flex items-center justify-center">
+                                  <div className="text-center">
+                                    <div className="text-2xl font-bold text-muted-foreground">{theme.label.substring(0, 1)}</div>
+                                  </div>
+                                </div>
+                                <h4 className="font-semibold text-sm mb-1" data-testid={`text-theme-name-${theme.value}`}>{theme.label}</h4>
+                                <p className="text-xs text-muted-foreground line-clamp-2" data-testid={`text-theme-desc-${theme.value}`}>{theme.desc}</p>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Switching themes does not change your content or URLs.</p>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t">
+                        <div className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                          <ImageIcon className="h-4 w-4" />
+                          Brand Assets
+                        </div>
+                        <p className="text-xs text-muted-foreground">Upload a logo and favicon for consistent branding. Transparent PNG or SVG works best.</p>
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="logoUrl" data-testid="label-logo">Logo URL</Label>
+                            <Input
+                              id="logoUrl"
+                              data-testid="input-logo"
+                              placeholder="https://example.com/logo.png"
+                              value={siteData.logoUrl}
+                              onChange={(e) => setSiteData({ ...siteData, logoUrl: e.target.value })}
+                            />
+                            <p className="text-xs text-muted-foreground">PNG or SVG recommended. Ideal size: 200x60 pixels.</p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="favicon" data-testid="label-favicon">Favicon URL</Label>
+                            <Input
+                              id="favicon"
+                              data-testid="input-favicon"
+                              placeholder="https://example.com/favicon.ico"
+                              value={siteData.favicon}
+                              onChange={(e) => setSiteData({ ...siteData, favicon: e.target.value })}
+                            />
+                            <p className="text-xs text-muted-foreground" data-testid="text-favicon-hint">Use a square image, 32x32 or 64x64 pixels.</p>
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="flex items-center justify-between space-x-4">
+                            <div className="space-y-0.5">
+                              <Label htmlFor="hideLogoText" data-testid="label-hide-logo-text">Hide Logo Text</Label>
+                              <p className="text-xs text-muted-foreground">Only show the logo image in the header (hide the site title).</p>
+                            </div>
+                            <Switch
+                              id="hideLogoText"
+                              checked={templateSettings.hideLogoText}
+                              onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, hideLogoText: checked })}
+                              data-testid="switch-hide-logo-text"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between space-x-4">
+                            <div className="space-y-0.5">
+                              <Label htmlFor="headerLogoInvertColors" data-testid="label-header-logo-invert">Invert Header Logo</Label>
+                              <p className="text-xs text-muted-foreground">Flip logo colors for dark header backgrounds.</p>
+                            </div>
+                            <Switch
+                              id="headerLogoInvertColors"
+                              checked={templateSettings.headerLogoInvertColors}
+                              onCheckedChange={(checked) => setTemplateSettings({ ...templateSettings, headerLogoInvertColors: checked })}
+                              data-testid="switch-header-logo-invert"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t">
                       <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center gap-2">
                         <Palette className="h-4 w-4" />
                         Colors & Accents
