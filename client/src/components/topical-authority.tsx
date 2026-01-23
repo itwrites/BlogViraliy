@@ -84,21 +84,6 @@ const articleStatusIcons: Record<string, JSX.Element> = {
   skipped: <XCircle className="h-3 w-3 text-muted-foreground" />,
 };
 
-const topicIdeaPresets = [
-  {
-    name: "Beginner's guide to [industry]",
-    description: "Foundations and first steps for newcomers.",
-  },
-  {
-    name: "Best practices for [role]",
-    description: "Practical playbook your audience can follow.",
-  },
-  {
-    name: "How to choose the right [product/service]",
-    description: "Clear comparisons and decision criteria.",
-  },
-];
-
 export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -256,46 +241,17 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
   return (
     <div className="space-y-6">
       <Card className="border border-primary/10 bg-primary/5">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <CardTitle>Topical Authority</CardTitle>
-          <CardDescription>Build SEO trust by covering one topic deeply and consistently.</CardDescription>
+          <CardDescription>
+            Build search trust by publishing a structured set of articles around one core topic.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2 text-xs">
-            <Badge variant="secondary">1) Create a pillar</Badge>
-            <Badge variant="secondary">2) Generate the map</Badge>
-            <Badge variant="secondary">3) Start publishing</Badge>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">Starter topics</p>
-              <p className="text-xs text-muted-foreground">Tap a template to prefill the pillar form.</p>
-            </div>
-            <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Pillar
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {topicIdeaPresets.map((idea) => (
-              <Button
-                key={idea.name}
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setNewPillar((prev) => ({
-                    ...prev,
-                    name: idea.name,
-                    description: idea.description,
-                  }));
-                  setIsCreateOpen(true);
-                }}
-              >
-                <Target className="h-3 w-3 mr-2" />
-                {idea.name}
-              </Button>
-            ))}
-          </div>
+        <CardContent>
+          <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Pillar
+          </Button>
         </CardContent>
       </Card>
       <Card>
