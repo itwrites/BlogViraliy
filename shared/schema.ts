@@ -4,9 +4,73 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User roles
-export const userRoleEnum = z.enum(["admin", "editor"]);
+// User roles - owner is for self-registered users who pay for subscriptions
+export const userRoleEnum = z.enum(["admin", "editor", "owner"]);
 export type UserRole = z.infer<typeof userRoleEnum>;
+
+// Subscription plan types
+export const subscriptionPlanEnum = z.enum(["launch", "growth", "scale"]);
+export type SubscriptionPlan = z.infer<typeof subscriptionPlanEnum>;
+
+// Subscription status
+export const subscriptionStatusEnum = z.enum(["active", "past_due", "canceled", "incomplete", "trialing", "none"]);
+export type SubscriptionStatus = z.infer<typeof subscriptionStatusEnum>;
+
+// Plan limits configuration
+export const PLAN_LIMITS = {
+  launch: {
+    name: "Launch",
+    price: 7900, // $79.00 in cents
+    postsPerMonth: 30,
+    maxSites: 1,
+    maxTeamMembers: 1,
+    features: [
+      "Up to 30 published blog posts every month",
+      "Automatic content creation and publishing",
+      "Smart topic planning",
+      "Publish to WordPress, Webflow, Shopify, or API",
+      "Create posts from RSS feeds",
+      "SEO-optimized titles, links, and structure",
+      "Scheduling and auto-updates",
+      "1 website",
+      "Email support"
+    ]
+  },
+  growth: {
+    name: "Growth",
+    price: 17900, // $179.00 in cents
+    postsPerMonth: 120,
+    maxSites: 3,
+    maxTeamMembers: 3,
+    popular: true,
+    features: [
+      "Up to 120 published blog posts every month",
+      "Publish to up to 3 websites",
+      "Faster processing priority",
+      "Smarter internal linking between posts",
+      "Automatic content refresh and updates",
+      "Performance analytics dashboard",
+      "Team access (up to 3 users)",
+      "Priority support"
+    ]
+  },
+  scale: {
+    name: "Scale",
+    price: 34900, // $349.00 in cents
+    postsPerMonth: 400,
+    maxSites: -1, // unlimited
+    maxTeamMembers: -1, // unlimited
+    features: [
+      "Up to 400 published blog posts every month",
+      "Unlimited websites and brands",
+      "Unlimited team members",
+      "White-label reporting for clients",
+      "API access for custom workflows",
+      "Advanced scheduling rules",
+      "Premium onboarding and support"
+    ]
+  }
+} as const;
 
 // User status
 export const userStatusEnum = z.enum(["active", "inactive", "pending"]);
@@ -85,8 +149,15 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("editor"), // 'admin' or 'editor'
+  role: text("role").notNull().default("editor"), // 'admin', 'editor', or 'owner'
   status: text("status").notNull().default("active"), // 'active', 'inactive', 'pending'
+  // Stripe subscription fields (for owners)
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionPlan: text("subscription_plan"), // 'launch', 'growth', 'scale'
+  subscriptionStatus: text("subscription_status").default("none"), // 'active', 'past_due', 'canceled', etc.
+  postsUsedThisMonth: integer("posts_used_this_month").default(0),
+  postsResetDate: timestamp("posts_reset_date"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
