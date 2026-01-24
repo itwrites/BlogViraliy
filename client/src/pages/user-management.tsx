@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -30,14 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, ArrowLeft, Users, Globe, UserPlus, Shield } from "lucide-react";
 import { motion } from "framer-motion";
@@ -222,223 +213,259 @@ export default function UserManagement() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              You don't have permission to access this page.
-            </p>
-            <Button 
-              className="w-full mt-4"
-              onClick={() => setLocation("/admin/dashboard")}
-            >
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6">
+          <p className="text-center text-white/50">
+            You don't have permission to access this page.
+          </p>
+          <Button 
+            className="w-full mt-4 bg-white text-black hover:bg-white/90"
+            onClick={() => setLocation("/admin/dashboard")}
+          >
+            Back to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-xl"
-      >
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setLocation("/admin/dashboard")}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
-                <Shield className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-page-title">User Management</h1>
-                <p className="text-xs text-muted-foreground">Manage users and permissions</p>
+    <div className="min-h-screen bg-black text-white">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-transparent rounded-full blur-3xl"
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div 
+          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-500/10 via-pink-500/5 to-transparent rounded-full blur-3xl"
+          animate={{ rotate: [360, 0] }}
+          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      <div className="relative z-10">
+        <motion.header 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-2xl"
+        >
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation("/admin/dashboard")}
+                className="text-white/70 hover:text-white hover:bg-white/10"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold tracking-tight text-white" data-testid="text-page-title">User Management</h1>
+                  <p className="text-xs text-white/50">Manage users and permissions</p>
+                </div>
               </div>
             </div>
+            <Button 
+              size="sm" 
+              onClick={() => setShowCreateDialog(true)} 
+              className="bg-white text-black hover:bg-white/90"
+              data-testid="button-add-user"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
           </div>
-          <Button size="sm" onClick={() => setShowCreateDialog(true)} data-testid="button-add-user">
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        </div>
-      </motion.header>
+        </motion.header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Users
-            </CardTitle>
-            <CardDescription>
-              All registered admin and editor users
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {usersLoading ? (
-              <div className="space-y-2">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse" />
-                ))}
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-white/70" />
+                <h2 className="text-lg font-semibold text-white">Users</h2>
               </div>
-            ) : users && users.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id} data-testid={`row-user-${user.id}`}>
-                      <TableCell className="font-medium" data-testid={`text-username-${user.id}`}>
-                        {user.username}
-                        {user.id === currentUser?.id && (
-                          <Badge variant="outline" className="ml-2">You</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell data-testid={`text-email-${user.id}`}>
-                        {user.email || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={user.role === "admin" ? "default" : "secondary"} data-testid={`badge-role-${user.id}`}>
-                          {user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={user.status === "active" ? "default" : "secondary"}
-                          data-testid={`badge-status-${user.id}`}
-                        >
-                          {user.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {user.role !== "admin" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openSitesDialog(user)}
-                              data-testid={`button-sites-${user.id}`}
-                            >
-                              <Globe className="h-4 w-4 mr-1" />
-                              Sites
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => openEditDialog(user)}
-                            data-testid={`button-edit-${user.id}`}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          {user.id !== currentUser?.id && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setShowDeleteDialog(true);
-                              }}
-                              data-testid={`button-delete-${user.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              <p className="text-sm text-white/50 mt-1">
+                All registered admin and editor users
+              </p>
+            </div>
+            <div className="p-6">
+              {usersLoading ? (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />
                   ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No users found</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+                </div>
+              ) : users && users.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Username</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Email</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Role</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Status</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-white/50">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors" data-testid={`row-user-${user.id}`}>
+                          <td className="py-4 px-4" data-testid={`text-username-${user.id}`}>
+                            <span className="font-medium text-white">{user.username}</span>
+                            {user.id === currentUser?.id && (
+                              <Badge className="ml-2 bg-white/10 text-white/70 border border-white/10">You</Badge>
+                            )}
+                          </td>
+                          <td className="py-4 px-4" data-testid={`text-email-${user.id}`}>
+                            <span className="text-white/70">{user.email || <span className="text-white/30">-</span>}</span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge 
+                              className={user.role === "admin" 
+                                ? "bg-violet-500/20 text-violet-400 border border-violet-500/30" 
+                                : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                              }
+                              data-testid={`badge-role-${user.id}`}
+                            >
+                              {user.role}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge 
+                              className={user.status === "active"
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                : "bg-white/10 text-white/60 border border-white/10"
+                              }
+                              data-testid={`badge-status-${user.id}`}
+                            >
+                              {user.status}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {user.role !== "admin" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openSitesDialog(user)}
+                                  className="text-white/60 hover:text-white hover:bg-white/10"
+                                  data-testid={`button-sites-${user.id}`}
+                                >
+                                  <Globe className="h-4 w-4 mr-1" />
+                                  Sites
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(user)}
+                                className="text-white/60 hover:text-white hover:bg-white/10"
+                                data-testid={`button-edit-${user.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              {user.id !== currentUser?.id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  data-testid={`button-delete-${user.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-white/30 mx-auto mb-4" />
+                  <p className="text-white/50">No users found</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
 
-      {/* Create User Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle data-testid="text-create-dialog-title">Create New User</DialogTitle>
-            <DialogDescription>Add a new admin or editor user</DialogDescription>
+            <DialogTitle className="text-white" data-testid="text-create-dialog-title">Create New User</DialogTitle>
+            <DialogDescription className="text-white/50">Add a new admin or editor user</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-white/70">Username</Label>
               <Input
                 id="username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-create-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email (optional)</Label>
+              <Label htmlFor="email" className="text-white/70">Email (optional)</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-create-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-white/70">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-create-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role" className="text-white/70">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger data-testid="select-create-role">
+                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-create-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                <SelectContent className="bg-black/95 border-white/10">
+                  <SelectItem value="editor" className="text-white hover:bg-white/10">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-white hover:bg-white/10">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="ghost" onClick={() => setShowCreateDialog(false)} className="text-white/70 hover:text-white hover:bg-white/10">
               Cancel
             </Button>
             <Button
               onClick={() => createUserMutation.mutate(formData)}
               disabled={!formData.username || !formData.password || createUserMutation.isPending}
+              className="bg-white text-black hover:bg-white/90"
               data-testid="button-confirm-create"
             >
               {createUserMutation.isPending ? "Creating..." : "Create User"}
@@ -447,77 +474,79 @@ export default function UserManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
+        <DialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle data-testid="text-edit-dialog-title">Edit User</DialogTitle>
-            <DialogDescription>Update user details</DialogDescription>
+            <DialogTitle className="text-white" data-testid="text-edit-dialog-title">Edit User</DialogTitle>
+            <DialogDescription className="text-white/50">Update user details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-username">Username</Label>
+              <Label htmlFor="edit-username" className="text-white/70">Username</Label>
               <Input
                 id="edit-username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-edit-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email (optional)</Label>
+              <Label htmlFor="edit-email" className="text-white/70">Email (optional)</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-edit-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
+              <Label htmlFor="edit-password" className="text-white/70">New Password (leave blank to keep current)</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
                 data-testid="input-edit-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
+              <Label htmlFor="edit-role" className="text-white/70">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger data-testid="select-edit-role">
+                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-edit-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                <SelectContent className="bg-black/95 border-white/10">
+                  <SelectItem value="editor" className="text-white hover:bg-white/10">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-white hover:bg-white/10">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-status">Status</Label>
+              <Label htmlFor="edit-status" className="text-white/70">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value })}
               >
-                <SelectTrigger data-testid="select-edit-status">
+                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-edit-status">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                <SelectContent className="bg-black/95 border-white/10">
+                  <SelectItem value="active" className="text-white hover:bg-white/10">Active</SelectItem>
+                  <SelectItem value="inactive" className="text-white hover:bg-white/10">Inactive</SelectItem>
+                  <SelectItem value="pending" className="text-white hover:bg-white/10">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-white/70 hover:text-white hover:bg-white/10">
               Cancel
             </Button>
             <Button
@@ -532,6 +561,7 @@ export default function UserManagement() {
                 updateUserMutation.mutate({ id: selectedUser.id, updates });
               }}
               disabled={updateUserMutation.isPending}
+              className="bg-white text-black hover:bg-white/90"
               data-testid="button-confirm-edit"
             >
               {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
@@ -540,19 +570,19 @@ export default function UserManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete User Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle data-testid="text-delete-dialog-title">Delete User</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <strong>{selectedUser?.username}</strong>? This action cannot be undone.
+            <AlertDialogTitle className="text-white" data-testid="text-delete-dialog-title">Delete User</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/50">
+              Are you sure you want to delete <strong className="text-white">{selectedUser?.username}</strong>? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedUser && deleteUserMutation.mutate(selectedUser.id)}
+              className="bg-red-500 text-white hover:bg-red-600"
               data-testid="button-confirm-delete"
             >
               Delete
@@ -561,21 +591,19 @@ export default function UserManagement() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Site Assignment Dialog */}
       <Dialog open={showSitesDialog} onOpenChange={setShowSitesDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle data-testid="text-sites-dialog-title">
+            <DialogTitle className="text-white" data-testid="text-sites-dialog-title">
               Manage Sites for {selectedUser?.username}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-white/50">
               Assign or remove site access for this editor
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {/* Assigned Sites */}
             <div>
-              <h4 className="text-sm font-medium mb-2">Assigned Sites</h4>
+              <h4 className="text-sm font-medium mb-2 text-white/70">Assigned Sites</h4>
               {userSites && userSites.length > 0 ? (
                 <div className="space-y-2">
                   {userSites.map((us) => {
@@ -583,13 +611,13 @@ export default function UserManagement() {
                     return (
                       <div 
                         key={us.id}
-                        className="flex items-center justify-between p-3 border rounded-md"
+                        className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10"
                         data-testid={`assigned-site-${us.siteId}`}
                       >
                         <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{site?.title || us.siteId}</span>
-                          <span className="text-sm text-muted-foreground">{site?.domain}</span>
+                          <Globe className="h-4 w-4 text-white/50" />
+                          <span className="font-medium text-white">{site?.title || us.siteId}</span>
+                          <span className="text-sm text-white/50">{site?.domain}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Select
@@ -602,23 +630,24 @@ export default function UserManagement() {
                               });
                             }}
                           >
-                            <SelectTrigger className="w-[130px]" data-testid={`select-permission-${us.siteId}`}>
+                            <SelectTrigger className="w-[130px] bg-white/5 border-white/10 text-white" data-testid={`select-permission-${us.siteId}`}>
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="posts_only">Posts Only</SelectItem>
-                              <SelectItem value="edit">Editor</SelectItem>
-                              <SelectItem value="manage">Manager</SelectItem>
-                              <SelectItem value="view">View Only</SelectItem>
+                            <SelectContent className="bg-black/95 border-white/10">
+                              <SelectItem value="posts_only" className="text-white hover:bg-white/10">Posts Only</SelectItem>
+                              <SelectItem value="edit" className="text-white hover:bg-white/10">Editor</SelectItem>
+                              <SelectItem value="manage" className="text-white hover:bg-white/10">Manager</SelectItem>
+                              <SelectItem value="view" className="text-white hover:bg-white/10">View Only</SelectItem>
                             </SelectContent>
                           </Select>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
                             onClick={() => removeUserFromSiteMutation.mutate({
                               userId: selectedUser!.id,
                               siteId: us.siteId,
                             })}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             data-testid={`button-remove-site-${us.siteId}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -629,25 +658,24 @@ export default function UserManagement() {
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No sites assigned</p>
+                <p className="text-sm text-white/50">No sites assigned</p>
               )}
             </div>
 
-            {/* Available Sites to Add */}
             {availableSites.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-2">Add Site Access</h4>
+                <h4 className="text-sm font-medium mb-2 text-white/70">Add Site Access</h4>
                 <div className="space-y-2">
                   {availableSites.map((site) => (
                     <div 
                       key={site.id}
-                      className="flex items-center justify-between p-3 border rounded-md border-dashed"
+                      className="flex items-center justify-between p-3 rounded-xl border border-dashed border-white/20"
                       data-testid={`available-site-${site.id}`}
                     >
                       <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{site.title}</span>
-                        <span className="text-sm text-muted-foreground">{site.domain}</span>
+                        <Globe className="h-4 w-4 text-white/50" />
+                        <span className="font-medium text-white">{site.title}</span>
+                        <span className="text-sm text-white/50">{site.domain}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Select
@@ -660,14 +688,14 @@ export default function UserManagement() {
                             });
                           }}
                         >
-                          <SelectTrigger className="w-[140px]" data-testid={`select-permission-${site.id}`}>
+                          <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white" data-testid={`select-permission-${site.id}`}>
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="posts_only">Posts Only</SelectItem>
-                            <SelectItem value="edit">Editor</SelectItem>
-                            <SelectItem value="manage">Manager</SelectItem>
-                            <SelectItem value="view">View Only</SelectItem>
+                          <SelectContent className="bg-black/95 border-white/10">
+                            <SelectItem value="posts_only" className="text-white hover:bg-white/10">Posts Only</SelectItem>
+                            <SelectItem value="edit" className="text-white hover:bg-white/10">Editor</SelectItem>
+                            <SelectItem value="manage" className="text-white hover:bg-white/10">Manager</SelectItem>
+                            <SelectItem value="view" className="text-white hover:bg-white/10">View Only</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -678,7 +706,7 @@ export default function UserManagement() {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={() => setShowSitesDialog(false)}>
+            <Button onClick={() => setShowSitesDialog(false)} className="bg-white text-black hover:bg-white/90">
               Done
             </Button>
           </DialogFooter>

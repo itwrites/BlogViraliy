@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext } from "@/components/base-path-provider";
 import { motion, useReducedMotion } from "framer-motion";
+import { Loader2, LogIn } from "lucide-react";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -22,7 +22,6 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (loginSuccess && !authLoading && isAuthenticated) {
-      // If we have site context (accessed from site domain), go to that site's editor
       if (siteContext && siteContext.id) {
         setLocation(`/editor/sites/${siteContext.id}/posts`);
       } else if (isAdmin) {
@@ -47,126 +46,157 @@ export default function AdminLogin() {
     }
   };
 
-  const animationProps = prefersReducedMotion 
-    ? { initial: {}, animate: {}, transition: {} }
-    : { 
-        initial: { opacity: 0, y: 20, scale: 0.98 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
-      };
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
 
-  const staggerProps = (delay: number) => prefersReducedMotion 
-    ? { initial: {}, animate: {}, transition: {} }
-    : { 
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0 },
-        transition: { delay, duration: 0.4 }
-      };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+    }
+  };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ 
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif",
-        background: "linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)"
-      }}
-    >
-      <motion.div {...animationProps}>
-        <Card className="w-full max-w-md backdrop-blur-xl bg-card/80 border-border/50 shadow-2xl shadow-black/5">
-          <CardHeader className="space-y-4 pb-6">
-            <motion.div {...staggerProps(0.1)} className="flex justify-center">
-              <svg 
-                width="48" 
-                height="48" 
-                viewBox="0 0 48 48" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                data-testid="img-brand-logo"
-              >
-                <path 
-                  d="M24 4L44 40H4L24 4Z" 
-                  fill="white" 
-                  stroke="black" 
-                  strokeWidth="3"
-                  strokeLinejoin="miter"
-                />
-              </svg>
-            </motion.div>
-            <motion.div {...staggerProps(0.15)}>
-              <CardTitle 
-                className="text-2xl font-medium tracking-tight text-center" 
-                data-testid="text-login-title"
-                style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" }}
-              >
-                Brand Virality
-              </CardTitle>
-            </motion.div>
-            <motion.div {...staggerProps(0.2)}>
-              <CardDescription 
-                className="text-muted-foreground/80"
-                data-testid="text-login-description"
-              >
-                Enter your credentials to access the dashboard
-              </CardDescription>
-            </motion.div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-5">
-              <motion.div className="space-y-2" {...staggerProps(0.25)}>
-                <Label 
-                  htmlFor="username" 
-                  data-testid="label-username"
-                  className="text-sm font-medium"
+    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-transparent rounded-full blur-3xl"
+          animate={{ 
+            rotate: [0, 360],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ 
+            rotate: { duration: 60, repeat: Infinity, ease: "linear" },
+            scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
+          }}
+        />
+        <motion.div 
+          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl"
+          animate={{ 
+            rotate: [360, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{ 
+            rotate: { duration: 50, repeat: Infinity, ease: "linear" },
+            scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
+          }}
+        />
+      </div>
+
+      <motion.div
+        variants={prefersReducedMotion ? {} : containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 w-full max-w-md"
+      >
+        {/* Login Card */}
+        <div className="rounded-3xl bg-black/80 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden">
+          <div className="p-8 space-y-8">
+            {/* Logo & Header */}
+            <motion.div variants={itemVariants} className="text-center space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+                <svg 
+                  width="32" 
+                  height="32" 
+                  viewBox="0 0 48 48" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  data-testid="img-brand-logo"
                 >
+                  <path 
+                    d="M24 4L44 40H4L24 4Z" 
+                    fill="white" 
+                    stroke="white" 
+                    strokeWidth="2"
+                    strokeLinejoin="miter"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1 
+                  className="text-2xl font-semibold tracking-tight text-white"
+                  data-testid="text-login-title"
+                >
+                  Welcome back
+                </h1>
+                <p className="text-white/50 mt-1">
+                  Sign in to Blog Virality
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Login Form */}
+            <motion.form variants={itemVariants} onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-sm font-medium text-white/70">
                   Username
                 </Label>
                 <Input
                   id="username"
                   data-testid="input-username"
-                  type="text"
+                  placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required
-                  autoFocus
-                  className="h-11 bg-background/50 border-border/60 focus:border-primary/50 transition-all duration-300"
+                  disabled={isLoading}
+                  className="h-12 text-base rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
                 />
-              </motion.div>
-              <motion.div className="space-y-2" {...staggerProps(0.3)}>
-                <Label 
-                  htmlFor="password" 
-                  data-testid="label-password"
-                  className="text-sm font-medium"
-                >
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-white/70">
                   Password
                 </Label>
                 <Input
                   id="password"
                   data-testid="input-password"
                   type="password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-11 bg-background/50 border-border/60 focus:border-primary/50 transition-all duration-300"
+                  disabled={isLoading}
+                  className="h-12 text-base rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
                 />
-              </motion.div>
-              <motion.div {...staggerProps(0.35)}>
-                <Button 
-                  type="submit" 
-                  className="w-full h-11 font-medium transition-all duration-300" 
-                  disabled={isLoading || loginSuccess}
-                  data-testid="button-login"
-                >
-                  {isLoading || loginSuccess ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Signing in...
-                    </span>
-                  ) : "Sign In"}
-                </Button>
-              </motion.div>
-            </form>
-          </CardContent>
-        </Card>
+              </div>
+
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full h-12 text-base rounded-xl bg-white text-black hover:bg-white/90 font-medium"
+                data-testid="button-login"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Sign In
+                  </>
+                )}
+              </Button>
+            </motion.form>
+          </div>
+
+          {/* Footer */}
+          <motion.div 
+            variants={itemVariants}
+            className="px-8 py-4 border-t border-white/5 bg-white/[0.02]"
+          >
+            <p className="text-center text-xs text-white/30">
+              Blog Virality CMS
+            </p>
+          </motion.div>
+        </div>
       </motion.div>
     </div>
   );
