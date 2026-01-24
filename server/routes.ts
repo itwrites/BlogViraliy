@@ -555,6 +555,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    try {
+      const { email, username, password, confirmPassword } = req.body;
+
+      // Validate required fields
+      if (!email || !username || !password || !confirmPassword) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: "Invalid email format" });
+      }
+
+      // Validate password length
+      if (password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        return res.status(400).json({ error: "Passwords do not match" });
+      }
+
+      // Check for duplicate username
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      // Check for duplicate email
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+
+      // Hash password and create user
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        role: "owner",
+        status: "active",
+      });
+
+      // Log the user in after registration
+      req.session.regenerate((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Session error" });
+        }
+
+        req.session.userId = user.id;
+        req.session.userRole = user.role;
+
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+
+          res.json({
+            success: true,
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              role: user.role,
+            },
+          });
+        });
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+
+  // === STRIPE CHECKOUT & SUBSCRIPTION ROUTES ===
+  
+  // Create checkout session for subscription
+  app.post("/api/checkout", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { planId } = req.body;
+      
+      if (!planId || !["launch", "growth", "scale"].includes(planId)) {
+        return res.status(400).json({ error: "Invalid plan selected" });
+      }
+      
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Import stripeService
+      const { stripeService } = await import("./stripeService");
+      
+      // Create or get Stripe customer
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripeService.createCustomer(user.email || user.username, user.id);
+        await storage.updateUser(user.id, { stripeCustomerId: customer.id });
+        customerId = customer.id;
+      }
+      
+      // Get price for the selected plan from Stripe
+      const productsWithPrices = await stripeService.listProductsWithPrices();
+      const planProduct = productsWithPrices.find((row: any) => 
+        row.product_metadata?.plan_id === planId
+      );
+      
+      if (!planProduct || !planProduct.price_id) {
+        return res.status(400).json({ error: "Plan price not found. Please contact support." });
+      }
+      
+      // Create checkout session
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const session = await stripeService.createCheckoutSession(
+        customerId,
+        planProduct.price_id,
+        `${baseUrl}/owner/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+        `${baseUrl}/pricing`
+      );
+      
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      res.status(500).json({ error: error.message || "Failed to create checkout session" });
+    }
+  });
+  
+  // Get subscription info for current user
+  app.get("/api/subscription", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if (!user.stripeSubscriptionId) {
+        return res.json({ subscription: null, plan: null, status: "none" });
+      }
+      
+      const { stripeService } = await import("./stripeService");
+      const subscription = await stripeService.getSubscription(user.stripeSubscriptionId);
+      
+      res.json({
+        subscription,
+        plan: user.subscriptionPlan,
+        status: user.subscriptionStatus,
+        postsUsedThisMonth: user.postsUsedThisMonth || 0,
+        postsResetDate: user.postsResetDate,
+      });
+    } catch (error: any) {
+      console.error("Get subscription error:", error);
+      res.status(500).json({ error: error.message || "Failed to get subscription" });
+    }
+  });
+  
+  // Create customer portal session for managing subscription
+  app.post("/api/subscription/portal", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      if (!user?.stripeCustomerId) {
+        return res.status(400).json({ error: "No billing account found" });
+      }
+      
+      const { stripeService } = await import("./stripeService");
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const session = await stripeService.createCustomerPortalSession(
+        user.stripeCustomerId,
+        `${baseUrl}/owner`
+      );
+      
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Portal error:", error);
+      res.status(500).json({ error: error.message || "Failed to create portal session" });
+    }
+  });
+
   // === USER MANAGEMENT ROUTES (Admin only) ===
 
   app.get("/api/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {

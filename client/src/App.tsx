@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { BasePathProvider, normalizeBasePath } from "@/components/base-path-provider";
 import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin-login";
+import Signup from "@/pages/signup";
+import Pricing from "@/pages/pricing";
 import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
@@ -23,6 +25,8 @@ function AdminRouter() {
   return (
     <Switch>
       <Route path="/" component={AdminLogin} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={EditorPosts} />
@@ -52,6 +56,7 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
     <BasePathProvider site={site}>
       <Router base={basePath}>
         <Switch>
+          <Route path="/signup" component={Signup} />
           <Route path="/admin" component={AdminLogin} />
           <Route path="/admin/dashboard">
             <EditorDashboard />
@@ -73,6 +78,11 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
 function RouterSwitch() {
   const browserHostname = window.location.hostname;
   const browserPath = window.location.pathname;
+  
+  // Allow signup, pricing and admin paths without domain check
+  if (browserPath.startsWith('/signup') || browserPath.startsWith('/pricing') || browserPath.startsWith('/admin') || browserPath === '/') {
+    return <AdminRouter />;
+  }
   
   const { data: siteData, isLoading } = useQuery<DomainCheckResponse>({
     queryKey: ["/api/domain-check", browserHostname],
