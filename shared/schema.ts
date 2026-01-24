@@ -443,6 +443,21 @@ export const keywordJobs = pgTable("keyword_jobs", {
   processedAt: timestamp("processed_at"),
 });
 
+// Topic Suggestions (AI-generated topic ideas)
+export const topicSuggestions = pgTable("topic_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  siteId: varchar("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  packType: text("pack_type").notNull().default("authority"),
+  suggestedArticleCount: integer("suggested_article_count").notNull().default(10),
+  used: boolean("used").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type TopicSuggestion = typeof topicSuggestions.$inferSelect;
+export type InsertTopicSuggestion = typeof topicSuggestions.$inferInsert;
+
 // ========================================
 // TOPICAL AUTHORITY SYSTEM
 // ========================================

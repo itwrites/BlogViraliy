@@ -217,7 +217,7 @@ export interface TopicSuggestion {
   suggestedArticleCount: number;
 }
 
-export async function generateTopicSuggestions(site: any): Promise<TopicSuggestion[]> {
+export async function generateTopicSuggestions(site: any, existingPillars: string[] = []): Promise<TopicSuggestion[]> {
   const businessContext = `
 Business: ${site.businessDescription || 'Not specified'}
 Target Audience: ${site.targetAudience || 'Not specified'}
@@ -226,6 +226,10 @@ Brand Voice: ${site.brandVoice || 'Not specified'}
 Value Propositions: ${site.valuePropositions || 'Not specified'}
 Competitors: ${site.competitors || 'Not specified'}
 `;
+
+  const existingTopicsNote = existingPillars.length > 0 
+    ? `\n\nIMPORTANT: Do NOT suggest topics similar to these existing pillars: ${existingPillars.join(", ")}`
+    : "";
 
   const response = await getOpenAIClient().chat.completions.create({
     model: "gpt-5",
@@ -238,7 +242,7 @@ Competitors: ${site.competitors || 'Not specified'}
         role: "user",
         content: `Based on this business profile, suggest 6 high-value topic packs for building topical authority and SEO presence:
 
-${businessContext}
+${businessContext}${existingTopicsNote}
 
 For each suggestion, provide:
 - A clear, specific topic name (pillar topic)
@@ -268,13 +272,37 @@ Focus on topics that:
 
   const content = response.choices[0].message.content || "{}";
   const parsed = JSON.parse(content);
-  const suggestions = (parsed.suggestions || parsed.topics || parsed) as any[];
   
-  return suggestions.map((s, index) => ({
+  // Handle different response structures - OpenAI might wrap in various keys
+  let suggestionsArray: any[] = [];
+  if (Array.isArray(parsed)) {
+    suggestionsArray = parsed;
+  } else if (Array.isArray(parsed.suggestions)) {
+    suggestionsArray = parsed.suggestions;
+  } else if (Array.isArray(parsed.topics)) {
+    suggestionsArray = parsed.topics;
+  } else if (Array.isArray(parsed.topic_packs)) {
+    suggestionsArray = parsed.topic_packs;
+  } else {
+    // Try to find any array property in the object
+    for (const key of Object.keys(parsed)) {
+      if (Array.isArray(parsed[key])) {
+        suggestionsArray = parsed[key];
+        break;
+      }
+    }
+  }
+  
+  if (!suggestionsArray.length) {
+    console.error("[TopicSuggestions] Could not find suggestions array in response:", content);
+    throw new Error("AI did not return any topic suggestions. Please try again.");
+  }
+  
+  return suggestionsArray.map((s, index) => ({
     id: `suggestion-${Date.now()}-${index}`,
-    name: s.name,
-    description: s.description,
-    packType: s.packType || "authority",
-    suggestedArticleCount: s.suggestedArticleCount || 10
+    name: s.name || s.topic || "",
+    description: s.description || s.summary || "",
+    packType: s.packType || s.pack_type || "authority",
+    suggestedArticleCount: s.suggestedArticleCount || s.suggested_article_count || s.articleCount || 10
   }));
 }

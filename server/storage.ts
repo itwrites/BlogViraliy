@@ -15,6 +15,7 @@ import {
   siteAuthors,
   siteDailyStats,
   apiKeys,
+  topicSuggestions,
   type Site,
   type Post,
   type AiAutomationConfig,
@@ -30,6 +31,7 @@ import {
   type SiteAuthor,
   type SiteDailyStats,
   type ApiKey,
+  type TopicSuggestion,
   type InsertSite,
   type InsertPost,
   type InsertAiAutomationConfig,
@@ -45,6 +47,7 @@ import {
   type InsertSiteAuthor,
   type InsertSiteDailyStats,
   type InsertApiKey,
+  type InsertTopicSuggestion,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
@@ -180,6 +183,13 @@ export interface IStorage {
   createApiKey(apiKey: InsertApiKey): Promise<ApiKey>;
   updateApiKey(id: string, apiKey: Partial<InsertApiKey>): Promise<ApiKey | undefined>;
   deleteApiKey(id: string): Promise<void>;
+
+  // Topic Suggestions
+  getTopicSuggestions(siteId: string): Promise<TopicSuggestion[]>;
+  getTopicSuggestionById(id: string): Promise<TopicSuggestion | undefined>;
+  createTopicSuggestions(suggestions: InsertTopicSuggestion[]): Promise<TopicSuggestion[]>;
+  markSuggestionUsed(id: string): Promise<void>;
+  deleteTopicSuggestions(siteId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1156,6 +1166,29 @@ export class DatabaseStorage implements IStorage {
 
   async deleteApiKey(id: string): Promise<void> {
     await db.delete(apiKeys).where(eq(apiKeys.id, id));
+  }
+
+  // Topic Suggestions
+  async getTopicSuggestions(siteId: string): Promise<TopicSuggestion[]> {
+    return db.select().from(topicSuggestions).where(eq(topicSuggestions.siteId, siteId)).orderBy(topicSuggestions.createdAt);
+  }
+
+  async getTopicSuggestionById(id: string): Promise<TopicSuggestion | undefined> {
+    const [suggestion] = await db.select().from(topicSuggestions).where(eq(topicSuggestions.id, id));
+    return suggestion;
+  }
+
+  async createTopicSuggestions(suggestions: InsertTopicSuggestion[]): Promise<TopicSuggestion[]> {
+    if (suggestions.length === 0) return [];
+    return db.insert(topicSuggestions).values(suggestions).returning();
+  }
+
+  async markSuggestionUsed(id: string): Promise<void> {
+    await db.update(topicSuggestions).set({ used: true }).where(eq(topicSuggestions.id, id));
+  }
+
+  async deleteTopicSuggestions(siteId: string): Promise<void> {
+    await db.delete(topicSuggestions).where(eq(topicSuggestions.siteId, siteId));
   }
 }
 

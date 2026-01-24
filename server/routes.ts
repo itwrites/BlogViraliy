@@ -2516,7 +2516,7 @@ Sitemap: ${sitemapUrl}
   // TOPICAL AUTHORITY ROUTES
   // ========================================
 
-  // Generate AI topic suggestions based on business profile
+  // POST /api/sites/:id/topic-suggestions - Generate AI topic suggestions
   app.post("/api/sites/:id/topic-suggestions", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
       const siteId = req.params.id;
@@ -2534,11 +2534,66 @@ Sitemap: ${sitemapUrl}
         });
       }
       
-      const suggestions = await generateTopicSuggestions(site);
-      return res.json({ suggestions });
+      // Get existing pillars to avoid duplicates
+      const existingPillars = await storage.getPillarsBySiteId(siteId);
+      const existingPillarNames = existingPillars.map(p => p.name);
+      
+      // Delete old suggestions before generating new ones
+      await storage.deleteTopicSuggestions(siteId);
+      
+      // Generate suggestions using OpenAI
+      const aiSuggestions = await generateTopicSuggestions(site, existingPillarNames);
+      
+      // Store in database
+      const storedSuggestions = await storage.createTopicSuggestions(
+        aiSuggestions.map(s => ({
+          siteId,
+          name: s.name,
+          description: s.description,
+          packType: s.packType,
+          suggestedArticleCount: s.suggestedArticleCount,
+          used: false,
+        }))
+      );
+      
+      return res.json({ suggestions: storedSuggestions });
     } catch (error: any) {
       console.error("[Topic Suggestions] Error:", error);
       return res.status(500).json({ error: error.message || "Failed to generate suggestions" });
+    }
+  });
+
+  // GET /api/sites/:id/topic-suggestions - Get stored suggestions
+  app.get("/api/sites/:id/topic-suggestions", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const suggestions = await storage.getTopicSuggestions(req.params.id);
+      return res.json({ suggestions });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PATCH /api/topic-suggestions/:id/used - Mark suggestion as used
+  app.patch("/api/topic-suggestions/:id/used", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // Get suggestion to verify ownership
+      const suggestion = await storage.getTopicSuggestionById(req.params.id);
+      if (!suggestion) {
+        return res.status(404).json({ error: "Suggestion not found" });
+      }
+      
+      // Check site access for non-admins
+      if (req.user?.role !== "admin") {
+        const hasAccess = await storage.canUserAccessSite(req.user!.id, suggestion.siteId);
+        if (!hasAccess) {
+          return res.status(403).json({ error: "You don't have access to this site" });
+        }
+      }
+      
+      await storage.markSuggestionUsed(req.params.id);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
     }
   });
 

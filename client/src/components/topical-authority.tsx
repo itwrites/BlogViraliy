@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -133,6 +133,17 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     refetchInterval: 5000,
   });
 
+  const { data: storedSuggestions } = useQuery<{ suggestions: any[] }>({
+    queryKey: ['/api/sites', siteId, 'topic-suggestions'],
+    enabled: !!siteId,
+  });
+
+  useEffect(() => {
+    if (storedSuggestions?.suggestions) {
+      setSuggestions(storedSuggestions.suggestions);
+    }
+  }, [storedSuggestions]);
+
   const createPillarMutation = useMutation({
     mutationFn: async (data: typeof newPillar) => {
       const res = await apiRequest("POST", `/api/sites/${siteId}/pillars`, data);
@@ -246,6 +257,7 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
       const response = await apiRequest("POST", `/api/sites/${siteId}/topic-suggestions`);
       const data = await response.json();
       setSuggestions(data.suggestions || []);
+      queryClient.invalidateQueries({ queryKey: ['/api/sites', siteId, 'topic-suggestions'] });
       toast({ title: "Suggestions generated", description: `${data.suggestions?.length || 0} topic ideas ready` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -254,7 +266,16 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     }
   };
 
-  const useSuggestion = (suggestion: typeof suggestions[0]) => {
+  const useSuggestion = async (suggestion: typeof suggestions[0]) => {
+    // Mark as used in backend
+    try {
+      await apiRequest("PATCH", `/api/topic-suggestions/${suggestion.id}/used`);
+      queryClient.invalidateQueries({ queryKey: ['/api/sites', siteId, 'topic-suggestions'] });
+    } catch (e) {
+      console.warn("Failed to mark suggestion as used:", e);
+    }
+    
+    // Pre-fill and open modal
     setNewPillar({
       ...newPillar,
       name: suggestion.name,
