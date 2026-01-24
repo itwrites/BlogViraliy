@@ -1,0 +1,99 @@
+ok, now let's finish the user, membership, stripe, signup.
+
+1- Users register via signup will have role owner by default.
+2- He has to choose a plan and pay before creating the website.
+3- he should be able to manage his suscription.
+4- User can have more than 1 site. if it does then show the view to see its sites first and the he can select the one to view details. if only once exist just load the site straight away.
+
+plans (use stripe):
+Simple, Automated Blogging — Done For You
+
+Turn your ideas and RSS feeds into fully published SEO blog posts — automatically.
+No writing. No formatting. No manual publishing.
+
+Every plan includes:
+✔ Automatic content generation
+✔ SEO optimization
+✔ Auto-publish to your website
+✔ RSS feed automation
+✔ Smart topic planning
+✔ Scheduling & updates
+
+You only choose how much content you want per month.
+
+🚀 Launch
+
+$79 / month
+30 auto-published posts per month
+
+Perfect for founders and serious bloggers who want their site to stay active without manual work.
+
+Includes:
+
+Up to 30 published blog posts every month
+
+Automatic content creation and publishing
+
+Smart topic planning (we organize topics for you)
+
+Publish directly to WordPress, Webflow, Shopify, or API
+
+Create posts automatically from RSS feeds
+
+SEO-optimized titles, links, and structure
+
+Scheduling and auto-updates
+
+1 website
+
+Email support
+
+⭐ Growth (Most Popular)
+
+$179 / month
+120 auto-published posts per month
+
+Best for growth teams and SEO operators who want to scale content consistently.
+
+Includes everything in Launch, plus:
+
+Up to 120 published blog posts every month
+
+Publish to up to 3 websites
+
+Faster processing priority
+
+Smarter internal linking between posts
+
+Automatic content refresh and updates
+
+Performance analytics dashboard
+
+Team access (up to 3 users)
+
+Priority support
+
+🏗️ Scale
+
+$349 / month
+400 auto-published posts per month
+
+Built for agencies and publishers running multiple sites or client projects.
+
+Includes everything in Growth, plus:
+
+Up to 400 published blog posts every month
+
+Unlimited websites and brands
+
+Unlimited team members
+
+White-label reporting for clients
+
+API access for custom workflows
+
+Advanced scheduling rules
+
+Premium onboarding and support
+
+Think properly. Make it production ready, following best business priactices
