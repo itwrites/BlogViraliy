@@ -287,6 +287,8 @@ export const sites = pgTable("sites", {
   industry: text("industry"), // Market/niche
   competitors: text("competitors"), // Key competitors
   wizardProgress: integer("wizard_progress").notNull().default(0), // 0=Not started, 5=Completed
+  isOnboarded: boolean("is_onboarded").notNull().default(false), // Whether site has completed onboarding flow
+  onboardingSourceUrl: text("onboarding_source_url"), // URL that was scraped during onboarding (if any)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
