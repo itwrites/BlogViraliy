@@ -58,7 +58,7 @@ export async function processAIAutomation() {
       // Get default author for this site
       const defaultAuthor = await storage.getDefaultAuthor(site.id);
 
-      await storage.createPost({
+      const result = await storage.createPostWithLimitCheck({
         siteId: site.id,
         authorId: defaultAuthor?.id || null,
         title,
@@ -71,6 +71,11 @@ export async function processAIAutomation() {
         source: "ai",
         status: aiConfig.defaultPostStatus || "published",
       });
+
+      if (result.error) {
+        console.log(`[AI] Skipped post for ${site.domain}: ${result.error} (${result.code})`);
+        return; // Skip this site if limit reached
+      }
 
       await storage.createOrUpdateAiConfig({
         ...aiConfig,
@@ -226,7 +231,7 @@ export async function processRSSAutomation() {
             // Get default author for this site
             const defaultAuthor = await storage.getDefaultAuthor(site.id);
 
-            await storage.createPost({
+            const createResult = await storage.createPostWithLimitCheck({
               siteId: site.id,
               authorId: defaultAuthor?.id || null,
               title,
@@ -242,6 +247,11 @@ export async function processRSSAutomation() {
               pillarId: (rssConfig as any).pillarId || null,
               status: rssConfig.defaultPostStatus || "published",
             });
+
+            if (createResult.error) {
+              console.log(`[RSS] Skipped post for ${site.domain}: ${createResult.error} (${createResult.code})`);
+              continue; // Skip this item but continue processing feed
+            }
 
             console.log(`[RSS] Created post "${title}" for ${site.domain}`);
           }
@@ -387,7 +397,7 @@ export async function processKeywordBatches() {
         const aiConfig = await storage.getAiConfigBySiteId(site.id);
         
         // Create the post with article role
-        const post = await storage.createPost({
+        const createResult = await storage.createPostWithLimitCheck({
           siteId: site.id,
           authorId: defaultAuthor?.id || null,
           title,
@@ -402,10 +412,20 @@ export async function processKeywordBatches() {
           status: aiConfig?.defaultPostStatus || "published",
         });
 
+        if (createResult.error) {
+          console.log(`[Bulk] Skipped job ${nextJob.id}: ${createResult.error} (${createResult.code})`);
+          // Mark job as failed due to limit
+          await storage.updateKeywordJob(nextJob.id, {
+            status: "failed",
+            error: createResult.error,
+          });
+          continue;
+        }
+
         // Mark job as completed
         await storage.updateKeywordJob(nextJob.id, {
           status: "completed",
-          postId: post.id,
+          postId: createResult.post!.id,
         });
 
         // Update batch progress

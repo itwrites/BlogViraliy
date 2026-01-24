@@ -95,6 +95,7 @@ export interface IStorage {
   getPostsByTags(siteId: string, tags: string[]): Promise<Post[]>;
   getRelatedPosts(postId: string, siteId: string): Promise<Post[]>;
   createPost(post: InsertPost): Promise<Post>;
+  createPostWithLimitCheck(post: InsertPost): Promise<{ post?: Post; error?: string; code?: string }>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined>;
   deletePost(id: string): Promise<void>;
   getTopTags(siteId: string, limit: number): Promise<string[]>;
@@ -562,6 +563,55 @@ export class DatabaseStorage implements IStorage {
   async createPost(post: InsertPost): Promise<Post> {
     const [newPost] = await db.insert(posts).values(post).returning();
     return newPost;
+  }
+
+  async createPostWithLimitCheck(post: InsertPost): Promise<{ post?: Post; error?: string; code?: string }> {
+    // Get the site to check ownership
+    const site = await this.getSiteById(post.siteId);
+    if (!site) {
+      return { error: "Site not found", code: "SITE_NOT_FOUND" };
+    }
+    
+    // If site has an owner, enforce subscription limits
+    if (site.ownerId) {
+      const owner = await this.getUser(site.ownerId);
+      if (!owner) {
+        return { error: "Site owner not found", code: "OWNER_NOT_FOUND" };
+      }
+      
+      // Check subscription status
+      if (!owner.subscriptionPlan || owner.subscriptionStatus !== "active") {
+        return { 
+          error: "Active subscription required to create posts", 
+          code: "SUBSCRIPTION_REQUIRED" 
+        };
+      }
+      
+      // Check post limits
+      const { PLAN_LIMITS } = await import("@shared/schema");
+      const planLimits = PLAN_LIMITS[owner.subscriptionPlan as keyof typeof PLAN_LIMITS];
+      if (planLimits && owner.postsUsedThisMonth !== null && 
+          owner.postsUsedThisMonth >= planLimits.postsPerMonth) {
+        return { 
+          error: `Monthly post limit of ${planLimits.postsPerMonth} reached. Please upgrade your plan.`,
+          code: "POST_LIMIT_REACHED" 
+        };
+      }
+      
+      // Create the post
+      const newPost = await this.createPost(post);
+      
+      // Increment the owner's post count
+      await this.updateUser(owner.id, {
+        postsUsedThisMonth: (owner.postsUsedThisMonth || 0) + 1,
+      });
+      
+      return { post: newPost };
+    }
+    
+    // For admin-created sites (no owner), just create the post
+    const newPost = await this.createPost(post);
+    return { post: newPost };
   }
 
   async updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined> {

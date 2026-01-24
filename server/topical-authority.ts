@@ -421,7 +421,7 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
     const defaultAuthor = await storage.getDefaultAuthor(pillar.siteId);
 
     // Create post with article role for role-specific JSON-LD generation
-    const post = await storage.createPost({
+    const createResult = await storage.createPostWithLimitCheck({
       siteId: pillar.siteId,
       authorId: defaultAuthor?.id || null,
       title: generated.title,
@@ -435,6 +435,17 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
       articleRole: article.articleRole || "general",
       status: pillar.defaultPostStatus || "published",
     });
+
+    if (createResult.error) {
+      console.log(`[Topical Authority] Skipped article ${article.id}: ${createResult.error} (${createResult.code})`);
+      // Mark article as failed due to limit
+      await storage.updatePillarArticle(article.id, {
+        status: "failed",
+      });
+      return null;
+    }
+
+    const post = createResult.post!;
 
     // Update article with post reference
     await storage.updatePillarArticle(article.id, {

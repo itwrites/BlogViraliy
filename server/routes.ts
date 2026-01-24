@@ -890,8 +890,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         siteId: req.params.id,
       });
-      const post = await storage.createPost(postData);
-      res.json(post);
+      
+      // Use limit-checked post creation for owner sites
+      const result = await storage.createPostWithLimitCheck(postData);
+      if (result.error) {
+        return res.status(403).json({ error: result.error, code: result.code });
+      }
+      
+      res.json(result.post);
     } catch (error) {
       res.status(500).json({ error: "Failed to create post" });
     }
@@ -1082,8 +1088,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? tagsRaw.split(/[,;]/).map(t => t.trim().toLowerCase()).filter(t => t.length > 0)
             : [];
           
-          // Create the post
-          await storage.createPost({
+          // Create the post with limit checking
+          const createResult = await storage.createPostWithLimitCheck({
             siteId,
             title,
             slug,
@@ -1092,6 +1098,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             source: "csv-import",
             ...(imageUrl && { imageUrl }),
           });
+          
+          if (createResult.error) {
+            if (createResult.code === "POST_LIMIT_REACHED") {
+              // Stop processing if post limit is reached
+              results.errors.push(`Row ${rowNum}: ${createResult.error}`);
+              results.skipped += 1;
+              break; // Exit the loop - no more posts can be created
+            }
+            throw new Error(createResult.error);
+          }
           
           results.imported++;
         } catch (err) {
@@ -1710,25 +1726,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (!site || site.ownerId !== req.user.id) {
             return res.status(403).json({ error: "You don't have access to this site" });
           }
-          
-          // Enforce post limits for owners
-          const user = await storage.getUser(req.user.id);
-          if (!user?.subscriptionPlan || user.subscriptionStatus !== "active") {
-            return res.status(403).json({ 
-              error: "Active subscription required to create posts",
-              code: "SUBSCRIPTION_REQUIRED"
-            });
-          }
-          
-          const { PLAN_LIMITS } = await import("@shared/schema");
-          const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
-          if (planLimits && user.postsUsedThisMonth !== null && 
-              user.postsUsedThisMonth >= planLimits.postsPerMonth) {
-            return res.status(403).json({ 
-              error: `You've reached your monthly post limit of ${planLimits.postsPerMonth}. Please upgrade your plan for more posts.`,
-              code: "POST_LIMIT_REACHED"
-            });
-          }
         } else {
           const hasAccess = await storage.canUserAccessSite(req.user!.id, postData.siteId);
           if (!hasAccess) {
@@ -1737,19 +1734,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const post = await storage.createPost(postData);
-      
-      // Increment post count for owners
-      if (req.user?.role === "owner") {
-        const user = await storage.getUser(req.user.id);
-        if (user) {
-          await storage.updateUser(req.user.id, {
-            postsUsedThisMonth: (user.postsUsedThisMonth || 0) + 1,
-          });
-        }
+      // Use centralized limit-checked post creation (handles limits for owner sites)
+      const result = await storage.createPostWithLimitCheck(postData);
+      if (result.error) {
+        return res.status(403).json({ error: result.error, code: result.code });
       }
       
-      res.json(post);
+      res.json(result.post);
     } catch (error) {
       res.status(500).json({ error: "Failed to create post" });
     }
