@@ -278,21 +278,6 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="border border-primary/10 bg-primary/5">
-        <CardHeader className="pb-2">
-          <CardTitle>Topical Authority</CardTitle>
-          <CardDescription>
-            Build search trust by publishing a structured set of articles around one core topic.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button size="sm" variant="outline" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Pillar
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* AI Suggestions Section */}
       <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/30">
         <CardHeader className="pb-3">
