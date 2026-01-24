@@ -64,11 +64,11 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-black relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f5f5f7] relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [0, 360],
             scale: [1, 1.1, 1],
@@ -79,7 +79,7 @@ export default function AdminLogin() {
           }}
         />
         <motion.div 
-          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [360, 0],
             scale: [1, 1.15, 1],
@@ -98,11 +98,11 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Login Card */}
-        <div className="rounded-3xl bg-black/80 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden">
+        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 shadow-xl overflow-hidden">
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
                 <svg 
                   width="32" 
                   height="32" 
@@ -113,8 +113,8 @@ export default function AdminLogin() {
                 >
                   <path 
                     d="M24 4L44 40H4L24 4Z" 
-                    fill="white" 
-                    stroke="white" 
+                    fill="#1f2937" 
+                    stroke="#1f2937" 
                     strokeWidth="2"
                     strokeLinejoin="miter"
                   />
@@ -122,12 +122,12 @@ export default function AdminLogin() {
               </div>
               <div>
                 <h1 
-                  className="text-2xl font-semibold tracking-tight text-white"
+                  className="text-2xl font-semibold tracking-tight text-gray-900"
                   data-testid="text-login-title"
                 >
                   Welcome back
                 </h1>
-                <p className="text-white/50 mt-1">
+                <p className="text-gray-500 mt-1">
                   Sign in to Blog Virality
                 </p>
               </div>
@@ -136,7 +136,7 @@ export default function AdminLogin() {
             {/* Login Form */}
             <motion.form variants={itemVariants} onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-white/70">
+                <Label htmlFor="username" className="text-sm font-medium text-gray-600">
                   Username
                 </Label>
                 <Input
@@ -146,12 +146,12 @@ export default function AdminLogin() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 text-base rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+                  className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-white/70">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-600">
                   Password
                 </Label>
                 <Input
@@ -162,14 +162,14 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 text-base rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+                  className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                 />
               </div>
 
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full h-12 text-base rounded-xl bg-white text-black hover:bg-white/90 font-medium"
+                className="w-full h-12 text-base rounded-xl font-medium"
                 data-testid="button-login"
               >
                 {isLoading ? (
@@ -190,9 +190,9 @@ export default function AdminLogin() {
           {/* Footer */}
           <motion.div 
             variants={itemVariants}
-            className="px-8 py-4 border-t border-white/5 bg-white/[0.02]"
+            className="px-8 py-4 border-t border-gray-100 bg-gray-50/50"
           >
-            <p className="text-center text-xs text-white/30">
+            <p className="text-center text-xs text-gray-400">
               Blog Virality CMS
             </p>
           </motion.div>

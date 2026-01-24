@@ -496,15 +496,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
   const hasSiteContext = !!siteContext;
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
         />
         <motion.div 
-          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-500/10 via-pink-500/5 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"
           animate={{ rotate: [360, 0] }}
           transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
         />
@@ -515,32 +515,32 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-72 bg-black/80 backdrop-blur-2xl border-r border-white/10 z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200/60 z-40 flex flex-col"
         >
-          <div className="p-6 border-b border-white/10">
+          <div className="p-6 border-b border-gray-200/60">
             <div className="flex items-center gap-3">
               {site?.logoUrl ? (
                 <img 
                   src={site.logoUrl} 
                   alt={site.title} 
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/20" 
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-gray-200" 
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-gray-700" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-white" data-testid="text-site-title">
+                <h1 className="font-semibold truncate text-gray-900" data-testid="text-site-title">
                   {site?.title || "Loading..."}
                 </h1>
-                <p className="text-xs text-white/50 truncate">{site?.domain}</p>
+                <p className="text-xs text-gray-500 truncate">{site?.domain}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
-                className="text-white/50 hover:text-white hover:bg-white/10"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-site-settings"
               >
                 <Settings className="w-4 h-4" />
@@ -549,23 +549,23 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
 
           <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-            <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
               Navigation
             </p>
             <div className="space-y-1 mb-4">
               <button
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-white/10 text-white"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-gray-100 text-gray-900 shadow-sm"
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
                 <span className="flex-1 text-left">Posts</span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/20 text-white">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">
                   {stats.total}
                 </span>
               </button>
               <button
                 onClick={() => setLocation(`/editor/sites/${siteId}/analytics`)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-white/5 text-white/60 hover:text-white"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                 data-testid="nav-analytics"
               >
                 <BarChart3 className="w-4 h-4" />
@@ -573,7 +573,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </button>
             </div>
 
-            <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
               Quick Stats
             </p>
             <motion.div
@@ -582,35 +582,35 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               transition={{ delay: 0.1 }}
               className="space-y-2"
             >
-              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/30 rounded-xl p-3 text-center border border-blue-500/30">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center border border-blue-200">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Eye className="w-4 h-4 text-blue-400" />
+                  <Eye className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="text-2xl font-bold text-blue-400">{stats.totalViews.toLocaleString()}</p>
-                <p className="text-xs text-white/60">Total Views</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-xs text-gray-600">Total Views</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-white">{stats.total}</p>
-                  <p className="text-xs text-white/50">Total Posts</p>
+                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
+                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                  <p className="text-xs text-gray-500">Total Posts</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-emerald-400">{stats.manual}</p>
-                  <p className="text-xs text-white/50">Manual</p>
+                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
+                  <p className="text-2xl font-bold text-emerald-600">{stats.manual}</p>
+                  <p className="text-xs text-gray-500">Manual</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-violet-400">{stats.ai}</p>
-                  <p className="text-xs text-white/50">AI Generated</p>
+                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
+                  <p className="text-2xl font-bold text-violet-600">{stats.ai}</p>
+                  <p className="text-xs text-gray-500">AI Generated</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-orange-400">{stats.rss}</p>
-                  <p className="text-xs text-white/50">RSS Imports</p>
+                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
+                  <p className="text-2xl font-bold text-orange-600">{stats.rss}</p>
+                  <p className="text-xs text-gray-500">RSS Imports</p>
                 </div>
               </div>
             </motion.div>
 
             <div className="pt-4">
-              <p className="text-xs font-medium text-white/40 uppercase tracking-wider px-3 mb-3">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
                 Filter by Source
               </p>
               <div className="space-y-1">
@@ -628,8 +628,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                       sourceFilter === item.value
-                        ? "bg-white/10 text-white"
-                        : "hover:bg-white/5 text-white/60 hover:text-white"
+                        ? "bg-gray-100 text-gray-900 shadow-sm"
+                        : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                     }`}
                     data-testid={`filter-${item.value}`}
                   >
@@ -637,8 +637,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <span className="flex-1 text-left">{item.label}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       sourceFilter === item.value
-                        ? "bg-white/20 text-white"
-                        : "bg-white/10 text-white/60"
+                        ? "bg-gray-200 text-gray-700"
+                        : "bg-gray-100 text-gray-500"
                     }`}>
                       {item.count}
                     </span>
@@ -648,33 +648,33 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
           </div>
 
-          <div className="p-4 border-t border-white/10 space-y-2">
+          <div className="p-4 border-t border-gray-200/60 space-y-2 bg-gray-50/50">
             {!hasSiteContext && (
               <Button
                 variant="ghost"
                 onClick={() => setLocation("/editor")}
-                className="w-full justify-start gap-2 text-white/60 hover:text-white hover:bg-white/10"
+                className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-back-editor"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Sites
               </Button>
             )}
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white border border-gray-200/60 shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-700">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-white">{user?.username}</p>
-                <p className="text-xs text-white/50 capitalize">{user?.role}</p>
+                <p className="text-sm font-medium truncate text-gray-900">{user?.username}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="text-white/50 hover:text-white hover:bg-white/10"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -687,13 +687,13 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-30 border-b border-white/10 bg-black/80 backdrop-blur-2xl"
+            className="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur-xl"
           >
             <div className="px-8 py-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="Search posts..."
                       value={searchQuery}
@@ -701,13 +701,13 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         setSearchQuery(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                      className="pl-9 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                       data-testid="input-search"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -721,7 +721,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         variant="ghost"
                         size="sm"
                         onClick={exitBulkMode}
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         data-testid="button-exit-bulk"
                       >
                         Cancel
@@ -739,11 +739,11 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center rounded-lg border border-white/10 p-1 bg-white/5">
+                      <div className="flex items-center rounded-lg border border-gray-200 p-1 bg-gray-50">
                         <button
                           onClick={() => setViewMode("list")}
                           className={`p-1.5 rounded transition-colors ${
-                            viewMode === "list" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+                            viewMode === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
                           }`}
                           data-testid="button-view-list"
                         >
@@ -752,7 +752,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         <button
                           onClick={() => setViewMode("grid")}
                           className={`p-1.5 rounded transition-colors ${
-                            viewMode === "grid" ? "bg-white/10 text-white" : "text-white/50 hover:text-white"
+                            viewMode === "grid" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
                           }`}
                           data-testid="button-view-grid"
                         >
@@ -763,7 +763,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         variant="ghost"
                         size="sm"
                         onClick={() => setBulkMode(true)}
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         data-testid="button-bulk-mode"
                       >
                         <CheckSquare className="w-4 h-4 mr-2" />
@@ -773,7 +773,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         variant="ghost"
                         size="sm"
                         onClick={() => setCsvImportOpen(true)}
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         data-testid="button-import-csv"
                       >
                         <Upload className="w-4 h-4 mr-2" />
@@ -782,7 +782,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       <Button 
                         size="sm" 
                         onClick={() => openEditor()}
-                        className="bg-white text-black hover:bg-white/90"
                         data-testid="button-new-post"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -800,22 +799,22 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
+                className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200/60 shadow-sm"
               >
                 <Checkbox
                   checked={allCurrentPageSelected}
                   onCheckedChange={toggleSelectAll}
-                  className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-black"
+                  className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
                   data-testid="checkbox-select-all"
                 />
-                <span className="text-sm text-white/70">
+                <span className="text-sm text-gray-600">
                   {allCurrentPageSelected 
                     ? `All ${paginatedPosts.length} posts on this page selected`
                     : `Select all ${paginatedPosts.length} posts on this page`
                   }
                 </span>
                 {selectedPosts.size > 0 && (
-                  <Badge className="bg-white/10 text-white/70 border border-white/10">
+                  <Badge className="bg-gray-100 text-gray-700 border border-gray-200">
                     {selectedPosts.size} selected total
                   </Badge>
                 )}
@@ -837,7 +836,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
-                      className={`bg-white/5 animate-pulse rounded-xl border border-white/10 ${
+                      className={`bg-white animate-pulse rounded-xl border border-gray-200/60 ${
                         viewMode === "grid" ? "h-48" : "h-24"
                       }`}
                     />
@@ -864,7 +863,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       >
                         {viewMode === "grid" ? (
                           <div
-                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 ${
+                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md bg-white border border-gray-200/60 hover:border-gray-300 ${
                               bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
                             }`}
                             onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
@@ -887,13 +886,13 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 )}
                               </div>
                             ) : (
-                              <div className="aspect-video relative bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center">
-                                <Image className="w-12 h-12 text-white/20" />
+                              <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                                <Image className="w-12 h-12 text-gray-300" />
                                 {bulkMode && (
                                   <div className="absolute top-2 left-2">
                                     <Checkbox
                                       checked={selectedPosts.has(post.id)}
-                                      className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+                                      className="border-gray-400 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
                                     />
                                   </div>
                                 )}
@@ -901,7 +900,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             )}
                             <div className="p-4">
                               <h3 
-                                className="font-semibold text-white line-clamp-2 mb-2 group-hover:text-blue-400 transition-colors"
+                                className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors"
                                 data-testid={`text-post-title-${post.id}`}
                               >
                                 {post.title}
@@ -917,7 +916,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   {getSourceIcon(post.source)}
                                   <span className="ml-1">{getSourceLabel(post.source)}</span>
                                 </Badge>
-                                <span className="text-xs text-white/50">
+                                <span className="text-xs text-gray-500">
                                   {getRelativeTime(post.createdAt)}
                                 </span>
                               </div>
@@ -925,7 +924,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           </div>
                         ) : (
                           <div
-                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 ${
+                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md bg-white border border-gray-200/60 hover:border-gray-300 ${
                               bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
                             }`}
                             onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
@@ -936,7 +935,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   <div className="pt-1">
                                     <Checkbox
                                       checked={selectedPosts.has(post.id)}
-                                      className="border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-black"
+                                      className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
                                     />
                                   </div>
                                 )}
@@ -953,12 +952,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                       <h3 
-                                        className="font-semibold text-white line-clamp-1 group-hover:text-blue-400 transition-colors"
+                                        className="font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors"
                                         data-testid={`text-post-title-${post.id}`}
                                       >
                                         {post.title}
                                       </h3>
-                                      <p className="text-sm text-white/50 line-clamp-1 mt-1">
+                                      <p className="text-sm text-gray-500 line-clamp-1 mt-1">
                                         {stripMarkdown(post.content).substring(0, 120)}
                                       </p>
                                     </div>
@@ -975,29 +974,29 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                       <span className="ml-1">{getSourceLabel(post.source)}</span>
                                     </Badge>
                                     <span 
-                                      className="text-xs text-white/50"
+                                      className="text-xs text-gray-500"
                                       data-testid={`text-post-date-${post.id}`}
                                       title={new Date(post.createdAt).toLocaleString()}
                                     >
                                       {getRelativeTime(post.createdAt)}
                                     </span>
-                                    <span className="text-xs text-white/50">
+                                    <span className="text-xs text-gray-500">
                                       {getReadingTime(post.content).minutes} min
                                     </span>
-                                    <span className="flex items-center gap-1 text-xs text-blue-400">
+                                    <span className="flex items-center gap-1 text-xs text-blue-600">
                                       <Eye className="w-3 h-3" />
                                       {(post.viewCount || 0).toLocaleString()}
                                     </span>
                                     {post.tags.slice(0, 2).map((tag) => (
                                       <Badge 
                                         key={tag} 
-                                        className="text-xs font-normal bg-white/10 text-white/70 border border-white/10"
+                                        className="text-xs font-normal bg-gray-100 text-gray-600 border border-gray-200"
                                       >
                                         {tag}
                                       </Badge>
                                     ))}
                                     {post.tags.length > 2 && (
-                                      <span className="text-xs text-white/50">
+                                      <span className="text-xs text-gray-500">
                                         +{post.tags.length - 2} more
                                       </span>
                                     )}
@@ -1012,7 +1011,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         e.stopPropagation();
                                         openEditor(post);
                                       }}
-                                      className="text-white/50 hover:text-white hover:bg-white/10"
+                                      className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                                       data-testid={`button-edit-${post.id}`}
                                     >
                                       <Edit className="w-4 h-4" />
@@ -1025,7 +1024,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         setPostToDelete(post);
                                         setDeleteDialogOpen(true);
                                       }}
-                                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
                                       data-testid={`button-delete-${post.id}`}
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -1048,17 +1047,17 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="text-center py-20"
                 >
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-6">
                     {searchQuery || sourceFilter !== "all" ? (
-                      <Search className="w-10 h-10 text-white/30" />
+                      <Search className="w-10 h-10 text-gray-400" />
                     ) : (
-                      <Sparkles className="w-10 h-10 text-white/30" />
+                      <Sparkles className="w-10 h-10 text-gray-400" />
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold mb-2 text-white">
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">
                     {searchQuery || sourceFilter !== "all" ? "No posts found" : "No posts yet"}
                   </h3>
-                  <p className="text-white/50 max-w-md mx-auto mb-6">
+                  <p className="text-gray-500 max-w-md mx-auto mb-6">
                     {searchQuery
                       ? "Try adjusting your search terms or filters"
                       : sourceFilter !== "all"
@@ -1069,7 +1068,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <Button 
                       onClick={() => openEditor()} 
                       size="lg"
-                      className="gap-2 bg-white text-black hover:bg-white/90"
+                      className="gap-2"
                       data-testid="button-create-first"
                     >
                       <Plus className="w-5 h-5" />
@@ -1085,9 +1084,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center justify-between mt-8 pt-6 border-t border-white/10"
+                className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200"
               >
-                <p className="text-sm text-white/50">
+                <p className="text-sm text-gray-500">
                   Showing {((currentPage - 1) * POSTS_PER_PAGE) + 1} - {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} of {filteredPosts.length} posts
                 </p>
                 <div className="flex items-center gap-2">
@@ -1096,7 +1095,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="text-white/50 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                    className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30"
                     data-testid="button-prev-page"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -1120,8 +1119,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           size="icon"
                           className={`h-9 w-9 ${
                             currentPage === page 
-                              ? "bg-white text-black hover:bg-white/90" 
-                              : "text-white/50 hover:text-white hover:bg-white/10"
+                              ? "bg-gray-900 text-white hover:bg-gray-800" 
+                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                           }`}
                           onClick={() => setCurrentPage(page)}
                           data-testid={`button-page-${page}`}
@@ -1136,7 +1135,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="text-white/50 hover:text-white hover:bg-white/10 disabled:opacity-30"
+                    className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30"
                     data-testid="button-next-page"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1149,12 +1148,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </div>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-xl text-white">
+            <DialogTitle className="text-xl text-gray-900">
               {currentPost ? "Edit Post" : "Create New Post"}
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription className="text-gray-500">
               {currentPost ? "Update your post content and settings" : "Write and publish a new post for your site"}
             </DialogDescription>
           </DialogHeader>
@@ -1165,18 +1164,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             className="space-y-6 py-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium text-white/70">Title</Label>
+              <Label htmlFor="title" className="text-sm font-medium text-gray-600">Title</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Enter an engaging title..."
-                className="text-lg bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="text-lg bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                 data-testid="input-title"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="content" className="text-sm font-medium text-white/70">Content</Label>
+              <Label htmlFor="content" className="text-sm font-medium text-gray-600">Content</Label>
               <RichTextEditor
                 value={formData.content}
                 onChange={(value) => setFormData({ ...formData, content: value })}
@@ -1186,78 +1185,78 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="tags" className="text-sm font-medium text-white/70">Tags</Label>
+                <Label htmlFor="tags" className="text-sm font-medium text-gray-600">Tags</Label>
                 <Input
                   id="tags"
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="technology, news, tutorial"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                   data-testid="input-tags"
                 />
-                <p className="text-xs text-white/40">Separate tags with commas</p>
+                <p className="text-xs text-gray-400">Separate tags with commas</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="imageUrl" className="text-sm font-medium text-white/70">Featured Image URL</Label>
+                <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-600">Featured Image URL</Label>
                 <Input
                   id="imageUrl"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                   data-testid="input-image-url"
                 />
-                <p className="text-xs text-white/40">Optional cover image for the post</p>
+                <p className="text-xs text-gray-400">Optional cover image for the post</p>
               </div>
             </div>
             {authors && authors.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="author" className="text-sm font-medium text-white/70">Author</Label>
+                <Label htmlFor="author" className="text-sm font-medium text-gray-600">Author</Label>
                 <Select
                   value={formData.authorId}
                   onValueChange={(value) => setFormData({ ...formData, authorId: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-author">
+                  <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-author">
                     <SelectValue placeholder="Select an author" />
                   </SelectTrigger>
-                  <SelectContent className="bg-black/95 border-white/10">
-                    <SelectItem value="none" className="text-white hover:bg-white/10">No author</SelectItem>
+                  <SelectContent className="bg-white border-gray-200">
+                    <SelectItem value="none" className="text-gray-900 focus:bg-gray-100">No author</SelectItem>
                     {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id} className="text-white hover:bg-white/10">
+                      <SelectItem key={author.id} value={author.id} className="text-gray-900 focus:bg-gray-100">
                         {author.name} {author.isDefault && "(Default)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-white/40">Select the post author</p>
+                <p className="text-xs text-gray-400">Select the post author</p>
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="articleRole" className="text-sm font-medium text-white/70">Article Role</Label>
+              <Label htmlFor="articleRole" className="text-sm font-medium text-gray-600">Article Role</Label>
               <Select
                 value={formData.articleRole}
                 onValueChange={(value) => setFormData({ ...formData, articleRole: value as ArticleRole })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-article-role">
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-article-role">
                   <SelectValue placeholder="Select article role" />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/10 max-h-[300px]">
+                <SelectContent className="bg-white border-gray-200 max-h-[300px]">
                   {ARTICLE_ROLES.map((role) => (
-                    <SelectItem key={role.value} value={role.value} className="text-white hover:bg-white/10">
+                    <SelectItem key={role.value} value={role.value} className="text-gray-900 focus:bg-gray-100">
                       <span className="font-medium">{role.label}</span>
-                      <span className="text-white/50 ml-2 text-xs">{role.description}</span>
+                      <span className="text-gray-500 ml-2 text-xs">{role.description}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-white/40">Determines content structure and JSON-LD schema for SEO</p>
+              <p className="text-xs text-gray-400">Determines content structure and JSON-LD schema for SEO</p>
             </div>
           </motion.div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
-            <Button variant="ghost" onClick={closeEditor} className="text-white/70 hover:text-white hover:bg-white/10" data-testid="button-cancel">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <Button variant="ghost" onClick={closeEditor} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100" data-testid="button-cancel">
               Cancel
             </Button>
-            <Button onClick={handleSave} className="gap-2 bg-white text-black hover:bg-white/90" data-testid="button-save">
+            <Button onClick={handleSave} className="gap-2" data-testid="button-save">
               {currentPost ? (
                 <>
                   <Edit className="w-4 h-4" />
@@ -1275,15 +1274,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Post</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/50">
+            <AlertDialogTitle className="text-gray-900">Delete Post</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
               Are you sure you want to delete "{postToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10" data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200" data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               className="bg-red-500 text-white hover:bg-red-600"
@@ -1296,15 +1295,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </AlertDialog>
 
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/50">
+            <AlertDialogTitle className="text-gray-900">Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
               Are you sure you want to delete {selectedPosts.size} selected post{selectedPosts.size > 1 ? "s" : ""}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10" data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200" data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleBulkDelete} 
               className="bg-red-500 text-white hover:bg-red-600"
@@ -1317,20 +1316,20 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </AlertDialog>
 
       <Dialog open={csvImportOpen} onOpenChange={(open) => !open && closeCsvImport()}>
-        <DialogContent className="max-w-lg bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <DialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-gray-900">
               <FileSpreadsheet className="w-5 h-5" />
               Import Posts from CSV
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription className="text-gray-500">
               Upload a CSV file with your posts. Required columns: title, description. Optional: tags.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 text-sm text-white/50">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Download className="w-4 h-4" />
                 <span>Need a template?</span>
               </div>
@@ -1338,7 +1337,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 variant="ghost" 
                 size="sm" 
                 onClick={downloadCsvTemplate}
-                className="text-white/70 hover:text-white hover:bg-white/10"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-download-template"
               >
                 Download Template
@@ -1346,18 +1345,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="csv-file" className="text-white/70">Select CSV File</Label>
+              <Label htmlFor="csv-file" className="text-gray-600">Select CSV File</Label>
               <Input
                 id="csv-file"
                 type="file"
                 accept=".csv,text/csv"
                 onChange={handleCsvFileSelect}
                 disabled={csvImporting}
-                className="bg-white/5 border-white/10 text-white file:bg-white/10 file:text-white file:border-0"
+                className="bg-white border-gray-200 text-gray-900 file:bg-gray-100 file:text-gray-700 file:border-0"
                 data-testid="input-csv-file"
               />
               {csvContent && (
-                <p className="text-sm text-white/50">
+                <p className="text-sm text-gray-500">
                   File loaded: {csvContent.split('\n').length - 1} data row(s) detected
                 </p>
               )}
@@ -1368,31 +1367,31 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`p-4 rounded-lg ${
-                  csvResult.imported > 0 ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-yellow-500/10 border border-yellow-500/20"
+                  csvResult.imported > 0 ? "bg-emerald-50 border border-emerald-200" : "bg-yellow-50 border border-yellow-200"
                 }`}
               >
                 <div className="flex items-start gap-3">
                   {csvResult.imported > 0 ? (
-                    <CheckCircle className="w-5 h-5 text-emerald-400 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-yellow-400 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                   )}
                   <div className="space-y-1">
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-gray-900">
                       {csvResult.imported > 0 
                         ? `Successfully imported ${csvResult.imported} post${csvResult.imported > 1 ? 's' : ''}`
                         : "No posts imported"
                       }
                     </p>
                     {csvResult.skipped > 0 && (
-                      <p className="text-sm text-white/50">
+                      <p className="text-sm text-gray-500">
                         {csvResult.skipped} row{csvResult.skipped > 1 ? 's' : ''} skipped
                       </p>
                     )}
                     {csvResult.errors.length > 0 && (
                       <div className="mt-2 text-sm space-y-1">
-                        <p className="text-white/50 font-medium">Issues:</p>
-                        <ul className="list-disc list-inside text-white/50">
+                        <p className="text-gray-500 font-medium">Issues:</p>
+                        <ul className="list-disc list-inside text-gray-500">
                           {csvResult.errors.slice(0, 5).map((err, i) => (
                             <li key={i}>{err}</li>
                           ))}
@@ -1413,7 +1412,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               variant="ghost" 
               onClick={closeCsvImport}
               disabled={csvImporting}
-              className="text-white/70 hover:text-white hover:bg-white/10"
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               data-testid="button-cancel-csv-import"
             >
               {csvResult?.imported ? "Close" : "Cancel"}
@@ -1422,7 +1421,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <Button 
                 onClick={handleCsvImport}
                 disabled={!csvContent || csvImporting}
-                className="gap-2 bg-white text-black hover:bg-white/90"
+                className="gap-2"
                 data-testid="button-import-csv"
               >
                 {csvImporting ? (

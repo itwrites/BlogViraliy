@@ -213,13 +213,13 @@ export default function UserManagement() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6">
-          <p className="text-center text-white/50">
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+        <div className="rounded-2xl bg-white border border-gray-200/60 shadow-sm p-6">
+          <p className="text-center text-gray-500">
             You don't have permission to access this page.
           </p>
           <Button 
-            className="w-full mt-4 bg-white text-black hover:bg-white/90"
+            className="w-full mt-4"
             onClick={() => setLocation("/admin/dashboard")}
           >
             Back to Dashboard
@@ -230,15 +230,15 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
         />
         <motion.div 
-          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-500/10 via-pink-500/5 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"
           animate={{ rotate: [360, 0] }}
           transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
         />
@@ -249,7 +249,7 @@ export default function UserManagement() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-2xl"
+          className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-xl"
         >
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -257,25 +257,24 @@ export default function UserManagement() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation("/admin/dashboard")}
-                className="text-white/70 hover:text-white hover:bg-white/10"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-gray-700" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold tracking-tight text-white" data-testid="text-page-title">User Management</h1>
-                  <p className="text-xs text-white/50">Manage users and permissions</p>
+                  <h1 className="text-lg font-semibold tracking-tight text-gray-900" data-testid="text-page-title">User Management</h1>
+                  <p className="text-xs text-gray-500">Manage users and permissions</p>
                 </div>
               </div>
             </div>
             <Button 
               size="sm" 
               onClick={() => setShowCreateDialog(true)} 
-              className="bg-white text-black hover:bg-white/90"
               data-testid="button-add-user"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -285,13 +284,13 @@ export default function UserManagement() {
         </motion.header>
 
         <main className="max-w-7xl mx-auto px-6 py-8">
-          <div className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="p-6 border-b border-white/10">
+          <div className="rounded-2xl bg-white border border-gray-200/60 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-white/70" />
-                <h2 className="text-lg font-semibold text-white">Users</h2>
+                <Users className="h-5 w-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Users</h2>
               </div>
-              <p className="text-sm text-white/50 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 All registered admin and editor users
               </p>
             </div>
@@ -299,38 +298,38 @@ export default function UserManagement() {
               {usersLoading ? (
                 <div className="space-y-2">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />
+                    <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : users && users.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Username</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Email</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Role</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-white/50">Status</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-white/50">Actions</th>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Username</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Email</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Role</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((user) => (
-                        <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors" data-testid={`row-user-${user.id}`}>
+                        <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-testid={`row-user-${user.id}`}>
                           <td className="py-4 px-4" data-testid={`text-username-${user.id}`}>
-                            <span className="font-medium text-white">{user.username}</span>
+                            <span className="font-medium text-gray-900">{user.username}</span>
                             {user.id === currentUser?.id && (
-                              <Badge className="ml-2 bg-white/10 text-white/70 border border-white/10">You</Badge>
+                              <Badge className="ml-2 bg-gray-100 text-gray-600 border border-gray-200">You</Badge>
                             )}
                           </td>
                           <td className="py-4 px-4" data-testid={`text-email-${user.id}`}>
-                            <span className="text-white/70">{user.email || <span className="text-white/30">-</span>}</span>
+                            <span className="text-gray-600">{user.email || <span className="text-gray-400">-</span>}</span>
                           </td>
                           <td className="py-4 px-4">
                             <Badge 
                               className={user.role === "admin" 
-                                ? "bg-violet-500/20 text-violet-400 border border-violet-500/30" 
-                                : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                ? "bg-violet-50 text-violet-700 border border-violet-200" 
+                                : "bg-blue-50 text-blue-700 border border-blue-200"
                               }
                               data-testid={`badge-role-${user.id}`}
                             >
@@ -340,8 +339,8 @@ export default function UserManagement() {
                           <td className="py-4 px-4">
                             <Badge 
                               className={user.status === "active"
-                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                : "bg-white/10 text-white/60 border border-white/10"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-gray-100 text-gray-600 border border-gray-200"
                               }
                               data-testid={`badge-status-${user.id}`}
                             >
@@ -355,7 +354,7 @@ export default function UserManagement() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => openSitesDialog(user)}
-                                  className="text-white/60 hover:text-white hover:bg-white/10"
+                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                   data-testid={`button-sites-${user.id}`}
                                 >
                                   <Globe className="h-4 w-4 mr-1" />
@@ -366,7 +365,7 @@ export default function UserManagement() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => openEditDialog(user)}
-                                className="text-white/60 hover:text-white hover:bg-white/10"
+                                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                 data-testid={`button-edit-${user.id}`}
                               >
                                 <Edit className="h-4 w-4" />
@@ -379,7 +378,7 @@ export default function UserManagement() {
                                     setSelectedUser(user);
                                     setShowDeleteDialog(true);
                                   }}
-                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
                                   data-testid={`button-delete-${user.id}`}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -394,8 +393,8 @@ export default function UserManagement() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-white/30 mx-auto mb-4" />
-                  <p className="text-white/50">No users found</p>
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No users found</p>
                 </div>
               )}
             </div>
@@ -404,68 +403,67 @@ export default function UserManagement() {
       </div>
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-white" data-testid="text-create-dialog-title">Create New User</DialogTitle>
-            <DialogDescription className="text-white/50">Add a new admin or editor user</DialogDescription>
+            <DialogTitle className="text-gray-900" data-testid="text-create-dialog-title">Create New User</DialogTitle>
+            <DialogDescription className="text-gray-500">Add a new admin or editor user</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white/70">Username</Label>
+              <Label htmlFor="username" className="text-gray-600">Username</Label>
               <Input
                 id="username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-create-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/70">Email (optional)</Label>
+              <Label htmlFor="email" className="text-gray-600">Email (optional)</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-create-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/70">Password</Label>
+              <Label htmlFor="password" className="text-gray-600">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-create-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-white/70">Role</Label>
+              <Label htmlFor="role" className="text-gray-600">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-create-role">
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-create-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/10">
-                  <SelectItem value="editor" className="text-white hover:bg-white/10">Editor</SelectItem>
-                  <SelectItem value="admin" className="text-white hover:bg-white/10">Admin</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="editor" className="text-gray-900 focus:bg-gray-100">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-gray-900 focus:bg-gray-100">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowCreateDialog(false)} className="text-white/70 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" onClick={() => setShowCreateDialog(false)} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
               Cancel
             </Button>
             <Button
               onClick={() => createUserMutation.mutate(formData)}
               disabled={!formData.username || !formData.password || createUserMutation.isPending}
-              className="bg-white text-black hover:bg-white/90"
               data-testid="button-confirm-create"
             >
               {createUserMutation.isPending ? "Creating..." : "Create User"}
@@ -475,93 +473,96 @@ export default function UserManagement() {
       </Dialog>
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-white" data-testid="text-edit-dialog-title">Edit User</DialogTitle>
-            <DialogDescription className="text-white/50">Update user details</DialogDescription>
+            <DialogTitle className="text-gray-900" data-testid="text-edit-dialog-title">Edit User</DialogTitle>
+            <DialogDescription className="text-gray-500">Update user details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-username" className="text-white/70">Username</Label>
+              <Label htmlFor="edit-username" className="text-gray-600">Username</Label>
               <Input
                 id="edit-username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-edit-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email" className="text-white/70">Email (optional)</Label>
+              <Label htmlFor="edit-email" className="text-gray-600">Email (optional)</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-edit-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password" className="text-white/70">New Password (leave blank to keep current)</Label>
+              <Label htmlFor="edit-password" className="text-gray-600">New Password (leave blank to keep current)</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50"
+                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
                 data-testid="input-edit-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role" className="text-white/70">Role</Label>
+              <Label htmlFor="edit-role" className="text-gray-600">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-edit-role">
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-edit-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/10">
-                  <SelectItem value="editor" className="text-white hover:bg-white/10">Editor</SelectItem>
-                  <SelectItem value="admin" className="text-white hover:bg-white/10">Admin</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="editor" className="text-gray-900 focus:bg-gray-100">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-gray-900 focus:bg-gray-100">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-status" className="text-white/70">Status</Label>
+              <Label htmlFor="edit-status" className="text-gray-600">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-edit-status">
+                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-edit-status">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/10">
-                  <SelectItem value="active" className="text-white hover:bg-white/10">Active</SelectItem>
-                  <SelectItem value="inactive" className="text-white hover:bg-white/10">Inactive</SelectItem>
-                  <SelectItem value="pending" className="text-white hover:bg-white/10">Pending</SelectItem>
+                <SelectContent className="bg-white border-gray-200">
+                  <SelectItem value="active" className="text-gray-900 focus:bg-gray-100">Active</SelectItem>
+                  <SelectItem value="inactive" className="text-gray-900 focus:bg-gray-100">Inactive</SelectItem>
+                  <SelectItem value="pending" className="text-gray-900 focus:bg-gray-100">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-white/70 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
               Cancel
             </Button>
             <Button
               onClick={() => {
-                if (!selectedUser) return;
-                const updates: any = {};
-                if (formData.username !== selectedUser.username) updates.username = formData.username;
-                if (formData.email !== (selectedUser.email || "")) updates.email = formData.email;
-                if (formData.password) updates.password = formData.password;
-                if (formData.role !== selectedUser.role) updates.role = formData.role;
-                if (formData.status !== selectedUser.status) updates.status = formData.status;
-                updateUserMutation.mutate({ id: selectedUser.id, updates });
+                if (selectedUser) {
+                  const updates: Partial<typeof formData> = {
+                    username: formData.username,
+                    email: formData.email,
+                    role: formData.role,
+                    status: formData.status,
+                  };
+                  if (formData.password) {
+                    updates.password = formData.password;
+                  }
+                  updateUserMutation.mutate({ id: selectedUser.id, updates });
+                }
               }}
               disabled={updateUserMutation.isPending}
-              className="bg-white text-black hover:bg-white/90"
               data-testid="button-confirm-edit"
             >
               {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
@@ -571,145 +572,122 @@ export default function UserManagement() {
       </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white" data-testid="text-delete-dialog-title">Delete User</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/50">
-              Are you sure you want to delete <strong className="text-white">{selectedUser?.username}</strong>? This action cannot be undone.
+            <AlertDialogTitle className="text-gray-900">Delete User?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
+              This action cannot be undone. This will permanently delete{" "}
+              <strong className="text-gray-900">{selectedUser?.username}</strong> and remove all their site assignments.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedUser && deleteUserMutation.mutate(selectedUser.id)}
               className="bg-red-500 text-white hover:bg-red-600"
-              data-testid="button-confirm-delete"
             >
-              Delete
+              Delete User
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <Dialog open={showSitesDialog} onOpenChange={setShowSitesDialog}>
-        <DialogContent className="max-w-2xl bg-black/95 backdrop-blur-2xl border border-white/10 text-white">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900 max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white" data-testid="text-sites-dialog-title">
-              Manage Sites for {selectedUser?.username}
-            </DialogTitle>
-            <DialogDescription className="text-white/50">
-              Assign or remove site access for this editor
+            <DialogTitle className="text-gray-900">Manage Sites for {selectedUser?.username}</DialogTitle>
+            <DialogDescription className="text-gray-500">
+              Assign sites and set permissions for this user
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <h4 className="text-sm font-medium mb-2 text-white/70">Assigned Sites</h4>
-              {userSites && userSites.length > 0 ? (
-                <div className="space-y-2">
-                  {userSites.map((us) => {
-                    const site = sites?.find(s => s.id === us.siteId);
-                    return (
-                      <div 
-                        key={us.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10"
-                        data-testid={`assigned-site-${us.siteId}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-white/50" />
-                          <span className="font-medium text-white">{site?.title || us.siteId}</span>
-                          <span className="text-sm text-white/50">{site?.domain}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={us.permission}
-                            onValueChange={(permission) => {
-                              updatePermissionMutation.mutate({
-                                userId: selectedUser!.id,
-                                siteId: us.siteId,
-                                permission,
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="w-[130px] bg-white/5 border-white/10 text-white" data-testid={`select-permission-${us.siteId}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-black/95 border-white/10">
-                              <SelectItem value="posts_only" className="text-white hover:bg-white/10">Posts Only</SelectItem>
-                              <SelectItem value="edit" className="text-white hover:bg-white/10">Editor</SelectItem>
-                              <SelectItem value="manage" className="text-white hover:bg-white/10">Manager</SelectItem>
-                              <SelectItem value="view" className="text-white hover:bg-white/10">View Only</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeUserFromSiteMutation.mutate({
-                              userId: selectedUser!.id,
-                              siteId: us.siteId,
-                            })}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                            data-testid={`button-remove-site-${us.siteId}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-white/50">No sites assigned</p>
-              )}
-            </div>
-
-            {availableSites.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2 text-white/70">Add Site Access</h4>
-                <div className="space-y-2">
-                  {availableSites.map((site) => (
-                    <div 
-                      key={site.id}
-                      className="flex items-center justify-between p-3 rounded-xl border border-dashed border-white/20"
-                      data-testid={`available-site-${site.id}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-white/50" />
-                        <span className="font-medium text-white">{site.title}</span>
-                        <span className="text-sm text-white/50">{site.domain}</span>
+          <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto">
+            {userSites && userSites.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-900">Assigned Sites</h4>
+                {userSites.map((userSite) => {
+                  const site = sites?.find(s => s.id === userSite.siteId);
+                  return (
+                    <div key={userSite.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium text-gray-900">{site?.title || "Unknown Site"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Select
-                          defaultValue="posts_only"
-                          onValueChange={(permission) => {
-                            addUserToSiteMutation.mutate({
+                          value={userSite.permission}
+                          onValueChange={(value) => 
+                            updatePermissionMutation.mutate({
                               userId: selectedUser!.id,
-                              siteId: site.id,
-                              permission,
-                            });
-                          }}
+                              siteId: userSite.siteId,
+                              permission: value,
+                            })
+                          }
                         >
-                          <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white" data-testid={`select-permission-${site.id}`}>
-                            <SelectValue placeholder="Select role" />
+                          <SelectTrigger className="w-32 h-8 bg-white border-gray-200 text-gray-900">
+                            <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-black/95 border-white/10">
-                            <SelectItem value="posts_only" className="text-white hover:bg-white/10">Posts Only</SelectItem>
-                            <SelectItem value="edit" className="text-white hover:bg-white/10">Editor</SelectItem>
-                            <SelectItem value="manage" className="text-white hover:bg-white/10">Manager</SelectItem>
-                            <SelectItem value="view" className="text-white hover:bg-white/10">View Only</SelectItem>
+                          <SelectContent className="bg-white border-gray-200">
+                            <SelectItem value="view" className="text-gray-900">View Only</SelectItem>
+                            <SelectItem value="posts_only" className="text-gray-900">Posts Only</SelectItem>
+                            <SelectItem value="edit" className="text-gray-900">Editor</SelectItem>
+                            <SelectItem value="manage" className="text-gray-900">Manager</SelectItem>
                           </SelectContent>
                         </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => 
+                            removeUserFromSiteMutation.mutate({
+                              userId: selectedUser!.id,
+                              siteId: userSite.siteId,
+                            })
+                          }
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {availableSites.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-900">Available Sites</h4>
+                {availableSites.map((site) => (
+                  <div key={site.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-4 w-4 text-gray-400" />
+                      <span className="text-gray-700">{site.title}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => 
+                        addUserToSiteMutation.mutate({
+                          userId: selectedUser!.id,
+                          siteId: site.id,
+                          permission: "view",
+                        })
+                      }
+                      className="border-gray-200 text-gray-700 hover:bg-gray-100"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Assign
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!userSites?.length && !availableSites.length && (
+              <div className="text-center py-8 text-gray-500">
+                No sites available to assign
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button onClick={() => setShowSitesDialog(false)} className="bg-white text-black hover:bg-white/90">
-              Done
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

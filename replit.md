@@ -10,6 +10,7 @@ Blog Virality is a multi-tenant content management system (CMS) that operates on
 - Beautiful empty states and loading indicators
 - Hover interactions with elevation effects
 - macOS-inspired design language (SF Pro fonts, glassmorphism, 280-350ms animations)
+- **Light Theme with Darkish Gray Accents**: Apple-style light gray background (#f5f5f7), white cards with subtle blur, gray text hierarchy (gray-900/600/500/400)
 
 ## System Architecture
 The platform is built with a backend using Express.js with TypeScript and a frontend in React with TypeScript. PostgreSQL (Neon) with Drizzle ORM handles data persistence. Authentication is managed via Express-session and bcrypt. AI content generation leverages Replit AI Integrations (GPT-5), and node-cron handles scheduled automation.

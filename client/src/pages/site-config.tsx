@@ -1470,25 +1470,25 @@ export default function SiteConfig() {
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-72 bg-black/80 backdrop-blur-2xl border-r border-white/10 z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200/60 z-40 flex flex-col"
         >
           {/* Sidebar Header */}
-          <div className="p-6 border-b border-white/5">
+          <div className="p-6 border-b border-gray-200/60">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation("/admin/dashboard")}
-                className="rounded-xl bg-white/5 border border-white/10"
+                className="rounded-xl bg-gray-100 border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-200"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-sm tracking-tight text-white" data-testid="text-page-title">
+                <h1 className="font-semibold truncate text-sm tracking-tight text-gray-900" data-testid="text-page-title">
                   {isNewSite ? "New Site" : site?.title || "Site Config"}
                 </h1>
-                <p className="text-xs text-white/50 truncate">
+                <p className="text-xs text-gray-500 truncate">
                   {isNewSite ? "Create new website" : "Configuration"}
                 </p>
               </div>
@@ -1498,7 +1498,7 @@ export default function SiteConfig() {
 
           {/* Navigation */}
           <div className="flex-1 p-4 space-y-1 overflow-y-auto">
-            <p className="text-[10px] font-semibold text-white/30 uppercase tracking-widest px-3 mb-4">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-4">
               Settings
             </p>
             {navItems.map((item, index) => (
@@ -1511,23 +1511,23 @@ export default function SiteConfig() {
                 onClick={() => !item.disabled && handleNavClick(item.id)}
                 disabled={item.disabled}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-300 ${activeSection === item.id
-                  ? "bg-white/10 text-white shadow-lg shadow-white/5 ring-1 ring-white/20"
+                  ? "bg-gray-100 text-gray-900 shadow-sm"
                   : item.disabled
-                    ? "opacity-30 cursor-not-allowed text-white/40"
-                    : "hover-elevate text-white/60 hover:text-white/90"
+                    ? "opacity-30 cursor-not-allowed text-gray-400"
+                    : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                   }`}
                 data-testid={`nav-${item.id}`}
               >
                 <div className={`p-1.5 rounded-lg transition-all duration-300 ${
                   activeSection === item.id 
                     ? "bg-primary/20 text-primary" 
-                    : "bg-white/5 text-white/50"
+                    : "bg-gray-100 text-gray-500"
                 }`}>
                   <item.icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 text-left">
                   <span className="block font-medium">{item.label}</span>
-                  <span className="block text-[11px] text-white/40 leading-tight mt-0.5">{item.description}</span>
+                  <span className="block text-[11px] text-gray-400 leading-tight mt-0.5">{item.description}</span>
                 </div>
                 {activeSection === item.id && (
                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1537,7 +1537,7 @@ export default function SiteConfig() {
           </div>
 
           {/* Save Button at Bottom */}
-          <div className="p-5 border-t border-white/5">
+          <div className="p-5 border-t border-gray-200/60 bg-gray-50/50">
             <Button 
               onClick={handleSave} 
               size="lg"

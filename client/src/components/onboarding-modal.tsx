@@ -287,17 +287,17 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             ease: "easeInOut"
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-40" />
-          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 flex items-center justify-center">
-            <Wand2 className="h-12 w-12 text-white" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-3xl blur-2xl opacity-20" />
+          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-gray-100 to-white backdrop-blur-xl border border-gray-200 flex items-center justify-center shadow-lg">
+            <Wand2 className="h-12 w-12 text-gray-700" />
           </div>
         </motion.div>
         
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight text-white" data-testid="text-onboarding-title">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900" data-testid="text-onboarding-title">
             Welcome to {siteName}
           </h1>
-          <p className="text-lg text-white/60 max-w-lg mx-auto leading-relaxed" data-testid="text-onboarding-description">
+          <p className="text-lg text-gray-500 max-w-lg mx-auto leading-relaxed" data-testid="text-onboarding-description">
             Let's personalize your content engine. This takes just a minute.
           </p>
         </div>
@@ -310,33 +310,33 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
           whileHover={{ scale: 1.02, y: -4 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleMethodSelect("import")}
-          className="group relative overflow-hidden rounded-2xl p-px bg-gradient-to-br from-blue-500/50 via-purple-500/50 to-pink-500/50"
+          className="group relative overflow-hidden rounded-2xl p-px bg-gradient-to-br from-blue-400/50 via-purple-400/50 to-pink-400/50"
           data-testid="card-import-website"
         >
-          <div className="relative h-full rounded-2xl bg-black/90 backdrop-blur-xl p-7 text-left">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="relative h-full rounded-2xl bg-white backdrop-blur-xl p-7 text-left">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             
             <div className="relative space-y-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-all duration-300">
-                  <Scan className="h-7 w-7 text-blue-400" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 border border-gray-200 flex items-center justify-center group-hover:border-blue-200 transition-all duration-300">
+                  <Scan className="h-7 w-7 text-blue-600" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg text-white">Import from Website</h3>
+                    <h3 className="font-semibold text-lg text-gray-900">Import from Website</h3>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-[11px] font-medium text-white/80">
+                  <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-200 text-[11px] font-medium text-gray-700">
                     <Wand2 className="h-3 w-3" />
                     AI-Powered
                   </span>
                 </div>
               </div>
               
-              <p className="text-white/50 text-sm leading-relaxed">
+              <p className="text-gray-500 text-sm leading-relaxed">
                 We'll analyze your existing website and automatically extract all your business information.
               </p>
               
-              <div className="flex items-center text-sm text-blue-400 font-medium pt-1">
+              <div className="flex items-center text-sm text-blue-600 font-medium pt-1">
                 <span>Get started instantly</span>
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </div>
@@ -349,28 +349,28 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
           whileHover={{ scale: 1.02, y: -4 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleMethodSelect("manual")}
-          className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl"
+          className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
           data-testid="card-manual-entry"
         >
           <div className="relative h-full p-7 text-left">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             
             <div className="relative space-y-5">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-all duration-300">
-                  <FormInput className="h-7 w-7 text-white/60" />
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center group-hover:border-gray-300 transition-all duration-300">
+                  <FormInput className="h-7 w-7 text-gray-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-white">Enter Manually</h3>
-                  <span className="text-xs text-white/40 mt-1">~2 minutes</span>
+                  <h3 className="font-semibold text-lg text-gray-900">Enter Manually</h3>
+                  <span className="text-xs text-gray-400 mt-1">~2 minutes</span>
                 </div>
               </div>
               
-              <p className="text-white/50 text-sm leading-relaxed">
+              <p className="text-gray-500 text-sm leading-relaxed">
                 Fill in your business details step by step through a guided process.
               </p>
               
-              <div className="flex items-center text-sm text-white/60 font-medium pt-1 group-hover:text-white/80 transition-colors">
+              <div className="flex items-center text-sm text-gray-600 font-medium pt-1 group-hover:text-gray-900 transition-colors">
                 <span>Start from scratch</span>
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </div>
@@ -389,8 +389,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="w-full max-w-xl mt-5 overflow-hidden"
           >
-            <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-              <Label htmlFor="websiteUrl" className="text-sm font-medium text-white/80 mb-3 block">
+            <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm">
+              <Label htmlFor="websiteUrl" className="text-sm font-medium text-gray-700 mb-3 block">
                 Enter your website URL
               </Label>
               <div className="flex gap-3">
@@ -401,13 +401,13 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
                   disabled={isImporting}
-                  className="h-12 text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+                  className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
                 />
                 <Button 
                   onClick={handleImport} 
                   disabled={isImporting || !websiteUrl.trim()}
                   size="lg"
-                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0"
+                  className="h-12 px-6 rounded-xl"
                   data-testid="button-import-website"
                 >
                   {isImporting ? (
@@ -423,7 +423,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-white/40 mt-3">
+              <p className="text-xs text-gray-400 mt-3">
                 We'll scan your website and extract business information using AI
               </p>
             </div>
@@ -441,14 +441,14 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       className="space-y-8 px-4"
     >
       <motion.div variants={itemVariants} className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-white/10">
-          <Briefcase className="h-8 w-8 text-blue-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 border border-gray-200">
+          <Briefcase className="h-8 w-8 text-blue-600" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
             Tell us about your business
           </h2>
-          <p className="text-white/50 mt-2 max-w-md mx-auto">
+          <p className="text-gray-500 mt-2 max-w-md mx-auto">
             This powers AI to create content that perfectly matches your brand
           </p>
         </div>
@@ -456,10 +456,10 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
       <motion.div variants={itemVariants} className="space-y-6">
         <div className="space-y-3">
-          <Label htmlFor="businessDescription" className="text-sm font-medium text-white/80 flex items-center gap-2">
-            <MessageSquareText className="h-4 w-4 text-white/40" />
+          <Label htmlFor="businessDescription" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <MessageSquareText className="h-4 w-4 text-gray-400" />
             Business Description
-            <span className="text-red-400">*</span>
+            <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="businessDescription"
@@ -468,14 +468,14 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             value={formData.businessDescription}
             onChange={(e) => setFormData({ ...formData, businessDescription: e.target.value })}
             rows={4}
-            className="resize-none text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+            className="resize-none text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
           />
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-3">
-            <Label htmlFor="industry" className="text-sm font-medium text-white/80 flex items-center gap-2">
-              <Factory className="h-4 w-4 text-white/40" />
+            <Label htmlFor="industry" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Factory className="h-4 w-4 text-gray-400" />
               Industry / Niche
             </Label>
             <Input
@@ -484,28 +484,28 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
               placeholder="e.g., SaaS, E-commerce, Healthcare"
               value={formData.industry}
               onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-              className="h-12 text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+              className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
             />
           </div>
 
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-white/80">Brand Voice</Label>
+            <Label className="text-sm font-medium text-gray-700">Brand Voice</Label>
             <Select
               value={formData.brandVoice}
               onValueChange={(value) => setFormData({ ...formData, brandVoice: value })}
             >
               <SelectTrigger 
                 data-testid="select-onboarding-brand-voice" 
-                className="h-12 text-base rounded-xl bg-black/50 border-white/10 text-white focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 focus:border-gray-300 focus:ring-gray-200"
               >
                 <SelectValue placeholder="Select your tone..." />
               </SelectTrigger>
-              <SelectContent className="rounded-xl bg-black/95 backdrop-blur-xl border-white/10">
+              <SelectContent className="rounded-xl bg-white border-gray-200">
                 {BRAND_VOICE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="rounded-lg text-white focus:bg-white/10 focus:text-white">
+                  <SelectItem key={option.value} value={option.value} className="rounded-lg text-gray-900 focus:bg-gray-100">
                     <div className="flex flex-col">
                       <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-white/50">{option.description}</span>
+                      <span className="text-xs text-gray-500">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -515,8 +515,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
         </div>
 
         <div className="space-y-3">
-          <Label htmlFor="valuePropositions" className="text-sm font-medium text-white/80 flex items-center gap-2">
-            <Award className="h-4 w-4 text-white/40" />
+          <Label htmlFor="valuePropositions" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Award className="h-4 w-4 text-gray-400" />
             Value Propositions
           </Label>
           <Textarea
@@ -526,7 +526,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             value={formData.valuePropositions}
             onChange={(e) => setFormData({ ...formData, valuePropositions: e.target.value })}
             rows={3}
-            className="resize-none text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-blue-500/50 focus:ring-blue-500/20"
+            className="resize-none text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
           />
         </div>
       </motion.div>
@@ -541,14 +541,14 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       className="space-y-8 px-4"
     >
       <motion.div variants={itemVariants} className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-white/10">
-          <Heart className="h-8 w-8 text-purple-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-50 border border-gray-200">
+          <Heart className="h-8 w-8 text-purple-600" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
             Who are you targeting?
           </h2>
-          <p className="text-white/50 mt-2 max-w-md mx-auto">
+          <p className="text-gray-500 mt-2 max-w-md mx-auto">
             Understanding your audience helps AI generate more relevant content
           </p>
         </div>
@@ -556,10 +556,10 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
       <motion.div variants={itemVariants} className="space-y-6">
         <div className="space-y-3">
-          <Label htmlFor="targetAudience" className="text-sm font-medium text-white/80 flex items-center gap-2">
-            <Crosshair className="h-4 w-4 text-white/40" />
+          <Label htmlFor="targetAudience" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Crosshair className="h-4 w-4 text-gray-400" />
             Ideal Customer Profile
-            <span className="text-red-400">*</span>
+            <span className="text-red-500">*</span>
           </Label>
           <Textarea
             id="targetAudience"
@@ -568,16 +568,16 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             value={formData.targetAudience}
             onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
             rows={4}
-            className="resize-none text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-purple-500/50 focus:ring-purple-500/20"
+            className="resize-none text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
           />
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-gray-400">
             Example: "Marketing managers at B2B SaaS companies who need to scale content production"
           </p>
         </div>
 
         <div className="space-y-3">
-          <Label htmlFor="competitors" className="text-sm font-medium text-white/80 flex items-center gap-2">
-            <Swords className="h-4 w-4 text-white/40" />
+          <Label htmlFor="competitors" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Swords className="h-4 w-4 text-gray-400" />
             Competitors (Optional)
           </Label>
           <Textarea
@@ -586,8 +586,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             placeholder="List your main competitors to help differentiate your content..."
             value={formData.competitors}
             onChange={(e) => setFormData({ ...formData, competitors: e.target.value })}
-            rows={2}
-            className="resize-none text-base rounded-xl bg-black/50 border-white/10 text-white placeholder:text-white/30 focus:border-purple-500/50 focus:ring-purple-500/20"
+            rows={3}
+            className="resize-none text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
           />
         </div>
       </motion.div>
@@ -602,91 +602,69 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       className="space-y-8 px-4"
     >
       <motion.div variants={itemVariants} className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 border border-white/10">
-          <Rocket className="h-8 w-8 text-green-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-50 border border-gray-200">
+          <Rocket className="h-8 w-8 text-emerald-600" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
             Ready to launch!
           </h2>
-          <p className="text-white/50 mt-2 max-w-md mx-auto">
-            Review your information before we set up your content engine
+          <p className="text-gray-500 mt-2 max-w-md mx-auto">
+            Review your settings and start creating amazing content
           </p>
         </div>
       </motion.div>
 
       <motion.div variants={itemVariants} className="space-y-4">
-        {formData.businessDescription && (
-          <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                <Briefcase className="h-5 w-5 text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">Business</p>
-                <p className="text-white/90">{formData.businessDescription}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {formData.industry && (
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10">
-              <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">Industry</p>
-              <p className="text-white/90">{formData.industry}</p>
-            </div>
-          )}
-          {formData.brandVoice && (
-            <div className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10">
-              <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">Brand Voice</p>
-              <p className="text-white/90 capitalize">{formData.brandVoice}</p>
-            </div>
-          )}
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Business Description</h4>
+          <p className="text-gray-900">{formData.businessDescription || <span className="text-gray-400 italic">Not provided</span>}</p>
         </div>
-
-        {formData.targetAudience && (
-          <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                <Heart className="h-5 w-5 text-purple-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">Target Audience</p>
-                <p className="text-white/90">{formData.targetAudience}</p>
-              </div>
-            </div>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-500 mb-2">Industry</h4>
+            <p className="text-gray-900">{formData.industry || <span className="text-gray-400 italic">Not specified</span>}</p>
           </div>
-        )}
-
-        {formData.valuePropositions && (
-          <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <Award className="h-5 w-5 text-amber-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white/40 uppercase tracking-wider mb-1">Value Propositions</p>
-                <p className="text-white/90">{formData.valuePropositions}</p>
-              </div>
-            </div>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-500 mb-2">Brand Voice</h4>
+            <p className="text-gray-900 capitalize">{formData.brandVoice || <span className="text-gray-400 italic">Not specified</span>}</p>
           </div>
-        )}
+        </div>
+        
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Target Audience</h4>
+          <p className="text-gray-900">{formData.targetAudience || <span className="text-gray-400 italic">Not provided</span>}</p>
+        </div>
       </motion.div>
 
-      {importedData && websiteUrl && (
-        <motion.p variants={itemVariants} className="text-center text-xs text-white/30">
-          Imported from: {websiteUrl}
-        </motion.p>
-      )}
+      <motion.div variants={itemVariants} className="pt-4">
+        <Button 
+          onClick={handleComplete} 
+          disabled={completeMutation.isPending}
+          size="lg"
+          className="w-full h-14 rounded-xl text-base font-medium"
+          data-testid="button-complete-onboarding"
+        >
+          {completeMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Setting up...
+            </>
+          ) : (
+            <>
+              <Check className="mr-2 h-5 w-5" />
+              Complete Setup
+            </>
+          )}
+        </Button>
+      </motion.div>
     </motion.div>
   );
 
-  const renderStepContent = () => {
-    if (!method) {
-      return renderMethodSelection();
-    }
-
+  const renderStep = () => {
+    if (!method) return renderMethodSelection();
+    
     switch (currentStep) {
       case 0:
         return renderMethodSelection();
@@ -697,160 +675,89 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       case 3:
         return renderReview();
       default:
-        return null;
+        return renderMethodSelection();
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl min-h-[650px] max-h-[90vh] overflow-hidden p-0 border-0 bg-transparent shadow-none [&>button]:hidden">
+      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden bg-[#f5f5f7] border border-gray-200">
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
         </VisuallyHidden>
         
-        {/* Main Container with Dark Glassmorphism */}
-        <div className="relative w-full h-full rounded-3xl overflow-hidden bg-black/95 backdrop-blur-3xl border border-white/10 shadow-2xl shadow-black/50">
-          {/* Animated Gradient Background */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <motion.div 
-              className="absolute -top-1/2 -right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-transparent rounded-full blur-3xl"
-              animate={{ 
-                rotate: [0, 360],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{ 
-                rotate: { duration: 60, repeat: Infinity, ease: "linear" },
-                scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
-              }}
-            />
-            <motion.div 
-              className="absolute -bottom-1/3 -left-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-purple-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl"
-              animate={{ 
-                rotate: [360, 0],
-                scale: [1, 1.15, 1],
-              }}
-              transition={{ 
-                rotate: { duration: 50, repeat: Infinity, ease: "linear" },
-                scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
-              }}
-            />
-          </div>
-
-          <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
-            {/* Progress Header */}
-            {method && (
-              <div className="flex-shrink-0 px-8 pt-8 pb-4">
-                <div className="flex items-center justify-center gap-2 mb-5">
-                  {STEPS.map((step, index) => (
-                    <div key={step.id} className="flex items-center">
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-500 ${
-                          index < currentStep
-                            ? "bg-gradient-to-br from-green-500 to-green-600"
-                            : index === currentStep
-                            ? "bg-gradient-to-br from-blue-500 to-purple-500"
-                            : "bg-white/5 border border-white/10"
-                        }`}
-                      >
-                        {index < currentStep ? (
-                          <Check className="h-5 w-5 text-white" />
-                        ) : (
-                          <step.icon className={`h-5 w-5 ${index === currentStep ? "text-white" : "text-white/40"}`} />
-                        )}
-                        {index === currentStep && (
-                          <motion.div
-                            className="absolute inset-0 rounded-xl border-2 border-white/30"
-                            animate={{ scale: [1, 1.15, 1], opacity: [1, 0, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                          />
-                        )}
-                      </motion.div>
-                      {index < STEPS.length - 1 && (
-                        <div className={`w-8 h-0.5 mx-1.5 rounded-full transition-all duration-500 ${
-                          index < currentStep ? "bg-green-500" : "bg-white/10"
-                        }`} />
-                      )}
-                    </div>
-                  ))}
-                </div>
+        {/* Progress bar */}
+        {method && currentStep > 0 && (
+          <div className="border-b border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between max-w-md mx-auto">
+              {STEPS.slice(1).map((step, index) => {
+                const stepIndex = index + 1;
+                const isActive = currentStep === stepIndex;
+                const isCompleted = currentStep > stepIndex;
                 
-                <div className="text-center mb-2">
-                  <p className="text-xs font-medium text-white/40 uppercase tracking-widest">
-                    Step {currentStep + 1} of {STEPS.length}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Content Area */}
-            <div className="flex-1 overflow-y-auto px-8 py-6">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={method ? currentStep : "method"}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                >
-                  {renderStepContent()}
-                </motion.div>
-              </AnimatePresence>
+                return (
+                  <div key={step.id} className="flex items-center">
+                    <div className={`flex items-center gap-2 ${
+                      isActive ? "text-gray-900" : isCompleted ? "text-emerald-600" : "text-gray-400"
+                    }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                        isActive ? "bg-gray-900 text-white" : 
+                        isCompleted ? "bg-emerald-100 text-emerald-600" : 
+                        "bg-gray-100 text-gray-400"
+                      }`}>
+                        {isCompleted ? <Check className="w-4 h-4" /> : stepIndex}
+                      </div>
+                      <span className="text-sm font-medium hidden sm:block">{step.title}</span>
+                    </div>
+                    {index < STEPS.length - 2 && (
+                      <div className={`w-12 h-0.5 mx-2 ${
+                        isCompleted ? "bg-emerald-300" : "bg-gray-200"
+                      }`} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Footer Navigation */}
-            {method && currentStep > 0 && (
-              <div className="flex-shrink-0 px-8 py-6 border-t border-white/5 bg-black/30 backdrop-blur-xl">
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={handleBack}
-                    className="rounded-xl text-white/60 hover:text-white hover:bg-white/10"
-                    data-testid="button-onboarding-back"
-                  >
-                    <ArrowLeft className="mr-2 h-5 w-5" />
-                    Back
-                  </Button>
-
-                  {currentStep < STEPS.length - 1 ? (
-                    <Button 
-                      size="lg" 
-                      onClick={handleNext} 
-                      className="rounded-xl px-8 bg-white/10 hover:bg-white/20 border border-white/10 text-white"
-                      data-testid="button-onboarding-next"
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="lg"
-                      onClick={handleComplete} 
-                      disabled={completeMutation.isPending}
-                      className="rounded-xl px-8 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 border-0 text-white shadow-lg shadow-green-500/25"
-                      data-testid="button-onboarding-complete"
-                    >
-                      {completeMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Launching...
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="mr-2 h-5 w-5" />
-                          Launch Site
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
+        )}
+
+        {/* Content */}
+        <div className="p-6 py-8 min-h-[500px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+        {/* Footer navigation */}
+        {method && currentStep > 0 && currentStep < 3 && (
+          <div className="border-t border-gray-200 bg-white p-4 flex justify-between">
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              className="gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <Button
+              onClick={handleNext}
+              className="gap-2"
+              data-testid="button-next"
+            >
+              Continue
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
