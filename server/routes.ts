@@ -2814,6 +2814,11 @@ Sitemap: ${sitemapUrl}
       const pageTitle = scrapeResult.metadata?.title || "";
       const pageDescription = scrapeResult.metadata?.description || "";
 
+      console.log(`[Onboarding] Scraped content length: ${scrapedContent.length} chars`);
+      console.log(`[Onboarding] Page title: ${pageTitle}`);
+      console.log(`[Onboarding] Page description: ${pageDescription}`);
+      console.log(`[Onboarding] Content preview: ${scrapedContent.slice(0, 500)}...`);
+
       // Use OpenAI to analyze the scraped content and extract business info
       const { getOpenAIClient } = await import("./openai");
       const openai = getOpenAIClient();
@@ -2847,9 +2852,12 @@ If any field cannot be determined from the content, provide a reasonable inferen
         max_completion_tokens: 2048,
       });
 
-      const analysisResult = JSON.parse(response.choices[0].message.content || "{}");
+      const rawContent = response.choices[0].message.content || "{}";
+      console.log(`[Onboarding] OpenAI raw response: ${rawContent}`);
+      const analysisResult = JSON.parse(rawContent);
 
       console.log(`[Onboarding] Successfully analyzed website: ${url}`);
+      console.log(`[Onboarding] Parsed result:`, JSON.stringify(analysisResult, null, 2));
       res.json({
         businessDescription: analysisResult.businessDescription || "",
         targetAudience: analysisResult.targetAudience || "",

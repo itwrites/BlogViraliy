@@ -275,7 +275,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       className="flex flex-col items-center justify-center min-h-[520px] px-6"
     >
       {/* Hero Section */}
-      <motion.div variants={itemVariants} className="text-center space-y-6 mb-14">
+      <motion.div variants={itemVariants} className="text-center space-y-5 mb-10">
         <motion.div 
           className="relative inline-flex"
           animate={{ 
@@ -387,7 +387,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-xl mt-8 overflow-hidden"
+            className="w-full max-w-xl mt-5 overflow-hidden"
           >
             <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
               <Label htmlFor="websiteUrl" className="text-sm font-medium text-white/80 mb-3 block">
