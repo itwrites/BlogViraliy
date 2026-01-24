@@ -1,0 +1,24 @@
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+Unchecked runtime.lastError: Cannot create item with duplicate id LastPass https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id separator https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Add Item https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Add Password https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Add Address https://replit.com/@master85/BlogViraliy
+
+Unchecked runtime.lastError: Cannot create item with duplicate id Add Payment Card https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Add other item https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Save all entered data https://replit.com/@master85/BlogViraliy
+Unchecked runtime.lastError: Cannot create item with duplicate id Generate Secure Password https://replit.com/@master85/BlogViraliy
+workspace_iframe.htm…up&id=%3Ar5g7%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+﻿
