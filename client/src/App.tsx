@@ -18,6 +18,8 @@ import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import EditorAnalytics from "@/pages/editor-analytics";
 import SiteNotFound from "@/pages/site-not-found";
+import OwnerDashboard from "@/pages/owner-dashboard";
+import CheckoutSuccess from "@/pages/checkout-success";
 import { PublicApp } from "@/public-app";
 import type { Site } from "@shared/schema";
 
@@ -27,6 +29,8 @@ function AdminRouter() {
       <Route path="/" component={AdminLogin} />
       <Route path="/signup" component={Signup} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/owner" component={OwnerDashboard} />
+      <Route path="/owner/checkout-success" component={CheckoutSuccess} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={EditorPosts} />
@@ -79,8 +83,8 @@ function RouterSwitch() {
   const browserHostname = window.location.hostname;
   const browserPath = window.location.pathname;
   
-  // Allow signup, pricing and admin paths without domain check
-  if (browserPath.startsWith('/signup') || browserPath.startsWith('/pricing') || browserPath.startsWith('/admin') || browserPath === '/') {
+  // Allow signup, pricing, owner and admin paths without domain check
+  if (browserPath.startsWith('/signup') || browserPath.startsWith('/pricing') || browserPath.startsWith('/owner') || browserPath.startsWith('/admin') || browserPath === '/') {
     return <AdminRouter />;
   }
   

@@ -6,7 +6,7 @@ interface User {
   id: string;
   username: string;
   email: string | null;
-  role: "admin" | "editor";
+  role: "admin" | "editor" | "owner";
   status: string;
 }
 
@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isOwner: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -75,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin",
+    isOwner: user?.role === "owner",
     login,
     logout,
   };
