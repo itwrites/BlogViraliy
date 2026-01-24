@@ -2798,52 +2798,74 @@ Sitemap: ${sitemapUrl}
       const FirecrawlApp = (await import("@mendable/firecrawl-js")).default;
       const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
 
-      // Scrape the URL
+      // Scrape the URL with waitFor to handle JS-rendered content
       console.log(`[Onboarding] Scraping URL: ${url}`);
       const scrapeResult = await firecrawl.scrapeUrl(url, {
-        formats: ["markdown"],
-        onlyMainContent: true,
+        formats: ["markdown", "html"],
+        onlyMainContent: false,
+        waitFor: 3000,
       });
 
-      if (!scrapeResult.success || !scrapeResult.markdown) {
+      if (!scrapeResult.success) {
         console.error("[Onboarding] Firecrawl scrape failed:", scrapeResult);
         return res.status(400).json({ error: "Failed to scrape website content" });
       }
 
-      const scrapedContent = scrapeResult.markdown;
+      // Use markdown if available, otherwise try html
+      const scrapedContent = scrapeResult.markdown || scrapeResult.html || "";
       const pageTitle = scrapeResult.metadata?.title || "";
       const pageDescription = scrapeResult.metadata?.description || "";
+      const ogTitle = scrapeResult.metadata?.ogTitle || "";
+      const ogDescription = scrapeResult.metadata?.ogDescription || "";
+      const keywords = scrapeResult.metadata?.keywords || "";
 
       console.log(`[Onboarding] Scraped content length: ${scrapedContent.length} chars`);
       console.log(`[Onboarding] Page title: ${pageTitle}`);
       console.log(`[Onboarding] Page description: ${pageDescription}`);
-      console.log(`[Onboarding] Content preview: ${scrapedContent.slice(0, 500)}...`);
+      console.log(`[Onboarding] OG title: ${ogTitle}`);
+      console.log(`[Onboarding] OG description: ${ogDescription}`);
+      console.log(`[Onboarding] Keywords: ${keywords}`);
+      console.log(`[Onboarding] Content preview: ${scrapedContent.slice(0, 1000)}...`);
+
+      // If content is too sparse, try to infer from metadata
+      const hasMinimalContent = scrapedContent.length < 100;
 
       // Use OpenAI to analyze the scraped content and extract business info
       const { getOpenAIClient } = await import("./openai");
       const openai = getOpenAIClient();
 
-      const analysisPrompt = `Analyze the following website content and extract business information. 
-The content is from: ${url}
-Page title: ${pageTitle}
-Page description: ${pageDescription}
+      const analysisPrompt = `You are analyzing a website to extract business information for a content management system.
 
-Website Content:
-${scrapedContent.slice(0, 15000)}
+URL: ${url}
+Page Title: ${pageTitle || "Not available"}
+Meta Description: ${pageDescription || "Not available"}
+OG Title: ${ogTitle || "Not available"}
+OG Description: ${ogDescription || "Not available"}
+Keywords: ${keywords || "Not available"}
 
-Based on this content, extract and provide the following information in JSON format:
+Website Content (may be limited if site uses heavy JavaScript):
+${scrapedContent.slice(0, 15000) || "Content could not be extracted"}
+
+IMPORTANT: Even if the content is limited, you MUST provide reasonable inferences based on:
+1. The URL/domain name (e.g., "myserenify.com" suggests wellness/relaxation)
+2. Any available metadata (title, description)
+3. Common patterns for similar business types
+
+You MUST return a valid JSON object with ALL fields filled. Do NOT return empty strings - make reasonable inferences instead.
+
+Return this exact JSON structure with ALL fields populated:
 {
-  "businessDescription": "A clear 1-2 sentence description of what this business/website does",
-  "targetAudience": "Who is the ideal customer/reader for this site (demographics, interests, needs)",
-  "brandVoice": "The tone and style of communication (e.g., professional, casual, authoritative, friendly, technical)",
-  "valuePropositions": "Key benefits or unique selling points offered",
-  "industry": "The market or industry this business operates in",
-  "competitors": "Likely competitors or similar businesses (if identifiable from context)",
-  "suggestedTitle": "A suggested SEO-friendly site title (50-60 chars)",
-  "suggestedMetaDescription": "A suggested meta description for the homepage (150-160 chars)"
+  "businessDescription": "A clear 1-2 sentence description - infer from domain name and any available info",
+  "targetAudience": "Who would visit this site based on its apparent purpose",
+  "brandVoice": "One of: professional, casual, authoritative, friendly, technical, conversational",
+  "valuePropositions": "Likely benefits based on the type of business",
+  "industry": "The market or industry this appears to be in",
+  "competitors": "Similar businesses in this space",
+  "suggestedTitle": "SEO-friendly site title (50-60 chars)",
+  "suggestedMetaDescription": "Meta description for homepage (150-160 chars)"
 }
 
-If any field cannot be determined from the content, provide a reasonable inference or leave as an empty string.`;
+Remember: Provide your best inference for EVERY field - do not leave any empty.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-5",
