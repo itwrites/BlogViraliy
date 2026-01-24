@@ -79,6 +79,7 @@ export default function Signup() {
       if (data.success) {
         toast({ title: "Account created successfully!" });
         setSignupSuccess(true);
+        setIsLoading(false);
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Registration failed";
