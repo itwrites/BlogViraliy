@@ -59,6 +59,9 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
+  
+  // Site ownership
+  getSitesByOwnerId(ownerId: string): Promise<Site[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: string): Promise<void>;
@@ -217,6 +220,10 @@ export class DatabaseStorage implements IStorage {
 
   async getUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+  
+  async getSitesByOwnerId(ownerId: string): Promise<Site[]> {
+    return await db.select().from(sites).where(eq(sites.ownerId, ownerId)).orderBy(desc(sites.createdAt));
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

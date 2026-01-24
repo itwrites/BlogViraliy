@@ -360,6 +360,7 @@ export const sites = pgTable("sites", {
   wizardProgress: integer("wizard_progress").notNull().default(0), // 0=Not started, 5=Completed
   isOnboarded: boolean("is_onboarded").notNull().default(false), // Whether site has completed onboarding flow
   onboardingSourceUrl: text("onboarding_source_url"), // URL that was scraped during onboarding (if any)
+  ownerId: varchar("owner_id").references(() => users.id, { onDelete: "set null" }), // Owner of this site (for plan limit tracking)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

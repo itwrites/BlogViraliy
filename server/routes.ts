@@ -473,6 +473,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Site ID required" });
       }
       
+      // Owners have full access to sites they own
+      if (req.user.role === "owner") {
+        const site = await storage.getSiteById(siteId);
+        if (site?.ownerId === req.user.id) {
+          return next();
+        }
+      }
+      
       const permission = await storage.getUserSitePermission(req.user.id, siteId);
       if (!permission) {
         return res.status(403).json({ error: "You don't have access to this site" });
@@ -1247,7 +1255,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let sites;
       if (req.user?.role === "admin") {
         sites = await storage.getSites();
+      } else if (req.user?.role === "owner") {
+        // Owners see sites they own
+        sites = await storage.getSitesByOwnerId(req.user.id);
       } else {
+        // Editors see sites they have access to
         sites = await storage.getSitesForUser(req.user!.id);
       }
       res.json(sites);
@@ -1270,7 +1282,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // For owners, enforce plan limits
+      if (req.user?.role === "owner") {
+        const user = await storage.getUser(req.user.id);
+        if (!user) {
+          return res.status(401).json({ error: "User not found" });
+        }
+        
+        // Check if user has an active subscription
+        if (!user.subscriptionPlan || user.subscriptionStatus !== "active") {
+          return res.status(403).json({ 
+            error: "Active subscription required to create sites",
+            code: "SUBSCRIPTION_REQUIRED"
+          });
+        }
+        
+        // Get plan limits
+        const { PLAN_LIMITS } = await import("@shared/schema");
+        const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+        if (!planLimits) {
+          return res.status(400).json({ error: "Invalid subscription plan" });
+        }
+        
+        // Check site limit (maxSites -1 means unlimited)
+        if (planLimits.maxSites !== -1) {
+          const ownedSites = await storage.getSitesByOwnerId(req.user.id);
+          if (ownedSites.length >= planLimits.maxSites) {
+            return res.status(403).json({ 
+              error: `Your ${planLimits.name} plan allows up to ${planLimits.maxSites} site(s). Please upgrade to create more.`,
+              code: "SITE_LIMIT_REACHED"
+            });
+          }
+        }
+      }
+      
       const siteData = insertSiteSchema.parse(req.body);
+      
+      // Set ownerId for owner role users
+      if (req.user?.role === "owner") {
+        siteData.ownerId = req.user.id;
+      }
+      
       const site = await storage.createSite(siteData);
       
       // Create default automation configs
@@ -1652,13 +1704,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check site access for non-admins
       if (req.user?.role !== "admin") {
-        const hasAccess = await storage.canUserAccessSite(req.user!.id, postData.siteId);
-        if (!hasAccess) {
-          return res.status(403).json({ error: "You don't have access to this site" });
+        // For owners, check if they own the site
+        if (req.user?.role === "owner") {
+          const site = await storage.getSiteById(postData.siteId);
+          if (!site || site.ownerId !== req.user.id) {
+            return res.status(403).json({ error: "You don't have access to this site" });
+          }
+          
+          // Enforce post limits for owners
+          const user = await storage.getUser(req.user.id);
+          if (!user?.subscriptionPlan || user.subscriptionStatus !== "active") {
+            return res.status(403).json({ 
+              error: "Active subscription required to create posts",
+              code: "SUBSCRIPTION_REQUIRED"
+            });
+          }
+          
+          const { PLAN_LIMITS } = await import("@shared/schema");
+          const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+          if (planLimits && user.postsUsedThisMonth !== null && 
+              user.postsUsedThisMonth >= planLimits.postsPerMonth) {
+            return res.status(403).json({ 
+              error: `You've reached your monthly post limit of ${planLimits.postsPerMonth}. Please upgrade your plan for more posts.`,
+              code: "POST_LIMIT_REACHED"
+            });
+          }
+        } else {
+          const hasAccess = await storage.canUserAccessSite(req.user!.id, postData.siteId);
+          if (!hasAccess) {
+            return res.status(403).json({ error: "You don't have access to this site" });
+          }
         }
       }
       
       const post = await storage.createPost(postData);
+      
+      // Increment post count for owners
+      if (req.user?.role === "owner") {
+        const user = await storage.getUser(req.user.id);
+        if (user) {
+          await storage.updateUser(req.user.id, {
+            postsUsedThisMonth: (user.postsUsedThisMonth || 0) + 1,
+          });
+        }
+      }
+      
       res.json(post);
     } catch (error) {
       res.status(500).json({ error: "Failed to create post" });
