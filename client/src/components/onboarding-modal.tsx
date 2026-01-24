@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
@@ -23,7 +22,10 @@ import {
   Target,
   Sparkles,
   Trophy,
-  FileText
+  FileText,
+  Zap,
+  Clock,
+  ChevronRight
 } from "lucide-react";
 
 interface OnboardingModalProps {
@@ -47,10 +49,10 @@ interface OnboardingData {
 type OnboardingMethod = "import" | "manual" | null;
 
 const STEPS = [
-  { id: "method", title: "Choose Method", icon: Sparkles },
-  { id: "details", title: "Business Details", icon: Building2 },
+  { id: "method", title: "Get Started", icon: Sparkles },
+  { id: "details", title: "Your Business", icon: Building2 },
   { id: "audience", title: "Your Audience", icon: Users },
-  { id: "review", title: "Review & Save", icon: CheckCircle2 },
+  { id: "review", title: "Launch", icon: CheckCircle2 },
 ];
 
 const BRAND_VOICE_OPTIONS = [
@@ -101,8 +103,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       setIsImporting(false);
       setCurrentStep(1);
       toast({
-        title: "Website analyzed",
-        description: "We've extracted your business information. Review and edit as needed.",
+        title: "Website analyzed successfully",
+        description: "We've extracted your business information. Review and customize as needed.",
       });
     },
     onError: (error: Error) => {
@@ -133,8 +135,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
       queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
       toast({
-        title: "Onboarding complete!",
-        description: "Your site is now set up and ready to go.",
+        title: "You're all set!",
+        description: "Your site is configured and ready to create amazing content.",
       });
       onOpenChange(false);
     },
@@ -169,7 +171,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
   const validateStep = (step: number): boolean => {
     switch (step) {
-      case 1: // Business Details
+      case 1:
         if (!formData.businessDescription.trim()) {
           toast({
             title: "Business description required",
@@ -179,7 +181,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
           return false;
         }
         return true;
-      case 2: // Audience
+      case 2:
         if (!formData.targetAudience.trim()) {
           toast({
             title: "Target audience required",
@@ -212,7 +214,6 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
   };
 
   const handleComplete = () => {
-    // Final validation before completing
     if (!formData.businessDescription.trim()) {
       toast({
         title: "Missing information",
@@ -227,175 +228,236 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
-  const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 100 : -100,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
       opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? 100 : -100,
-      opacity: 0,
-    }),
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+    },
+  };
+
+  const slideVariants = {
+    enter: { opacity: 0, x: 40, scale: 0.98 },
+    center: { 
+      opacity: 1, 
+      x: 0, 
+      scale: 1,
+      transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
+    },
+    exit: { 
+      opacity: 0, 
+      x: -40, 
+      scale: 0.98,
+      transition: { duration: 0.3 }
+    },
   };
 
   const renderMethodSelection = () => (
-    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight" data-testid="text-onboarding-title">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col items-center justify-center min-h-[500px] px-4"
+    >
+      <motion.div variants={itemVariants} className="text-center space-y-4 mb-12">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent mb-4">
+          <Sparkles className="h-10 w-10 text-primary" />
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text" data-testid="text-onboarding-title">
           Welcome to {siteName}
-        </h2>
-        <p className="text-muted-foreground max-w-md" data-testid="text-onboarding-description">
-          Let's set up your site. How would you like to get started?
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-md mx-auto" data-testid="text-onboarding-description">
+          Let's personalize your content experience. This takes just a minute.
         </p>
-      </div>
+      </motion.div>
       
-      <div className="grid gap-4 md:grid-cols-2 w-full max-w-2xl">
-        <Card 
-          className="cursor-pointer hover-elevate transition-all duration-200 border-2"
+      <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-2 w-full max-w-2xl">
+        <motion.button
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => handleMethodSelect("import")}
+          className="group relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-primary/5 to-transparent p-8 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10"
           data-testid="card-import-website"
         >
-          <CardContent className="flex flex-col items-center p-6 text-center space-y-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Globe className="h-6 w-6 text-primary" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="relative space-y-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+              <Globe className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Import from Website</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                We'll analyze your existing website and auto-fill your business profile
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-xl">Import from Website</h3>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                  <Zap className="h-3 w-3" />
+                  Recommended
+                </span>
+              </div>
+              <p className="text-muted-foreground">
+                We'll analyze your website and automatically configure everything for you.
               </p>
             </div>
-            <div className="flex items-center text-sm text-primary font-medium">
-              Recommended <Sparkles className="ml-1 h-4 w-4" />
+            <div className="flex items-center text-sm text-primary font-medium pt-2">
+              <span>Get started instantly</span>
+              <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.button>
 
-        <Card 
-          className="cursor-pointer hover-elevate transition-all duration-200 border-2"
+        <motion.button
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => handleMethodSelect("manual")}
+          className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 p-8 text-left transition-all duration-300 hover:border-border hover:shadow-lg"
           data-testid="card-manual-entry"
         >
-          <CardContent className="flex flex-col items-center p-6 text-center space-y-4">
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-              <Pencil className="h-6 w-6 text-muted-foreground" />
+          <div className="relative space-y-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-muted group-hover:bg-muted/80 transition-colors duration-300">
+              <Pencil className="h-7 w-7 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Enter Manually</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Fill in your business details step by step
+              <h3 className="font-semibold text-xl mb-2">Enter Manually</h3>
+              <p className="text-muted-foreground">
+                Fill in your business details step by step through a guided process.
               </p>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Takes about 5 minutes
+            <div className="flex items-center text-sm text-muted-foreground pt-2">
+              <Clock className="mr-1 h-4 w-4" />
+              <span>Takes about 2 minutes</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {method === "import" && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md space-y-4"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="websiteUrl">Your Website URL</Label>
-            <div className="flex gap-2">
-              <Input
-                id="websiteUrl"
-                data-testid="input-website-url"
-                placeholder="https://example.com"
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                disabled={isImporting}
-              />
-              <Button 
-                onClick={handleImport} 
-                disabled={isImporting || !websiteUrl.trim()}
-                data-testid="button-import-website"
-              >
-                {isImporting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    Import
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              We'll scan your website to understand your business and pre-fill the form
-            </p>
           </div>
-        </motion.div>
-      )}
-    </div>
+        </motion.button>
+      </motion.div>
+
+      <AnimatePresence>
+        {method === "import" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="w-full max-w-lg mt-10 overflow-hidden"
+          >
+            <div className="p-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent backdrop-blur-sm">
+              <Label htmlFor="websiteUrl" className="text-base font-medium mb-3 block">
+                Your Website URL
+              </Label>
+              <div className="flex gap-3">
+                <Input
+                  id="websiteUrl"
+                  data-testid="input-website-url"
+                  placeholder="https://yourwebsite.com"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  disabled={isImporting}
+                  className="h-12 text-base rounded-xl border-primary/20 bg-background/50 focus:border-primary"
+                />
+                <Button 
+                  onClick={handleImport} 
+                  disabled={isImporting || !websiteUrl.trim()}
+                  size="lg"
+                  className="h-12 px-6 rounded-xl"
+                  data-testid="button-import-website"
+                >
+                  {isImporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Analyze
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                We'll scan your website and extract business information automatically
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 
   const renderBusinessDetails = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2 mb-8">
-        <h2 className="text-xl font-semibold tracking-tight flex items-center justify-center gap-2">
-          <Building2 className="h-5 w-5" />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 px-2"
+    >
+      <motion.div variants={itemVariants} className="text-center space-y-3">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 mb-2">
+          <Building2 className="h-8 w-8 text-blue-500" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight">
           Tell us about your business
         </h2>
-        <p className="text-muted-foreground">
-          This information helps AI generate content that matches your brand
+        <p className="text-muted-foreground max-w-md mx-auto">
+          This helps our AI create content that perfectly matches your brand
         </p>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="businessDescription">
-            <FileText className="inline h-4 w-4 mr-1" />
+      <motion.div variants={itemVariants} className="space-y-6">
+        <div className="space-y-3">
+          <Label htmlFor="businessDescription" className="text-base font-medium flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
             Business Description
+            <span className="text-destructive">*</span>
           </Label>
           <Textarea
             id="businessDescription"
             data-testid="textarea-onboarding-business-description"
-            placeholder="Describe what your business does, your mission, and what makes you unique..."
+            placeholder="What does your business do? What's your mission? What makes you unique?"
             value={formData.businessDescription}
             onChange={(e) => setFormData({ ...formData, businessDescription: e.target.value })}
             rows={4}
+            className="resize-none text-base rounded-xl border-border/50 focus:border-primary transition-colors"
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="industry">Industry / Niche</Label>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-3">
+            <Label htmlFor="industry" className="text-base font-medium">Industry / Niche</Label>
             <Input
               id="industry"
               data-testid="input-onboarding-industry"
-              placeholder="e.g., SaaS, E-commerce, Healthcare..."
+              placeholder="e.g., SaaS, E-commerce, Healthcare"
               value={formData.industry}
               onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+              className="h-12 text-base rounded-xl border-border/50 focus:border-primary transition-colors"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Brand Voice</Label>
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Brand Voice</Label>
             <Select
               value={formData.brandVoice}
               onValueChange={(value) => setFormData({ ...formData, brandVoice: value })}
             >
-              <SelectTrigger data-testid="select-onboarding-brand-voice">
-                <SelectValue placeholder="Select a tone..." />
+              <SelectTrigger data-testid="select-onboarding-brand-voice" className="h-12 text-base rounded-xl border-border/50 focus:border-primary transition-colors">
+                <SelectValue placeholder="Select your tone..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 {BRAND_VOICE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div>
+                  <SelectItem key={option.value} value={option.value} className="rounded-lg">
+                    <div className="flex flex-col">
                       <span className="font-medium">{option.label}</span>
-                      <span className="text-muted-foreground ml-2">- {option.description}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -404,41 +466,50 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="valuePropositions">
-            <Trophy className="inline h-4 w-4 mr-1" />
+        <div className="space-y-3">
+          <Label htmlFor="valuePropositions" className="text-base font-medium flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-muted-foreground" />
             Value Propositions
           </Label>
           <Textarea
             id="valuePropositions"
             data-testid="textarea-onboarding-value-propositions"
-            placeholder="What makes your offering unique? List your key selling points..."
+            placeholder="What makes your offering unique? What are your key selling points?"
             value={formData.valuePropositions}
             onChange={(e) => setFormData({ ...formData, valuePropositions: e.target.value })}
             rows={3}
+            className="resize-none text-base rounded-xl border-border/50 focus:border-primary transition-colors"
           />
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   const renderAudience = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2 mb-8">
-        <h2 className="text-xl font-semibold tracking-tight flex items-center justify-center gap-2">
-          <Users className="h-5 w-5" />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 px-2"
+    >
+      <motion.div variants={itemVariants} className="text-center space-y-3">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 mb-2">
+          <Users className="h-8 w-8 text-purple-500" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight">
           Who are you targeting?
         </h2>
-        <p className="text-muted-foreground">
-          Understanding your audience helps generate more relevant content
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Understanding your audience helps us generate more relevant content
         </p>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="targetAudience">
-            <Target className="inline h-4 w-4 mr-1" />
-            Target Audience (ICP)
+      <motion.div variants={itemVariants} className="space-y-6">
+        <div className="space-y-3">
+          <Label htmlFor="targetAudience" className="text-base font-medium flex items-center gap-2">
+            <Target className="h-4 w-4 text-muted-foreground" />
+            Ideal Customer Profile
+            <span className="text-destructive">*</span>
           </Label>
           <Textarea
             id="targetAudience"
@@ -447,111 +518,115 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
             value={formData.targetAudience}
             onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
             rows={4}
+            className="resize-none text-base rounded-xl border-border/50 focus:border-primary transition-colors"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Example: "Marketing managers at B2B SaaS companies who need to scale content production"
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="competitors">Competitors</Label>
+        <div className="space-y-3">
+          <Label htmlFor="competitors" className="text-base font-medium">
+            Competitors (Optional)
+          </Label>
           <Textarea
             id="competitors"
             data-testid="textarea-onboarding-competitors"
-            placeholder="List your main competitors (optional)..."
+            placeholder="List your main competitors to help differentiate your content..."
             value={formData.competitors}
             onChange={(e) => setFormData({ ...formData, competitors: e.target.value })}
             rows={2}
+            className="resize-none text-base rounded-xl border-border/50 focus:border-primary transition-colors"
           />
-          <p className="text-xs text-muted-foreground">
-            Helps AI understand your market positioning and differentiate your content
-          </p>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   const renderReview = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2 mb-8">
-        <h2 className="text-xl font-semibold tracking-tight flex items-center justify-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-          Review your information
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 px-2"
+    >
+      <motion.div variants={itemVariants} className="text-center space-y-3">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 mb-2">
+          <CheckCircle2 className="h-8 w-8 text-green-500" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight">
+          You're all set!
         </h2>
-        <p className="text-muted-foreground">
-          Make sure everything looks good before we set up your site
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Review your information and launch your personalized content experience
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-4">
+      <motion.div variants={itemVariants} className="space-y-4">
         {formData.businessDescription && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Business Description</p>
-                  <p className="text-sm text-muted-foreground mt-1">{formData.businessDescription}</p>
-                </div>
+          <div className="p-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-blue-500" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-muted-foreground mb-1">Business Description</p>
+                <p className="text-foreground">{formData.businessDescription}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
           {formData.industry && (
-            <Card>
-              <CardContent className="p-4">
-                <p className="font-medium text-sm">Industry</p>
-                <p className="text-sm text-muted-foreground mt-1">{formData.industry}</p>
-              </CardContent>
-            </Card>
+            <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50">
+              <p className="font-medium text-sm text-muted-foreground mb-1">Industry</p>
+              <p className="text-foreground">{formData.industry}</p>
+            </div>
           )}
           {formData.brandVoice && (
-            <Card>
-              <CardContent className="p-4">
-                <p className="font-medium text-sm">Brand Voice</p>
-                <p className="text-sm text-muted-foreground mt-1 capitalize">{formData.brandVoice}</p>
-              </CardContent>
-            </Card>
+            <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50">
+              <p className="font-medium text-sm text-muted-foreground mb-1">Brand Voice</p>
+              <p className="text-foreground capitalize">{formData.brandVoice}</p>
+            </div>
           )}
         </div>
 
         {formData.targetAudience && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Target Audience</p>
-                  <p className="text-sm text-muted-foreground mt-1">{formData.targetAudience}</p>
-                </div>
+          <div className="p-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <Users className="h-5 w-5 text-purple-500" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-muted-foreground mb-1">Target Audience</p>
+                <p className="text-foreground">{formData.targetAudience}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         {formData.valuePropositions && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Trophy className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Value Propositions</p>
-                  <p className="text-sm text-muted-foreground mt-1">{formData.valuePropositions}</p>
-                </div>
+          <div className="p-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Trophy className="h-5 w-5 text-amber-500" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-muted-foreground mb-1">Value Propositions</p>
+                <p className="text-foreground">{formData.valuePropositions}</p>
+              </div>
+            </div>
+          </div>
         )}
-      </div>
+      </motion.div>
 
       {importedData && websiteUrl && (
-        <div className="text-center text-xs text-muted-foreground">
+        <motion.p variants={itemVariants} className="text-center text-sm text-muted-foreground">
           Imported from: {websiteUrl}
-        </div>
+        </motion.p>
       )}
-    </div>
+    </motion.div>
   );
 
   const renderStepContent = () => {
@@ -575,83 +650,126 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
-        <div className="p-6">
-          {method && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
+      <DialogContent className="max-w-4xl min-h-[600px] max-h-[90vh] overflow-hidden p-0 border-0 bg-transparent shadow-none [&>button]:hidden">
+        <VisuallyHidden>
+          <DialogTitle>Site Onboarding</DialogTitle>
+        </VisuallyHidden>
+        
+        <div className="relative w-full h-full rounded-3xl overflow-hidden bg-background/95 backdrop-blur-2xl border border-border/50 shadow-2xl">
+          {/* Gradient background effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-transparent rounded-full blur-3xl" />
+            <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-purple-500/5 via-transparent to-transparent rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
+            {/* Progress header */}
+            {method && (
+              <div className="flex-shrink-0 px-8 pt-8 pb-4">
+                <div className="flex items-center justify-center gap-3 mb-4">
                   {STEPS.map((step, index) => (
-                    <div
-                      key={step.id}
-                      className={`flex items-center gap-1 text-sm ${
-                        index <= currentStep ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      <step.icon className="h-4 w-4" />
-                      <span className="hidden sm:inline">{step.title}</span>
+                    <div key={step.id} className="flex items-center">
+                      <div
+                        className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                          index < currentStep
+                            ? "bg-primary text-primary-foreground"
+                            : index === currentStep
+                            ? "bg-primary/20 text-primary border-2 border-primary"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {index < currentStep ? (
+                          <CheckCircle2 className="h-5 w-5" />
+                        ) : (
+                          <step.icon className="h-5 w-5" />
+                        )}
+                      </div>
                       {index < STEPS.length - 1 && (
-                        <ArrowRight className="h-3 w-3 mx-1 text-muted-foreground" />
+                        <div className={`w-12 h-0.5 mx-2 rounded-full transition-all duration-300 ${
+                          index < currentStep ? "bg-primary" : "bg-muted"
+                        }`} />
                       )}
                     </div>
                   ))}
                 </div>
+                
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    data-testid="progress-onboarding"
+                  />
+                </div>
               </div>
-              <Progress value={progress} className="h-1" data-testid="progress-onboarding" />
-            </div>
-          )}
+            )}
 
-          <AnimatePresence mode="wait" custom={currentStep}>
-            <motion.div
-              key={method ? currentStep : "method"}
-              custom={1}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-            >
-              {renderStepContent()}
-            </motion.div>
-          </AnimatePresence>
-
-          {method && currentStep > 0 && (
-            <div className="flex items-center justify-between mt-8 pt-4 border-t">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                data-testid="button-onboarding-back"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-
-              {currentStep < STEPS.length - 1 ? (
-                <Button onClick={handleNext} data-testid="button-onboarding-next">
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleComplete} 
-                  disabled={completeMutation.isPending}
-                  data-testid="button-onboarding-complete"
+            {/* Content area */}
+            <div className="flex-1 overflow-y-auto px-8 py-6">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={method ? currentStep : "method"}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
                 >
-                  {completeMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      Complete Setup
-                      <CheckCircle2 className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              )}
+                  {renderStepContent()}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          )}
+
+            {/* Footer navigation */}
+            {method && currentStep > 0 && (
+              <div className="flex-shrink-0 px-8 py-6 border-t border-border/50 bg-background/50 backdrop-blur-sm">
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={handleBack}
+                    className="rounded-xl"
+                    data-testid="button-onboarding-back"
+                  >
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Back
+                  </Button>
+
+                  {currentStep < STEPS.length - 1 ? (
+                    <Button 
+                      size="lg" 
+                      onClick={handleNext} 
+                      className="rounded-xl px-8"
+                      data-testid="button-onboarding-next"
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="lg"
+                      onClick={handleComplete} 
+                      disabled={completeMutation.isPending}
+                      className="rounded-xl px-8 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                      data-testid="button-onboarding-complete"
+                    >
+                      {completeMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Launching...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Launch Site
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
