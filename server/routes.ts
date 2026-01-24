@@ -15,6 +15,7 @@ import { rewriteHtmlForBasePath, rewriteInternalPostLinks, SiteUrlConfig } from 
 import { analyzeRouteForPost } from "./vite";
 import { createPublicApiRouter, generateApiKey } from "./public-api";
 import { searchPexelsImage } from "./pexels";
+import { generateTopicSuggestions } from "./openai";
 
 async function ensureAdminUser() {
   try {
@@ -95,6 +96,10 @@ function isAuthenticatedProxyRequest(req: Request): boolean {
   
   const proxySecret = req.headers["x-bv-proxy-secret"];
   return proxySecret === PROXY_SECRET;
+}
+
+function hasValidBusinessProfile(site: any): boolean {
+  return Boolean(site?.businessDescription && site.businessDescription.trim().length > 0);
 }
 
 declare module "express-session" {
@@ -1299,6 +1304,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/sites/:id/keyword-batches", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
+      const site = await storage.getSiteById(req.params.id);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+
+      if (!hasValidBusinessProfile(site)) {
+        return res.status(400).json({ 
+          error: "Business profile required",
+          message: "Please complete your Business Profile before using AI features. Go to Site Settings > Business Profile.",
+          code: "BUSINESS_PROFILE_REQUIRED"
+        });
+      }
+
       const { keywords, masterPrompt, targetLanguage, pillarId, articleRole } = req.body;
       
       if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
@@ -2498,6 +2516,32 @@ Sitemap: ${sitemapUrl}
   // TOPICAL AUTHORITY ROUTES
   // ========================================
 
+  // Generate AI topic suggestions based on business profile
+  app.post("/api/sites/:id/topic-suggestions", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const site = await storage.getSiteById(siteId);
+      
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      if (!hasValidBusinessProfile(site)) {
+        return res.status(400).json({
+          error: "Business profile required",
+          message: "Please complete your Business Profile before generating topic suggestions.",
+          code: "BUSINESS_PROFILE_REQUIRED"
+        });
+      }
+      
+      const suggestions = await generateTopicSuggestions(site);
+      return res.json({ suggestions });
+    } catch (error: any) {
+      console.error("[Topic Suggestions] Error:", error);
+      return res.status(500).json({ error: error.message || "Failed to generate suggestions" });
+    }
+  });
+
   // Get all pillars for a site
   app.get("/api/sites/:id/pillars", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
@@ -2524,6 +2568,19 @@ Sitemap: ${sitemapUrl}
   // Create a new pillar
   app.post("/api/sites/:id/pillars", requireAuth, requireSiteAccess("id", "edit"), async (req: Request, res: Response) => {
     try {
+      const site = await storage.getSiteById(req.params.id);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+
+      if (!hasValidBusinessProfile(site)) {
+        return res.status(400).json({ 
+          error: "Business profile required",
+          message: "Please complete your Business Profile before using AI features. Go to Site Settings > Business Profile.",
+          code: "BUSINESS_PROFILE_REQUIRED"
+        });
+      }
+
       const parsed = insertPillarSchema.safeParse({
         ...req.body,
         siteId: req.params.id,
@@ -2641,6 +2698,16 @@ Sitemap: ${sitemapUrl}
         }
       }
 
+      // Check business profile before AI generation
+      const site = await storage.getSiteById(pillar.siteId);
+      if (!hasValidBusinessProfile(site)) {
+        return res.status(400).json({ 
+          error: "Business profile required",
+          message: "Please complete your Business Profile before using AI features. Go to Site Settings > Business Profile.",
+          code: "BUSINESS_PROFILE_REQUIRED"
+        });
+      }
+
       // Validate workflow - can only generate map from draft, failed, or mapped (with force flag) status
       const allowedStatuses = ["draft", "failed", "mapped"];
       const { force } = req.body;
@@ -2688,6 +2755,16 @@ Sitemap: ${sitemapUrl}
         if (!hasAccess) {
           return res.status(403).json({ error: "You don't have access to this pillar" });
         }
+      }
+
+      // Check business profile before AI generation
+      const site = await storage.getSiteById(pillar.siteId);
+      if (!hasValidBusinessProfile(site)) {
+        return res.status(400).json({ 
+          error: "Business profile required",
+          message: "Please complete your Business Profile before using AI features. Go to Site Settings > Business Profile.",
+          code: "BUSINESS_PROFILE_REQUIRED"
+        });
       }
 
       if (pillar.status !== "mapped" && pillar.status !== "paused") {

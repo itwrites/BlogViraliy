@@ -208,3 +208,74 @@ export async function generateFromPrompt(prompt: string, keyword: string): Promi
     metaDescription: result.metaDescription || undefined,
   };
 }
+
+export interface TopicSuggestion {
+  id: string;
+  name: string;
+  description: string;
+  packType: string;
+  suggestedArticleCount: number;
+}
+
+export async function generateTopicSuggestions(site: any): Promise<TopicSuggestion[]> {
+  const businessContext = `
+Business: ${site.businessDescription || 'Not specified'}
+Target Audience: ${site.targetAudience || 'Not specified'}
+Industry: ${site.industry || 'Not specified'}
+Brand Voice: ${site.brandVoice || 'Not specified'}
+Value Propositions: ${site.valuePropositions || 'Not specified'}
+Competitors: ${site.competitors || 'Not specified'}
+`;
+
+  const response = await getOpenAIClient().chat.completions.create({
+    model: "gpt-5",
+    messages: [
+      {
+        role: "system",
+        content: `You are an expert SEO content strategist. Generate topic pack suggestions for building topical authority.`
+      },
+      {
+        role: "user",
+        content: `Based on this business profile, suggest 6 high-value topic packs for building topical authority and SEO presence:
+
+${businessContext}
+
+For each suggestion, provide:
+- A clear, specific topic name (pillar topic)
+- A brief description of what the content pack covers
+- Recommended pack type (one of: "authority", "comparison", "local", "product", "funnel")
+- Suggested article count (8-15)
+
+Return JSON array with this structure:
+[
+  {
+    "name": "Topic Name",
+    "description": "What this topic pack covers and why it's valuable for this business",
+    "packType": "authority",
+    "suggestedArticleCount": 10
+  }
+]
+
+Focus on topics that:
+1. Address key pain points of the target audience
+2. Establish expertise in the industry
+3. Target high-intent search queries
+4. Differentiate from competitors`
+      }
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.8,
+  });
+
+  const content = response.choices[0].message.content || "{}";
+  const parsed = JSON.parse(content);
+  const suggestions = (parsed.suggestions || parsed.topics || parsed) as any[];
+  
+  return suggestions.map((s, index) => ({
+    id: `suggestion-${Date.now()}-${index}`,
+    name: s.name,
+    description: s.description,
+    packType: s.packType || "authority",
+    suggestedArticleCount: s.suggestedArticleCount || 10
+  }));
+}

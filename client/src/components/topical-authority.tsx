@@ -29,7 +29,8 @@ import {
   XCircle,
   Clock,
   LayoutGrid,
-  Languages
+  Languages,
+  Sparkles
 } from "lucide-react";
 import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
 import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
@@ -89,6 +90,15 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
   const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
+  const [suggestions, setSuggestions] = useState<Array<{
+    id: string;
+    name: string;
+    description: string;
+    packType: string;
+    suggestedArticleCount: number;
+    used?: boolean;
+  }>>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   
   const [newPillar, setNewPillar] = useState<{
     name: string;
@@ -230,6 +240,34 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
     return Math.round((stats.completed / stats.total) * 100);
   };
 
+  const fetchSuggestions = async () => {
+    setIsLoadingSuggestions(true);
+    try {
+      const response = await apiRequest("POST", `/api/sites/${siteId}/topic-suggestions`);
+      const data = await response.json();
+      setSuggestions(data.suggestions || []);
+      toast({ title: "Suggestions generated", description: `${data.suggestions?.length || 0} topic ideas ready` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  const useSuggestion = (suggestion: typeof suggestions[0]) => {
+    setNewPillar({
+      ...newPillar,
+      name: suggestion.name,
+      description: suggestion.description,
+      packType: suggestion.packType as PackType,
+      targetArticleCount: suggestion.suggestedArticleCount,
+    });
+    setSuggestions(prev => prev.map(s => 
+      s.id === suggestion.id ? { ...s, used: true } : s
+    ));
+    setIsCreateOpen(true);
+  };
+
   if (pillarsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -254,11 +292,85 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
           </Button>
         </CardContent>
       </Card>
+
+      {/* AI Suggestions Section */}
+      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/30">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-500" />
+                AI Topic Suggestions
+              </CardTitle>
+              <CardDescription>
+                Get personalized topic ideas based on your business profile
+              </CardDescription>
+            </div>
+            <Button
+              onClick={fetchSuggestions}
+              disabled={isLoadingSuggestions}
+              variant="outline"
+              className="gap-2"
+              data-testid="button-get-suggestions"
+            >
+              {isLoadingSuggestions ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Get Suggestions
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        {suggestions.length > 0 && (
+          <CardContent className="pt-0">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {suggestions.map((suggestion) => (
+                <div
+                  key={suggestion.id}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                    suggestion.used
+                      ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60"
+                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                  }`}
+                  onClick={() => !suggestion.used && useSuggestion(suggestion)}
+                  data-testid={`suggestion-card-${suggestion.id}`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
+                      {suggestion.name}
+                    </h4>
+                    {suggestion.used ? (
+                      <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                    ) : (
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {suggestion.packType}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                    {suggestion.description}
+                  </p>
+                  <div className="text-xs text-gray-500 dark:text-gray-500">
+                    {suggestion.suggestedArticleCount} articles recommended
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <CardTitle data-testid="text-topical-authority-title">Topical Authority</CardTitle>
+              <CardTitle data-testid="text-topical-authority-title">All Pillars</CardTitle>
               <CardDescription data-testid="text-topical-authority-description">
                 Build SEO authority with pillar-cluster content strategy
               </CardDescription>

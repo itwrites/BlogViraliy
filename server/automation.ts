@@ -15,6 +15,10 @@ function createSlug(title: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function hasValidBusinessProfile(site: Site): boolean {
+  return Boolean(site?.businessDescription && site.businessDescription.trim().length > 0);
+}
+
 export async function processAIAutomation() {
   console.log("[Automation] Running AI content generation...");
   
@@ -25,6 +29,11 @@ export async function processAIAutomation() {
       const aiConfig = await storage.getAiConfigBySiteId(site.id);
       
       if (!aiConfig || !aiConfig.enabled || aiConfig.keywords.length === 0) {
+        continue;
+      }
+
+      if (!hasValidBusinessProfile(site)) {
+        console.log(`[AI] Skipping site ${site.id} - no business profile configured`);
         continue;
       }
 
@@ -85,6 +94,11 @@ export async function processRSSAutomation() {
       const rssConfig = await storage.getRssConfigBySiteId(site.id);
       
       if (!rssConfig || !rssConfig.enabled || rssConfig.feedUrls.length === 0) {
+        continue;
+      }
+
+      if (!hasValidBusinessProfile(site)) {
+        console.log(`[AI] Skipping site ${site.id} - no business profile configured`);
         continue;
       }
 
