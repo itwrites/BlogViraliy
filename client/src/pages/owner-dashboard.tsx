@@ -100,6 +100,15 @@ export default function OwnerDashboard() {
     enabled: isAuthenticated,
   });
 
+  // Redirect unpaid owners to pricing page
+  useEffect(() => {
+    if (!subscriptionLoading && subscriptionData && user?.role === "owner") {
+      if (subscriptionData.status !== "active") {
+        setLocation("/pricing");
+      }
+    }
+  }, [subscriptionLoading, subscriptionData, user?.role, setLocation]);
+
   const { data: sites, isLoading: sitesLoading } = useQuery<Site[]>({
     queryKey: ["/api/sites"],
     enabled: isAuthenticated,
@@ -152,12 +161,26 @@ export default function OwnerDashboard() {
 
   const isLoading = subscriptionLoading || sitesLoading;
 
-  if (authLoading) {
+  // Show loading while checking auth or subscription status
+  // This prevents flash of dashboard content before redirect
+  if (authLoading || (user?.role === "owner" && subscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access for unpaid owners (redirect handled by useEffect above)
+  if (user?.role === "owner" && subscriptionData?.status !== "active") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-500">Redirecting to pricing...</p>
         </div>
       </div>
     );

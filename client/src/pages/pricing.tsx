@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { PLAN_LIMITS } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 type PlanId = "launch" | "growth" | "scale";
 
@@ -30,6 +31,11 @@ const PLAN_ICONS: Record<PlanId, React.ReactNode> = {
   scale: <Building2 className="w-6 h-6" />,
 };
 
+interface SubscriptionResponse {
+  status: string;
+  plan: string | null;
+}
+
 export default function Pricing() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading } = useAuth();
@@ -37,12 +43,30 @@ export default function Pricing() {
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
+  // Check subscription status for owners
+  const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery<SubscriptionResponse>({
+    queryKey: ["/bv_api/subscription"],
+    queryFn: async () => {
+      const res = await fetch("/bv_api/subscription", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch subscription");
+      return res.json();
+    },
+    enabled: !!user && user.role === "owner",
+  });
+
   // Redirect to signup if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
       setLocation("/signup");
     }
   }, [user, authLoading, setLocation]);
+
+  // Redirect to dashboard if already has active subscription
+  useEffect(() => {
+    if (!subscriptionLoading && subscriptionData?.status === "active") {
+      setLocation("/dashboard");
+    }
+  }, [subscriptionLoading, subscriptionData, setLocation]);
 
   const handleGetStarted = async (planId: PlanId) => {
     setLoadingPlan(planId);
@@ -107,7 +131,8 @@ export default function Pricing() {
     },
   };
 
-  if (authLoading) {
+  // Show loading while checking auth or subscription status
+  if (authLoading || (user?.role === "owner" && subscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
         <div className="text-center">
