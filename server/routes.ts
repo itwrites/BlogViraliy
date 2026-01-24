@@ -2769,6 +2769,141 @@ Sitemap: ${sitemapUrl}
     }
   });
 
+  // ============================================
+  // ONBOARDING ENDPOINTS
+  // ============================================
+
+  // Scrape a website and extract business information using Firecrawl + OpenAI
+  app.post("/api/sites/:id/onboarding/scrape", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ error: "URL is required" });
+      }
+
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch {
+        return res.status(400).json({ error: "Invalid URL format" });
+      }
+
+      // Check if Firecrawl API key is configured
+      if (!process.env.FIRECRAWL_API_KEY) {
+        return res.status(500).json({ error: "Firecrawl API key not configured" });
+      }
+
+      // Import Firecrawl dynamically
+      const FirecrawlApp = (await import("@mendable/firecrawl-js")).default;
+      const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+
+      // Scrape the URL
+      console.log(`[Onboarding] Scraping URL: ${url}`);
+      const scrapeResult = await firecrawl.scrapeUrl(url, {
+        formats: ["markdown"],
+        onlyMainContent: true,
+      });
+
+      if (!scrapeResult.success || !scrapeResult.markdown) {
+        console.error("[Onboarding] Firecrawl scrape failed:", scrapeResult);
+        return res.status(400).json({ error: "Failed to scrape website content" });
+      }
+
+      const scrapedContent = scrapeResult.markdown;
+      const pageTitle = scrapeResult.metadata?.title || "";
+      const pageDescription = scrapeResult.metadata?.description || "";
+
+      // Use OpenAI to analyze the scraped content and extract business info
+      const { getOpenAIClient } = await import("./openai");
+      const openai = getOpenAIClient();
+
+      const analysisPrompt = `Analyze the following website content and extract business information. 
+The content is from: ${url}
+Page title: ${pageTitle}
+Page description: ${pageDescription}
+
+Website Content:
+${scrapedContent.slice(0, 15000)}
+
+Based on this content, extract and provide the following information in JSON format:
+{
+  "businessDescription": "A clear 1-2 sentence description of what this business/website does",
+  "targetAudience": "Who is the ideal customer/reader for this site (demographics, interests, needs)",
+  "brandVoice": "The tone and style of communication (e.g., professional, casual, authoritative, friendly, technical)",
+  "valuePropositions": "Key benefits or unique selling points offered",
+  "industry": "The market or industry this business operates in",
+  "competitors": "Likely competitors or similar businesses (if identifiable from context)",
+  "suggestedTitle": "A suggested SEO-friendly site title (50-60 chars)",
+  "suggestedMetaDescription": "A suggested meta description for the homepage (150-160 chars)"
+}
+
+If any field cannot be determined from the content, provide a reasonable inference or leave as an empty string.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [{ role: "user", content: analysisPrompt }],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 2048,
+      });
+
+      const analysisResult = JSON.parse(response.choices[0].message.content || "{}");
+
+      console.log(`[Onboarding] Successfully analyzed website: ${url}`);
+      res.json({
+        businessDescription: analysisResult.businessDescription || "",
+        targetAudience: analysisResult.targetAudience || "",
+        brandVoice: analysisResult.brandVoice || "",
+        valuePropositions: analysisResult.valuePropositions || "",
+        industry: analysisResult.industry || "",
+        competitors: analysisResult.competitors || "",
+        suggestedTitle: analysisResult.suggestedTitle || "",
+        suggestedMetaDescription: analysisResult.suggestedMetaDescription || "",
+      });
+    } catch (error) {
+      console.error("[Onboarding] Error scraping website:", error);
+      res.status(500).json({ error: "Failed to analyze website" });
+    }
+  });
+
+  // Complete site onboarding - save business profile and mark as onboarded
+  app.post("/api/sites/:id/onboarding/complete", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const {
+        businessDescription,
+        targetAudience,
+        brandVoice,
+        valuePropositions,
+        industry,
+        competitors,
+        onboardingSourceUrl,
+      } = req.body;
+
+      // Update the site with business profile and mark as onboarded
+      const updatedSite = await storage.updateSite(siteId, {
+        businessDescription: businessDescription || null,
+        targetAudience: targetAudience || null,
+        brandVoice: brandVoice || null,
+        valuePropositions: valuePropositions || null,
+        industry: industry || null,
+        competitors: competitors || null,
+        isOnboarded: true,
+        onboardingSourceUrl: onboardingSourceUrl || null,
+      });
+
+      if (!updatedSite) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+
+      console.log(`[Onboarding] Site ${siteId} onboarding completed`);
+      res.json(updatedSite);
+    } catch (error) {
+      console.error("[Onboarding] Error completing onboarding:", error);
+      res.status(500).json({ error: "Failed to complete onboarding" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   startAutomationSchedulers();

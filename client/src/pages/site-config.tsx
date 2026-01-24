@@ -31,6 +31,7 @@ import { SeoSection } from "@/components/site-config/SeoSection";
 import { AuthorsSection } from "@/components/site-config/AuthorsSection";
 import { AiSection } from "@/components/site-config/AiSection";
 import { RssSection } from "@/components/site-config/RssSection";
+import { OnboardingModal } from "@/components/onboarding-modal";
 import type { AiConfigState, MenuItemDraft, NewAuthorState, RssConfigState, SiteDataState } from "@/components/site-config/types";
 
 type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business" | "troubleshooting";
@@ -1681,6 +1682,16 @@ export default function SiteConfig() {
           </motion.div>
         </main>
       </div>
+
+      {/* Onboarding Modal - shows when site.isOnboarded is false */}
+      {site && !site.isOnboarded && !isNewSite && (
+        <OnboardingModal
+          open={!site.isOnboarded}
+          onOpenChange={() => {}}
+          siteId={id}
+          siteName={site.title}
+        />
+      )}
     </div>
   );
 }

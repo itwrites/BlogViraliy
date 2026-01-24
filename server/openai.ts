@@ -7,7 +7,7 @@ import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 let openai: OpenAI | null = null;
 
-function getOpenAIClient(): OpenAI {
+export function getOpenAIClient(): OpenAI {
   if (!openai) {
     if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
       throw new Error("OpenAI AI Integrations not configured. Please set up AI Integrations in your Replit project.");
