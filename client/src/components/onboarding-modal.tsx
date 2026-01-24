@@ -167,7 +167,37 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
     }
   };
 
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1: // Business Details
+        if (!formData.businessDescription.trim()) {
+          toast({
+            title: "Business description required",
+            description: "Please provide a description of your business to continue.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      case 2: // Audience
+        if (!formData.targetAudience.trim()) {
+          toast({
+            title: "Target audience required",
+            description: "Please describe your target audience to continue.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
   const handleNext = () => {
+    if (!validateStep(currentStep)) {
+      return;
+    }
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     }
@@ -182,6 +212,16 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
   };
 
   const handleComplete = () => {
+    // Final validation before completing
+    if (!formData.businessDescription.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a business description before completing setup.",
+        variant: "destructive",
+      });
+      setCurrentStep(1);
+      return;
+    }
     completeMutation.mutate();
   };
 
@@ -215,7 +255,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       
       <div className="grid gap-4 md:grid-cols-2 w-full max-w-2xl">
         <Card 
-          className="cursor-pointer hover-elevate transition-all duration-200 border-2 hover:border-primary/50"
+          className="cursor-pointer hover-elevate transition-all duration-200 border-2"
           onClick={() => handleMethodSelect("import")}
           data-testid="card-import-website"
         >
@@ -236,7 +276,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
         </Card>
 
         <Card 
-          className="cursor-pointer hover-elevate transition-all duration-200 border-2 hover:border-primary/50"
+          className="cursor-pointer hover-elevate transition-all duration-200 border-2"
           onClick={() => handleMethodSelect("manual")}
           data-testid="card-manual-entry"
         >

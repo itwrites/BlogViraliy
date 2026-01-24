@@ -24,6 +24,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Admin Dashboard**: Provides secure login, comprehensive site management (CRUD), and configuration for general settings, AI automation, RSS feeds, and post management.
 - **Content Automation**: Configurable AI generation with custom prompts and keyword cycling, and RSS rewriting using AI to ensure content uniqueness, all via scheduled automation.
 - **Business Profile System**: Sites can configure business context (description, target audience, brand voice, value propositions, industry, competitors) that is automatically injected into all AI content generation prompts for brand-aligned content.
+- **Site Onboarding System**: New sites trigger a full-screen onboarding modal with two paths: "Import from Website" (uses Firecrawl to scrape an existing website and OpenAI to extract business information) or "Enter Manually" (step-by-step form). The onboarding flow populates the Business Profile automatically and marks the site as onboarded when complete.
 - **Public Site Themes**: Fifteen distinct themes with customizable templates, fonts, logo sizing, and content width, offering various postcard styles and cross-layout pagination.
 - **Theme Registry System**: Centralized theme definitions with token inheritance and runtime validation, supporting various theme categories.
 - **SPA Shell Architecture**: Seamless client-side navigation without full page reloads for public sites, utilizing a `PublicShell` component and memoized routes.
@@ -53,3 +54,4 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Form Management**: React Hook Form
 - **Validation**: Zod
 - **Animation**: Framer Motion
+- **Web Scraping**: Firecrawl (@mendable/firecrawl-js) for website content extraction during onboarding
