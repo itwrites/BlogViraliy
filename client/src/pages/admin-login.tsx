@@ -8,36 +8,36 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext } from "@/components/base-path-provider";
 import { motion, useReducedMotion } from "framer-motion";
 import { Loader2, LogIn } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login, isAuthenticated, isAdmin, isOwner, user, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isOwner, isLoading: authLoading } = useAuth();
   const siteContext = useSiteContext();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  // Redirect function that handles all user roles
+  // Redirect function for already-authenticated users visiting /login
   const redirectAuthenticatedUser = async () => {
     if (siteContext && siteContext.id) {
       setLocation(`/site/${siteContext.id}`);
     } else if (isAdmin) {
       setLocation("/admin");
-    } else if (isOwner) {
-      setLocation("/owner");
     } else {
-      // Editor - fetch their assigned site and redirect there
+      // Owner or Editor - fetch their site
       try {
-        const res = await apiRequest("GET", "/api/editor/sites");
+        const endpoint = isOwner ? "/api/owner/sites" : "/api/editor/sites";
+        const res = await apiRequest("GET", endpoint);
         const sites = await res.json();
         if (sites && sites.length > 0) {
           setLocation(`/site/${sites[0].id}`);
+        } else if (isOwner) {
+          // Owner with no sites - go to owner dashboard (shouldn't happen normally)
+          setLocation("/owner");
         } else {
-          // No sites assigned, show message
           toast({ 
             title: "No sites assigned", 
             description: "Please contact an administrator to get access to a site.",
@@ -52,26 +52,35 @@ export default function AdminLogin() {
 
   // Redirect if already authenticated (visiting /login with active session)
   useEffect(() => {
-    if (!authLoading && isAuthenticated && !loginSuccess) {
+    if (!authLoading && isAuthenticated) {
       redirectAuthenticatedUser();
     }
   }, [authLoading, isAuthenticated]);
-
-  // Redirect after successful login
-  useEffect(() => {
-    if (loginSuccess && !authLoading && isAuthenticated) {
-      redirectAuthenticatedUser();
-    }
-  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, isOwner, siteContext]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await login(username, password);
-      toast({ title: "Login successful" });
-      setLoginSuccess(true);
+      const res = await apiRequest("POST", "/api/auth/login", { username, password });
+      const data = await res.json();
+      
+      if (data.success) {
+        // Invalidate auth cache
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        
+        toast({ title: "Login successful" });
+        
+        // Redirect based on site info from login response
+        if (data.site?.id) {
+          setLocation(`/site/${data.site.id}`);
+        } else if (data.user?.role === "admin") {
+          setLocation("/admin");
+        } else {
+          // Fallback - should rarely happen
+          setLocation("/owner");
+        }
+      }
     } catch (error) {
       toast({ title: "Login failed", description: "Invalid credentials", variant: "destructive" });
       setIsLoading(false);

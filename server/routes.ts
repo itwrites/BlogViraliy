@@ -512,6 +512,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ success: false, message: "Account is not active" });
       }
 
+      // For owners, check if they have a site - create one if not
+      let userSite = null;
+      if (user.role === "owner") {
+        const sites = await storage.getSitesByOwnerId(user.id);
+        if (sites.length === 0) {
+          // Auto-create a starter site for owner with no sites
+          userSite = await storage.createSite({
+            domain: `${user.username.toLowerCase().replace(/[^a-z0-9]/g, '-')}-site`,
+            title: `${user.username}'s Blog`,
+            tagline: "Welcome to my blog",
+            description: "My personal blog powered by Blog Autopilot",
+            theme: "starter",
+            ownerId: user.id,
+            isOnboarded: false,
+            menuMode: "automatic",
+            siteType: "blog",
+          });
+        } else {
+          userSite = sites[0]; // Return first site
+        }
+      } else if (user.role === "editor") {
+        // For editors, get their first assigned site
+        const sitesWithPermission = await storage.getSitesForUserWithPermission(user.id);
+        if (sitesWithPermission.length > 0) {
+          userSite = sitesWithPermission[0];
+        }
+      }
+
       // Regenerate session to prevent session fixation attacks
       req.session.regenerate((err) => {
         if (err) {
@@ -534,7 +562,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               username: user.username,
               email: user.email,
               role: user.role,
-            }
+            },
+            site: userSite ? { id: userSite.id, isOnboarded: userSite.isOnboarded } : null,
           });
         });
       });
