@@ -23,7 +23,7 @@ export default function AdminLogin() {
   // Redirect function for already-authenticated users visiting /login
   const redirectAuthenticatedUser = async () => {
     if (siteContext && siteContext.id) {
-      setLocation(`/site/${siteContext.id}`);
+      setLocation(`/admin/sites/${siteContext.id}/settings`);
     } else if (isAdmin) {
       setLocation("/admin");
     } else {
@@ -33,7 +33,7 @@ export default function AdminLogin() {
         const res = await apiRequest("GET", endpoint);
         const sites = await res.json();
         if (sites && sites.length > 0) {
-          setLocation(`/site/${sites[0].id}`);
+          setLocation(`/admin/sites/${sites[0].id}/settings`);
         } else if (isOwner) {
           // Owner with no sites - go to owner dashboard (shouldn't happen normally)
           setLocation("/owner");
@@ -73,7 +73,7 @@ export default function AdminLogin() {
         
         // Redirect based on site info from login response
         if (data.site?.id) {
-          setLocation(`/site/${data.site.id}`);
+          setLocation(`/admin/sites/${data.site.id}/settings`);
         } else if (data.user?.role === "admin") {
           setLocation("/admin");
         } else {

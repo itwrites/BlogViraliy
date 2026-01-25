@@ -74,7 +74,7 @@ export default function Signup() {
         setIsLoading(false);
         // Redirect to site config with onboarding for their auto-created site
         if (data.starterSite?.id) {
-          setLocation(`/site/${data.starterSite.id}`);
+          setLocation(`/admin/sites/${data.starterSite.id}/settings`);
         } else {
           // Fallback to owner dashboard if no site was created
           setLocation("/owner");
