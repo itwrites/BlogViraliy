@@ -230,7 +230,7 @@ export default function EditorAnalytics() {
             </p>
             <div className="space-y-1">
               <button
-                onClick={() => setLocation(`/editor/sites/${siteId}/posts`)}
+                onClick={() => setLocation(`/admin/sites/${siteId}/posts`)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
                 data-testid="nav-posts"
               >
@@ -285,7 +285,7 @@ export default function EditorAnalytics() {
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-3"
-                onClick={() => setLocation("/editor")}
+                onClick={() => setLocation("/admin")}
                 data-testid="button-back"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -628,7 +628,7 @@ export default function EditorAnalytics() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer group"
-                          onClick={() => setLocation(`/editor/sites/${siteId}/posts`)}
+                          onClick={() => setLocation(`/admin/sites/${siteId}/posts`)}
                           data-testid={`top-post-${post.id}`}
                         >
                           <span className="text-lg font-bold text-muted-foreground w-6">
@@ -679,7 +679,7 @@ export default function EditorAnalytics() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer group"
-                          onClick={() => setLocation(`/editor/sites/${siteId}/posts`)}
+                          onClick={() => setLocation(`/admin/sites/${siteId}/posts`)}
                           data-testid={`recent-post-${post.id}`}
                         >
                           {post.imageUrl ? (

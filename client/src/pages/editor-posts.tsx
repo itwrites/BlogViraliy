@@ -571,7 +571,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </span>
               </button>
               <button
-                onClick={() => setLocation(`/editor/sites/${siteId}/analytics`)}
+                onClick={() => setLocation(`/admin/sites/${siteId}/analytics`)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                 data-testid="nav-analytics"
               >
@@ -659,7 +659,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             {!hasSiteContext && (
               <Button
                 variant="ghost"
-                onClick={() => setLocation("/editor")}
+                onClick={() => setLocation("/admin")}
                 className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 data-testid="button-back-editor"
               >

@@ -106,14 +106,14 @@ function RouterSwitch() {
     return <SiteNotFound />;
   }
 
-  // Check if we're trying to access admin/editor routes
+  // Check if we're trying to access admin routes
   // The path might include basePath (e.g., /blog/admin), so we need to check both
   const basePath = siteData.site ? normalizeBasePath(siteData.site.basePath) : "";
   const pathWithoutBase = basePath && browserPath.startsWith(basePath) 
     ? browserPath.slice(basePath.length) || "/"
     : browserPath;
   
-  const isAdminPath = pathWithoutBase.startsWith('/admin') || pathWithoutBase.startsWith('/editor');
+  const isAdminPath = pathWithoutBase.startsWith('/admin');
   
   // If accessing from a pure admin domain (no site context)
   if (siteData.isAdmin) {

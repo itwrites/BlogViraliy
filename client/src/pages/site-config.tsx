@@ -1464,7 +1464,7 @@ export default function SiteConfig() {
 
   const handleNavClick = (section: ActiveSection) => {
     if (section === "posts" && id && !isNewSite) {
-      setLocation(`/editor/sites/${id}/posts`);
+      setLocation(`/admin/sites/${id}/posts`);
     } else {
       setActiveSection(section);
     }

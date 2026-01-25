@@ -67,12 +67,12 @@ export default function EditorDashboard() {
 
   useEffect(() => {
     if (siteContext && siteContext.id) {
-      setLocation(`/editor/sites/${siteContext.id}/posts`);
+      setLocation(`/admin/sites/${siteContext.id}/posts`);
     }
   }, [siteContext, setLocation]);
 
   const handleSiteClick = (siteId: string) => {
-    setLocation(`/editor/sites/${siteId}/posts`);
+    setLocation(`/admin/sites/${siteId}/posts`);
   };
 
   const handleLogout = async () => {
