@@ -2,8 +2,14 @@
 import Stripe from 'stripe';
 
 let connectionSettings: any;
+let stripeAvailable: boolean | null = null;
+let credentialsCache: { publishableKey: string; secretKey: string } | null = null;
 
-async function getCredentials() {
+async function getCredentials(): Promise<{ publishableKey: string; secretKey: string } | null> {
+  // Return cached result if available
+  if (credentialsCache) return credentialsCache;
+  if (stripeAvailable === false) return null;
+  
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? 'repl ' + process.env.REPL_IDENTITY
@@ -11,66 +17,90 @@ async function getCredentials() {
       ? 'depl ' + process.env.WEB_REPL_RENEWAL
       : null;
 
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!xReplitToken || !hostname) {
+    const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
+    console.warn(`[Stripe] Warning: Stripe connector not available (missing ${!hostname ? 'hostname' : 'token'}). Payment features will be disabled.`);
+    stripeAvailable = false;
+    return null;
   }
 
   const connectorName = 'stripe';
-
   const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
   const targetEnvironment = isProduction ? 'production' : 'development';
 
-  const url = new URL(`https://${hostname}/api/v2/connection`);
-  url.searchParams.set('include_secrets', 'true');
-  url.searchParams.set('connector_names', connectorName);
-  url.searchParams.set('environment', targetEnvironment);
+  try {
+    const url = new URL(`https://${hostname}/api/v2/connection`);
+    url.searchParams.set('include_secrets', 'true');
+    url.searchParams.set('connector_names', connectorName);
+    url.searchParams.set('environment', targetEnvironment);
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Accept': 'application/json',
-      'X_REPLIT_TOKEN': xReplitToken
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    });
+
+    const data = await response.json();
+    
+    connectionSettings = data.items?.[0];
+
+    if (!connectionSettings || (!connectionSettings.settings?.publishable || !connectionSettings.settings?.secret)) {
+      console.warn(`[Stripe] Warning: Stripe ${targetEnvironment} connection not configured. Payment features will be disabled. Please set up Stripe in the Replit Integrations panel.`);
+      stripeAvailable = false;
+      return null;
     }
-  });
 
-  const data = await response.json();
-  
-  connectionSettings = data.items?.[0];
-
-  if (!connectionSettings || (!connectionSettings.settings.publishable || !connectionSettings.settings.secret)) {
-    throw new Error(`Stripe ${targetEnvironment} connection not found`);
+    credentialsCache = {
+      publishableKey: connectionSettings.settings.publishable,
+      secretKey: connectionSettings.settings.secret,
+    };
+    stripeAvailable = true;
+    console.log(`[Stripe] Successfully connected to Stripe (${targetEnvironment} mode)`);
+    return credentialsCache;
+  } catch (error) {
+    console.warn(`[Stripe] Warning: Failed to fetch Stripe credentials: ${error}. Payment features will be disabled.`);
+    stripeAvailable = false;
+    return null;
   }
-
-  return {
-    publishableKey: connectionSettings.settings.publishable,
-    secretKey: connectionSettings.settings.secret,
-  };
 }
 
-export async function getUncachableStripeClient() {
-  const { secretKey } = await getCredentials();
+export async function isStripeConfigured(): Promise<boolean> {
+  if (stripeAvailable !== null) return stripeAvailable;
+  const creds = await getCredentials();
+  return creds !== null;
+}
 
-  return new Stripe(secretKey, {
-    apiVersion: '2025-08-27.basil',
+export async function getUncachableStripeClient(): Promise<Stripe | null> {
+  const credentials = await getCredentials();
+  if (!credentials) return null;
+
+  return new Stripe(credentials.secretKey, {
+    apiVersion: '2025-11-17.clover',
   });
 }
 
-export async function getStripePublishableKey() {
-  const { publishableKey } = await getCredentials();
-
-  return publishableKey;
+export async function getStripePublishableKey(): Promise<string | null> {
+  const credentials = await getCredentials();
+  return credentials?.publishableKey ?? null;
 }
 
-export async function getStripeSecretKey() {
-  const { secretKey } = await getCredentials();
-  return secretKey;
+export async function getStripeSecretKey(): Promise<string | null> {
+  const credentials = await getCredentials();
+  return credentials?.secretKey ?? null;
 }
 
 let stripeSync: any = null;
 
-export async function getStripeSync() {
+export async function getStripeSync(): Promise<any | null> {
   if (!stripeSync) {
-    const { StripeSync } = await import('stripe-replit-sync');
     const secretKey = await getStripeSecretKey();
+    if (!secretKey) {
+      console.warn('[Stripe] Cannot initialize StripeSync - Stripe credentials not available');
+      return null;
+    }
+    
+    const { StripeSync } = await import('stripe-replit-sync');
 
     stripeSync = new StripeSync({
       poolConfig: {

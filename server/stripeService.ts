@@ -1,11 +1,18 @@
 // Referenced from stripe integration blueprint
-import { getUncachableStripeClient } from './stripeClient';
+import { getUncachableStripeClient, isStripeConfigured } from './stripeClient';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 
 export class StripeService {
+  async isAvailable(): Promise<boolean> {
+    return await isStripeConfigured();
+  }
+
   async createCustomer(email: string, userId: string) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) {
+      throw new Error('Stripe is not configured. Please set up Stripe in the Integrations panel.');
+    }
     return await stripe.customers.create({
       email,
       metadata: { userId },
@@ -14,6 +21,9 @@ export class StripeService {
 
   async createCheckoutSession(customerId: string, priceId: string, successUrl: string, cancelUrl: string) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) {
+      throw new Error('Stripe is not configured. Please set up Stripe in the Integrations panel.');
+    }
     return await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -26,6 +36,9 @@ export class StripeService {
 
   async createCustomerPortalSession(customerId: string, returnUrl: string) {
     const stripe = await getUncachableStripeClient();
+    if (!stripe) {
+      throw new Error('Stripe is not configured. Please set up Stripe in the Integrations panel.');
+    }
     return await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl,
