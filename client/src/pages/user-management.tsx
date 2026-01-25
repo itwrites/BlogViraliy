@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,7 +56,14 @@ interface UserSite {
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user: currentUser, isAdmin } = useAuth();
+  const { user: currentUser, isAdmin, isOwner, isLoading: authLoading } = useAuth();
+  
+  // Redirect owners to owner dashboard - they should not access admin pages
+  useEffect(() => {
+    if (!authLoading && isOwner) {
+      setLocation("/owner");
+    }
+  }, [authLoading, isOwner, setLocation]);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);

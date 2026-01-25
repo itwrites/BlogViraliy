@@ -63,15 +63,20 @@ const cardHover = {
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, isAuthenticated, isAdmin, logout, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, isOwner, logout, isLoading: authLoading } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      setLocation("/");
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        setLocation("/");
+      } else if (isOwner) {
+        // Owners should use the owner dashboard, not admin dashboard
+        setLocation("/owner");
+      }
     }
-  }, [authLoading, isAuthenticated, setLocation]);
+  }, [authLoading, isAuthenticated, isOwner, setLocation]);
 
   const { data: sites, isLoading } = useQuery<Site[]>({
     queryKey: ["/api/sites"],

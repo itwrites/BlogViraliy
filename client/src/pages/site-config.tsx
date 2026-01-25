@@ -32,6 +32,7 @@ import { AuthorsSection } from "@/components/site-config/AuthorsSection";
 import { AiSection } from "@/components/site-config/AiSection";
 import { RssSection } from "@/components/site-config/RssSection";
 import { OnboardingModal } from "@/components/onboarding-modal";
+import { useAuth } from "@/hooks/use-auth";
 import type { AiConfigState, MenuItemDraft, NewAuthorState, RssConfigState, SiteDataState } from "@/components/site-config/types";
 
 type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business" | "troubleshooting";
@@ -1008,7 +1009,15 @@ export default function SiteConfig() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isOwner, isLoading: authLoading } = useAuth();
   const isNewSite = id === "new";
+  
+  // Redirect owners to owner dashboard - they should not access admin pages
+  useEffect(() => {
+    if (!authLoading && isOwner) {
+      setLocation("/owner");
+    }
+  }, [authLoading, isOwner, setLocation]);
 
   const [siteData, setSiteData] = useState<SiteDataState>({
     domain: "",

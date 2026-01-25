@@ -17,15 +17,8 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [signupSuccess, setSignupSuccess] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (signupSuccess && !isLoading) {
-      // Redirect to pricing page after successful signup
-      setLocation("/pricing");
-    }
-  }, [signupSuccess, isLoading, setLocation]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -78,8 +71,9 @@ export default function Signup() {
 
       if (data.success) {
         toast({ title: "Account created successfully!" });
-        setSignupSuccess(true);
         setIsLoading(false);
+        // Redirect to pricing page after successful signup
+        setLocation("/pricing");
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Registration failed";

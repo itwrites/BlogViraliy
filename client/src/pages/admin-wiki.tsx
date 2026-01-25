@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -264,8 +266,17 @@ function SectionContent({ section }: { section: WikiSection }) {
 }
 
 export default function AdminWikiPage() {
+  const [, setLocation] = useLocation();
+  const { isOwner, isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState("overview");
+  
+  // Redirect owners to owner dashboard - they should not access admin pages
+  useEffect(() => {
+    if (!authLoading && isOwner) {
+      setLocation("/owner");
+    }
+  }, [authLoading, isOwner, setLocation]);
 
   const { data: wiki, isLoading } = useQuery<WikiData>({
     queryKey: ["/api/admin/wiki"],

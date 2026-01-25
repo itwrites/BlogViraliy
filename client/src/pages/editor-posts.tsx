@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -166,7 +166,14 @@ export default function EditorPosts() {
   const { id: siteId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, logout } = useAuth();
+  const { user, logout, isOwner, isLoading: authLoading } = useAuth();
+  
+  // Redirect owners to owner dashboard - they should not access admin pages
+  useEffect(() => {
+    if (!authLoading && isOwner) {
+      setLocation("/owner");
+    }
+  }, [authLoading, isOwner, setLocation]);
   const siteContext = useSiteContext();
 
   const [editorOpen, setEditorOpen] = useState(false);
