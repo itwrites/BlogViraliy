@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { TopicalAuthority } from "@/components/topical-authority";
+import { BulkGeneration } from "@/components/bulk-generation";
 import {
   ArrowLeft,
   Plus,
@@ -56,7 +58,11 @@ import {
   AlertCircle,
   CheckCircle,
   Settings,
+  BookOpen,
+  Users,
 } from "lucide-react";
+
+type ActiveTab = "posts" | "topical" | "bulk" | "ai" | "authors";
 import {
   Dialog,
   DialogContent,
@@ -168,14 +174,9 @@ export default function EditorPosts() {
   const { toast } = useToast();
   const { user, logout, isOwner, isLoading: authLoading } = useAuth();
   
-  // Redirect owners to owner dashboard - they should not access admin pages
-  useEffect(() => {
-    if (!authLoading && isOwner) {
-      setLocation("/owner");
-    }
-  }, [authLoading, isOwner, setLocation]);
   const siteContext = useSiteContext();
 
+  const [activeTab, setActiveTab] = useState<ActiveTab>("posts");
   const [editorOpen, setEditorOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
@@ -561,14 +562,39 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </p>
             <div className="space-y-1 mb-4">
               <button
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 bg-gray-100 text-gray-900 shadow-sm"
+                onClick={() => setActiveTab("posts")}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                  activeTab === "posts" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                }`}
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
                 <span className="flex-1 text-left">Posts</span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-700">
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  activeTab === "posts" ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
+                }`}>
                   {stats.total}
                 </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("topical")}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                  activeTab === "topical" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                }`}
+                data-testid="nav-topical"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="flex-1 text-left">Topical Authority</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("bulk")}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                  activeTab === "bulk" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                }`}
+                data-testid="nav-bulk"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="flex-1 text-left">Bulk Generation</span>
               </button>
               <button
                 onClick={() => setLocation(`/admin/sites/${siteId}/analytics`)}
@@ -691,6 +717,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         </motion.aside>
 
         <main className="flex-1 ml-72">
+          {activeTab === "posts" && (
+          <>
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1151,6 +1179,20 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </motion.div>
             )}
           </div>
+          </>
+          )}
+
+          {activeTab === "topical" && siteId && (
+            <div className="p-8">
+              <TopicalAuthority siteId={siteId} />
+            </div>
+          )}
+
+          {activeTab === "bulk" && siteId && (
+            <div className="p-8">
+              <BulkGeneration siteId={siteId} />
+            </div>
+          )}
         </main>
       </div>
 

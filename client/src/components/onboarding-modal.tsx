@@ -722,7 +722,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden bg-[#f5f5f7] border border-gray-200">
+      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 overflow-hidden bg-[#f5f5f7] border border-gray-200">
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
         </VisuallyHidden>
@@ -763,7 +763,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
         )}
 
         {/* Content */}
-        <div className="p-6 py-8 min-h-[500px]">
+        <div className="p-6 py-8 min-h-[500px] overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}

@@ -1446,12 +1446,7 @@ export default function SiteConfig() {
     { id: "navigation", label: "Menu & Navigation", description: "Configure your site's menu", icon: Menu },
     { id: "design", label: "Look & Feel", description: "Theme, branding, colors, and typography", icon: Palette },
     { id: "seo", label: "SEO & Meta", description: "Search engine optimization", icon: Search },
-    { id: "authors", label: "Authors & Team", description: "Manage content creators", icon: Users, disabled: isNewSite },
-    { id: "ai", label: "AI Writing", description: "Automated content generation", icon: Sparkles },
     { id: "rss", label: "RSS Imports", description: "Import from external feeds", icon: Rss },
-    { id: "topical", label: "Topical Authority", description: "Pillar content strategy", icon: BookOpen, disabled: isNewSite },
-    { id: "bulk", label: "Bulk Generation", description: "Create multiple posts", icon: FileText, disabled: isNewSite },
-    { id: "posts", label: "View Posts", description: "Manage your content", icon: Layout, disabled: isNewSite },
     { id: "api", label: "Public API", description: "API access for developers", icon: Key, disabled: isNewSite },
     { id: "troubleshooting", label: "Tools & Debug", description: "Diagnostics and tools", icon: Wrench, disabled: isNewSite },
   ];
