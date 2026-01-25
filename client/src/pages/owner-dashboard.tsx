@@ -468,7 +468,7 @@ export default function OwnerDashboard() {
                   <div
                     data-testid={`card-site-${site.id}`}
                     className="group cursor-pointer bg-white border border-gray-200/60 rounded-2xl h-full flex flex-col overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-300"
-                    onClick={() => setLocation(`/editor/sites/${site.id}/posts`)}
+                    onClick={() => setLocation(`/admin/sites/${site.id}/settings`)}
                   >
                     <div className="p-6 flex-1">
                       <div className="flex items-start justify-between mb-6">

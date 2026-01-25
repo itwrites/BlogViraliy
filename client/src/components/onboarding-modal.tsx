@@ -25,7 +25,8 @@ import {
   Factory,
   Crosshair,
   Swords,
-  Scan
+  Scan,
+  Globe
 } from "lucide-react";
 
 interface OnboardingModalProps {
@@ -131,6 +132,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
         industry: formData.industry,
         competitors: formData.competitors,
         onboardingSourceUrl: method === "import" ? websiteUrl : undefined,
+        siteName: formData.suggestedTitle || undefined,
       };
       const response = await apiRequest("POST", `/api/sites/${siteId}/onboarding/complete`, payload);
       return response.json();
@@ -176,6 +178,14 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
+        if (!formData.suggestedTitle.trim()) {
+          toast({
+            title: "Site name required",
+            description: "Please enter a name for your site to continue.",
+            variant: "destructive",
+          });
+          return false;
+        }
         if (!formData.businessDescription.trim()) {
           toast({
             title: "Business description required",
@@ -218,6 +228,15 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
   };
 
   const handleComplete = () => {
+    if (!formData.suggestedTitle.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a site name before completing setup.",
+        variant: "destructive",
+      });
+      setCurrentStep(1);
+      return;
+    }
     if (!formData.businessDescription.trim()) {
       toast({
         title: "Missing information",
@@ -456,6 +475,23 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
 
       <motion.div variants={itemVariants} className="space-y-6">
         <div className="space-y-3">
+          <Label htmlFor="siteName" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Globe className="h-4 w-4 text-gray-400" />
+            Site Name
+            <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="siteName"
+            data-testid="input-onboarding-site-name"
+            placeholder="My Awesome Blog"
+            value={formData.suggestedTitle}
+            onChange={(e) => setFormData({ ...formData, suggestedTitle: e.target.value })}
+            className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+          />
+          <p className="text-xs text-gray-400">This will be your site's display name</p>
+        </div>
+
+        <div className="space-y-3">
           <Label htmlFor="businessDescription" className="text-sm font-medium text-gray-700 flex items-center gap-2">
             <MessageSquareText className="h-4 w-4 text-gray-400" />
             Business Description
@@ -616,6 +652,11 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName }: Onboar
       </motion.div>
 
       <motion.div variants={itemVariants} className="space-y-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Site Name</h4>
+          <p className="text-gray-900 text-lg font-semibold">{formData.suggestedTitle || <span className="text-gray-400 italic">Not provided</span>}</p>
+        </div>
+
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <h4 className="text-sm font-medium text-gray-500 mb-2">Business Description</h4>
           <p className="text-gray-900">{formData.businessDescription || <span className="text-gray-400 italic">Not provided</span>}</p>

@@ -35,11 +35,10 @@ function AdminRouter() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={EditorPosts} />
       <Route path="/admin/sites/:id/settings" component={SiteConfig} />
+      <Route path="/admin/sites/:id/posts" component={EditorPosts} />
+      <Route path="/admin/sites/:id/analytics" component={EditorAnalytics} />
       <Route path="/admin/users" component={UserManagement} />
       <Route path="/admin/wiki" component={AdminWiki} />
-      <Route path="/editor" component={EditorDashboard} />
-      <Route path="/editor/sites/:id/posts" component={EditorPosts} />
-      <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -65,13 +64,10 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
           <Route path="/admin/dashboard">
             <EditorDashboard />
           </Route>
-          <Route path="/editor">
-            <EditorDashboard />
-          </Route>
           <Route path="/admin/sites/:id" component={EditorPosts} />
           <Route path="/admin/sites/:id/settings" component={SiteConfig} />
-          <Route path="/editor/sites/:id/posts" component={EditorPosts} />
-          <Route path="/editor/sites/:id/analytics" component={EditorAnalytics} />
+          <Route path="/admin/sites/:id/posts" component={EditorPosts} />
+          <Route path="/admin/sites/:id/analytics" component={EditorAnalytics} />
           <Route component={NotFound} />
         </Switch>
       </Router>

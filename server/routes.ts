@@ -3348,10 +3348,11 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         industry,
         competitors,
         onboardingSourceUrl,
+        siteName,
       } = req.body;
 
-      // Update the site with business profile and mark as onboarded
-      const updatedSite = await storage.updateSite(siteId, {
+      // Build update data with business profile and mark as onboarded
+      const updateData: Record<string, unknown> = {
         businessDescription: businessDescription || null,
         targetAudience: targetAudience || null,
         brandVoice: brandVoice || null,
@@ -3360,7 +3361,14 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         competitors: competitors || null,
         isOnboarded: true,
         onboardingSourceUrl: onboardingSourceUrl || null,
-      });
+      };
+      
+      // Update site title if provided from onboarding
+      if (siteName && siteName.trim()) {
+        updateData.title = siteName.trim();
+      }
+
+      const updatedSite = await storage.updateSite(siteId, updateData);
 
       if (!updatedSite) {
         return res.status(404).json({ error: "Site not found" });
