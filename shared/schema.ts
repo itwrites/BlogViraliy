@@ -238,7 +238,7 @@ export const templateSettingsSchema = z.object({
   footerAboutText: z.string().default(""),
   footerShowNavLinks: z.boolean().default(true),
   footerShowSocialIcons: z.boolean().default(true),
-  footerShowPoweredBy: z.boolean().default(true), // Show "Powered by Blog Virality" text
+  footerShowPoweredBy: z.boolean().default(true), // Show "Powered by Blog Autopilot" text
   footerCopyrightText: z.string().default(""),
   // Additional social links for footer
   socialYoutube: z.string().default(""),

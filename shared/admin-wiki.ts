@@ -13,14 +13,14 @@ export interface WikiData {
 }
 
 export const adminWikiData: WikiData = {
-  title: "Blog Virality Documentation",
-  description: "Complete guide to the Blog Virality multi-tenant content management system",
+  title: "Blog Autopilot Documentation",
+  description: "Complete guide to the Blog Autopilot multi-tenant content management system",
   lastUpdated: "2024-12-31",
   sections: [
     {
       id: "overview",
       title: "System Overview",
-      content: `Blog Virality is a multi-tenant content management system (CMS) that operates on a single instance, serving distinct websites based on the incoming domain name. The platform features a centralized admin dashboard and dynamic, customizable public-facing websites.
+      content: `Blog Autopilot is a multi-tenant content management system (CMS) that operates on a single instance, serving distinct websites based on the incoming domain name. The platform features a centralized admin dashboard and dynamic, customizable public-facing websites.
 
 **Key Capabilities:**
 - Domain-based routing for multi-site management
@@ -51,7 +51,7 @@ export const adminWikiData: WikiData = {
     {
       id: "reverse-proxy",
       title: "Reverse Proxy Configuration",
-      content: `When deploying Blog Virality behind a reverse proxy (Cloudflare, Netlify, nginx, etc.), you must configure specific headers and ensure both the blog pages and API endpoints are proxied correctly.`,
+      content: `When deploying Blog Autopilot behind a reverse proxy (Cloudflare, Netlify, nginx, etc.), you must configure specific headers and ensure both the blog pages and API endpoints are proxied correctly.`,
       subsections: [
         {
           id: "required-headers",
@@ -66,7 +66,7 @@ export const adminWikiData: WikiData = {
 | \`X-Forwarded-For\` | IP chain through proxies | \`203.0.113.50, 10.0.0.1\` |
 
 **Important Notes:**
-- \`X-BV-Visitor-Host\` is the domain the visitor sees in their browser (e.g., \`mysite.com\`), NOT the Blog Virality server domain
+- \`X-BV-Visitor-Host\` is the domain the visitor sees in their browser (e.g., \`mysite.com\`), NOT the Blog Autopilot server domain
 - The proxy secret must match the \`PROXY_SECRET\` environment variable on the server
 
 **Host Header Handling (varies by platform):**
@@ -83,7 +83,7 @@ export const adminWikiData: WikiData = {
 - \`/bv_api\` and \`/bv_api/*\` - API endpoints (JSON data)
 
 **Why both are required:**
-1. Initial page loads use SSR (rendered on Blog Virality server)
+1. Initial page loads use SSR (rendered on Blog Autopilot server)
 2. Client-side navigation (clicking links) makes API calls to \`/bv_api/*\`
 3. If only \`/blog/*\` is proxied, clicking links within the blog will fail
 
@@ -123,7 +123,7 @@ export default {
     // IMPORTANT: Never set Host manually in Workers - delete it
     headers.delete("host");
 
-    // Required Blog Virality headers
+    // Required Blog Autopilot headers
     headers.set("X-BV-Visitor-Host", url.hostname);
     headers.set(
       "X-BV-Proxy-Secret",
@@ -778,7 +778,7 @@ Each article role generates appropriate JSON-LD:
     {
       id: "public-api",
       title: "Public API",
-      content: `Blog Virality provides a RESTful public API for external access to your site's content. The API allows third-party applications, mobile apps, and external services to read posts, access topical authority data, and retrieve analytics.
+      content: `Blog Autopilot provides a RESTful public API for external access to your site's content. The API allows third-party applications, mobile apps, and external services to read posts, access topical authority data, and retrieve analytics.
 
 **Base URL:**
 \`https://your-domain.com/bv_api/v1\`

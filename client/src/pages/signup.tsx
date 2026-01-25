@@ -188,7 +188,7 @@ export default function Signup() {
                   Create account
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Join Blog Virality today
+                  Join Blog Autopilot today
                 </p>
               </div>
             </motion.div>

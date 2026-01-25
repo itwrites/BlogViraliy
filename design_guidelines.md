@@ -1,4 +1,4 @@
-# Blog Virality Design Guidelines
+# Blog Autopilot Design Guidelines
 
 ## Design Approach
 

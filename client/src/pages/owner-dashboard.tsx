@@ -224,7 +224,7 @@ export default function OwnerDashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-[15px] font-bold tracking-tight text-gray-900 truncate" data-testid="text-app-title">
-                  Blog Virality
+                  Blog Autopilot
                 </h1>
                 <p className="text-[11px] text-gray-400">Owner Dashboard</p>
               </div>

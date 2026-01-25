@@ -836,7 +836,7 @@ export function DesignSection({ siteData, setSiteData, templateSettings, setTemp
                             </div>
                             <div className="flex items-center justify-between space-x-2 bg-muted/50 p-3 rounded-lg">
                               <div>
-                                <Label htmlFor="footerShowPoweredBy" className="cursor-pointer" data-testid="label-footer-powered-by">Show "Powered by Blog Virality"</Label>
+                                <Label htmlFor="footerShowPoweredBy" className="cursor-pointer" data-testid="label-footer-powered-by">Show "Powered by Blog Autopilot"</Label>
                                 <p className="text-xs text-muted-foreground">Display attribution text in the footer</p>
                               </div>
                               <Switch

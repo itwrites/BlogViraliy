@@ -126,7 +126,7 @@ export default function CheckoutSuccess() {
                 variants={itemVariants}
                 className="text-3xl font-bold tracking-tight text-gray-900 mb-3"
               >
-                Welcome to Blog Virality!
+                Welcome to Blog Autopilot!
               </motion.h1>
 
               <motion.p 

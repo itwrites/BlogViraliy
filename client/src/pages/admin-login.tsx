@@ -128,7 +128,7 @@ export default function AdminLogin() {
                   Welcome back
                 </h1>
                 <p className="text-gray-500 mt-1">
-                  Sign in to Blog Virality
+                  Sign in to Blog Autopilot
                 </p>
               </div>
             </motion.div>
@@ -193,7 +193,7 @@ export default function AdminLogin() {
             className="px-8 py-4 border-t border-gray-100 bg-gray-50/50"
           >
             <p className="text-center text-xs text-gray-400">
-              Blog Virality CMS
+              Blog Autopilot CMS
             </p>
           </motion.div>
         </div>

@@ -439,7 +439,7 @@ export function PublicFooter({ site, topTags = [], onTagClick, mergedSettings }:
           {renderCopyright()}
           {showPoweredBy && (
             <p className="text-xs" style={{ color: textColor }}>
-              {t("poweredBy")} Blog Virality
+              {t("poweredBy")} Blog Autopilot
             </p>
           )}
         </motion.div>

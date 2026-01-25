@@ -74,7 +74,7 @@ export function SetupWizard({ site }: SetupWizardProps) {
                 <div className="p-6 border-b">
                     <div className="flex items-center gap-2 font-bold text-xl mb-1">
                         <span className="bg-primary text-primary-foreground w-8 h-8 rounded-lg flex items-center justify-center">B</span>
-                        Blog Virality
+                        Blog Autopilot
                     </div>
                     <p className="text-xs text-muted-foreground ml-10">Admin Setup</p>
                 </div>

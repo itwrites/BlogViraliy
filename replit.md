@@ -1,7 +1,7 @@
-# Blog Virality - Multi-Domain Content Platform
+# Blog Autopilot - Multi-Domain Content Platform
 
 ## Overview
-Blog Virality is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible themes. The project's ambition is to become a leading platform for scalable, SEO-optimized content delivery across diverse niches.
+Blog Autopilot is a multi-tenant content management system (CMS) that operates on a single Replit instance, serving distinct websites based on the incoming domain name. It features a dual architecture: a centralized admin dashboard and dynamic, customizable public-facing websites. The platform aims to provide complete isolation of content, branding, and navigation for each domain, supporting unlimited independent websites. Key capabilities include domain-based routing, AI-generated and RSS-rewritten content automation, and flexible themes. The project's ambition is to become a leading platform for scalable, SEO-optimized content delivery across diverse niches.
 
 ## User Preferences
 - Clean, modern UI with consistent spacing
