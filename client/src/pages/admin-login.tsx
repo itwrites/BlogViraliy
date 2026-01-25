@@ -12,7 +12,7 @@ import { Loader2, LogIn } from "lucide-react";
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login, isAuthenticated, isAdmin, user, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated, isAdmin, isOwner, user, isLoading: authLoading } = useAuth();
   const siteContext = useSiteContext();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,11 +26,13 @@ export default function AdminLogin() {
         setLocation(`/editor/sites/${siteContext.id}/posts`);
       } else if (isAdmin) {
         setLocation("/admin");
+      } else if (isOwner) {
+        setLocation("/owner");
       } else {
         setLocation("/editor");
       }
     }
-  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, siteContext, setLocation]);
+  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, isOwner, siteContext, setLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
