@@ -1014,12 +1014,6 @@ export default function SiteConfig() {
   const { isOwner, isLoading: authLoading } = useAuth();
   const isNewSite = id === "new";
   
-  // Redirect owners to owner dashboard - they should not access admin pages
-  useEffect(() => {
-    if (!authLoading && isOwner) {
-      setLocation("/owner");
-    }
-  }, [authLoading, isOwner, setLocation]);
 
   const [siteData, setSiteData] = useState<SiteDataState>({
     domain: "",
