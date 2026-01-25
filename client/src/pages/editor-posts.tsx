@@ -59,6 +59,7 @@ import {
   CheckCircle,
   Settings,
   BookOpen,
+  Loader2,
   Users,
 } from "lucide-react";
 
@@ -191,6 +192,9 @@ export default function EditorPosts() {
   const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [csvContent, setCsvContent] = useState("");
   const [csvImporting, setCsvImporting] = useState(false);
+  const [newPostModalOpen, setNewPostModalOpen] = useState(false);
+  const [aiTopicInput, setAiTopicInput] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [csvResult, setCsvResult] = useState<{
     success: boolean;
     imported: number;
@@ -283,6 +287,50 @@ export default function EditorPosts() {
     setEditorOpen(false);
     setCurrentPost(null);
     setFormData({ title: "", content: "", tags: "", imageUrl: "", authorId: "", articleRole: "general" });
+  };
+
+  const handleAiGenerate = async () => {
+    if (!aiTopicInput.trim()) {
+      toast({ title: "Error", description: "Please enter a topic", variant: "destructive" });
+      return;
+    }
+    
+    setAiGenerating(true);
+    try {
+      const res = await apiRequest("POST", `/api/editor/sites/${siteId}/posts/generate-ai`, {
+        topic: aiTopicInput.trim()
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        if (error.code === "BUSINESS_PROFILE_REQUIRED") {
+          toast({ 
+            title: "Business Profile Required", 
+            description: "Please complete your business profile in Settings before generating AI content.", 
+            variant: "destructive" 
+          });
+        } else if (error.code === "POST_LIMIT_EXCEEDED") {
+          toast({ 
+            title: "Post Limit Reached", 
+            description: error.error || "You've reached your post limit. Upgrade to create more posts.", 
+            variant: "destructive" 
+          });
+        } else {
+          throw new Error(error.error || "Failed to generate post");
+        }
+        return;
+      }
+      
+      const post = await res.json();
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+      toast({ title: "Success", description: `AI post "${post.title}" created successfully!` });
+      setNewPostModalOpen(false);
+      setAiTopicInput("");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to generate AI post", variant: "destructive" });
+    } finally {
+      setAiGenerating(false);
+    }
   };
 
   const handleSave = async () => {
@@ -586,24 +634,28 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 <BookOpen className="w-4 h-4" />
                 <span className="flex-1 text-left">Topical Authority</span>
               </button>
-              <button
-                onClick={() => setActiveTab("bulk")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                  activeTab === "bulk" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
-                }`}
-                data-testid="nav-bulk"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span className="flex-1 text-left">Bulk Generation</span>
-              </button>
-              <button
-                onClick={() => setLocation(`/admin/sites/${siteId}/analytics`)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900"
-                data-testid="nav-analytics"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span className="flex-1 text-left">Analytics</span>
-              </button>
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => setActiveTab("bulk")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                    activeTab === "bulk" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  }`}
+                  data-testid="nav-bulk"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span className="flex-1 text-left">Bulk Generation</span>
+                </button>
+              )}
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => setLocation(`/admin/sites/${siteId}/analytics`)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  data-testid="nav-analytics"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="flex-1 text-left">Analytics</span>
+                </button>
+              )}
             </div>
 
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
@@ -642,43 +694,45 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </div>
             </motion.div>
 
-            <div className="pt-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
-                Filter by Source
-              </p>
-              <div className="space-y-1">
-                {[
-                  { value: "all", label: "All Posts", icon: LayoutGrid, count: stats.total },
-                  { value: "manual", label: "Manual", icon: PenLine, count: stats.manual },
-                  { value: "ai", label: "AI Generated", icon: Bot, count: stats.ai },
-                  { value: "rss", label: "RSS Imports", icon: Rss, count: stats.rss },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    onClick={() => {
-                      setSourceFilter(item.value as SourceFilter);
-                      setCurrentPage(1);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                      sourceFilter === item.value
-                        ? "bg-gray-100 text-gray-900 shadow-sm"
-                        : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
-                    }`}
-                    data-testid={`filter-${item.value}`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      sourceFilter === item.value
-                        ? "bg-gray-200 text-gray-700"
-                        : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {item.count}
-                    </span>
-                  </button>
-                ))}
+            {activeTab === "posts" && (
+              <div className="pt-4">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
+                  Filter by Source
+                </p>
+                <div className="space-y-1">
+                  {[
+                    { value: "all", label: "All Posts", icon: LayoutGrid, count: stats.total },
+                    { value: "manual", label: "Manual", icon: PenLine, count: stats.manual },
+                    { value: "ai", label: "AI Generated", icon: Bot, count: stats.ai },
+                    { value: "rss", label: "RSS Imports", icon: Rss, count: stats.rss },
+                  ].map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        setSourceFilter(item.value as SourceFilter);
+                        setCurrentPage(1);
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                        sourceFilter === item.value
+                          ? "bg-gray-100 text-gray-900 shadow-sm"
+                          : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                      }`}
+                      data-testid={`filter-${item.value}`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span className="flex-1 text-left">{item.label}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        sourceFilter === item.value
+                          ? "bg-gray-200 text-gray-700"
+                          : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {item.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="p-4 border-t border-gray-200/60 space-y-2 bg-gray-50/50">
@@ -804,19 +858,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         <CheckSquare className="w-4 h-4 mr-2" />
                         Select
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCsvImportOpen(true)}
-                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        data-testid="button-import-csv"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Import
-                      </Button>
                       <Button 
                         size="sm" 
-                        onClick={() => openEditor()}
+                        onClick={() => setNewPostModalOpen(true)}
                         data-testid="button-new-post"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -1195,6 +1239,91 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           )}
         </main>
       </div>
+
+      <Dialog open={newPostModalOpen} onOpenChange={(open) => { if (!aiGenerating) setNewPostModalOpen(open); }}>
+        <DialogContent className="max-w-md bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-gray-900">Create New Post</DialogTitle>
+            <DialogDescription className="text-gray-500">
+              Choose how you'd like to create your post
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setNewPostModalOpen(false);
+                openEditor();
+              }}
+              className="w-full h-auto flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-left justify-start"
+              data-testid="button-create-manual"
+            >
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <PenLine className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900">Write by Hand</h3>
+                <p className="text-sm text-gray-500">Create a post manually with full control</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">or</span>
+              </div>
+            </div>
+            
+            <div className="p-4 rounded-xl border border-gray-200 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-violet-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">Generate with AI</h3>
+                  <p className="text-sm text-gray-500">Enter a topic and let AI write it</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Input
+                  placeholder="Enter topic (e.g., 'best hiking trails in Colorado')"
+                  value={aiTopicInput}
+                  onChange={(e) => setAiTopicInput(e.target.value)}
+                  disabled={aiGenerating}
+                  className="bg-white border-gray-200"
+                  data-testid="input-ai-topic"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && aiTopicInput.trim() && !aiGenerating) {
+                      handleAiGenerate();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleAiGenerate}
+                  disabled={!aiTopicInput.trim() || aiGenerating}
+                  className="w-full"
+                  data-testid="button-generate-ai"
+                >
+                  {aiGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate Post
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">

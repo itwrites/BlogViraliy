@@ -949,6 +949,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate single AI post
+  app.post("/api/editor/sites/:id/posts/generate-ai", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const { topic } = req.body;
+      
+      if (!topic || typeof topic !== "string") {
+        return res.status(400).json({ error: "Topic is required" });
+      }
+      
+      const cleanTopic = topic.trim();
+      if (cleanTopic.length < 3 || cleanTopic.length > 500) {
+        return res.status(400).json({ error: "Topic must be between 3 and 500 characters" });
+      }
+      
+      // Get site for business context and AI config
+      const site = await storage.getSiteById(siteId);
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      // Check business profile
+      const businessProfile = site.businessProfile as any;
+      if (!businessProfile?.description) {
+        return res.status(400).json({ 
+          error: "Business profile required for AI generation", 
+          code: "BUSINESS_PROFILE_REQUIRED" 
+        });
+      }
+      
+      // Build business context
+      const businessContext = {
+        description: businessProfile.description || "",
+        targetAudience: businessProfile.targetAudience || "",
+        brandVoice: businessProfile.brandVoice || "",
+        valuePropositions: businessProfile.valuePropositions || [],
+        industry: businessProfile.industry || "",
+        competitors: businessProfile.competitors || [],
+      };
+      
+      const aiConfig = site.aiConfig as any || {};
+      const masterPrompt = aiConfig.masterPrompt || "Write an engaging, informative blog post.";
+      const targetLanguage = site.language || "en";
+      
+      // Generate the AI post
+      const { generateAIPost } = await import("./openai");
+      const result = await generateAIPost(masterPrompt, cleanTopic, targetLanguage, businessContext);
+      
+      // Create the post with limit check
+      const postResult = await storage.createPostWithLimitCheck({
+        siteId,
+        title: result.title,
+        content: result.content,
+        slug: result.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        tags: result.tags,
+        imageUrl: result.imageUrl || null,
+        metaTitle: result.metaTitle,
+        metaDescription: result.metaDescription,
+        source: "ai",
+        status: (aiConfig.defaultPostStatus as "published" | "draft") || "published",
+      });
+      
+      if (postResult.error) {
+        return res.status(403).json({ error: postResult.error, code: postResult.code });
+      }
+      
+      res.json(postResult.post);
+    } catch (error) {
+      console.error("AI post generation error:", error);
+      res.status(500).json({ error: "Failed to generate AI post" });
+    }
+  });
+
   // CSV Import for posts
   app.post("/api/editor/sites/:id/posts/import-csv", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
     try {
