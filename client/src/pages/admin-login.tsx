@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext } from "@/components/base-path-provider";
 import { motion, useReducedMotion } from "framer-motion";
 import { Loader2, LogIn } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -20,19 +21,48 @@ export default function AdminLogin() {
   const [loginSuccess, setLoginSuccess] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (loginSuccess && !authLoading && isAuthenticated) {
-      if (siteContext && siteContext.id) {
-        setLocation(`/editor/sites/${siteContext.id}/posts`);
-      } else if (isAdmin) {
-        setLocation("/admin");
-      } else if (isOwner) {
-        setLocation("/owner");
-      } else {
-        setLocation("/editor");
+  // Redirect function that handles all user roles
+  const redirectAuthenticatedUser = async () => {
+    if (siteContext && siteContext.id) {
+      setLocation(`/site/${siteContext.id}`);
+    } else if (isAdmin) {
+      setLocation("/admin");
+    } else if (isOwner) {
+      setLocation("/owner");
+    } else {
+      // Editor - fetch their assigned site and redirect there
+      try {
+        const res = await apiRequest("GET", "/api/editor/sites");
+        const sites = await res.json();
+        if (sites && sites.length > 0) {
+          setLocation(`/site/${sites[0].id}`);
+        } else {
+          // No sites assigned, show message
+          toast({ 
+            title: "No sites assigned", 
+            description: "Please contact an administrator to get access to a site.",
+            variant: "destructive" 
+          });
+        }
+      } catch {
+        setLocation("/");
       }
     }
-  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, isOwner, siteContext, setLocation]);
+  };
+
+  // Redirect if already authenticated (visiting /login with active session)
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !loginSuccess) {
+      redirectAuthenticatedUser();
+    }
+  }, [authLoading, isAuthenticated]);
+
+  // Redirect after successful login
+  useEffect(() => {
+    if (loginSuccess && !authLoading && isAuthenticated) {
+      redirectAuthenticatedUser();
+    }
+  }, [loginSuccess, authLoading, isAuthenticated, isAdmin, isOwner, siteContext]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
