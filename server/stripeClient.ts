@@ -5,6 +5,14 @@ let connectionSettings: any;
 let stripeAvailable: boolean | null = null;
 let credentialsCache: { publishableKey: string; secretKey: string } | null = null;
 
+export function isStripeTestMode(): boolean {
+  return process.env.STRIPE_TEST_MODE === 'true';
+}
+
+function isTestMode(): boolean {
+  return process.env.STRIPE_TEST_MODE === 'true';
+}
+
 async function getCredentials(): Promise<{ publishableKey: string; secretKey: string } | null> {
   // Return cached result if available
   if (credentialsCache) return credentialsCache;
@@ -18,15 +26,16 @@ async function getCredentials(): Promise<{ publishableKey: string; secretKey: st
       : null;
 
   if (!xReplitToken || !hostname) {
-    const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
     console.warn(`[Stripe] Warning: Stripe connector not available (missing ${!hostname ? 'hostname' : 'token'}). Payment features will be disabled.`);
     stripeAvailable = false;
     return null;
   }
 
   const connectorName = 'stripe';
-  const isProduction = process.env.REPLIT_DEPLOYMENT === '1';
-  const targetEnvironment = isProduction ? 'production' : 'development';
+  // Use STRIPE_TEST_MODE env var to determine which credentials to use
+  // If STRIPE_TEST_MODE=true, use development (test) keys
+  // Otherwise, use production (live) keys
+  const targetEnvironment = isTestMode() ? 'development' : 'production';
 
   try {
     const url = new URL(`https://${hostname}/api/v2/connection`);
@@ -56,7 +65,8 @@ async function getCredentials(): Promise<{ publishableKey: string; secretKey: st
       secretKey: connectionSettings.settings.secret,
     };
     stripeAvailable = true;
-    console.log(`[Stripe] Successfully connected to Stripe (${targetEnvironment} mode)`);
+    const modeLabel = isTestMode() ? 'TEST' : 'LIVE';
+    console.log(`[Stripe] Successfully connected to Stripe (${modeLabel} mode, using ${targetEnvironment} credentials)`);
     return credentialsCache;
   } catch (error) {
     console.warn(`[Stripe] Warning: Failed to fetch Stripe credentials: ${error}. Payment features will be disabled.`);
