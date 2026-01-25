@@ -521,7 +521,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userSite = await storage.createSite({
             domain: `${user.username.toLowerCase().replace(/[^a-z0-9]/g, '-')}-site`,
             title: `${user.username}'s Blog`,
-            tagline: "Welcome to my blog",
             description: "My personal blog powered by Blog Autopilot",
             theme: "starter",
             ownerId: user.id,
@@ -643,7 +642,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const starterSite = await storage.createSite({
         domain: `${username.toLowerCase().replace(/[^a-z0-9]/g, '-')}-site`,
         title: `${username}'s Blog`,
-        tagline: "Welcome to my blog",
         description: "My personal blog powered by Blog Autopilot",
         theme: "starter",
         ownerId: user.id,
