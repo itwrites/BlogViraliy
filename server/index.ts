@@ -17,10 +17,8 @@ async function initStripe() {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error(
-      'DATABASE_URL environment variable is required for Stripe integration. ' +
-      'Please create a PostgreSQL database first.'
-    );
+    console.warn('[Stripe] DATABASE_URL not set - skipping Stripe initialization');
+    return;
   }
 
   try {
@@ -32,6 +30,12 @@ async function initStripe() {
     log('Stripe schema ready');
 
     const stripeSync = await getStripeSync();
+    
+    // If Stripe isn't configured, skip webhook and sync setup
+    if (!stripeSync) {
+      console.warn('[Stripe] Stripe credentials not available - payment features disabled');
+      return;
+    }
 
     log('Setting up managed webhook...');
     const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
@@ -48,8 +52,8 @@ async function initStripe() {
         console.error('Error syncing Stripe data:', err);
       });
   } catch (error) {
-    console.error('Failed to initialize Stripe:', error);
-    throw error;
+    // Log the error but don't crash the app - payment features will be disabled
+    console.error('[Stripe] Failed to initialize Stripe (payment features disabled):', error);
   }
 }
 
