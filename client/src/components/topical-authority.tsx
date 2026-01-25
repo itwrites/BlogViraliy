@@ -12,6 +12,8 @@ import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/use-subscription";
+import { PaywallModal } from "@/components/paywall-modal";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Plus, 
@@ -65,6 +67,7 @@ interface PillarDetails extends Pillar {
 
 interface TopicalAuthorityProps {
   siteId: string;
+  onPaywallRequired?: (feature: string) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -85,8 +88,11 @@ const articleStatusIcons: Record<string, JSX.Element> = {
   skipped: <XCircle className="h-3 w-3 text-muted-foreground" />,
 };
 
-export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
+export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthorityProps) {
   const { toast } = useToast();
+  const { canCreateContent, isOwner } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedPillar, setSelectedPillar] = useState<string | null>(null);
   const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
@@ -636,7 +642,12 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      startGenerationMutation.mutate(pillarDetails.id);
+                      if (isOwner && !canCreateContent) {
+                        setPaywallFeature("AI Content Generation");
+                        setShowPaywall(true);
+                      } else {
+                        startGenerationMutation.mutate(pillarDetails.id);
+                      }
                     }}
                     disabled={startGenerationMutation.isPending}
                     data-testid="button-start-generation"
@@ -762,6 +773,13 @@ export function TopicalAuthority({ siteId }: TopicalAuthorityProps) {
         )}
         </>
       )}
+
+      {/* Paywall Modal */}
+      <PaywallModal 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall} 
+        feature={paywallFeature}
+      />
     </div>
   );
 }

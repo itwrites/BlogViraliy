@@ -32,7 +32,9 @@ import { AuthorsSection } from "@/components/site-config/AuthorsSection";
 import { AiSection } from "@/components/site-config/AiSection";
 import { RssSection } from "@/components/site-config/RssSection";
 import { OnboardingModal } from "@/components/onboarding-modal";
+import { PaywallModal } from "@/components/paywall-modal";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import type { AiConfigState, MenuItemDraft, NewAuthorState, RssConfigState, SiteDataState } from "@/components/site-config/types";
 
 type ActiveSection = "general" | "navigation" | "design" | "seo" | "authors" | "ai" | "rss" | "topical" | "bulk" | "posts" | "api" | "business" | "troubleshooting";
@@ -1093,6 +1095,10 @@ export default function SiteConfig() {
   });
 
   const [activeSection, setActiveSection] = useState<ActiveSection>("general");
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState("");
+
+  const { canCreateContent, isOwner: subscriptionOwner } = useSubscription();
 
   const { data: site, isLoading: siteLoading } = useQuery<Site>({
     queryKey: ["/api/sites", id],
@@ -1429,6 +1435,16 @@ export default function SiteConfig() {
     }
   };
 
+  // Paywall check helper function
+  const checkPaywall = (feature: string, action: () => void) => {
+    if (subscriptionOwner && !canCreateContent) {
+      setPaywallFeature(feature);
+      setShowPaywall(true);
+      return;
+    }
+    action();
+  };
+
   // Navigation items for sidebar
   const navItems: { id: ActiveSection; label: string; description: string; icon: typeof Settings; disabled?: boolean }[] = [
     { id: "general", label: "Site Info", description: "Domain, title, and routing", icon: Settings },
@@ -1693,7 +1709,7 @@ export default function SiteConfig() {
       </div>
 
       {/* Onboarding Modal - shows when site.isOnboarded is false */}
-      {site && !site.isOnboarded && !isNewSite && (
+      {site && !site.isOnboarded && !isNewSite && id && (
         <OnboardingModal
           open={!site.isOnboarded}
           onOpenChange={() => {}}
@@ -1701,6 +1717,13 @@ export default function SiteConfig() {
           siteName={site.title}
         />
       )}
+
+      {/* Paywall Modal - shows when user tries to use features without subscription */}
+      <PaywallModal 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall} 
+        feature={paywallFeature}
+      />
     </div>
   );
 }

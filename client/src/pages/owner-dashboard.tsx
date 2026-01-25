@@ -17,9 +17,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { PaywallModal } from "@/components/paywall-modal";
 import type { Site } from "@shared/schema";
 import { PLAN_LIMITS } from "@shared/schema";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface SubscriptionResponse {
   subscription: {
@@ -83,6 +84,7 @@ export default function OwnerDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -101,13 +103,7 @@ export default function OwnerDashboard() {
   });
 
   // Redirect unpaid owners to pricing page
-  useEffect(() => {
-    if (!subscriptionLoading && subscriptionData && user?.role === "owner") {
-      if (subscriptionData.status !== "active") {
-        setLocation("/pricing");
-      }
-    }
-  }, [subscriptionLoading, subscriptionData, user?.role, setLocation]);
+  // No longer redirect to pricing - allow access to dashboard but with paywall on actions
 
   const { data: sites, isLoading: sitesLoading } = useQuery<Site[]>({
     queryKey: ["/api/sites"],
@@ -143,6 +139,12 @@ export default function OwnerDashboard() {
   };
 
   const handleCreateSite = () => {
+    // Check if owner has active subscription
+    if (!hasActiveSubscription) {
+      setShowPaywall(true);
+      return;
+    }
+
     const planKey = subscriptionData?.plan as keyof typeof PLAN_LIMITS | null;
     const maxSites = planKey ? PLAN_LIMITS[planKey]?.maxSites : 0;
     const sitesUsed = sites?.length || 0;
@@ -174,17 +176,9 @@ export default function OwnerDashboard() {
     );
   }
 
-  // Block access for unpaid owners (redirect handled by useEffect above)
-  if (user?.role === "owner" && subscriptionData?.status !== "active") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-500">Redirecting to pricing...</p>
-        </div>
-      </div>
-    );
-  }
+  // Owners can access the dashboard even without active subscription
+  // They will see their sites but paywall will trigger on content creation actions
+  const hasActiveSubscription = subscriptionData?.status === "active";
 
   const planKey = subscriptionData?.plan as keyof typeof PLAN_LIMITS | null;
   const planDetails = planKey ? PLAN_LIMITS[planKey] : null;
@@ -550,6 +544,13 @@ export default function OwnerDashboard() {
           )}
         </main>
       </div>
+
+      {/* Paywall Modal */}
+      <PaywallModal 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall} 
+        feature="Creating Sites"
+      />
     </div>
   );
 }

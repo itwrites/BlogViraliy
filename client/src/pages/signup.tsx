@@ -72,8 +72,13 @@ export default function Signup() {
       if (data.success) {
         toast({ title: "Account created successfully!" });
         setIsLoading(false);
-        // Redirect to pricing page after successful signup
-        setLocation("/pricing");
+        // Redirect to site config with onboarding for their auto-created site
+        if (data.starterSite?.id) {
+          setLocation(`/site/${data.starterSite.id}`);
+        } else {
+          // Fallback to owner dashboard if no site was created
+          setLocation("/owner");
+        }
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Registration failed";

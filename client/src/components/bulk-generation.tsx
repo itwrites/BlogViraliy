@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/use-subscription";
+import { PaywallModal } from "@/components/paywall-modal";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Upload, Play, X, Clock, CheckCircle, XCircle, Loader2, Trash2, Languages, Link2, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,10 +33,13 @@ interface BatchWithJobs extends KeywordBatch {
 
 interface BulkGenerationProps {
   siteId: string;
+  onPaywallRequired?: (feature: string) => void;
 }
 
-export function BulkGeneration({ siteId }: BulkGenerationProps) {
+export function BulkGeneration({ siteId, onPaywallRequired }: BulkGenerationProps) {
   const { toast } = useToast();
+  const { canCreateContent, isOwner } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
   const [keywordsInput, setKeywordsInput] = useState("");
   const [masterPrompt, setMasterPrompt] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("en");
@@ -105,6 +110,12 @@ export function BulkGeneration({ siteId }: BulkGenerationProps) {
   });
 
   const handleSubmit = () => {
+    // Check paywall for owners without subscription
+    if (isOwner && !canCreateContent) {
+      setShowPaywall(true);
+      return;
+    }
+
     const keywords = keywordsInput
       .split("\n")
       .map((k) => k.trim())
@@ -450,6 +461,13 @@ coffee grinder reviews
           )}
         </CardContent>
       </Card>
+
+      {/* Paywall Modal */}
+      <PaywallModal 
+        open={showPaywall} 
+        onOpenChange={setShowPaywall} 
+        feature="Bulk Content Generation"
+      />
     </div>
   );
 }

@@ -610,6 +610,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
       });
 
+      // Auto-create a starter site for the new owner
+      const starterSite = await storage.createSite({
+        domain: `${username.toLowerCase().replace(/[^a-z0-9]/g, '-')}-site`,
+        title: `${username}'s Blog`,
+        tagline: "Welcome to my blog",
+        description: "My personal blog powered by Blog Autopilot",
+        theme: "starter",
+        ownerId: user.id,
+        isOnboarded: false, // Will trigger onboarding modal
+        menuMode: "automatic",
+        siteType: "blog",
+      });
+
       // Log the user in after registration
       req.session.regenerate((err) => {
         if (err) {
@@ -631,6 +644,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               username: user.username,
               email: user.email,
               role: user.role,
+            },
+            // Return the starter site so frontend can redirect to onboarding
+            starterSite: {
+              id: starterSite.id,
+              domain: starterSite.domain,
+              title: starterSite.title,
             },
           });
         });
