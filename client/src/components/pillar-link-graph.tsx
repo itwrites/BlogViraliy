@@ -296,10 +296,10 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Network className="h-5 w-5" />
-            Link Structure
+            Growth Logic Map
           </CardTitle>
           <CardDescription>
-            No articles to visualize. Generate the topical map first.
+            No assets to visualize. Build the authority map first.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -320,10 +320,10 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
           <div>
             <CardTitle className="flex items-center gap-2" data-testid="text-link-graph-title">
               <Network className="h-5 w-5" />
-              Projected Link Structure
+              Projected Growth Logic
             </CardTitle>
             <CardDescription data-testid="text-link-graph-description">
-              {nodes.length} articles with planned connections based on {packDefinitions[pillar.packType as PackType]?.name || pillar.packType} rules. Actual links are created during content generation.
+              {nodes.length} assets with planned connections based on {packDefinitions[pillar.packType as PackType]?.name || pillar.packType} growth logic. Actual links are created during production.
             </CardDescription>
           </div>
           <div className="flex items-center gap-1">
@@ -485,16 +485,21 @@ export function PillarLinkGraph({ pillar, articles }: PillarLinkGraphProps) {
 
         {Object.keys(linkStats.roleConnections).length > 0 && (
           <div className="mt-4 pt-4 border-t">
-            <h4 className="text-sm font-medium mb-2">Link Patterns</h4>
+            <h4 className="text-sm font-medium mb-2">Growth Patterns</h4>
             <div className="flex flex-wrap gap-2">
               {Object.entries(linkStats.roleConnections)
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, 6)
-                .map(([connection, count]) => (
-                  <Badge key={connection} variant="secondary" className="text-xs">
-                    {connection}: {count}
-                  </Badge>
-                ))}
+                .map(([connection, count]) => {
+                  const [fromRole, toRole] = connection.split(" -> ");
+                  const fromLabel = articleRoleDisplayNames[fromRole as ArticleRole] || fromRole;
+                  const toLabel = articleRoleDisplayNames[toRole as ArticleRole] || toRole;
+                  return (
+                    <Badge key={connection} variant="secondary" className="text-xs">
+                      {fromLabel} → {toLabel}: {count}
+                    </Badge>
+                  );
+                })}
             </div>
           </div>
         )}

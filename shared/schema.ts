@@ -590,50 +590,50 @@ export type ArticleRole = z.infer<typeof articleRoleEnum>;
 
 // Article Role display names
 export const articleRoleDisplayNames: Record<ArticleRole, string> = {
-  pillar: "Pillar Article",
-  support: "Support Article",
-  long_tail: "Long-tail Article",
-  rankings: "Rankings List",
-  best_of: "Best-of Roundup",
-  comparison: "Comparison",
-  review: "Review",
-  conversion: "Conversion Page",
+  pillar: "Core Authority Page",
+  support: "Support Page",
+  long_tail: "Opportunity Page",
+  rankings: "Comparison Guide",
+  best_of: "Buyer Guide",
+  comparison: "Head-to-Head Comparison",
+  review: "Product Review",
+  conversion: "Landing Page",
   case_study: "Case Study",
-  benchmark: "Benchmark",
+  benchmark: "Industry Benchmark",
   framework: "Framework",
   whitepaper: "Whitepaper",
   how_to: "How-to Guide",
   faq: "FAQ",
-  listicle: "Listicle",
-  news: "News Article",
-  general: "General Article",
+  listicle: "List Guide",
+  news: "News Update",
+  general: "General Asset",
 };
 
 // Pack display names and descriptions
 export const packTypeDisplayNames: Record<PackType, { name: string; description: string }> = {
   quick_seo: {
-    name: "Quick SEO Pack",
-    description: "All articles link to a central 'What is X' pillar page, forming a basic topical hub.",
+    name: "Fast Visibility",
+    description: "Rapid authority launch centered on a core authority page with supporting assets.",
   },
   traffic_boost: {
-    name: "Traffic Boost Pack",
-    description: "Long-tail articles link to rankings; rankings link to yearly best-of pages.",
+    name: "Traffic Accelerator",
+    description: "Opportunity pages feed comparison and buyer guides to expand discovery.",
   },
   buyer_intent: {
-    name: "Buyer Intent Pack",
-    description: "Comparisons link to reviews, which link to conversion pages for maximum purchase intent.",
+    name: "Revenue Focus",
+    description: "Head-to-head comparisons feed product reviews and landing pages for higher conversion.",
   },
   authority: {
-    name: "Authority Pack",
-    description: "Case studies and benchmarks link upward to frameworks and whitepapers for thought leadership.",
+    name: "Market Leadership",
+    description: "Case studies and industry benchmarks elevate frameworks and whitepapers for credibility.",
   },
   full_coverage: {
-    name: "Full Coverage Pack",
-    description: "Hub-and-spoke model where all satellite articles link to the main pillar and back.",
+    name: "Total Market Coverage",
+    description: "Full-spectrum coverage where every asset connects back to the core authority page.",
   },
   custom: {
-    name: "Custom Pack",
-    description: "Define your own linking rules and article roles.",
+    name: "Custom Strategy",
+    description: "Design your own growth logic, asset mix, and automation behavior.",
   },
 };
 

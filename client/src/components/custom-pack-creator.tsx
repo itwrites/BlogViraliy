@@ -32,16 +32,16 @@ interface CustomPackCreatorProps {
 }
 
 const ANCHOR_PATTERNS: { id: AnchorPattern; label: string }[] = [
-  { id: "exact", label: "Exact Match" },
-  { id: "partial", label: "Partial Match" },
-  { id: "semantic", label: "Semantic" },
-  { id: "action", label: "Action-oriented" },
-  { id: "list", label: "List-style" },
+  { id: "exact", label: "Exact Phrase" },
+  { id: "partial", label: "Partial Phrase" },
+  { id: "semantic", label: "Related" },
+  { id: "action", label: "Action" },
+  { id: "list", label: "List" },
 ];
 
 const defaultConfig: CustomPackConfig = {
-  name: "My Custom Pack",
-  description: "A custom linking strategy tailored to my content needs.",
+  name: "My Custom Strategy",
+  description: "A custom growth strategy tailored to your business.",
   allowedRoles: ["pillar", "support", "how_to", "general"],
   linkingRules: [
     { fromRole: "support", toRoles: ["pillar"], anchorPattern: "semantic", priority: 1 },
@@ -132,29 +132,29 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Settings2 className="w-4 h-4" />
-          Custom Pack Configuration
+          Custom Strategy Builder
         </CardTitle>
         <CardDescription>
-          Define your own article roles, linking rules, and content distribution
+          Design your own asset types, growth logic, and output mix
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Pack Name</Label>
+            <Label>Strategy Name</Label>
             <Input
               value={config.name}
               onChange={(e) => updateConfig({ name: e.target.value })}
-              placeholder="My Custom Pack"
+              placeholder="My Custom Strategy"
               data-testid="input-custom-pack-name"
             />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>Strategy Summary</Label>
             <Input
               value={config.description}
               onChange={(e) => updateConfig({ description: e.target.value })}
-              placeholder="Describe your pack strategy..."
+              placeholder="Describe your growth strategy..."
               data-testid="input-custom-pack-description"
             />
           </div>
@@ -167,7 +167,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
             onClick={() => setActiveTab("roles")}
             data-testid="tab-roles"
           >
-            Roles ({config.allowedRoles.length})
+            Asset Types ({config.allowedRoles.length})
           </Button>
           <Button
             variant={activeTab === "rules" ? "default" : "ghost"}
@@ -176,7 +176,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
             data-testid="tab-rules"
           >
             <Link2 className="w-3 h-3 mr-1" />
-            Linking Rules ({config.linkingRules.length})
+            Growth Logic ({config.linkingRules.length})
           </Button>
           <Button
             variant={activeTab === "distribution" ? "default" : "ghost"}
@@ -185,14 +185,14 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
             data-testid="tab-distribution"
           >
             <Percent className="w-3 h-3 mr-1" />
-            Distribution
+            Output Mix
           </Button>
         </div>
 
         {activeTab === "roles" && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Select which article roles to include in this pack. Each role has a specific content structure and JSON-LD schema.
+              Select which asset types to include in this strategy. Each type has a distinct structure and metadata.
             </p>
             <ScrollArea className="h-[200px] pr-4">
               <div className="grid grid-cols-2 gap-2">
@@ -218,7 +218,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
               </div>
             </ScrollArea>
             <p className="text-xs text-muted-foreground">
-              Selected: {config.allowedRoles.map((r) => articleRoleDisplayNames[r]).join(", ")}
+              Selected asset types: {config.allowedRoles.map((r) => articleRoleDisplayNames[r]).join(", ")}
             </p>
           </div>
         )}
@@ -227,7 +227,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Define how articles link to each other. Rules determine internal link structure for SEO.
+                Define how assets connect. Growth logic shapes internal pathways and authority flow.
               </p>
               <Button
                 size="sm"
@@ -237,7 +237,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
                 data-testid="button-add-rule"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Add Rule
+                Add Logic
               </Button>
             </div>
             <ScrollArea className="h-[200px] pr-4">
@@ -307,7 +307,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
                 ))}
                 {config.linkingRules.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No linking rules defined. Add rules to connect article types.
+                    No growth logic defined. Add logic to connect asset types.
                   </p>
                 )}
               </div>
@@ -318,7 +318,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
         {activeTab === "distribution" && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Set the percentage distribution for each article role. Total should equal 100%.
+              Set the output mix for each asset type. Total should equal 100%.
             </p>
             <ScrollArea className="h-[200px] pr-4">
               <div className="space-y-4">
@@ -351,7 +351,7 @@ export function CustomPackCreator({ value, onChange }: CustomPackCreatorProps) {
             </div>
             {totalDistribution !== 100 && (
               <p className="text-xs text-destructive">
-                Distribution should total 100%. Currently at {totalDistribution}%.
+                Output mix should total 100%. Currently at {totalDistribution}%.
               </p>
             )}
           </div>

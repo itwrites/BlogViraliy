@@ -35,7 +35,7 @@ import {
   Sparkles
 } from "lucide-react";
 import type { Pillar, Cluster, PillarArticle } from "@shared/schema";
-import { languageDisplayNames, type ContentLanguage } from "@shared/schema";
+import { articleRoleDisplayNames, languageDisplayNames, type ContentLanguage } from "@shared/schema";
 import { PACK_DEFINITIONS, type PackType, type CustomPackConfig } from "@shared/pack-definitions";
 import { CustomPackCreator } from "./custom-pack-creator";
 import { PillarLinkGraph } from "./pillar-link-graph";
@@ -156,7 +156,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Pillar created", description: "Your topic pillar has been created." });
+      toast({ title: "Authority topic launched", description: "Your authority topic is ready to grow." });
       setIsCreateOpen(false);
       setNewPillar({
         name: "",
@@ -172,7 +172,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message || "Failed to create pillar", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to launch authority topic", variant: "destructive" });
     },
   });
 
@@ -182,7 +182,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Pillar deleted" });
+      toast({ title: "Authority topic deleted" });
       setSelectedPillar(null);
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
@@ -198,14 +198,14 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     },
     onSuccess: (data) => {
       toast({ 
-        title: "Topical map generated", 
-        description: `Created ${data.categories} categories with ${data.totalArticles} total articles.` 
+        title: "Authority map built", 
+        description: `Created ${data.categories} content streams with ${data.totalArticles} total assets.` 
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
       queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message || "Failed to generate map", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to build authority map", variant: "destructive" });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
     },
   });
@@ -216,7 +216,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Generation started", description: "Content generation has begun." });
+      toast({ title: "Production started", description: "Asset production is now running." });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
       queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
     },
@@ -231,7 +231,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Generation paused" });
+      toast({ title: "Production paused" });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "pillars"] });
       queryClient.invalidateQueries({ queryKey: ["/api/pillars", selectedPillar] });
     },
@@ -264,7 +264,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       const data = await response.json();
       setSuggestions(data.suggestions || []);
       queryClient.invalidateQueries({ queryKey: ['/api/sites', siteId, 'topic-suggestions'] });
-      toast({ title: "Suggestions generated", description: `${data.suggestions?.length || 0} topic ideas ready` });
+      toast({ title: "Opportunities discovered", description: `${data.suggestions?.length || 0} authority ideas ready` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -312,10 +312,10 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-blue-500" />
-                AI Topic Suggestions
+                AI Authority Ideas
               </CardTitle>
               <CardDescription>
-                Get personalized topic ideas based on your business profile
+                Get tailored authority ideas based on your business profile
               </CardDescription>
             </div>
             <Button
@@ -328,12 +328,12 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
               {isLoadingSuggestions ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating...
+                  Discovering...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Get Suggestions
+                  Discover Opportunities
                 </>
               )}
             </Button>
@@ -361,7 +361,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                       <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
                     ) : (
                       <Badge variant="outline" className="text-xs shrink-0">
-                        {suggestion.packType}
+                        {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
                       </Badge>
                     )}
                   </div>
@@ -369,7 +369,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     {suggestion.description}
                   </p>
                   <div className="text-xs text-gray-500 dark:text-gray-500">
-                    {suggestion.suggestedArticleCount} articles recommended
+                    {suggestion.suggestedArticleCount} assets recommended
                   </div>
                 </div>
               ))}
@@ -382,51 +382,51 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         <CardHeader>
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <CardTitle data-testid="text-topical-authority-title">All Pillars</CardTitle>
+              <CardTitle data-testid="text-topical-authority-title">All Authority Topics</CardTitle>
               <CardDescription data-testid="text-topical-authority-description">
-                Build SEO authority with pillar-cluster content strategy
+                Build market authority with an automated growth system
               </CardDescription>
             </div>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" data-testid="button-create-pillar">
                   <Plus className="h-4 w-4 mr-2" />
-                  New Pillar
+                  New Authority Topic
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Create Topic Pillar</DialogTitle>
+                  <DialogTitle>Create Authority Topic</DialogTitle>
                   <DialogDescription>
-                    Define a main topic. AI will generate a complete topical map with categories and articles.
+                    Define the main market you want to dominate. We will automatically build a complete content ecosystem and growth engine around it.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="pillar-name">Topic Name</Label>
+                    <Label htmlFor="pillar-name">Authority Topic Name</Label>
                     <Input
                       id="pillar-name"
-                      placeholder="e.g., Hospitality, Real Estate, Meditation"
+                      placeholder="e.g., AI Meditation, Luxury Real Estate, Remote Hiring"
                       value={newPillar.name}
                       onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
                       data-testid="input-pillar-name"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pillar-description">Description (optional)</Label>
+                    <Label htmlFor="pillar-description">Business Focus (optional)</Label>
                     <Textarea
                       id="pillar-description"
-                      placeholder="Brief description of your topic focus..."
+                      placeholder="Describe what this authority topic represents for your business."
                       value={newPillar.description}
                       onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
                       data-testid="input-pillar-description"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pillar-prompt">Master Prompt (optional)</Label>
+                    <Label htmlFor="pillar-prompt">AI Instructions (optional)</Label>
                     <Textarea
                       id="pillar-prompt"
-                      placeholder="Custom instructions for AI content generation..."
+                      placeholder="Custom guidance for how the AI should generate content and messaging."
                       value={newPillar.masterPrompt}
                       onChange={(e) => setNewPillar({ ...newPillar, masterPrompt: e.target.value })}
                       rows={3}
@@ -434,7 +434,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Target Articles: {newPillar.targetArticleCount}</Label>
+                    <Label>Growth Volume: {newPillar.targetArticleCount} assets</Label>
                     <Slider
                       value={[newPillar.targetArticleCount]}
                       onValueChange={(value) => setNewPillar({ ...newPillar, targetArticleCount: value[0] })}
@@ -444,11 +444,17 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                       data-testid="slider-article-count"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Recommended: 50-100 articles for strong topical authority
+                      Controls how aggressively this authority topic expands its market presence.
                     </p>
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wide">
+                      <span>Light</span>
+                      <span>Standard</span>
+                      <span>Aggressive</span>
+                      <span>Dominant</span>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Content Pack Strategy</Label>
+                    <Label>Growth Strategy</Label>
                     <Select
                       value={newPillar.packType}
                       onValueChange={(value) => setNewPillar({ ...newPillar, packType: value as PackType })}
@@ -464,6 +470,9 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Choose how this authority topic should grow and convert traffic.
+                    </p>
                     {newPillar.packType && newPillar.packType !== "custom" && PACK_DEFINITIONS[newPillar.packType] && (
                       <p className="text-xs text-muted-foreground">
                         {PACK_DEFINITIONS[newPillar.packType].description}
@@ -478,7 +487,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label>Publishing Schedule</Label>
+                      <Label>Automation Pace</Label>
                       <Select
                         value={newPillar.publishSchedule}
                         onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
@@ -517,7 +526,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Post Status</Label>
+                      <Label>Initial Publishing State</Label>
                       <Select
                         value={newPillar.defaultPostStatus}
                         onValueChange={(value) => setNewPillar({ ...newPillar, defaultPostStatus: value })}
@@ -530,13 +539,13 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                           <SelectItem value="draft">Draft</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">Create posts as published or draft</p>
+                      <p className="text-xs text-muted-foreground">Choose whether new assets start published or draft.</p>
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                    Cancel
+                    Discard
                   </Button>
                   <Button 
                     onClick={() => createPillarMutation.mutate(newPillar)}
@@ -544,7 +553,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     data-testid="button-submit-pillar"
                   >
                     {createPillarMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Create Pillar
+                    Launch Authority
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -555,8 +564,8 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
           {!pillars || pillars.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No pillars yet</p>
-              <p className="text-sm">Create your first topic pillar to start building topical authority.</p>
+              <p className="text-lg font-medium mb-2">No authority topics yet</p>
+              <p className="text-sm">Launch your first authority topic to start building market leadership.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -576,9 +585,9 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                         <div>
                           <h3 className="font-medium" data-testid={`text-pillar-name-${pillar.id}`}>{pillar.name}</h3>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{pillar.clusterCount} categories</span>
+                            <span>{pillar.clusterCount} content streams</span>
                             <span>•</span>
-                            <span>{pillar.stats.total} articles</span>
+                            <span>{pillar.stats.total} assets</span>
                           </div>
                         </div>
                       </div>
@@ -616,7 +625,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle data-testid="text-pillar-details-title">{pillarDetails.name}</CardTitle>
-                <CardDescription>{pillarDetails.description || "No description"}</CardDescription>
+                <CardDescription>{pillarDetails.description || "No business focus yet."}</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 {pillarDetails.status === "draft" && (
@@ -634,7 +643,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     ) : (
                       <Map className="h-4 w-4 mr-2" />
                     )}
-                    Generate Map
+                    Build Authority Map
                   </Button>
                 )}
                 {(pillarDetails.status === "mapped" || pillarDetails.status === "paused") && (
@@ -657,7 +666,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     ) : (
                       <Play className="h-4 w-4 mr-2" />
                     )}
-                    Start Generation
+                    Start Production
                   </Button>
                 )}
                 {pillarDetails.status === "generating" && (
@@ -676,7 +685,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     ) : (
                       <Pause className="h-4 w-4 mr-2" />
                     )}
-                    Pause
+                    Pause Automation
                   </Button>
                 )}
                 <Button
@@ -684,7 +693,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                   variant="destructive"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm("Are you sure you want to delete this pillar?")) {
+                    if (confirm("Are you sure you want to delete this authority topic?")) {
                       deletePillarMutation.mutate(pillarDetails.id);
                     }
                   }}
@@ -704,8 +713,8 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
             ) : pillarDetails.clusters.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Map className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                <p>No topical map generated yet.</p>
-                <p className="text-sm">Click "Generate Map" to create the content structure.</p>
+                <p>No authority map yet.</p>
+                <p className="text-sm">Click "Build Authority Map" to create the growth structure.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -714,7 +723,9 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     <FileText className="h-4 w-4 text-primary" />
                     <span className="font-medium flex-1">{pillarDetails.pillarArticle.title}</span>
                     {articleStatusIcons[pillarDetails.pillarArticle.status]}
-                    <Badge variant="outline" className="text-xs">Pillar Article</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {articleRoleDisplayNames[pillarDetails.pillarArticle.articleRole as keyof typeof articleRoleDisplayNames] || "Core Authority Page"}
+                    </Badge>
                   </div>
                 )}
 
@@ -734,7 +745,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                         <Folder className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium flex-1 text-left">{cluster.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {cluster.generatedCount}/{cluster.articleCount} articles
+                          {cluster.generatedCount}/{cluster.articleCount} assets
                         </span>
                       </div>
                     </CollapsibleTrigger>
@@ -749,7 +760,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                             <span className="flex-1 truncate">{article.title}</span>
                             {articleStatusIcons[article.status]}
                             <Badge variant="outline" className="text-xs">
-                              {article.articleType}
+                              {articleRoleDisplayNames[article.articleRole as keyof typeof articleRoleDisplayNames] || article.articleRole}
                             </Badge>
                           </div>
                         ))}
@@ -783,3 +794,5 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     </div>
   );
 }
+
+

@@ -41,18 +41,18 @@ export interface JsonLdSchemaConfig {
 }
 
 export const anchorPatternDescriptions: Record<LinkingRule["anchorPattern"], string> = {
-  exact: "Exact match keyword anchor (e.g., 'best coffee makers')",
-  partial: "Partial match anchor (e.g., 'top-rated coffee makers')",
-  semantic: "Semantically related anchor (e.g., 'brewing equipment guide')",
-  action: "Action-oriented anchor (e.g., 'buy now', 'compare prices')",
-  list: "List-style anchor (e.g., 'see our top picks')",
+  exact: "Exact phrase link text (e.g., 'best coffee makers')",
+  partial: "Partial phrase link text (e.g., 'top-rated coffee makers')",
+  semantic: "Related link text (e.g., 'brewing equipment guide')",
+  action: "Action-oriented link text (e.g., 'compare prices')",
+  list: "List-style link text (e.g., 'see our top picks')",
 };
 
 export const packDefinitions: Record<PackType, PackDefinition> = {
   quick_seo: {
     id: "quick_seo",
-    name: "Quick SEO Pack",
-    description: "All articles link to a central 'What is X' pillar page, forming a basic topical hub.",
+    name: "Fast Visibility",
+    description: "Rapid authority launch centered on a core authority page with supporting assets.",
     allowedRoles: ["pillar", "support", "how_to", "faq", "general"],
     linkingRules: [
       { fromRole: "support", toRoles: ["pillar"], anchorPattern: "exact", priority: 1 },
@@ -72,8 +72,8 @@ export const packDefinitions: Record<PackType, PackDefinition> = {
 
   traffic_boost: {
     id: "traffic_boost",
-    name: "Traffic Boost Pack",
-    description: "Long-tail articles link to rankings; rankings link to yearly best-of pages.",
+    name: "Traffic Accelerator",
+    description: "Opportunity pages feed comparison and buyer guides to expand discovery.",
     allowedRoles: ["pillar", "long_tail", "rankings", "best_of", "listicle", "general"],
     linkingRules: [
       { fromRole: "long_tail", toRoles: ["rankings"], anchorPattern: "partial", priority: 1 },
@@ -95,8 +95,8 @@ export const packDefinitions: Record<PackType, PackDefinition> = {
 
   buyer_intent: {
     id: "buyer_intent",
-    name: "Buyer Intent Pack",
-    description: "Comparisons link to reviews, which link to conversion pages for maximum purchase intent.",
+    name: "Revenue Focus",
+    description: "Head-to-head comparisons feed product reviews and landing pages for higher conversion.",
     allowedRoles: ["pillar", "comparison", "review", "conversion", "how_to", "general"],
     linkingRules: [
       { fromRole: "comparison", toRoles: ["review"], anchorPattern: "partial", priority: 1 },
@@ -118,8 +118,8 @@ export const packDefinitions: Record<PackType, PackDefinition> = {
 
   authority: {
     id: "authority",
-    name: "Authority Pack",
-    description: "Case studies and benchmarks link upward to frameworks and whitepapers for thought leadership.",
+    name: "Market Leadership",
+    description: "Case studies and industry benchmarks elevate frameworks and whitepapers for credibility.",
     allowedRoles: ["pillar", "case_study", "benchmark", "framework", "whitepaper", "how_to", "general"],
     linkingRules: [
       { fromRole: "case_study", toRoles: ["framework"], anchorPattern: "semantic", priority: 1 },
@@ -144,8 +144,8 @@ export const packDefinitions: Record<PackType, PackDefinition> = {
 
   full_coverage: {
     id: "full_coverage",
-    name: "Full Coverage Pack",
-    description: "Hub-and-spoke model where all satellite articles link to the main pillar and back.",
+    name: "Total Market Coverage",
+    description: "Full-spectrum coverage where every asset connects back to the core authority page.",
     allowedRoles: ["pillar", "support", "how_to", "faq", "listicle", "news", "general"],
     linkingRules: [
       { fromRole: "support", toRoles: ["pillar"], anchorPattern: "exact", priority: 1 },
@@ -172,8 +172,8 @@ export const packDefinitions: Record<PackType, PackDefinition> = {
 
   custom: {
     id: "custom",
-    name: "Custom Pack",
-    description: "Define your own linking rules and article roles.",
+    name: "Custom Strategy",
+    description: "Design your own growth logic, asset mix, and automation behavior.",
     allowedRoles: [
       "pillar", "support", "long_tail", "rankings", "best_of",
       "comparison", "review", "conversion", "case_study", "benchmark",
