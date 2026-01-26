@@ -598,25 +598,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                 </div>
               </CardContent>
             </Card>
-          ) : (
-            <Card className="border-dashed bg-muted/10 shadow-sm">
-              <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Target className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-lg font-semibold">Launch Your First Authority Topic</p>
-                  <p className="text-sm text-muted-foreground">
-                    Set an authority topic to start building a self-growing content ecosystem.
-                  </p>
-                </div>
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Launch Authority Topic
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          ) : null}
         </div>
 
         {systemStatusItems.length > 0 && (
@@ -721,10 +703,29 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         </CardHeader>
         <CardContent>
           {!pillars || pillars.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No authority topics yet</p>
-              <p className="text-sm">Launch your first authority topic to start building market leadership.</p>
+            <div className="py-8">
+              <div className="grid gap-6 md:grid-cols-[220px,1fr] items-center rounded-2xl border border-dashed bg-muted/10 p-6">
+                <div className="flex items-center justify-center">
+                  <img
+                    src="https://i.ibb.co/mVt2W1yk/3fa43b55-0e16-465a-acef-0ecf8020818c.png"
+                    alt="Authority map illustration"
+                    className="w-40 h-auto"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-lg font-semibold">No authority topics yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      Launch your first authority topic to start building market leadership.
+                    </p>
+                  </div>
+                  <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Launch Authority Topic
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
