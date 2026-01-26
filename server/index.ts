@@ -1,8 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { runMigrations } from 'stripe-replit-sync';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { getStripeSync } from "./stripeClient";
+import { isStripeConfigured, isStripeTestMode } from "./stripeClient";
 import { WebhookHandlers } from "./webhookHandlers";
 
 const app = express();
@@ -14,45 +13,19 @@ declare module 'http' {
 }
 
 async function initStripe() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    console.warn('[Stripe] DATABASE_URL not set - skipping Stripe initialization');
-    return;
-  }
-
   try {
-    log('Initializing Stripe schema...');
-    await runMigrations({ 
-      databaseUrl,
-      schema: 'stripe'
-    });
-    log('Stripe schema ready');
-
-    const stripeSync = await getStripeSync();
+    const configured = await isStripeConfigured();
     
-    // If Stripe isn't configured, skip webhook and sync setup
-    if (!stripeSync) {
-      console.warn('[Stripe] Stripe credentials not available - payment features disabled');
+    if (!configured) {
+      console.warn('[Stripe] Stripe keys not configured - payment features disabled');
+      console.warn('[Stripe] Set STRIPE_SECRET_KEY and STRIPE_PUBLISHABLE_KEY environment variables');
+      console.warn('[Stripe] For test mode, set STRIPE_TEST_MODE=true and use _TEST suffix keys');
       return;
     }
 
-    log('Setting up managed webhook...');
-    const webhookBaseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
-    const webhookUrl = `${webhookBaseUrl}/bv_api/stripe/webhook`;
-    const webhookResult = await stripeSync.findOrCreateManagedWebhook(webhookUrl);
-    log(`Webhook configured: ${webhookResult?.webhook?.url || webhookUrl}`);
-
-    log('Syncing Stripe data in background...');
-    stripeSync.syncBackfill()
-      .then(() => {
-        log('Stripe data synced');
-      })
-      .catch((err: any) => {
-        console.error('Error syncing Stripe data:', err);
-      });
+    const modeLabel = isStripeTestMode() ? 'TEST' : 'LIVE';
+    log(`Stripe initialized in ${modeLabel} mode`);
   } catch (error) {
-    // Log the error but don't crash the app - payment features will be disabled
     console.error('[Stripe] Failed to initialize Stripe (payment features disabled):', error);
   }
 }
@@ -78,9 +51,9 @@ app.post(
         return res.status(500).json({ error: 'Webhook processing error' });
       }
 
-      await WebhookHandlers.processWebhook(req.body as Buffer, sig);
+      const result = await WebhookHandlers.processWebhook(req.body as Buffer, sig);
 
-      res.status(200).json({ received: true });
+      res.status(200).json({ received: true, ...result });
     } catch (error: any) {
       console.error('Webhook error:', error.message);
 

@@ -49,6 +49,7 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Database**: PostgreSQL (Neon)
 - **ORM**: Drizzle ORM
 - **AI Integration**: OpenAI via Replit AI Integrations (GPT-5)
+- **Payments**: Stripe (direct API integration, works outside of Replit)
 - **Scheduling**: node-cron
 - **RSS Parsing**: rss-parser
 - **Frontend State Management**: TanStack Query (React Query)
@@ -58,3 +59,28 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Validation**: Zod
 - **Animation**: Framer Motion
 - **Web Scraping**: Firecrawl (@mendable/firecrawl-js) for website content extraction during onboarding
+
+## Stripe Configuration (Self-Hosted Compatible)
+The Stripe integration is designed to work both on Replit and on self-hosted environments (AWS, etc.):
+
+**Environment Variables for Production:**
+- `STRIPE_SECRET_KEY` - Live secret key from Stripe dashboard
+- `STRIPE_PUBLISHABLE_KEY` - Live publishable key from Stripe dashboard
+- `STRIPE_WEBHOOK_SECRET` - Webhook signing secret for production endpoint
+
+**Environment Variables for Testing:**
+- `STRIPE_SECRET_KEY_TEST` - Test secret key from Stripe dashboard
+- `STRIPE_PUBLISHABLE_KEY_TEST` - Test publishable key from Stripe dashboard
+- `STRIPE_WEBHOOK_SECRET_TEST` - Webhook signing secret for test endpoint
+- `STRIPE_TEST_MODE=true` - Enable test mode to use _TEST keys
+
+**Multi-Project Stripe Account:**
+The platform includes `project_id` metadata in all Stripe objects (customers, subscriptions). Webhook handlers validate this metadata to only process events from this platform. The project ID is set to `blog-autopilot` in `server/stripeClient.ts`.
+
+**Required Stripe Products:**
+Create products in Stripe dashboard with `plan_id` in metadata:
+- Product with `metadata.plan_id = "launch"` 
+- Product with `metadata.plan_id = "growth"`
+- Product with `metadata.plan_id = "scale"`
+
+Each product should have an active monthly recurring price attached.
