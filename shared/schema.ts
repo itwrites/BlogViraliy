@@ -360,6 +360,8 @@ export const sites = pgTable("sites", {
   wizardProgress: integer("wizard_progress").notNull().default(0), // 0=Not started, 5=Completed
   isOnboarded: boolean("is_onboarded").notNull().default(false), // Whether site has completed onboarding flow
   onboardingSourceUrl: text("onboarding_source_url"), // URL that was scraped during onboarding (if any)
+  initialArticlesGenerated: boolean("initial_articles_generated").notNull().default(false), // Whether initial 4 articles were auto-generated
+  currentTopicIndex: integer("current_topic_index").notNull().default(0), // Tracks which topic pillar to use next (rotation)
   ownerId: varchar("owner_id").references(() => users.id, { onDelete: "set null" }), // Owner of this site (for plan limit tracking)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -448,6 +450,10 @@ export const posts = pgTable("posts", {
   ogImage: text("og_image"),
   canonicalUrl: text("canonical_url"),
   noindex: boolean("noindex").default(false),
+  // Locked articles (require subscription to unlock)
+  isLocked: boolean("is_locked").notNull().default(false),
+  // Scheduled publishing
+  scheduledPublishDate: timestamp("scheduled_publish_date"), // When to auto-publish draft -> published
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

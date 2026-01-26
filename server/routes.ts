@@ -494,6 +494,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
   };
 
+  // Subscription access check helper function
+  // Returns whether the user has access to premium features based on their subscription status
+  async function checkSubscriptionAccess(user: User): Promise<{ hasAccess: boolean; reason?: string }> {
+    // Admins always have access
+    if (user.role === "admin") {
+      return { hasAccess: true };
+    }
+    // Editors always have access (they work for the owner)
+    if (user.role === "editor") {
+      return { hasAccess: true };
+    }
+    // Owners need active subscription
+    if (user.role === "owner") {
+      if (user.subscriptionStatus === "active" && user.subscriptionPlan) {
+        return { hasAccess: true };
+      }
+      return { hasAccess: false, reason: "Active subscription required" };
+    }
+    return { hasAccess: false, reason: "Unknown role" };
+  }
+
   // === PUBLIC API v1 (for external access) ===
   app.use("/api", createPublicApiRouter());
 
@@ -930,8 +951,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/editor/sites/:id/posts", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+  app.post("/api/editor/sites/:id/posts", requireAuth, requireSiteAccess("id", "posts_only"), async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check subscription access before creating post
+      if (req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const postData = insertPostSchema.parse({
         ...req.body,
         siteId: req.params.id,
@@ -950,8 +982,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate single AI post
-  app.post("/api/editor/sites/:id/posts/generate-ai", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+  app.post("/api/editor/sites/:id/posts/generate-ai", requireAuth, requireSiteAccess("id", "posts_only"), async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check subscription access before AI generation
+      if (req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const siteId = req.params.id;
       const { topic } = req.body;
       
@@ -1023,8 +1066,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // CSV Import for posts
-  app.post("/api/editor/sites/:id/posts/import-csv", requireAuth, requireSiteAccess("id", "posts_only"), async (req: Request, res: Response) => {
+  app.post("/api/editor/sites/:id/posts/import-csv", requireAuth, requireSiteAccess("id", "posts_only"), async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check subscription access before importing posts
+      if (req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const siteId = req.params.id;
       let { csvContent } = req.body;
       
@@ -1266,10 +1320,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Check subscription access for locked articles
+      if (post.isLocked && req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required to edit locked articles", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const updated = await storage.updatePost(req.params.id, req.body);
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Failed to update post" });
+    }
+  });
+
+  app.get("/api/editor/sites/:id/scheduled-posts", requireAuth, requireSiteAccess("id", "view"), async (req: Request, res: Response) => {
+    try {
+      const siteId = req.params.id;
+      const posts = await storage.getPostsBySiteId(siteId);
+      
+      const scheduledPosts = posts
+        .filter(
+          (post) =>
+            post.scheduledPublishDate &&
+            (post.status === "draft" || new Date(post.scheduledPublishDate) > new Date())
+        )
+        .sort((a, b) => {
+          const dateA = new Date(a.scheduledPublishDate!);
+          const dateB = new Date(b.scheduledPublishDate!);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+      res.json(scheduledPosts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch scheduled posts" });
+    }
+  });
+
+  app.put("/api/editor/posts/:id/reschedule", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const post = await storage.getPostById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      if (req.user?.role !== "admin") {
+        const permission = await storage.getUserSitePermission(req.user!.id, post.siteId);
+        if (!permission || !hasMinimumPermission(permission, "posts_only")) {
+          return res.status(403).json({ error: "Insufficient permissions" });
+        }
+      }
+
+      const { scheduledPublishDate } = req.body;
+      if (!scheduledPublishDate) {
+        return res.status(400).json({ error: "scheduledPublishDate is required" });
+      }
+
+      const updated = await storage.updatePost(req.params.id, {
+        scheduledPublishDate: new Date(scheduledPublishDate),
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reschedule post" });
     }
   });
 
@@ -1929,6 +2046,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bulk replace image URL in posts
   app.post("/api/sites/:id/posts/bulk-replace-image", requireAuth, requireSiteAccess(), async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check subscription access for bulk operations
+      if (req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const { oldImageUrl, newImageUrl, postIds } = req.body;
       
       if (!oldImageUrl || !newImageUrl) {
@@ -2005,6 +2133,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bulk auto-replace images with Pexels (fully automated)
   app.post("/api/sites/:id/bulk-auto-replace", requireAuth, requireSiteAccess(), async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Check subscription access for bulk operations
+      if (req.user) {
+        const subscriptionCheck = await checkSubscriptionAccess(req.user);
+        if (!subscriptionCheck.hasAccess) {
+          return res.status(403).json({ 
+            error: subscriptionCheck.reason || "Active subscription required", 
+            code: "SUBSCRIPTION_REQUIRED" 
+          });
+        }
+      }
+      
       const siteId = req.params.id;
       const { oldImageUrl } = req.body;
       
@@ -3448,6 +3587,19 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
       }
 
       console.log(`[Onboarding] Site ${siteId} onboarding completed`);
+      
+      // Trigger initial article generation in the background (don't wait)
+      const { generateInitialArticlesForSite } = await import("./initial-article-generator");
+      generateInitialArticlesForSite(siteId).then(result => {
+        if (result.success) {
+          console.log(`[Onboarding] Initial articles generated for site ${siteId}: ${result.articlesCreated} articles`);
+        } else {
+          console.error(`[Onboarding] Failed to generate initial articles for site ${siteId}:`, result.error);
+        }
+      }).catch(err => {
+        console.error(`[Onboarding] Error in initial article generation for site ${siteId}:`, err);
+      });
+      
       res.json(updatedSite);
     } catch (error) {
       console.error("[Onboarding] Error completing onboarding:", error);

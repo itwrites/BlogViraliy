@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { generateAIPost, rewriteArticle, generateFromPrompt, type BusinessContext } from "./openai";
 import { processNextPillarArticle } from "./topical-authority";
 import { buildRoleSpecificPrompt, detectRoleFromKeyword } from "./role-prompts";
+import { publishScheduledPosts } from "./scheduled-publisher";
 import type { Site, ArticleRole } from "@shared/schema";
 
 const parser = new Parser();
@@ -527,6 +528,9 @@ export function startAutomationSchedulers() {
 
   // Pillar Content Generation - runs every minute to process generating pillars
   cron.schedule("* * * * *", processPillarGeneration);
+
+  // Scheduled Publishing - runs every minute to publish posts with past scheduled dates
+  cron.schedule("* * * * *", publishScheduledPosts);
 
   console.log("[Automation] Schedulers started");
 }

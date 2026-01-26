@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useSiteContext } from "@/components/base-path-provider";
+import { PaywallModal } from "@/components/paywall-modal";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
@@ -61,9 +63,10 @@ import {
   BookOpen,
   Loader2,
   Users,
+  Lock,
 } from "lucide-react";
 
-type ActiveTab = "posts" | "topical" | "bulk" | "ai" | "authors";
+type ActiveTab = "posts" | "topical" | "bulk" | "ai" | "authors" | "calendar";
 import {
   Dialog,
   DialogContent,
@@ -173,7 +176,8 @@ export default function EditorPosts() {
   const { id: siteId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user, logout, isOwner, isLoading: authLoading } = useAuth();
+  const { user, logout, isOwner: authIsOwner, isLoading: authLoading } = useAuth();
+  const { hasActiveSubscription, isOwner } = useSubscription();
   
   const siteContext = useSiteContext();
 
@@ -195,6 +199,8 @@ export default function EditorPosts() {
   const [newPostModalOpen, setNewPostModalOpen] = useState(false);
   const [aiTopicInput, setAiTopicInput] = useState("");
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [paywallFeature, setPaywallFeature] = useState("Full Access");
   const [csvResult, setCsvResult] = useState<{
     success: boolean;
     imported: number;
@@ -211,6 +217,10 @@ export default function EditorPosts() {
     articleRole: "general" as ArticleRole,
   });
 
+  // Calendar state
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
   const { data: site } = useQuery<Site>({
     queryKey: ["/api/editor/sites", siteId],
     enabled: !!siteId,
@@ -225,6 +235,37 @@ export default function EditorPosts() {
     queryKey: ["/api/sites", siteId, "authors"],
     enabled: !!siteId,
   });
+
+  const { data: scheduledPosts } = useQuery<Post[]>({
+    queryKey: ["/api/editor/sites", siteId, "scheduled-posts"],
+    queryFn: async () => {
+      const res = await fetch(`/api/editor/sites/${siteId}/scheduled-posts`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch scheduled posts");
+      return res.json();
+    },
+    enabled: !!siteId && activeTab === "calendar",
+  });
+
+  // Calendar helper functions
+  const getCalendarDays = useCallback(() => {
+    const start = startOfWeek(startOfMonth(calendarMonth));
+    const end = endOfWeek(endOfMonth(calendarMonth));
+    const days: Date[] = [];
+    let current = start;
+    while (current <= end) {
+      days.push(current);
+      current = addDays(current, 1);
+    }
+    return days;
+  }, [calendarMonth]);
+
+  const getPostsForDate = useCallback((date: Date) => {
+    if (!scheduledPosts) return [];
+    return scheduledPosts.filter((post) => {
+      if (!post.scheduledPublishDate) return false;
+      return isSameDay(new Date(post.scheduledPublishDate), date);
+    });
+  }, [scheduledPosts]);
 
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
@@ -262,6 +303,15 @@ export default function EditorPosts() {
   const handleLogout = async () => {
     await logout();
     setLocation("/");
+  };
+
+  const showPaywall = (feature: string) => {
+    if (isOwner && !hasActiveSubscription) {
+      setPaywallFeature(feature);
+      setPaywallOpen(true);
+      return true;
+    }
+    return false;
   };
 
   const openEditor = (post?: Post) => {
@@ -625,15 +675,34 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </span>
               </button>
               <button
-                onClick={() => setActiveTab("topical")}
+                onClick={() => setActiveTab("calendar")}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                  activeTab === "topical" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  activeTab === "calendar" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                 }`}
-                data-testid="nav-topical"
+                data-testid="nav-calendar"
               >
-                <BookOpen className="w-4 h-4" />
-                <span className="flex-1 text-left">Topical Authority</span>
+                <Calendar className="w-4 h-4" />
+                <span className="flex-1 text-left">Calendar</span>
+                {scheduledPosts && scheduledPosts.length > 0 && (
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    activeTab === "calendar" ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {scheduledPosts.length}
+                  </span>
+                )}
               </button>
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => setActiveTab("topical")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                    activeTab === "topical" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  }`}
+                  data-testid="nav-topical"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span className="flex-1 text-left">Topical Authority</span>
+                </button>
+              )}
               {user?.role === "admin" && (
                 <button
                   onClick={() => setActiveTab("bulk")}
@@ -860,7 +929,10 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       </Button>
                       <Button 
                         size="sm" 
-                        onClick={() => setNewPostModalOpen(true)}
+                        onClick={() => {
+                          if (showPaywall("Create New Articles")) return;
+                          setNewPostModalOpen(true);
+                        }}
                         data-testid="button-new-post"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -942,20 +1014,30 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       >
                         {viewMode === "grid" ? (
                           <div
-                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-300 hover:shadow-md bg-white border border-gray-200/60 hover:border-gray-300 ${
+                            className={`group relative rounded-xl overflow-hidden transition-all duration-300 bg-white border border-gray-200/60 ${
+                              post.isLocked 
+                                ? "cursor-not-allowed" 
+                                : "cursor-pointer hover:shadow-md hover:border-gray-300"
+                            } ${
                               bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
                             }`}
-                            onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
+                            onClick={() => {
+                              if (post.isLocked) {
+                                showPaywall("this article");
+                                return;
+                              }
+                              bulkMode ? togglePostSelection(post.id) : openEditor(post);
+                            }}
                           >
                             {post.imageUrl ? (
-                              <div className="aspect-video relative overflow-hidden">
+                              <div className={`aspect-video relative overflow-hidden ${post.isLocked ? "blur-[2px]" : ""}`}>
                                 <img
                                   src={post.imageUrl}
                                   alt={post.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  className={`w-full h-full object-cover transition-transform duration-500 ${!post.isLocked ? "group-hover:scale-105" : ""}`}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                {bulkMode && (
+                                {bulkMode && !post.isLocked && (
                                   <div className="absolute top-2 left-2">
                                     <Checkbox
                                       checked={selectedPosts.has(post.id)}
@@ -965,9 +1047,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 )}
                               </div>
                             ) : (
-                              <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                              <div className={`aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center ${post.isLocked ? "blur-[2px]" : ""}`}>
                                 <Image className="w-12 h-12 text-gray-300" />
-                                {bulkMode && (
+                                {bulkMode && !post.isLocked && (
                                   <div className="absolute top-2 left-2">
                                     <Checkbox
                                       checked={selectedPosts.has(post.id)}
@@ -977,9 +1059,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 )}
                               </div>
                             )}
-                            <div className="p-4">
+                            <div className={`p-4 ${post.isLocked ? "blur-[2px]" : ""}`}>
                               <h3 
-                                className="font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors"
+                                className={`font-semibold text-gray-900 line-clamp-2 mb-2 transition-colors ${!post.isLocked ? "group-hover:text-blue-600" : ""}`}
                                 data-testid={`text-post-title-${post.id}`}
                               >
                                 {post.title}
@@ -1000,17 +1082,37 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 </span>
                               </div>
                             </div>
+                            {post.isLocked && (
+                              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex flex-col items-center justify-center z-10">
+                                <div className="w-12 h-12 rounded-full bg-gray-900/90 flex items-center justify-center mb-2">
+                                  <Lock className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="text-xs font-medium text-gray-700 bg-white/80 px-3 py-1 rounded-full">
+                                  Upgrade to Unlock
+                                </span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div
-                            className={`group cursor-pointer rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md bg-white border border-gray-200/60 hover:border-gray-300 ${
+                            className={`group relative rounded-xl overflow-hidden transition-all duration-200 bg-white border border-gray-200/60 ${
+                              post.isLocked 
+                                ? "cursor-not-allowed" 
+                                : "cursor-pointer hover:shadow-md hover:border-gray-300"
+                            } ${
                               bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
                             }`}
-                            onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
+                            onClick={() => {
+                              if (post.isLocked) {
+                                showPaywall("this article");
+                                return;
+                              }
+                              bulkMode ? togglePostSelection(post.id) : openEditor(post);
+                            }}
                           >
-                            <div className="p-4">
+                            <div className={`p-4 ${post.isLocked ? "blur-[2px]" : ""}`}>
                               <div className="flex items-start gap-4">
-                                {bulkMode && (
+                                {bulkMode && !post.isLocked && (
                                   <div className="pt-1">
                                     <Checkbox
                                       checked={selectedPosts.has(post.id)}
@@ -1031,7 +1133,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                       <h3 
-                                        className="font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors"
+                                        className={`font-semibold text-gray-900 line-clamp-1 transition-colors ${!post.isLocked ? "group-hover:text-blue-600" : ""}`}
                                         data-testid={`text-post-title-${post.id}`}
                                       >
                                         {post.title}
@@ -1081,7 +1183,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                     )}
                                   </div>
                                 </div>
-                                {!bulkMode && (
+                                {!bulkMode && !post.isLocked && (
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                     <Button
                                       variant="ghost"
@@ -1112,6 +1214,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 )}
                               </div>
                             </div>
+                            {post.isLocked && (
+                              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+                                <div className="flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow-sm">
+                                  <div className="w-8 h-8 rounded-full bg-gray-900/90 flex items-center justify-center">
+                                    <Lock className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-700">
+                                    Upgrade to Unlock
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </motion.div>
@@ -1235,6 +1349,255 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           {activeTab === "bulk" && siteId && (
             <div className="p-8">
               <BulkGeneration siteId={siteId} />
+            </div>
+          )}
+
+          {activeTab === "calendar" && siteId && (
+            <div className="p-8">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Content Calendar</h2>
+                    <p className="text-gray-500 text-sm mt-1">View and manage your scheduled articles</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-6">
+                  <div className="flex-1 bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+                        className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                        data-testid="button-prev-month"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {format(calendarMonth, "MMMM yyyy")}
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                        className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                        data-testid="button-next-month"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-7 border-b border-gray-100">
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                        <div
+                          key={day}
+                          className="py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-7">
+                      {getCalendarDays().map((date, index) => {
+                        const postsForDay = getPostsForDate(date);
+                        const isCurrentMonth = isSameMonth(date, calendarMonth);
+                        const isSelected = selectedDate && isSameDay(date, selectedDate);
+                        const isTodayDate = isToday(date);
+
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedDate(date)}
+                            className={`relative p-2 min-h-[80px] border-b border-r border-gray-100 text-left transition-colors ${
+                              !isCurrentMonth ? "bg-gray-50/50" : "bg-white hover:bg-gray-50"
+                            } ${isSelected ? "ring-2 ring-inset ring-blue-500" : ""}`}
+                            data-testid={`calendar-day-${format(date, "yyyy-MM-dd")}`}
+                          >
+                            <span
+                              className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm ${
+                                isTodayDate
+                                  ? "bg-blue-500 text-white font-semibold"
+                                  : isCurrentMonth
+                                  ? "text-gray-900"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {format(date, "d")}
+                            </span>
+                            {postsForDay.length > 0 && (
+                              <div className="mt-1 space-y-0.5">
+                                {postsForDay.slice(0, 3).map((post) => (
+                                  <div
+                                    key={post.id}
+                                    className={`text-xs px-1.5 py-0.5 rounded truncate ${
+                                      post.status === "published"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-amber-100 text-amber-700"
+                                    }`}
+                                    title={post.title}
+                                  >
+                                    {post.title.substring(0, 15)}{post.title.length > 15 ? "..." : ""}
+                                  </div>
+                                ))}
+                                {postsForDay.length > 3 && (
+                                  <div className="text-xs text-gray-500 px-1.5">
+                                    +{postsForDay.length - 3} more
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {selectedDate && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="w-80 bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {format(selectedDate, "EEEE")}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {format(selectedDate, "MMMM d, yyyy")}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedDate(null)}
+                            className="text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                            data-testid="button-close-day-panel"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+                          {getPostsForDate(selectedDate).length > 0 ? (
+                            getPostsForDate(selectedDate).map((post) => (
+                              <motion.div
+                                key={post.id}
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                                onClick={() => openEditor(post)}
+                                data-testid={`scheduled-post-${post.id}`}
+                              >
+                                <h5 className="font-medium text-gray-900 text-sm line-clamp-2">
+                                  {post.title}
+                                </h5>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Badge
+                                    className={`text-xs ${
+                                      post.status === "published"
+                                        ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                                        : "bg-amber-100 text-amber-700 border-amber-200"
+                                    }`}
+                                  >
+                                    {post.status === "published" ? "Published" : "Draft"}
+                                  </Badge>
+                                  {post.scheduledPublishDate && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {format(new Date(post.scheduledPublishDate), "h:mm a")}
+                                    </span>
+                                  )}
+                                </div>
+                                {post.imageUrl && (
+                                  <img
+                                    src={post.imageUrl}
+                                    alt=""
+                                    className="w-full h-20 object-cover rounded-lg mt-2"
+                                  />
+                                )}
+                              </motion.div>
+                            ))
+                          ) : (
+                            <div className="text-center py-8">
+                              <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                              <p className="text-sm text-gray-500">No scheduled articles</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Articles with scheduled dates will appear here
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {!scheduledPosts || scheduledPosts.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-white rounded-2xl border border-gray-200/60 p-8 text-center"
+                  >
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Scheduled Articles</h3>
+                    <p className="text-gray-500 text-sm max-w-md mx-auto">
+                      When you schedule articles for future publication, they will appear on this calendar.
+                      Set a scheduled publish date on any draft article to see it here.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div className="bg-white rounded-2xl border border-gray-200/60 p-4">
+                    <h3 className="font-semibold text-gray-900 mb-3">Upcoming Scheduled</h3>
+                    <div className="space-y-2">
+                      {scheduledPosts.slice(0, 5).map((post) => (
+                        <div
+                          key={post.id}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            if (post.scheduledPublishDate) {
+                              setSelectedDate(new Date(post.scheduledPublishDate));
+                              setCalendarMonth(new Date(post.scheduledPublishDate));
+                            }
+                          }}
+                          data-testid={`upcoming-post-${post.id}`}
+                        >
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              post.status === "published" ? "bg-emerald-500" : "bg-amber-500"
+                            }`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{post.title}</p>
+                            {post.scheduledPublishDate && (
+                              <p className="text-xs text-gray-500">
+                                {format(new Date(post.scheduledPublishDate), "MMM d, yyyy 'at' h:mm a")}
+                              </p>
+                            )}
+                          </div>
+                          <Badge
+                            className={`text-xs ${
+                              post.status === "published"
+                                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                                : "bg-amber-100 text-amber-700 border-amber-200"
+                            }`}
+                          >
+                            {post.status === "published" ? "Published" : "Draft"}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
             </div>
           )}
         </main>
@@ -1618,6 +1981,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
         </DialogContent>
       </Dialog>
+
+      <PaywallModal 
+        open={paywallOpen} 
+        onOpenChange={setPaywallOpen}
+        feature={paywallFeature}
+      />
     </div>
   );
 }

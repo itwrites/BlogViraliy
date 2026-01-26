@@ -1,5 +1,6 @@
 import { getUncachableStripeClient, getWebhookSecret, validateProjectMetadata, getProjectId } from './stripeClient';
 import { storage } from './storage';
+import { triggerMonthlyContentGeneration } from './monthly-content-engine';
 import Stripe from 'stripe';
 
 export class WebhookHandlers {
@@ -191,11 +192,35 @@ export class WebhookHandlers {
     const user = await storage.getUserByStripeCustomerId(customerId);
     if (!user) return;
     
+    const now = new Date();
+    const lastReset = user.postsResetDate ? new Date(user.postsResetDate) : null;
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    
+    if (lastReset && lastReset > oneHourAgo) {
+      console.log(`[Stripe Webhook] Skipping duplicate invoice.paid for user ${user.id} - already processed recently`);
+      return;
+    }
+    
     await storage.updateUser(user.id, {
       postsUsedThisMonth: 0,
-      postsResetDate: new Date(),
+      postsResetDate: now,
     });
     
     console.log(`[Stripe Webhook] User ${user.id} monthly posts reset after invoice payment`);
+    
+    if (user.subscriptionStatus === 'active' && user.subscriptionPlan) {
+      console.log(`[Stripe Webhook] Triggering monthly content generation for user ${user.id}`);
+      
+      try {
+        const result = await triggerMonthlyContentGeneration(user.id);
+        console.log(`[Stripe Webhook] Monthly content generation result: ${result.totalArticles} articles created for ${result.sitesProcessed} sites`);
+        
+        if (result.errors.length > 0) {
+          console.warn(`[Stripe Webhook] Content generation warnings:`, result.errors);
+        }
+      } catch (error) {
+        console.error(`[Stripe Webhook] Failed to trigger monthly content generation:`, error);
+      }
+    }
   }
 }
