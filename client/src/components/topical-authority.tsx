@@ -295,6 +295,37 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     setIsCreateOpen(true);
   };
 
+  const hasPillars = (pillars?.length || 0) > 0;
+  const totalAssets = pillars?.reduce((sum, pillar) => sum + (pillar.stats?.total || 0), 0) || 0;
+  const totalCompleted = pillars?.reduce((sum, pillar) => sum + (pillar.stats?.completed || 0), 0) || 0;
+  const totalPending = pillars?.reduce((sum, pillar) => sum + (pillar.stats?.pending || 0), 0) || 0;
+  const totalFailed = pillars?.reduce((sum, pillar) => sum + (pillar.stats?.failed || 0), 0) || 0;
+  const automationTopics = pillars?.filter((pillar) => ["mapping", "mapped", "generating", "paused"].includes(pillar.status)).length || 0;
+  const activeAutomation = pillars?.some((pillar) => pillar.status === "generating" || pillar.status === "mapping") || false;
+  const hasIssues = pillars?.some((pillar) => pillar.status === "failed") || false;
+  const formatCount = (value: number) => value.toLocaleString();
+
+  const systemStatusItems = [
+    hasPillars ? {
+      label: activeAutomation ? "Automation running" : "Automation idle",
+      value: activeAutomation ? "Active" : "Standby",
+      tone: activeAutomation ? "text-emerald-600" : "text-muted-foreground",
+      dot: activeAutomation ? "bg-emerald-500" : "bg-muted-foreground",
+    } : null,
+    totalPending > 0 ? {
+      label: "Assets in queue",
+      value: formatCount(totalPending),
+      tone: "text-muted-foreground",
+      dot: "bg-blue-500",
+    } : null,
+    totalFailed > 0 || hasIssues ? {
+      label: "Attention needed",
+      value: totalFailed > 0 ? `${formatCount(totalFailed)} failed` : "Review",
+      tone: "text-amber-600",
+      dot: "bg-amber-500",
+    } : null,
+  ].filter(Boolean) as Array<{ label: string; value: string; tone: string; dot: string }>;
+
   if (pillarsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -304,260 +335,388 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
   }
 
   return (
-    <div className="space-y-6">
-      {/* AI Suggestions Section */}
-      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200/50 dark:border-blue-800/30">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-500" />
-                AI Authority Ideas
-              </CardTitle>
-              <CardDescription>
-                Get tailored authority ideas based on your business profile
-              </CardDescription>
-            </div>
-            <Button
-              onClick={fetchSuggestions}
-              disabled={isLoadingSuggestions}
-              variant="outline"
-              className="gap-2"
-              data-testid="button-get-suggestions"
-            >
-              {isLoadingSuggestions ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Discovering...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Discover Opportunities
-                </>
-              )}
+    <div className="space-y-8">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-semibold text-foreground">Authority Workspace</h2>
+          <p className="text-sm text-muted-foreground">Autonomous authority growth system</p>
+        </div>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" data-testid="button-create-pillar">
+              <Plus className="h-4 w-4 mr-2" />
+              New Authority Topic
             </Button>
-          </div>
-        </CardHeader>
-        {suggestions.length > 0 && (
-          <CardContent className="pt-0">
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {suggestions.map((suggestion) => (
-                <div
-                  key={suggestion.id}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                    suggestion.used
-                      ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60"
-                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                  }`}
-                  onClick={() => !suggestion.used && useSuggestion(suggestion)}
-                  data-testid={`suggestion-card-${suggestion.id}`}
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create Authority Topic</DialogTitle>
+              <DialogDescription>
+                Define the main market you want to dominate. We will automatically build a complete content ecosystem and growth engine around it.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="pillar-name">Authority Topic Name</Label>
+                <Input
+                  id="pillar-name"
+                  placeholder="e.g., AI Meditation, Luxury Real Estate, Remote Hiring"
+                  value={newPillar.name}
+                  onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
+                  data-testid="input-pillar-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pillar-description">Business Focus (optional)</Label>
+                <Textarea
+                  id="pillar-description"
+                  placeholder="Describe what this authority topic represents for your business."
+                  value={newPillar.description}
+                  onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
+                  data-testid="input-pillar-description"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pillar-prompt">AI Instructions (optional)</Label>
+                <Textarea
+                  id="pillar-prompt"
+                  placeholder="Custom guidance for how the AI should generate content and messaging."
+                  value={newPillar.masterPrompt}
+                  onChange={(e) => setNewPillar({ ...newPillar, masterPrompt: e.target.value })}
+                  rows={3}
+                  data-testid="input-pillar-prompt"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Growth Volume: {newPillar.targetArticleCount} assets</Label>
+                <Slider
+                  value={[newPillar.targetArticleCount]}
+                  onValueChange={(value) => setNewPillar({ ...newPillar, targetArticleCount: value[0] })}
+                  min={10}
+                  max={200}
+                  step={10}
+                  data-testid="slider-article-count"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Controls how aggressively this authority topic expands its market presence.
+                </p>
+                <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wide">
+                  <span>Light</span>
+                  <span>Standard</span>
+                  <span>Aggressive</span>
+                  <span>Dominant</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Growth Strategy</Label>
+                <Select
+                  value={newPillar.packType}
+                  onValueChange={(value) => setNewPillar({ ...newPillar, packType: value as PackType })}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
-                      {suggestion.name}
-                    </h4>
-                    {suggestion.used ? (
-                      <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                    ) : (
-                      <Badge variant="outline" className="text-xs shrink-0">
-                        {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
-                    {suggestion.description}
+                  <SelectTrigger data-testid="select-pack-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PACK_DEFINITIONS).map(([key, pack]) => (
+                      <SelectItem key={key} value={key}>
+                        {pack.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose how this authority topic should grow and convert traffic.
+                </p>
+                {newPillar.packType && newPillar.packType !== "custom" && PACK_DEFINITIONS[newPillar.packType] && (
+                  <p className="text-xs text-muted-foreground">
+                    {PACK_DEFINITIONS[newPillar.packType].description}
                   </p>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">
-                    {suggestion.suggestedArticleCount} assets recommended
+                )}
+                {newPillar.packType === "custom" && (
+                  <CustomPackCreator
+                    value={newPillar.customPackConfig}
+                    onChange={(config) => setNewPillar({ ...newPillar, customPackConfig: config })}
+                  />
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Automation Pace</Label>
+                  <Select
+                    value={newPillar.publishSchedule}
+                    onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
+                  >
+                    <SelectTrigger data-testid="select-publish-schedule">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1_per_hour">1 per hour</SelectItem>
+                      <SelectItem value="2_per_day">2 per day</SelectItem>
+                      <SelectItem value="1_per_day">1 per day</SelectItem>
+                      <SelectItem value="3_per_week">3 per week</SelectItem>
+                      <SelectItem value="1_per_week">1 per week</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    <span className="flex items-center gap-2">
+                      <Languages className="h-4 w-4" />
+                      Content Language
+                    </span>
+                  </Label>
+                  <Select
+                    value={newPillar.targetLanguage}
+                    onValueChange={(value) => setNewPillar({ ...newPillar, targetLanguage: value })}
+                  >
+                    <SelectTrigger data-testid="select-pillar-language">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(languageDisplayNames).map(([code, name]) => (
+                        <SelectItem key={code} value={code}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Initial Publishing State</Label>
+                  <Select
+                    value={newPillar.defaultPostStatus}
+                    onValueChange={(value) => setNewPillar({ ...newPillar, defaultPostStatus: value })}
+                  >
+                    <SelectTrigger data-testid="select-pillar-post-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Choose whether new assets start published or draft.</p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                Discard
+              </Button>
+              <Button
+                onClick={() => createPillarMutation.mutate(newPillar)}
+                disabled={!newPillar.name.trim() || createPillarMutation.isPending}
+                data-testid="button-submit-pillar"
+              >
+                {createPillarMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Launch Authority
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <LayoutGrid className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Authority Topics</p>
+                    <p className="text-xl font-semibold">{formatCount(pillars?.length || 0)}</p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Assets</p>
+                    <p className="text-xl font-semibold">{formatCount(totalAssets)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {hasPillars && (
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Play className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">In Automation</p>
+                      <p className="text-xl font-semibold">{formatCount(automationTopics)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {hasPillars && (
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Assets Produced</p>
+                      <p className="text-xl font-semibold">{formatCount(totalCompleted)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {hasPillars ? (
+            <Card className="shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Growth Pulse</CardTitle>
+                <CardDescription>Live system activity across your authority topics.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-lg border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Assets Produced</p>
+                    <p className="text-lg font-semibold">{formatCount(totalCompleted)}</p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Assets in Queue</p>
+                    <p className="text-lg font-semibold">{formatCount(totalPending)}</p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/20 p-3">
+                    <p className="text-xs text-muted-foreground">Attention Needed</p>
+                    <p className="text-lg font-semibold">{formatCount(totalFailed)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-dashed bg-muted/10 shadow-sm">
+              <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Target className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-lg font-semibold">Launch Your First Authority Topic</p>
+                  <p className="text-sm text-muted-foreground">
+                    Set an authority topic to start building a self-growing content ecosystem.
+                  </p>
+                </div>
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Launch Authority Topic
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {systemStatusItems.length > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">System Status</CardTitle>
+              <CardDescription>Automation health and activity.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {systemStatusItems.map((item) => (
+                <div key={item.label} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${item.dot}`} />
+                    <span className="text-muted-foreground">{item.label}</span>
+                  </div>
+                  <span className={`font-medium ${item.tone}`}>{item.value}</span>
+                </div>
               ))}
-            </div>
-          </CardContent>
+            </CardContent>
+          </Card>
         )}
-      </Card>
+      </div>
+
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">Content Opportunities</h3>
+          <p className="text-sm text-muted-foreground">Discover new authority ideas powered by your business profile.</p>
+        </div>
+        <Button
+          onClick={fetchSuggestions}
+          disabled={isLoadingSuggestions}
+          variant="outline"
+          className="gap-2"
+          data-testid="button-get-suggestions"
+        >
+          {isLoadingSuggestions ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Discovering...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Discover Topics
+            </>
+          )}
+        </Button>
+      </div>
+
+      {suggestions.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {suggestions.map((suggestion) => (
+            <Card
+              key={suggestion.id}
+              className={`transition-all cursor-pointer ${suggestion.used ? "opacity-60" : "hover-elevate"}`}
+              onClick={() => !suggestion.used && useSuggestion(suggestion)}
+              data-testid={`suggestion-card-${suggestion.id}`}
+            >
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
+                    </p>
+                    <h4 className="font-medium text-foreground line-clamp-2">{suggestion.name}</h4>
+                  </div>
+                  {suggestion.used ? (
+                    <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      New
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {suggestion.description}
+                </p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{suggestion.suggestedArticleCount} assets</span>
+                  <span>Tap to prefill</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : !isLoadingSuggestions ? (
+        <Card className="border-dashed bg-muted/10">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            No opportunities yet. Discover topics to generate tailored authority ideas.
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <CardTitle data-testid="text-topical-authority-title">All Authority Topics</CardTitle>
-              <CardDescription data-testid="text-topical-authority-description">
-                Build market authority with an automated growth system
-              </CardDescription>
-            </div>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" data-testid="button-create-pillar">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Authority Topic
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Create Authority Topic</DialogTitle>
-                  <DialogDescription>
-                    Define the main market you want to dominate. We will automatically build a complete content ecosystem and growth engine around it.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="pillar-name">Authority Topic Name</Label>
-                    <Input
-                      id="pillar-name"
-                      placeholder="e.g., AI Meditation, Luxury Real Estate, Remote Hiring"
-                      value={newPillar.name}
-                      onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
-                      data-testid="input-pillar-name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pillar-description">Business Focus (optional)</Label>
-                    <Textarea
-                      id="pillar-description"
-                      placeholder="Describe what this authority topic represents for your business."
-                      value={newPillar.description}
-                      onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
-                      data-testid="input-pillar-description"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pillar-prompt">AI Instructions (optional)</Label>
-                    <Textarea
-                      id="pillar-prompt"
-                      placeholder="Custom guidance for how the AI should generate content and messaging."
-                      value={newPillar.masterPrompt}
-                      onChange={(e) => setNewPillar({ ...newPillar, masterPrompt: e.target.value })}
-                      rows={3}
-                      data-testid="input-pillar-prompt"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Growth Volume: {newPillar.targetArticleCount} assets</Label>
-                    <Slider
-                      value={[newPillar.targetArticleCount]}
-                      onValueChange={(value) => setNewPillar({ ...newPillar, targetArticleCount: value[0] })}
-                      min={10}
-                      max={200}
-                      step={10}
-                      data-testid="slider-article-count"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Controls how aggressively this authority topic expands its market presence.
-                    </p>
-                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wide">
-                      <span>Light</span>
-                      <span>Standard</span>
-                      <span>Aggressive</span>
-                      <span>Dominant</span>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Growth Strategy</Label>
-                    <Select
-                      value={newPillar.packType}
-                      onValueChange={(value) => setNewPillar({ ...newPillar, packType: value as PackType })}
-                    >
-                      <SelectTrigger data-testid="select-pack-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(PACK_DEFINITIONS).map(([key, pack]) => (
-                          <SelectItem key={key} value={key}>
-                            {pack.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Choose how this authority topic should grow and convert traffic.
-                    </p>
-                    {newPillar.packType && newPillar.packType !== "custom" && PACK_DEFINITIONS[newPillar.packType] && (
-                      <p className="text-xs text-muted-foreground">
-                        {PACK_DEFINITIONS[newPillar.packType].description}
-                      </p>
-                    )}
-                    {newPillar.packType === "custom" && (
-                      <CustomPackCreator
-                        value={newPillar.customPackConfig}
-                        onChange={(config) => setNewPillar({ ...newPillar, customPackConfig: config })}
-                      />
-                    )}
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Automation Pace</Label>
-                      <Select
-                        value={newPillar.publishSchedule}
-                        onValueChange={(value) => setNewPillar({ ...newPillar, publishSchedule: value })}
-                      >
-                        <SelectTrigger data-testid="select-publish-schedule">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1_per_hour">1 per hour</SelectItem>
-                          <SelectItem value="2_per_day">2 per day</SelectItem>
-                          <SelectItem value="1_per_day">1 per day</SelectItem>
-                          <SelectItem value="3_per_week">3 per week</SelectItem>
-                          <SelectItem value="1_per_week">1 per week</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>
-                        <span className="flex items-center gap-2">
-                          <Languages className="h-4 w-4" />
-                          Content Language
-                        </span>
-                      </Label>
-                      <Select
-                        value={newPillar.targetLanguage}
-                        onValueChange={(value) => setNewPillar({ ...newPillar, targetLanguage: value })}
-                      >
-                        <SelectTrigger data-testid="select-pillar-language">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(languageDisplayNames).map(([code, name]) => (
-                            <SelectItem key={code} value={code}>{name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Initial Publishing State</Label>
-                      <Select
-                        value={newPillar.defaultPostStatus}
-                        onValueChange={(value) => setNewPillar({ ...newPillar, defaultPostStatus: value })}
-                      >
-                        <SelectTrigger data-testid="select-pillar-post-status">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="published">Published</SelectItem>
-                          <SelectItem value="draft">Draft</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">Choose whether new assets start published or draft.</p>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                    Discard
-                  </Button>
-                  <Button 
-                    onClick={() => createPillarMutation.mutate(newPillar)}
-                    disabled={!newPillar.name.trim() || createPillarMutation.isPending}
-                    data-testid="button-submit-pillar"
-                  >
-                    {createPillarMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Launch Authority
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+          <div>
+            <CardTitle data-testid="text-topical-authority-title">All Authority Topics</CardTitle>
+            <CardDescription data-testid="text-topical-authority-description">
+              Build market authority with an automated growth system
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -570,7 +729,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
           ) : (
             <div className="space-y-4">
               {pillars.map((pillar) => (
-                <Card 
+                <Card
                   key={pillar.id}
                   className={`cursor-pointer transition-all ${selectedPillar === pillar.id ? 'ring-2 ring-primary' : 'hover-elevate'}`}
                   onClick={() => setSelectedPillar(selectedPillar === pillar.id ? null : pillar.id)}
@@ -794,5 +953,9 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     </div>
   );
 }
+
+
+
+
 
 
