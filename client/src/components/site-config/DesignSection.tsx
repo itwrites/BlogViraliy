@@ -582,7 +582,7 @@ export function DesignSection({ siteData, setSiteData, templateSettings, setTemp
                         <p className="text-xs text-muted-foreground -mt-2">Add visual flair with custom cursors and card styles to enhance user experience.</p>
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label htmlFor="postCardStyle" data-testid="label-post-card-style">Post Card Design</Label>
+                            <Label htmlFor="postCardStyle" data-testid="label-post-card-style">Article Card Design</Label>
                             <Select
                               value={templateSettings.postCardStyle || "standard"}
                               onValueChange={(value: "standard" | "editorial" | "minimal" | "overlay" | "compact" | "featured" | "glass" | "gradient") => setTemplateSettings({ ...templateSettings, postCardStyle: value })}
@@ -626,7 +626,7 @@ export function DesignSection({ siteData, setSiteData, templateSettings, setTemp
                         </div>
   
                         <div className="space-y-2 pt-4">
-                          <Label htmlFor="postsPerPage" data-testid="label-posts-per-page">Posts Per Page: {templateSettings.postsPerPage || 12}</Label>
+                          <Label htmlFor="postsPerPage" data-testid="label-posts-per-page">Articles Per Page: {templateSettings.postsPerPage || 12}</Label>
                           <Slider
                             id="postsPerPage"
                             min={6}

@@ -122,7 +122,7 @@ export function NavigationSection({
                 </div>
 
                 <div className="space-y-2">
-                  <Label data-testid="label-post-url-format">Post URL Format</Label>
+                  <Label data-testid="label-post-url-format">Article URL Format</Label>
                   <Select
                     value={siteData.postUrlFormat}
                     onValueChange={(value: "with-prefix" | "root") => setSiteData({ ...siteData, postUrlFormat: value })}
@@ -137,8 +137,8 @@ export function NavigationSection({
                   </Select>
                   <p className="text-xs text-muted-foreground">
                     {siteData.postUrlFormat === "with-prefix"
-                      ? "Posts use /post/my-article format"
-                      : "Posts use /my-article format (cleaner URLs)"}
+                      ? "Articles use /post/my-article format"
+                      : "Articles use /my-article format (cleaner URLs)"}
                   </p>
                 </div>
 

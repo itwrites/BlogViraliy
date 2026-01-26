@@ -111,15 +111,15 @@ export function PostsManager({ siteId }: PostsManagerProps) {
     try {
       if (currentPost) {
         await apiRequest("PUT", `/api/posts/${currentPost.id}`, postData);
-        toast({ title: "Post updated successfully" });
+        toast({ title: "Article updated successfully" });
       } else {
         await apiRequest("POST", "/api/posts", postData);
-        toast({ title: "Post created successfully" });
+        toast({ title: "Article created successfully" });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
       setEditorOpen(false);
     } catch (error) {
-      toast({ title: "Failed to save post", variant: "destructive" });
+      toast({ title: "Failed to save article", variant: "destructive" });
     }
   };
 
@@ -133,12 +133,12 @@ export function PostsManager({ siteId }: PostsManagerProps) {
 
     try {
       await apiRequest("DELETE", `/api/posts/${postToDelete.id}`, undefined);
-      toast({ title: "Post deleted successfully" });
+      toast({ title: "Article deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId, "posts"] });
       setDeleteDialogOpen(false);
       setPostToDelete(null);
     } catch (error) {
-      toast({ title: "Failed to delete post", variant: "destructive" });
+      toast({ title: "Failed to delete article", variant: "destructive" });
     }
   };
 
@@ -148,12 +148,12 @@ export function PostsManager({ siteId }: PostsManagerProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle data-testid="text-posts-title">Posts</CardTitle>
-              <CardDescription data-testid="text-posts-description">Manage all posts for this site</CardDescription>
+              <CardTitle data-testid="text-posts-title">Articles</CardTitle>
+              <CardDescription data-testid="text-posts-description">Manage all articles for this site</CardDescription>
             </div>
             <Button onClick={() => openEditor()} data-testid="button-add-post">
               <Plus className="h-4 w-4 mr-2" />
-              Add Post
+              Add Article
             </Button>
           </div>
         </CardHeader>
@@ -215,11 +215,11 @@ export function PostsManager({ siteId }: PostsManagerProps) {
           ) : (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first post or enable automation</p>
+              <h3 className="text-lg font-semibold mb-2">No articles yet</h3>
+              <p className="text-muted-foreground mb-4">Create your first article or enable automation</p>
               <Button onClick={() => openEditor()} data-testid="button-add-first-post">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Post
+                Add Article
               </Button>
             </div>
           )}
@@ -229,7 +229,7 @@ export function PostsManager({ siteId }: PostsManagerProps) {
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{currentPost ? "Edit Post" : "Create New Post"}</DialogTitle>
+            <DialogTitle>{currentPost ? "Edit Article" : "Create New Article"}</DialogTitle>
             <DialogDescription>
               Write engaging content for your audience
             </DialogDescription>
@@ -367,7 +367,7 @@ export function PostsManager({ siteId }: PostsManagerProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Post</AlertDialogTitle>
+            <AlertDialogTitle>Delete Article</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete <strong>{postToDelete?.title}</strong>? This action cannot be undone.
             </AlertDialogDescription>

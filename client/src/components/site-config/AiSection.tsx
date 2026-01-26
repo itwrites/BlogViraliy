@@ -62,10 +62,10 @@ export function AiSection({ aiConfig, setAiConfig, newKeyword, setNewKeyword, ad
                           <Settings className="h-4 w-4" />
                           Automation Settings
                         </h4>
-                        <p className="text-xs text-muted-foreground -mt-2">When enabled, the system will automatically generate new posts based on your keywords</p>
+                        <p className="text-xs text-muted-foreground -mt-2">When enabled, the system will automatically generate new articles based on your keywords</p>
                         <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Post Schedule</Label>
+                            <Label htmlFor="aiSchedule" data-testid="label-ai-schedule">Article Schedule</Label>
                             <Select
                               value={aiConfig.schedule}
                               onValueChange={(value) => setAiConfig({ ...aiConfig, schedule: value })}
@@ -75,12 +75,12 @@ export function AiSection({ aiConfig, setAiConfig, newKeyword, setNewKeyword, ad
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="1_per_day">1 post per day</SelectItem>
-                                <SelectItem value="3_per_day">3 posts per day</SelectItem>
-                                <SelectItem value="1_per_week">1 post per week</SelectItem>
+                                <SelectItem value="1_per_day">1 article per day</SelectItem>
+                                <SelectItem value="3_per_day">3 articles per day</SelectItem>
+                                <SelectItem value="1_per_week">1 article per week</SelectItem>
                               </SelectContent>
                             </Select>
-                            <p className="text-xs text-muted-foreground">How often new AI posts are created. Choose based on your content strategy.</p>
+                            <p className="text-xs text-muted-foreground">How often new AI articles are created. Choose based on your content strategy.</p>
                           </div>
   
                           <div className="space-y-2">

@@ -84,7 +84,7 @@ import {
 import type { Site, Post, SiteAuthor, ArticleRole } from "@shared/schema";
 
 const ARTICLE_ROLES: { value: ArticleRole; label: string; description: string }[] = [
-  { value: "general", label: "General", description: "Standard blog post" },
+  { value: "general", label: "General", description: "Standard blog article" },
   { value: "pillar", label: "Pillar", description: "Comprehensive cornerstone content" },
   { value: "support", label: "Support", description: "Supporting content for pillars" },
   { value: "long_tail", label: "Long-tail", description: "Specific keyword targeting" },
@@ -311,23 +311,23 @@ export default function EditorPosts() {
           });
         } else if (error.code === "POST_LIMIT_EXCEEDED") {
           toast({ 
-            title: "Post Limit Reached", 
-            description: error.error || "You've reached your post limit. Upgrade to create more posts.", 
+            title: "Article Limit Reached", 
+            description: error.error || "You've reached your article limit. Upgrade to create more articles.", 
             variant: "destructive" 
           });
         } else {
-          throw new Error(error.error || "Failed to generate post");
+          throw new Error(error.error || "Failed to generate article");
         }
         return;
       }
       
       const post = await res.json();
       queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
-      toast({ title: "Success", description: `AI post "${post.title}" created successfully!` });
+      toast({ title: "Success", description: `AI article "${post.title}" created successfully!` });
       setNewPostModalOpen(false);
       setAiTopicInput("");
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to generate AI post", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to generate AI article", variant: "destructive" });
     } finally {
       setAiGenerating(false);
     }
@@ -360,7 +360,7 @@ export default function EditorPosts() {
           slug,
           articleRole: formData.articleRole,
         });
-        toast({ title: "Success", description: "Post updated successfully" });
+        toast({ title: "Success", description: "Article updated successfully" });
       } else {
         await apiRequest("POST", `/api/editor/sites/${siteId}/posts`, {
           siteId,
@@ -373,13 +373,13 @@ export default function EditorPosts() {
           source: "manual",
           articleRole: formData.articleRole,
         });
-        toast({ title: "Success", description: "Post created successfully" });
+        toast({ title: "Success", description: "Article created successfully" });
       }
 
       queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
       closeEditor();
     } catch (error) {
-      toast({ title: "Error", description: "Failed to save post", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to save article", variant: "destructive" });
     }
   };
 
@@ -389,11 +389,11 @@ export default function EditorPosts() {
     try {
       await apiRequest("DELETE", `/api/editor/posts/${postToDelete.id}`, undefined);
       queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
-      toast({ title: "Success", description: "Post deleted successfully" });
+      toast({ title: "Success", description: "Article deleted successfully" });
       setDeleteDialogOpen(false);
       setPostToDelete(null);
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete post", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete article", variant: "destructive" });
     }
   };
 
@@ -445,12 +445,12 @@ export default function EditorPosts() {
       queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
       toast({ 
         title: "Success", 
-        description: `${selectedPosts.size} post${selectedPosts.size > 1 ? 's' : ''} deleted` 
+        description: `${selectedPosts.size} article${selectedPosts.size > 1 ? 's' : ''} deleted` 
       });
       setBulkDeleteDialogOpen(false);
       exitBulkMode();
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete posts", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete articles", variant: "destructive" });
     }
   };
 
@@ -493,7 +493,7 @@ export default function EditorPosts() {
         queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
         toast({ 
           title: "Import Complete", 
-          description: `Successfully imported ${result.imported} post${result.imported > 1 ? 's' : ''}` 
+          description: `Successfully imported ${result.imported} article${result.imported > 1 ? 's' : ''}` 
         });
       }
     } catch (error) {
@@ -511,13 +511,13 @@ export default function EditorPosts() {
 
   const downloadCsvTemplate = () => {
     const template = `title,description,tags,slug,imageUrl
-"My First Post","This is the content of my first post.
+"My First Article","This is the content of my first article.
 
 You can use multiple lines in the description field when wrapped in quotes.
 
 HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","https://example.com/image1.jpg"
-"Another Post","Another great article with interesting content.","news, updates","another-post",""
-"Post Without Slug","The slug will be auto-generated from the title if left empty.","example","",""`;
+"Another Article","Another great article with interesting content.","news, updates","another-post",""
+"Article Without Slug","The slug will be auto-generated from the title if left empty.","example","",""`;
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -617,7 +617,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
-                <span className="flex-1 text-left">Posts</span>
+                <span className="flex-1 text-left">Articles</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                   activeTab === "posts" ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
                 }`}>
@@ -677,7 +677,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
                   <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                  <p className="text-xs text-gray-500">Total Posts</p>
+                  <p className="text-xs text-gray-500">Total Articles</p>
                 </div>
                 <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
                   <p className="text-2xl font-bold text-emerald-600">{stats.manual}</p>
@@ -701,7 +701,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </p>
                 <div className="space-y-1">
                   {[
-                    { value: "all", label: "All Posts", icon: LayoutGrid, count: stats.total },
+                    { value: "all", label: "All Articles", icon: LayoutGrid, count: stats.total },
                     { value: "manual", label: "Manual", icon: PenLine, count: stats.manual },
                     { value: "ai", label: "AI Generated", icon: Bot, count: stats.ai },
                     { value: "rss", label: "RSS Imports", icon: Rss, count: stats.rss },
@@ -784,7 +784,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
-                      placeholder="Search posts..."
+                      placeholder="Search articles..."
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -864,7 +864,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         data-testid="button-new-post"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        New Post
+                        New Article
                       </Button>
                     </>
                   )}
@@ -888,8 +888,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 />
                 <span className="text-sm text-gray-600">
                   {allCurrentPageSelected 
-                    ? `All ${paginatedPosts.length} posts on this page selected`
-                    : `Select all ${paginatedPosts.length} posts on this page`
+                    ? `All ${paginatedPosts.length} articles on this page selected`
+                    : `Select all ${paginatedPosts.length} articles on this page`
                   }
                 </span>
                 {selectedPosts.size > 0 && (
@@ -1134,14 +1134,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     )}
                   </div>
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                    {searchQuery || sourceFilter !== "all" ? "No posts found" : "No posts yet"}
+                    {searchQuery || sourceFilter !== "all" ? "No articles found" : "No articles yet"}
                   </h3>
                   <p className="text-gray-500 max-w-md mx-auto mb-6">
                     {searchQuery
                       ? "Try adjusting your search terms or filters"
                       : sourceFilter !== "all"
-                      ? `No ${sourceFilter === "ai" ? "AI generated" : sourceFilter === "rss" ? "RSS imported" : "manual"} posts found`
-                      : "Create your first post to get started with your content"}
+                      ? `No ${sourceFilter === "ai" ? "AI generated" : sourceFilter === "rss" ? "RSS imported" : "manual"} articles found`
+                      : "Create your first article to get started with your content"}
                   </p>
                   {!searchQuery && sourceFilter === "all" && (
                     <Button 
@@ -1151,7 +1151,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       data-testid="button-create-first"
                     >
                       <Plus className="w-5 h-5" />
-                      Create Your First Post
+                      Create Your First Article
                     </Button>
                   )}
                 </motion.div>
@@ -1166,7 +1166,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200"
               >
                 <p className="text-sm text-gray-500">
-                  Showing {((currentPage - 1) * POSTS_PER_PAGE) + 1} - {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} of {filteredPosts.length} posts
+                  Showing {((currentPage - 1) * POSTS_PER_PAGE) + 1} - {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} of {filteredPosts.length} articles
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -1243,9 +1243,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       <Dialog open={newPostModalOpen} onOpenChange={(open) => { if (!aiGenerating) setNewPostModalOpen(open); }}>
         <DialogContent className="max-w-md bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
-            <DialogTitle className="text-xl text-gray-900">Create New Post</DialogTitle>
+            <DialogTitle className="text-xl text-gray-900">Create New Article</DialogTitle>
             <DialogDescription className="text-gray-500">
-              Choose how you'd like to create your post
+              Choose how you'd like to create your article
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -1263,7 +1263,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </div>
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900">Write by Hand</h3>
-                <p className="text-sm text-gray-500">Create a post manually with full control</p>
+                <p className="text-sm text-gray-500">Create an article manually with full control</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Button>
@@ -1315,7 +1315,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Generate Post
+                      Generate Article
                     </>
                   )}
                 </Button>
@@ -1329,10 +1329,10 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <DialogHeader>
             <DialogTitle className="text-xl text-gray-900">
-              {currentPost ? "Edit Post" : "Create New Post"}
+              {currentPost ? "Edit Article" : "Create New Article"}
             </DialogTitle>
             <DialogDescription className="text-gray-500">
-              {currentPost ? "Update your post content and settings" : "Write and publish a new post for your site"}
+              {currentPost ? "Update your article content and settings" : "Write and publish a new article for your site"}
             </DialogDescription>
           </DialogHeader>
           <motion.div
@@ -1438,12 +1438,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               {currentPost ? (
                 <>
                   <Edit className="w-4 h-4" />
-                  Update Post
+                  Update Article
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
-                  Create Post
+                  Create Article
                 </>
               )}
             </Button>
@@ -1454,7 +1454,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">Delete Post</AlertDialogTitle>
+            <AlertDialogTitle className="text-gray-900">Delete Article</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-500">
               Are you sure you want to delete "{postToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
@@ -1475,9 +1475,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
+            <AlertDialogTitle className="text-gray-900">Delete {selectedPosts.size} Article{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-500">
-              Are you sure you want to delete {selectedPosts.size} selected post{selectedPosts.size > 1 ? "s" : ""}? This action cannot be undone.
+              Are you sure you want to delete {selectedPosts.size} selected article{selectedPosts.size > 1 ? "s" : ""}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1487,7 +1487,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               className="bg-red-500 text-white hover:bg-red-600"
               data-testid="button-confirm-bulk-delete"
             >
-              Delete {selectedPosts.size} Post{selectedPosts.size > 1 ? "s" : ""}
+              Delete {selectedPosts.size} Article{selectedPosts.size > 1 ? "s" : ""}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1498,10 +1498,10 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-gray-900">
               <FileSpreadsheet className="w-5 h-5" />
-              Import Posts from CSV
+              Import Articles from CSV
             </DialogTitle>
             <DialogDescription className="text-gray-500">
-              Upload a CSV file with your posts. Required columns: title, description. Optional: tags.
+              Upload a CSV file with your articles. Required columns: title, description. Optional: tags.
             </DialogDescription>
           </DialogHeader>
 
@@ -1557,8 +1557,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   <div className="space-y-1">
                     <p className="font-medium text-gray-900">
                       {csvResult.imported > 0 
-                        ? `Successfully imported ${csvResult.imported} post${csvResult.imported > 1 ? 's' : ''}`
-                        : "No posts imported"
+                        ? `Successfully imported ${csvResult.imported} article${csvResult.imported > 1 ? 's' : ''}`
+                        : "No articles imported"
                       }
                     </p>
                     {csvResult.skipped > 0 && (
@@ -1610,7 +1610,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    Import Posts
+                    Import Articles
                   </>
                 )}
               </Button>

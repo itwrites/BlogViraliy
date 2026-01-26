@@ -260,7 +260,7 @@ export default function OwnerDashboard() {
 
               <div className="bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-medium text-gray-600">Posts This Month</span>
+                  <span className="text-[13px] font-medium text-gray-600">Articles This Month</span>
                   <span className="text-[13px] font-semibold text-gray-900">
                     {postsUsed} / {postsLimit}
                   </span>
@@ -360,7 +360,7 @@ export default function OwnerDashboard() {
                     <div className="p-3 bg-gray-50 rounded-xl">
                       <div className="flex items-center gap-2 mb-1">
                         <FileText className="w-4 h-4 text-gray-400" />
-                        <span className="text-[11px] font-medium text-gray-500 uppercase">Posts/mo</span>
+                        <span className="text-[11px] font-medium text-gray-500 uppercase">Articles/mo</span>
                       </div>
                       <p className="text-xl font-bold text-gray-900">{postsLimit}</p>
                     </div>

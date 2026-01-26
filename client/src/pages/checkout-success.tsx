@@ -154,7 +154,7 @@ export default function CheckoutSuccess() {
                         <FileText className="w-4 h-4 text-gray-400" />
                       </div>
                       <p className="text-2xl font-bold text-gray-900">{planDetails.postsPerMonth}</p>
-                      <p className="text-[11px] text-gray-500 uppercase font-medium">Posts/mo</p>
+                      <p className="text-[11px] text-gray-500 uppercase font-medium">Articles/mo</p>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">

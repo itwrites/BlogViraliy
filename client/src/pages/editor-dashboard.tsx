@@ -83,7 +83,7 @@ export default function EditorDashboard() {
   const getPermissionLabel = (permission: string) => {
     const labels: Record<string, { text: string; color: string }> = {
       view: { text: "View Only", color: "bg-gray-100 text-gray-600 border-gray-200" },
-      posts_only: { text: "Posts", color: "bg-blue-50 text-blue-700 border-blue-200" },
+      posts_only: { text: "Articles", color: "bg-blue-50 text-blue-700 border-blue-200" },
       edit: { text: "Editor", color: "bg-violet-50 text-violet-700 border-violet-200" },
       manage: { text: "Manager", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
     };

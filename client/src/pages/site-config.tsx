@@ -487,9 +487,9 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
       setSelectedPostIds(new Set(posts.map((p: PostWithImage) => p.id)));
 
       if (posts.length === 0) {
-        toast({ title: "No posts found with that image" });
+        toast({ title: "No articles found with that image" });
       } else {
-        toast({ title: `Found ${posts.length} post(s) with that image` });
+        toast({ title: `Found ${posts.length} article(s) with that image` });
       }
     } catch (error) {
       toast({ title: "Search failed", variant: "destructive" });
@@ -505,7 +505,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
     }
 
     if (selectedPostIds.size === 0) {
-      toast({ title: "Select at least one post", variant: "destructive" });
+      toast({ title: "Select at least one article", variant: "destructive" });
       return;
     }
 
@@ -595,12 +595,12 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
 
   const autoFixAllImages = async () => {
     if (!searchImageUrl.trim()) {
-      toast({ title: "Search for posts first", variant: "destructive" });
+      toast({ title: "Search for articles first", variant: "destructive" });
       return;
     }
 
     if (matchingPosts.length === 0) {
-      toast({ title: "No posts to fix", variant: "destructive" });
+      toast({ title: "No articles to fix", variant: "destructive" });
       return;
     }
 
@@ -625,7 +625,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
         // Mixed or full failure - show error and keep results visible
         toast({
           title: data.updated > 0 ? "Partial success" : "Auto-fix failed",
-          description: `Updated ${data.updated} of ${data.total} posts. ${data.failed} failed. Review results below.`,
+          description: `Updated ${data.updated} of ${data.total} articles. ${data.failed} failed. Review results below.`,
           variant: "destructive"
         });
         // Do NOT clear the search/posts - let user review what happened
@@ -633,7 +633,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
         // Full success
         toast({
           title: "Auto-fix complete",
-          description: `Successfully updated all ${data.updated} posts with unique Pexels images`
+          description: `Successfully updated all ${data.updated} articles with unique Pexels images`
         });
         // Clear only on full success
         setMatchingPosts([]);
@@ -641,8 +641,8 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
         setSearchImageUrl("");
       } else {
         toast({
-          title: "No posts updated",
-          description: "No matching posts found or all updates failed",
+          title: "No articles updated",
+          description: "No matching articles found or all updates failed",
           variant: "destructive"
         });
       }
@@ -696,7 +696,7 @@ function TroubleshootingSection({ siteId }: { siteId: string }) {
               <>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Matching Posts ({matchingPosts.length})</Label>
+                    <Label>Matching Articles ({matchingPosts.length})</Label>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={selectAll}>
                         Select All

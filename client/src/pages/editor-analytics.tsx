@@ -235,7 +235,7 @@ export default function EditorAnalytics() {
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
-                <span className="flex-1 text-left">Posts</span>
+                <span className="flex-1 text-left">Articles</span>
                 <Badge variant="secondary" className="text-xs">{stats.total}</Badge>
               </button>
               <button
@@ -267,7 +267,7 @@ export default function EditorAnalytics() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-background/60 rounded-xl p-3 text-center">
                     <p className="text-2xl font-bold text-primary">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Posts</p>
+                    <p className="text-xs text-muted-foreground">Articles</p>
                   </div>
                   <div className="bg-background/60 rounded-xl p-3 text-center">
                     <p className="text-2xl font-bold text-emerald-500">
@@ -462,7 +462,7 @@ export default function EditorAnalytics() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <p className="text-muted-foreground">No posts yet</p>
+                      <p className="text-muted-foreground">No articles yet</p>
                     )}
                   </div>
                   <div className="flex justify-center gap-6 mt-4">
@@ -651,7 +651,7 @@ export default function EditorAnalytics() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-center py-8">No posts yet</p>
+                    <p className="text-muted-foreground text-center py-8">No articles yet</p>
                   )}
                 </CardContent>
               </Card>
@@ -660,7 +660,7 @@ export default function EditorAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Recent Posts
+                    Recent Articles
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -706,7 +706,7 @@ export default function EditorAnalytics() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-center py-8">No posts yet</p>
+                    <p className="text-muted-foreground text-center py-8">No articles yet</p>
                   )}
                 </CardContent>
               </Card>

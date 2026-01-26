@@ -161,7 +161,7 @@ function EmptyState({ manifest, templateClasses }: { manifest: ThemeManifest | u
             className="text-2xl font-semibold mb-3"
             style={{ fontFamily: "var(--public-heading-font)" }}
           >
-            No posts yet
+            No articles yet
           </h2>
           <p 
             className="text-muted-foreground"

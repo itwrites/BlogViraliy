@@ -635,7 +635,7 @@ export default function UserManagement() {
                           </SelectTrigger>
                           <SelectContent className="bg-white border-gray-200">
                             <SelectItem value="view" className="text-gray-900">View Only</SelectItem>
-                            <SelectItem value="posts_only" className="text-gray-900">Posts Only</SelectItem>
+                            <SelectItem value="posts_only" className="text-gray-900">Articles Only</SelectItem>
                             <SelectItem value="edit" className="text-gray-900">Editor</SelectItem>
                             <SelectItem value="manage" className="text-gray-900">Manager</SelectItem>
                           </SelectContent>

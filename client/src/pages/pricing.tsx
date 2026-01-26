@@ -276,13 +276,13 @@ export default function Pricing() {
                     </div>
                   </motion.div>
 
-                  {/* Posts Per Month Highlight */}
+                  {/* Articles Per Month Highlight */}
                   <motion.div
                     variants={itemVariants}
                     className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200/60"
                   >
                     <p className="text-sm font-medium text-gray-600 mb-1">
-                      Posts per month
+                      Articles per month
                     </p>
                     <p className="text-3xl font-bold text-gray-900">
                       {plan.postsPerMonth}
