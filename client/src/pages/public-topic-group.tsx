@@ -4,6 +4,7 @@ import type { Site, Post, SiteMenuItem } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Layers, FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { PostCard } from "@/components/post-cards";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,7 +18,7 @@ interface PublicTopicGroupProps {
 
 export function PublicTopicGroupContent({ site, groupSlug }: PublicTopicGroupProps) {
   // Theme is detected via site.siteType (same as home page and post detail)
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   
   if (themeId === "forbis") {
     return <ForbisTopicGroup site={site} groupSlug={groupSlug} />;
@@ -279,7 +280,7 @@ function ForbisTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
 
 function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
   const [, setLocation] = useLocation();
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(mergeThemeTokens(site.siteType || "forbis", site.templateSettings || {}));
   const postCardStyle = templateClasses.postCardStyle || "standard";
   const { t } = useTranslation(site.displayLanguage || "en");
 
@@ -417,3 +418,4 @@ function StandardTopicGroup({ site, groupSlug }: PublicTopicGroupProps) {
 }
 
 export { PublicTopicGroupContent as PublicTopicGroup };
+

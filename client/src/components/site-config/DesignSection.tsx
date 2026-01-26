@@ -53,24 +53,12 @@ export function DesignSection({ siteData, setSiteData, templateSettings, setTemp
                         <div className="space-y-3">
                           <Label data-testid="label-site-type">Theme Preset</Label>
                           <p className="text-xs text-muted-foreground mb-3">Themes apply layout and typography defaults. Pick one that matches your content style.</p>
-                          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                             {[
-                              { value: "blog", label: "Blog", desc: "Editorial, serif fonts, spacious" },
-                              { value: "news", label: "News", desc: "Compact, condensed, information-dense" },
-                              { value: "forbis", label: "Forbis", desc: "Forbes-style 3-column, business publication" },
-                              { value: "magazine", label: "Magazine", desc: "Multi-column grid, TIME-style" },
-                              { value: "novapress", label: "NovaPress", desc: "Modern editorial, grid-based, premium magazine" },
-                              { value: "portfolio", label: "Portfolio", desc: "Large images, minimal text" },
-                              { value: "restaurant", label: "Restaurant", desc: "Food & dining news, warm colors" },
-                              { value: "crypto", label: "Crypto", desc: "Data-heavy, tech aesthetic" },
-                              { value: "aurora", label: "Aurora", desc: "Dreamy pastel gradients, soft shadows" },
-                              { value: "carbon", label: "Carbon", desc: "Bold brutalist, dark mode, sharp edges" },
-                              { value: "soho", label: "Soho", desc: "Sophisticated serif, editorial elegance" },
-                              { value: "citrine", label: "Citrine", desc: "Warm golden accents, magazine style" },
-                              { value: "verve", label: "Verve", desc: "Vibrant creative, high-energy gradients" },
-                              { value: "minimal", label: "Minimal", desc: "Ultra-clean, maximum whitespace" },
-                              { value: "ocean", label: "Ocean", desc: "Calming blue tones, serene vibes" },
-                              { value: "forest", label: "Forest", desc: "Natural green palette, organic feel" },
+                              { value: "forbis", label: "Forbis", desc: "Business Authority (Default)" },
+                              { value: "magazine", label: "Magazine", desc: "Media / Lifestyle" },
+                              { value: "minimal", label: "Minimal", desc: "SaaS / Technical / Performance" },
+                              { value: "portfolio", label: "Portfolio", desc: "Visual / Brand" },
                             ].map((theme) => (
                               <Card
                                 key={theme.value}

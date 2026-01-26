@@ -124,12 +124,12 @@ function ShellContent({
 }
 
 export function PublicShell({ site, children, currentTag, currentGroupSlug }: PublicShellProps) {
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   
   const mergedSettings = useMemo(() => {
     if (!isValidTheme(themeId)) {
-      console.warn(`[PublicShell] Unknown theme "${themeId}", falling back to blog defaults`);
-      return mergeThemeTokens("blog", site.templateSettings || {});
+      console.warn(`[PublicShell] Unknown theme "${themeId}", falling back to Forbis defaults`);
+      return mergeThemeTokens("forbis", site.templateSettings || {});
     }
     return mergeThemeTokens(themeId, site.templateSettings || {});
   }, [themeId, site.templateSettings]);

@@ -268,7 +268,7 @@ export const themeManifests: Record<string, ThemeManifest> = {
   minimal: {
     id: "minimal",
     name: "Minimal",
-    description: "Maximum whitespace, zero distractions, pure content focus",
+    description: "SaaS / Technical / Performance",
     category: "blog",
     layout: {
       homeLayout: "minimal-list",
@@ -360,7 +360,7 @@ export const themeManifests: Record<string, ThemeManifest> = {
   magazine: {
     id: "magazine",
     name: "Magazine",
-    description: "Rich editorial experience with multi-column layouts and bold imagery",
+    description: "Media / Lifestyle",
     category: "creative",
     layout: {
       homeLayout: "magazine",
@@ -544,7 +544,7 @@ export const themeManifests: Record<string, ThemeManifest> = {
   forbis: {
     id: "forbis",
     name: "Forbis",
-    description: "Premium business publication layout with Forbes-inspired 3-column grid, trending ticker, and elegant typography",
+    description: "Business Authority (Default)",
     category: "business",
     layout: {
       homeLayout: "forbis",
@@ -1372,7 +1372,7 @@ export const themeManifests: Record<string, ThemeManifest> = {
   portfolio: {
     id: "portfolio",
     name: "Portfolio",
-    description: "Clean showcase layout for projects and work",
+    description: "Visual / Brand",
     category: "business",
     layout: {
       homeLayout: "masonry",
@@ -1650,12 +1650,14 @@ export function getThemeManifest(themeId: string): ThemeManifest | undefined {
   return themeManifests[themeId];
 }
 
+export const enabledThemeIds = new Set(["forbis", "magazine", "minimal", "portfolio"]);
+
 export function getAllThemeManifests(): ThemeManifest[] {
-  return Object.values(themeManifests);
+  return Object.values(themeManifests).filter(theme => enabledThemeIds.has(theme.id));
 }
 
 export function getThemesByCategory(category: ThemeManifest["category"]): ThemeManifest[] {
-  return Object.values(themeManifests).filter(theme => theme.category === category);
+  return getAllThemeManifests().filter(theme => theme.category === category);
 }
 
 export function isValidThemeManifest(id: string): boolean {

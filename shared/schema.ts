@@ -337,7 +337,7 @@ export const sites = pgTable("sites", {
   logoUrl: text("logo_url"),
   logoTargetUrl: text("logo_target_url"), // Custom URL for logo click (null = homepage)
   menuMode: text("menu_mode").notNull().default("automatic"), // "automatic" or "manual"
-  siteType: text("site_type").notNull().default("blog"),
+  siteType: text("site_type").notNull().default("forbis"),
   // Template customization settings
   templateSettings: jsonb("template_settings").$type<TemplateSettings>().default(defaultTemplateSettings),
   // SEO settings
@@ -902,7 +902,7 @@ export const insertSiteSchema = createInsertSchema(sites).omit({
   updatedAt: true,
 }).extend({
   domain: z.string().nullish(), // Allow null/undefined for reverse_proxy mode
-  siteType: z.enum(["blog", "news", "magazine", "novapress", "portfolio", "restaurant", "crypto"]),
+  siteType: z.enum(["forbis", "magazine", "minimal", "portfolio", "blog", "news", "novapress", "restaurant", "crypto"]),
   templateSettings: templateSettingsSchema.optional(),
   menuMode: menuModeEnum.optional().default("automatic"),
 });

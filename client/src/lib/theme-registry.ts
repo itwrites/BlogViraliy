@@ -60,7 +60,7 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
   forbis: {
     id: "forbis",
     name: "Forbis",
-    description: "Premium business publication with Forbes-inspired 3-column layout",
+    description: "Business Authority (Default)",
     category: "business",
     defaultTokens: {
       primaryColor: "#000000",
@@ -83,7 +83,7 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
   magazine: {
     id: "magazine",
     name: "Magazine",
-    description: "Elegant magazine-style layout with rich typography",
+    description: "Media / Lifestyle",
     category: "creative",
     defaultTokens: {
       primaryColor: "#7c3aed",
@@ -130,7 +130,7 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
   portfolio: {
     id: "portfolio",
     name: "Portfolio",
-    description: "Clean portfolio layout for showcasing work",
+    description: "Visual / Brand",
     category: "business",
     defaultTokens: {
       primaryColor: "#10b981",
@@ -327,7 +327,7 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
   minimal: {
     id: "minimal",
     name: "Minimal",
-    description: "Ultra-clean design with maximum whitespace",
+    description: "SaaS / Technical / Performance",
     category: "blog",
     defaultTokens: {
       primaryColor: "#171717",
@@ -408,12 +408,14 @@ export function getThemeDefaultTokens(themeId: string): Partial<TemplateSettings
   return themeRegistry[themeId]?.defaultTokens || {};
 }
 
+export const enabledThemeIds = new Set(["forbis", "magazine", "minimal", "portfolio"]);
+
 export function getAllThemes(): ThemeDefinition[] {
-  return Object.values(themeRegistry);
+  return Object.values(themeRegistry).filter(theme => enabledThemeIds.has(theme.id));
 }
 
 export function getThemesByCategory(category: ThemeDefinition["category"]): ThemeDefinition[] {
-  return Object.values(themeRegistry).filter(theme => theme.category === category);
+  return getAllThemes().filter(theme => theme.category === category);
 }
 
 export function mergeThemeTokens(
@@ -440,4 +442,8 @@ export type ThemeId = keyof typeof themeRegistry;
 
 export function isValidTheme(id: string): id is ThemeId {
   return id in themeRegistry;
+}
+
+export function isThemeEnabled(id: string): id is ThemeId {
+  return enabledThemeIds.has(id);
 }

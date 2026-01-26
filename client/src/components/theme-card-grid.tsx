@@ -3,6 +3,7 @@ import type { Post, Site } from "@shared/schema";
 import { PostCard, Pagination } from "@/components/post-cards";
 import { getThemeManifest, getLayoutClasses, type ThemeManifest, type LayoutVariant, type PostCardVariant } from "@/lib/theme-manifest";
 import { useTemplateClasses } from "@/components/public-theme-provider";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { Clock, ChevronRight, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -49,9 +50,10 @@ function formatRelativeTime(date: Date | string): string {
 
 export function ThemeCardGrid({ site, posts, onPostClick, onTagClick, showPagination = true, className = "" }: ThemeCardGridProps) {
   const prefersReducedMotion = useReducedMotion();
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   const manifest = getThemeManifest(themeId);
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const mergedSettings = mergeThemeTokens(themeId, site.templateSettings || {});
+  const templateClasses = useTemplateClasses(mergedSettings);
   const [currentPage, setCurrentPage] = useState(1);
 
   if (!manifest) {
@@ -1113,3 +1115,4 @@ function ForbisLayout({ posts, onPostClick, onTagClick, manifest, templateClasse
     </motion.div>
   );
 }
+

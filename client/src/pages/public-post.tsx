@@ -7,6 +7,7 @@ import { ThemePostDetail } from "@/components/theme-post-detail";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { useTranslation } from "@/hooks/use-translation";
 import { JsonLd } from "@/components/json-ld";
 import { SeoHead } from "@/components/seo-head";
@@ -18,7 +19,7 @@ interface PublicPostProps {
 
 export function PublicPostContent({ site, slug }: PublicPostProps) {
   const [, setLocation] = useLocation();
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(mergeThemeTokens(site.siteType || "forbis", site.templateSettings || {}));
   const viewTracked = useRef(false);
   const { t } = useTranslation(site.displayLanguage || "en");
 

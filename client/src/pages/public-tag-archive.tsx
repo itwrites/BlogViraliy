@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import type { Site, Post } from "@shared/schema";
 import { Tag, FileText } from "lucide-react";
 import { useTemplateClasses } from "@/components/public-theme-provider";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { motion, useReducedMotion, Variants } from "framer-motion";
 import { PostCard } from "@/components/post-cards";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,7 +18,7 @@ interface PublicTagArchiveProps {
 
 export function PublicTagArchiveContent({ site, tag }: PublicTagArchiveProps) {
   // Theme is detected via site.siteType (same as home page and post detail)
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   
   // Use Forbis-specific layout for Forbis theme
   if (themeId === "forbis") {
@@ -253,7 +254,7 @@ function ForbisTagArchive({ site, tag }: PublicTagArchiveProps) {
 function StandardTagArchive({ site, tag }: PublicTagArchiveProps) {
   const [, setLocation] = useLocation();
   const decodedTag = decodeURIComponent(tag || "");
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(mergeThemeTokens(site.siteType || "forbis", site.templateSettings || {}));
   const postCardStyle = templateClasses.postCardStyle || "standard";
   const { t } = useTranslation(site.displayLanguage || "en");
 
@@ -360,3 +361,4 @@ function StandardTagArchive({ site, tag }: PublicTagArchiveProps) {
 }
 
 export { PublicTagArchiveContent as PublicTagArchive };
+

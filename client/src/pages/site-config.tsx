@@ -1025,7 +1025,7 @@ export default function SiteConfig() {
     logoUrl: "",
     logoTargetUrl: "", // Custom URL for logo click (empty = homepage)
     menuMode: "automatic" as "automatic" | "manual",
-    siteType: "blog",
+    siteType: "forbis",
     postUrlFormat: "with-prefix" as "with-prefix" | "root",
     displayLanguage: "en",
     metaTitle: "",

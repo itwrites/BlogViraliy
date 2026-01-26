@@ -12,6 +12,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { motion, useReducedMotion } from "framer-motion";
 import { getThemeManifest, getTypographyClasses, type ThemeManifest, type PostDetailVariant } from "@/lib/theme-manifest";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { createLinkRewriter } from "@/lib/rewrite-links";
@@ -37,12 +38,15 @@ function estimateReadingTime(content: string): number {
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
+const getMergedTemplateSettings = (site: Site) =>
+  mergeThemeTokens(site.siteType || "forbis", site.templateSettings || {});
+
 export function ThemePostDetail({ site, post, relatedPosts = [] }: ThemePostDetailProps) {
   const [, setLocation] = useLocation();
   const prefersReducedMotion = useReducedMotion();
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   const manifest = getThemeManifest(themeId);
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(getMergedTemplateSettings(site));
   
   if (!manifest) {
     return <StandardPostDetail site={site} post={post} relatedPosts={relatedPosts} />;
@@ -71,7 +75,7 @@ export function ThemePostDetail({ site, post, relatedPosts = [] }: ThemePostDeta
 function StandardPostDetail({ site, post, relatedPosts, manifest }: ThemePostDetailProps & { manifest?: ThemeManifest }) {
   const [, setLocation] = useLocation();
   const prefersReducedMotion = useReducedMotion();
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(getMergedTemplateSettings(site));
   const readingTime = estimateReadingTime(post.content);
   const typography = manifest ? getTypographyClasses(manifest) : null;
 
@@ -704,7 +708,7 @@ function RelatedPosts({
 function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePostDetailProps & { manifest: ThemeManifest }) {
   const [, setLocation] = useLocation();
   const prefersReducedMotion = useReducedMotion();
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const templateClasses = useTemplateClasses(getMergedTemplateSettings(site));
   const readingTime = estimateReadingTime(post.content);
   const basePath = site.basePath || "";
 
@@ -895,3 +899,5 @@ function ForbisPostDetail({ site, post, relatedPosts = [], manifest }: ThemePost
     </div>
   );
 }
+
+

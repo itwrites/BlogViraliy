@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ownerId: user.id,
             isOnboarded: false,
             menuMode: "automatic",
-            siteType: "blog",
+            siteType: "forbis",
           });
         } else {
           userSite = sites[0]; // Return first site
@@ -647,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ownerId: user.id,
         isOnboarded: false, // Will trigger onboarding modal
         menuMode: "automatic",
-        siteType: "blog",
+        siteType: "forbis",
       });
 
       // Log the user in after registration

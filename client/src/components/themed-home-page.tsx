@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Site, Post } from "@shared/schema";
 import { ThemeCardGrid } from "@/components/theme-card-grid";
 import { getThemeManifest, getLayoutClasses, type ThemeManifest } from "@/lib/theme-manifest";
+import { mergeThemeTokens } from "@/lib/theme-registry";
 import { useTemplateClasses } from "@/components/public-theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, useReducedMotion } from "framer-motion";
@@ -16,9 +17,10 @@ interface ThemedHomePageProps {
 
 export function ThemedHomePage({ site }: ThemedHomePageProps) {
   const [, setLocation] = useLocation();
-  const themeId = site.siteType || "blog";
+  const themeId = site.siteType || "forbis";
   const manifest = getThemeManifest(themeId);
-  const templateClasses = useTemplateClasses(site.templateSettings);
+  const mergedSettings = mergeThemeTokens(themeId, site.templateSettings || {});
+  const templateClasses = useTemplateClasses(mergedSettings);
   const prefersReducedMotion = useReducedMotion();
 
   const { data: posts, isLoading } = useQuery<Post[]>({
@@ -174,3 +176,4 @@ function EmptyState({ manifest, templateClasses }: { manifest: ThemeManifest | u
 }
 
 export { ThemedHomePage as default };
+
