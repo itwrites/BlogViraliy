@@ -39,6 +39,12 @@ The system employs a clean, modern UI with consistent spacing and professional d
 - **Runtime Link Rewriting**: Internal links in post content are automatically rewritten at render time to include the site's basePath, ensuring correct routing in all deployment scenarios.
 - **Dynamic Sitemap & Robots.txt**: Auto-generates and caches `sitemap.xml` and `robots.txt` per site, with tenant-specific URLs and access control. Only published posts are included.
 - **Post Status System**: Posts support `published`/`draft` status. Draft posts are completely hidden from public-facing endpoints (post lists, tag queries, related posts, sitemaps, top tags). All automation workflows (AI, RSS, Topical Authority) respect the `defaultPostStatus` setting.
+- **Freemium Model with Paywall**: Free users (owners without subscription) see locked articles with blur effect. Paywall modal triggers on create, publish, and unlock actions. Server-side subscription enforcement prevents API bypass.
+- **Initial Article Generation**: After site onboarding, 4 starter articles are auto-generated using the business profile (2 unlocked, 2 locked for free tier).
+- **Monthly Content Engine**: Automatic monthly content generation using Topical Authority logic. Articles are distributed across the month with scheduled publish dates. Triggered on Stripe invoice.paid webhook with idempotency guard.
+- **Scheduled Publishing System**: CRON job runs every minute to publish posts with past `scheduledPublishDate`. Calendar view in Articles page shows scheduled content visually.
+- **Topic Rotation**: `currentTopicIndex` tracks which topic pillar to use next, preventing repetition across months.
+- **Articles UI Terminology**: "Posts" renamed to "Articles" throughout the admin interface for consistency.
 - **Multi-User Authentication**: Role-based access control (RBAC) with admin and editor roles and site-specific permissions.
 - **Admin Documentation Wiki**: In-app documentation covering system architecture, content strategies, automation, themes, and SEO features.
 - **SEO Implementation**: Utilizes a `SeoHead` component for managing meta tags, OG tags, canonical URLs, and favicons per page.
