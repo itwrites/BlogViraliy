@@ -304,6 +304,11 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
   const activeAutomation = pillars?.some((pillar) => pillar.status === "generating" || pillar.status === "mapping") || false;
   const hasIssues = pillars?.some((pillar) => pillar.status === "failed") || false;
   const formatCount = (value: number) => value.toLocaleString();
+  const formatSuggestionTitle = (value: string) => {
+    if (!value) return value;
+    if (/[A-Z]/.test(value)) return value;
+    return value.replace(/\b\w+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+  };
 
   const systemStatusItems = [
     hasPillars ? {
@@ -622,79 +627,9 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         )}
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h3 className="text-lg font-semibold">Content Opportunities</h3>
-          <p className="text-sm text-muted-foreground">Discover new authority ideas powered by your business profile.</p>
-        </div>
-        <Button
-          onClick={fetchSuggestions}
-          disabled={isLoadingSuggestions}
-          variant="outline"
-          className="gap-2"
-          data-testid="button-get-suggestions"
-        >
-          {isLoadingSuggestions ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Discovering...
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              Discover Topics
-            </>
-          )}
-        </Button>
-      </div>
-
-      {suggestions.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {suggestions.map((suggestion) => (
-            <Card
-              key={suggestion.id}
-              className={`transition-all cursor-pointer ${suggestion.used ? "opacity-60" : "hover-elevate"}`}
-              onClick={() => !suggestion.used && useSuggestion(suggestion)}
-              data-testid={`suggestion-card-${suggestion.id}`}
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
-                    </p>
-                    <h4 className="font-medium text-foreground line-clamp-2">{suggestion.name}</h4>
-                  </div>
-                  {suggestion.used ? (
-                    <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] shrink-0">
-                      New
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {suggestion.description}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{suggestion.suggestedArticleCount} assets</span>
-                  <span>Tap to prefill</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : !isLoadingSuggestions ? (
-        <Card className="border-dashed bg-muted/10">
-          <CardContent className="p-6 text-sm text-muted-foreground">
-            No opportunities yet. Discover topics to generate tailored authority ideas.
-          </CardContent>
-        </Card>
-      ) : null}
-
       <Card>
         <CardHeader>
-          <div>
+          <div className="space-y-1">
             <CardTitle data-testid="text-topical-authority-title">All Authority Topics</CardTitle>
             <CardDescription data-testid="text-topical-authority-description">
               Build market authority with an automated growth system
@@ -709,15 +644,15 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                   <img
                     src="https://i.ibb.co/mVt2W1yk/3fa43b55-0e16-465a-acef-0ecf8020818c.png"
                     alt="Authority map illustration"
-                    className="w-40 h-auto"
+                    className="w-56 h-auto"
                     loading="lazy"
                   />
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-lg font-semibold">No authority topics yet</p>
+                    <p className="text-lg font-semibold">Launch Your First Authority Topic</p>
                     <p className="text-sm text-muted-foreground">
-                      Launch your first authority topic to start building market leadership.
+                      Set an authority topic to start building a self-growing content ecosystem.
                     </p>
                   </div>
                   <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
@@ -777,6 +712,79 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
           )}
         </CardContent>
       </Card>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">Content Opportunities</h3>
+          <p className="text-sm text-muted-foreground">Discover new authority ideas powered by your business profile.</p>
+        </div>
+        <Button
+          onClick={fetchSuggestions}
+          disabled={isLoadingSuggestions}
+          variant="outline"
+          className="gap-2"
+          data-testid="button-get-suggestions"
+        >
+          {isLoadingSuggestions ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Discovering...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              Discover Topics
+            </>
+          )}
+        </Button>
+      </div>
+
+      {suggestions.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {suggestions.map((suggestion) => (
+            <Card
+              key={suggestion.id}
+              className={`transition-all cursor-pointer ${suggestion.used ? "opacity-60" : "hover-elevate"}`}
+              onClick={() => !suggestion.used && useSuggestion(suggestion)}
+              data-testid={`suggestion-card-${suggestion.id}`}
+            >
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
+                    </p>
+                    <h4 className="font-medium text-foreground line-clamp-2">
+                      {formatSuggestionTitle(suggestion.name)}
+                    </h4>
+                  </div>
+                  {suggestion.used ? (
+                    <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      New
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {suggestion.description}
+                </p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{suggestion.suggestedArticleCount} assets</span>
+                  <span>Tap to prefill</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : !isLoadingSuggestions ? (
+        <Card className="border-dashed bg-muted/10">
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            No opportunities yet. Discover topics to generate tailored authority ideas.
+          </CardContent>
+        </Card>
+      ) : null}
+
+
 
       {selectedPillar && pillarDetails && (
         <>
@@ -954,6 +962,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     </div>
   );
 }
+
 
 
 
