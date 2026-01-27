@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useSiteContext } from "@/components/base-path-provider";
 import { PaywallModal } from "@/components/paywall-modal";
+import { OnboardingModal } from "@/components/onboarding-modal";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
@@ -2123,6 +2124,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         onOpenChange={setPaywallOpen}
         feature={paywallFeature}
       />
+
+      {site && !site.isOnboarded && siteId && (
+        <OnboardingModal
+          open={!site.isOnboarded}
+          onOpenChange={() => {}}
+          siteId={siteId}
+          siteName={site.title}
+          onComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId] });
+          }}
+        />
+      )}
     </div>
   );
 }

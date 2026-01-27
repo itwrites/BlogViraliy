@@ -15,7 +15,7 @@ export default function AdminLogin() {
   const { toast } = useToast();
   const { isAuthenticated, isAdmin, isOwner, isLoading: authLoading } = useAuth();
   const siteContext = useSiteContext();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const prefersReducedMotion = useReducedMotion();
@@ -62,7 +62,7 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const res = await apiRequest("POST", "/api/auth/login", { username, password });
+      const res = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await res.json();
       
       if (data.success) {
@@ -105,11 +105,11 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-900 relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [0, 360],
             scale: [1, 1.1, 1],
@@ -120,7 +120,7 @@ export default function AdminLogin() {
           }}
         />
         <motion.div 
-          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/20 via-pink-400/20 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [360, 0],
             scale: [1, 1.15, 1],
@@ -130,6 +130,7 @@ export default function AdminLogin() {
             scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/15 to-pink-500/20" />
       </div>
 
       <motion.div
@@ -139,7 +140,7 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Login Card */}
-        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
+        <div className="rounded-3xl bg-white backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
@@ -165,15 +166,16 @@ export default function AdminLogin() {
             {/* Login Form */}
             <motion.form variants={itemVariants} onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-muted-foreground/80">
-                  Username
+                <Label htmlFor="email" className="text-sm font-medium text-muted-foreground/80">
+                  Email
                 </Label>
                 <Input
-                  id="username"
-                  data-testid="input-username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  data-testid="input-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                   className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                 />

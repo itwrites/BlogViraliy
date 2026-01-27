@@ -123,11 +123,11 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-900 relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [0, 360],
             scale: [1, 1.1, 1],
@@ -138,7 +138,7 @@ export default function Signup() {
           }}
         />
         <motion.div 
-          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/5 via-pink-400/5 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/20 via-pink-400/20 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [360, 0],
             scale: [1, 1.15, 1],
@@ -148,6 +148,8 @@ export default function Signup() {
             scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
           }}
         />
+        {/* Gradient overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/15 to-pink-500/20" />
       </div>
 
       <motion.div
@@ -157,7 +159,7 @@ export default function Signup() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Signup Card */}
-        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
+        <div className="rounded-3xl bg-white border border-border shadow-xl overflow-hidden">
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
