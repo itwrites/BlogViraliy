@@ -298,113 +298,98 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     },
   };
 
+  // macOS-style greeting words
+  const greetings = ["Hello", "Hallo", "Bonjour", "Hola", "Ciao", "Olá", "こんにちは", "안녕하세요", "Привет"];
+  const [greetingIndex, setGreetingIndex] = useState(0);
+  
+  useEffect(() => {
+    if (!method) {
+      const interval = setInterval(() => {
+        setGreetingIndex((prev) => (prev + 1) % greetings.length);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [method, greetings.length]);
+
   const renderMethodSelection = () => (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col items-center justify-center min-h-[520px] px-6"
+      className="flex flex-col items-center justify-center min-h-[480px] px-6"
     >
-      {/* Hero Section */}
-      <motion.div variants={itemVariants} className="text-center space-y-5 mb-10">
-        <motion.div 
-          className="relative inline-flex"
-          animate={{ 
-            scale: [1, 1.05, 1],
-          }}
-          transition={{ 
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-primary/20 to-primary/10 rounded-3xl blur-2xl opacity-20" />
-          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-muted/70 to-white backdrop-blur-xl border border-border flex items-center justify-center shadow-lg">
-            <Wand2 className="h-12 w-12 text-foreground" />
-          </div>
-        </motion.div>
+      {/* macOS-style Hello greeting */}
+      <motion.div variants={itemVariants} className="text-center space-y-6 mb-12">
+        <AnimatePresence mode="wait">
+          <motion.h1
+            key={greetingIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="text-6xl font-light tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
+            data-testid="text-onboarding-greeting"
+          >
+            {greetings[greetingIndex]}
+          </motion.h1>
+        </AnimatePresence>
         
-        <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground" data-testid="text-onboarding-title">
-            Welcome to {siteName}
-          </h1>
-          <p className="text-lg text-muted-foreground/80 max-w-lg mx-auto leading-relaxed" data-testid="text-onboarding-description">
-            Let's personalize your content engine. This takes just a minute.
+        <div className="space-y-2">
+          <p 
+            className="text-xl text-muted-foreground/90 font-normal"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
+            data-testid="text-onboarding-description"
+          >
+            Let's set up your blog.
           </p>
         </div>
       </motion.div>
       
-      {/* Method Cards */}
-      <motion.div variants={itemVariants} className="grid gap-5 md:grid-cols-2 w-full max-w-2xl">
+      {/* Method Cards - Clean macOS style */}
+      <motion.div variants={itemVariants} className="grid gap-4 md:grid-cols-2 w-full max-w-xl">
         {/* Import Card */}
         <motion.button
-          whileHover={{ scale: 1.02, y: -4 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           onClick={() => handleMethodSelect("import")}
-          className="group relative overflow-hidden rounded-2xl p-px bg-gradient-to-br from-primary/40 via-primary/25 to-primary/10"
+          className="group rounded-xl border border-border bg-white/80 backdrop-blur-sm p-5 text-left transition-all duration-300 hover:border-primary/30 hover:shadow-sm"
           data-testid="card-import-website"
         >
-          <div className="relative h-full rounded-2xl bg-white backdrop-blur-xl p-7 text-left">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            
-            <div className="relative space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 border border-border flex items-center justify-center group-hover:border-primary/30 transition-all duration-300">
-                  <Scan className="h-7 w-7 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg text-foreground">Import from Website</h3>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 border border-border text-[11px] font-medium text-foreground">
-                    <Wand2 className="h-3 w-3" />
-                    AI-Powered
-                  </span>
-                </div>
-              </div>
-              
-              <p className="text-muted-foreground/80 text-sm leading-relaxed">
-                We'll analyze your existing website and automatically extract all your business information.
+          <div className="space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Globe className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-base text-foreground" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}>
+                Import from Website
+              </h3>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                We'll extract your business info automatically
               </p>
-              
-              <div className="flex items-center text-sm text-primary font-medium pt-1">
-                <span>Get started instantly</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </div>
             </div>
           </div>
         </motion.button>
 
         {/* Manual Card */}
         <motion.button
-          whileHover={{ scale: 1.02, y: -4 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           onClick={() => handleMethodSelect("manual")}
-          className="group relative overflow-hidden rounded-2xl border border-border bg-white shadow-sm"
+          className="group rounded-xl border border-border bg-white/80 backdrop-blur-sm p-5 text-left transition-all duration-300 hover:border-muted-foreground/30 hover:shadow-sm"
           data-testid="card-manual-entry"
         >
-          <div className="relative h-full p-7 text-left">
-            <div className="absolute inset-0 bg-gradient-to-br from-muted/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            
-            <div className="relative space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center group-hover:border-muted transition-all duration-300">
-                  <FormInput className="h-7 w-7 text-muted-foreground/80" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-foreground">Enter Manually</h3>
-                  <span className="text-xs text-muted-foreground/70 mt-1">~2 minutes</span>
-                </div>
-              </div>
-              
-              <p className="text-muted-foreground/80 text-sm leading-relaxed">
-                Fill in your business details step by step through a guided process.
+          <div className="space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+              <FormInput className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-medium text-base text-foreground" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}>
+                Enter Manually
+              </h3>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Fill in your details step by step
               </p>
-              
-              <div className="flex items-center text-sm text-muted-foreground/80 font-medium pt-1 group-hover:text-foreground transition-colors">
-                <span>Start from scratch</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </div>
             </div>
           </div>
         </motion.button>
@@ -418,12 +403,9 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-xl mt-5 overflow-hidden"
+            className="w-full max-w-md mt-8 overflow-hidden"
           >
-            <div className="p-6 rounded-2xl bg-white border border-border shadow-sm">
-              <Label htmlFor="websiteUrl" className="text-sm font-medium text-foreground mb-3 block">
-                Enter your website URL
-              </Label>
+            <div className="space-y-4">
               <div className="flex gap-3">
                 <Input
                   id="websiteUrl"
@@ -432,30 +414,27 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
                   disabled={isImporting}
-                  className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+                  className="h-11 text-base rounded-lg bg-white border-border text-foreground placeholder:text-muted-foreground/50"
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
                 />
                 <Button 
                   onClick={handleImport} 
                   disabled={isImporting || !websiteUrl.trim()}
-                  size="lg"
-                  className="h-12 px-6 rounded-xl"
+                  className="h-11 px-5 rounded-lg"
                   data-testid="button-import-website"
                 >
                   {isImporting ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analyzing...
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing
                     </>
                   ) : (
-                    <>
-                      <Scan className="mr-2 h-5 w-5" />
-                      Analyze
-                    </>
+                    "Continue"
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground/70 mt-3">
-                We'll scan your website and extract business information using AI
+              <p className="text-xs text-muted-foreground/60 text-center">
+                We'll extract your business information automatically
               </p>
             </div>
           </motion.div>
@@ -734,7 +713,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background border border-border">
+      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background border border-border [&>button]:hidden">
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
         </VisuallyHidden>

@@ -3679,7 +3679,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
       }
       // Update domain if suggested from onboarding (only if current domain is temporary/auto-generated)
       if (suggestedDomain && typeof suggestedDomain === "string" && suggestedDomain.trim()) {
-        const site = await storage.getSite(siteId);
+        const site = await storage.getSiteById(siteId);
         // Only update if current domain looks like an auto-generated one (contains - or is very short)
         if (site && site.domain && (site.domain.includes("-") || site.domain.length < 10)) {
           updateData.domain = suggestedDomain.trim();
