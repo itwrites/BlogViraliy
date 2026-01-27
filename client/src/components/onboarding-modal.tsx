@@ -353,11 +353,11 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => handleMethodSelect("import")}
-          className="group rounded-xl border border-border bg-white/80 backdrop-blur-sm p-5 text-left transition-all duration-300 hover:border-primary/30 hover:shadow-sm"
+          className="group rounded-xl border border-border/50 bg-white shadow-sm p-5 text-left transition-all duration-300 hover:border-primary/30 hover:shadow-md"
           data-testid="card-import-website"
         >
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shadow-sm">
               <Globe className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -376,11 +376,11 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           onClick={() => handleMethodSelect("manual")}
-          className="group rounded-xl border border-border bg-white/80 backdrop-blur-sm p-5 text-left transition-all duration-300 hover:border-muted-foreground/30 hover:shadow-sm"
+          className="group rounded-xl border border-border/50 bg-white shadow-sm p-5 text-left transition-all duration-300 hover:border-muted-foreground/30 hover:shadow-md"
           data-testid="card-manual-entry"
         >
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shadow-sm">
               <FormInput className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
@@ -477,7 +477,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             placeholder="My Awesome Blog"
             value={formData.suggestedTitle}
             onChange={(e) => setFormData({ ...formData, suggestedTitle: e.target.value })}
-            className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+            className="h-12 text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
           />
           <p className="text-xs text-muted-foreground/70">This will be your site's display name</p>
         </div>
@@ -495,7 +495,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             value={formData.businessDescription}
             onChange={(e) => setFormData({ ...formData, businessDescription: e.target.value })}
             rows={4}
-            className="resize-none text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+            className="resize-none text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
           />
         </div>
 
@@ -511,7 +511,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
               placeholder="e.g., SaaS, E-commerce, Healthcare"
               value={formData.industry}
               onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-              className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+              className="h-12 text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
             />
           </div>
 
@@ -523,11 +523,11 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             >
               <SelectTrigger 
                 data-testid="select-onboarding-brand-voice" 
-                className="h-12 text-base rounded-xl bg-white border-border text-foreground focus:border-primary/40 focus:ring-primary/20"
+                className="h-12 text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
               >
                 <SelectValue placeholder="Select your tone..." />
               </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white border-border">
+              <SelectContent className="rounded-xl bg-white border-border/50 shadow-lg">
                 {BRAND_VOICE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value} className="rounded-lg text-foreground focus:bg-muted">
                     <div className="flex flex-col">
@@ -553,7 +553,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             value={formData.valuePropositions}
             onChange={(e) => setFormData({ ...formData, valuePropositions: e.target.value })}
             rows={3}
-            className="resize-none text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+            className="resize-none text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
           />
         </div>
       </motion.div>
@@ -595,7 +595,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             value={formData.targetAudience}
             onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
             rows={4}
-            className="resize-none text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+            className="resize-none text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
           />
           <p className="text-xs text-muted-foreground/70">
             Example: "Marketing managers at B2B SaaS companies who need to scale content production"
@@ -614,7 +614,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             value={formData.competitors}
             onChange={(e) => setFormData({ ...formData, competitors: e.target.value })}
             rows={3}
-            className="resize-none text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
+            className="resize-none text-base rounded-xl bg-white border-border/50 shadow-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20 focus:shadow-md transition-shadow"
           />
         </div>
       </motion.div>
@@ -742,7 +742,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         
         {/* Progress bar */}
         {method && currentStep > 0 && (
-          <div className="border-b border-border bg-white p-4">
+          <div className="border-b border-border/50 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between max-w-md mx-auto">
               {STEPS.slice(1).map((step, index) => {
                 const stepIndex = index + 1;
@@ -792,7 +792,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
 
         {/* Footer navigation */}
         {method && currentStep > 0 && currentStep < 3 && (
-          <div className="border-t border-border bg-white p-4 flex justify-between">
+          <div className="border-t border-border/50 bg-white p-4 flex justify-between shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
             <Button
               variant="ghost"
               onClick={handleBack}
