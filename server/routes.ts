@@ -944,7 +944,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/editor/sites/:id/posts", requireAuth, requireSiteAccess("id", "view"), async (req: Request, res: Response) => {
     try {
-      const posts = await storage.getPostsBySiteId(req.params.id);
+      const siteId = req.params.id;
+      const posts = await storage.getPostsBySiteId(siteId);
+      
+      // If site is onboarded with business info but has no posts, trigger initial generation
+      if (posts.length === 0) {
+        const site = await storage.getSiteById(siteId);
+        if (site && site.isOnboarded && site.businessDescription) {
+          console.log(`[Auto-Recovery] Site ${siteId} has business info but no posts - triggering initial article generation`);
+          const { generateInitialArticlesForSite } = await import("./initial-article-generator");
+          generateInitialArticlesForSite(siteId).then(result => {
+            if (result.success) {
+              console.log(`[Auto-Recovery] Initial articles generated for site ${siteId}: ${result.articlesCreated} articles`);
+            } else {
+              console.error(`[Auto-Recovery] Failed to generate initial articles for site ${siteId}:`, result.error);
+            }
+          }).catch(err => {
+            console.error(`[Auto-Recovery] Error generating initial articles for site ${siteId}:`, err);
+          });
+        }
+      }
+      
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
