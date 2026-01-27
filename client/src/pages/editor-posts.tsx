@@ -26,6 +26,7 @@ import { stripMarkdown } from "@/lib/strip-markdown";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { TopicalAuthority } from "@/components/topical-authority";
 import { BulkGeneration } from "@/components/bulk-generation";
+import { SiteEmblem } from "@/components/site-emblem";
 import {
   ArrowLeft,
   Plus,
@@ -682,17 +683,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         >
           <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3">
-              {site?.logoUrl ? (
-                <img 
-                  src={site.logoUrl} 
-                  alt={site.title} 
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-border" 
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-muted/70 border border-border flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">
                 <h1 className="font-semibold truncate text-foreground" data-testid="text-site-title">
                   {site?.title || "Loading..."}

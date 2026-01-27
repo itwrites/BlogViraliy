@@ -3443,6 +3443,56 @@ Sitemap: ${sitemapUrl}
   // ONBOARDING ENDPOINTS
   // ============================================
 
+  const normalizeFaviconUrl = (candidate: string | undefined | null, baseUrl: string): string | null => {
+    if (!candidate || typeof candidate !== "string") return null;
+    const trimmed = candidate.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("data:")) return trimmed;
+    try {
+      return new URL(trimmed, baseUrl).toString();
+    } catch {
+      return null;
+    }
+  };
+
+  const extractFaviconFromHtml = (html: string, baseUrl: string): string | null => {
+    if (!html) return null;
+    const linkTags = html.match(/<link[^>]+>/gi) || [];
+    const iconLinks = linkTags.filter((tag) => /rel=["'][^"']*icon[^"']*["']/i.test(tag));
+    const appleLinks = linkTags.filter((tag) => /rel=["'][^"']*apple-touch-icon[^"']*["']/i.test(tag));
+    const candidates = [...iconLinks, ...appleLinks, ...linkTags];
+
+    for (const tag of candidates) {
+      const hrefMatch = tag.match(/href=["']([^"']+)["']/i);
+      if (!hrefMatch?.[1]) continue;
+      const resolved = normalizeFaviconUrl(hrefMatch[1], baseUrl);
+      if (resolved) return resolved;
+    }
+    return null;
+  };
+
+  const fallbackFromUrl = (url: string, metadata?: Record<string, unknown>) => {
+    const parsed = new URL(url);
+    const domain = parsed.hostname.replace(/^www\./, "");
+    const root = domain.split(".")[0] || "your site";
+    const humanName = root.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const metaTitle = (metadata?.title as string) || (metadata?.ogTitle as string) || "";
+    const metaDescription = (metadata?.description as string) || (metadata?.ogDescription as string) || "";
+    const keywords = (metadata?.keywords as string) || "";
+    const industryHint = keywords.split(",")[0]?.trim() || humanName;
+
+    return {
+      businessDescription: metaDescription || `${humanName} provides helpful products or services for its customers.`,
+      targetAudience: `People looking for ${industryHint} solutions or information.`,
+      brandVoice: "friendly",
+      valuePropositions: `Clear value, reliable service, and easy-to-understand guidance.`,
+      industry: industryHint,
+      competitors: `Other ${industryHint} providers and alternatives in the market.`,
+      suggestedTitle: metaTitle || humanName,
+      suggestedMetaDescription: metaDescription || `Learn about ${humanName} and how it helps its customers.`,
+    };
+  };
+
   // Scrape a website and extract business information using Firecrawl + OpenAI
   app.post("/api/sites/:id/onboarding/scrape", requireAuth, requireSiteAccess(), async (req: Request, res: Response) => {
     try {
@@ -3488,6 +3538,13 @@ Sitemap: ${sitemapUrl}
       const ogTitle = scrapeResult.metadata?.ogTitle || "";
       const ogDescription = scrapeResult.metadata?.ogDescription || "";
       const keywords = scrapeResult.metadata?.keywords || "";
+      const faviconFromMetadata = normalizeFaviconUrl(
+        (scrapeResult.metadata as Record<string, unknown>)?.favicon as string,
+        url
+      );
+      const faviconFromHtml = extractFaviconFromHtml(scrapeResult.html || "", url);
+      const fallbackFavicon = normalizeFaviconUrl("/favicon.ico", url);
+      const favicon = faviconFromMetadata || faviconFromHtml || fallbackFavicon;
 
       console.log(`[Onboarding] Scraped content length: ${scrapedContent.length} chars`);
       console.log(`[Onboarding] Page title: ${pageTitle}`);
@@ -3546,19 +3603,29 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
 
       const rawContent = response.choices[0].message.content || "{}";
       console.log(`[Onboarding] OpenAI raw response: ${rawContent}`);
-      const analysisResult = JSON.parse(rawContent);
+      let analysisResult: Record<string, unknown> = {};
+      try {
+        analysisResult = JSON.parse(rawContent);
+      } catch (parseError) {
+        console.error("[Onboarding] Failed to parse OpenAI response:", parseError);
+      }
+
+      const fallback = fallbackFromUrl(url, scrapeResult.metadata as Record<string, unknown>);
+      const pick = (value: unknown, fallbackValue: string) =>
+        typeof value === "string" && value.trim() ? value.trim() : fallbackValue;
 
       console.log(`[Onboarding] Successfully analyzed website: ${url}`);
       console.log(`[Onboarding] Parsed result:`, JSON.stringify(analysisResult, null, 2));
       res.json({
-        businessDescription: analysisResult.businessDescription || "",
-        targetAudience: analysisResult.targetAudience || "",
-        brandVoice: analysisResult.brandVoice || "",
-        valuePropositions: analysisResult.valuePropositions || "",
-        industry: analysisResult.industry || "",
-        competitors: analysisResult.competitors || "",
-        suggestedTitle: analysisResult.suggestedTitle || "",
-        suggestedMetaDescription: analysisResult.suggestedMetaDescription || "",
+        businessDescription: pick(analysisResult.businessDescription, fallback.businessDescription),
+        targetAudience: pick(analysisResult.targetAudience, fallback.targetAudience),
+        brandVoice: pick(analysisResult.brandVoice, fallback.brandVoice),
+        valuePropositions: pick(analysisResult.valuePropositions, fallback.valuePropositions),
+        industry: pick(analysisResult.industry, fallback.industry),
+        competitors: pick(analysisResult.competitors, fallback.competitors),
+        suggestedTitle: pick(analysisResult.suggestedTitle, fallback.suggestedTitle),
+        suggestedMetaDescription: pick(analysisResult.suggestedMetaDescription, fallback.suggestedMetaDescription),
+        favicon,
       });
     } catch (error) {
       console.error("[Onboarding] Error scraping website:", error);
@@ -3579,6 +3646,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         competitors,
         onboardingSourceUrl,
         siteName,
+        favicon,
       } = req.body;
 
       // Build update data with business profile and mark as onboarded
@@ -3596,6 +3664,9 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
       // Update site title if provided from onboarding
       if (siteName && siteName.trim()) {
         updateData.title = siteName.trim();
+      }
+      if (favicon && typeof favicon === "string" && favicon.trim()) {
+        updateData.favicon = favicon.trim();
       }
 
       const updatedSite = await storage.updateSite(siteId, updateData);

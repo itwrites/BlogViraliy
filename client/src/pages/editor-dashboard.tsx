@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SiteEmblem } from "@/components/site-emblem";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext, useBasePath } from "@/components/base-path-provider";
 import { 
@@ -194,31 +195,18 @@ export default function EditorDashboard() {
                       <div className="p-5 pb-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-4">
-                            {site.logoUrl ? (
-                              <div className="relative">
-                                <img
-                                  src={site.logoUrl}
-                                  alt={site.title}
-                                  className="w-14 h-14 rounded-xl object-cover ring-2 ring-border"
-                                />
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
-                                  <span className="text-[10px] text-white font-bold">
-                                    {site.siteType.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
+                            <div className="relative">
+                              <SiteEmblem
+                                title={site.title}
+                                favicon={site.favicon}
+                                className="h-14 w-14 rounded-xl"
+                              />
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
+                                <span className="text-[10px] text-white font-bold">
+                                  {site.siteType.charAt(0).toUpperCase()}
+                                </span>
                               </div>
-                            ) : (
-                              <div className="relative">
-                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-muted/70 to-muted/30 border border-border flex items-center justify-center">
-                                  <Globe className="w-7 h-7 text-muted-foreground/80" />
-                                </div>
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gray-900 border-2 border-white flex items-center justify-center">
-                                  <span className="text-[10px] text-white font-bold">
-                                    {site.siteType.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
+                            </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="text-lg font-semibold line-clamp-1 text-foreground" data-testid={`text-site-title-${site.id}`}>
                                 {site.title}

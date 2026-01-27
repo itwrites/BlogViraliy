@@ -6,11 +6,11 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SiteEmblem } from "@/components/site-emblem";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext } from "@/components/base-path-provider";
 import {
   ArrowLeft,
-  Globe,
   Eye,
   TrendingUp,
   FileText,
@@ -204,17 +204,7 @@ export default function EditorAnalytics() {
         >
           <div className="p-6 border-b">
             <div className="flex items-center gap-3">
-              {site?.logoUrl ? (
-                <img 
-                  src={site.logoUrl} 
-                  alt={site.title} 
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/10" 
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-primary-foreground" />
-                </div>
-              )}
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">
                 <h1 className="font-semibold truncate" data-testid="text-site-title">
                   {site?.title || "Loading..."}

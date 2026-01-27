@@ -46,6 +46,7 @@ interface OnboardingData {
   competitors: string;
   suggestedTitle: string;
   suggestedMetaDescription: string;
+  favicon?: string;
 }
 
 type OnboardingMethod = "import" | "manual" | null;
@@ -83,6 +84,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     competitors: "",
     suggestedTitle: "",
     suggestedMetaDescription: "",
+    favicon: "",
   });
 
   const scrapeMutation = useMutation({
@@ -104,6 +106,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         competitors: data.competitors || "",
         suggestedTitle: data.suggestedTitle || "",
         suggestedMetaDescription: data.suggestedMetaDescription || "",
+        favicon: data.favicon || "",
       });
       setIsImporting(false);
       setCurrentStep(1);
@@ -134,6 +137,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         competitors: formData.competitors,
         onboardingSourceUrl: method === "import" ? websiteUrl : undefined,
         siteName: formData.suggestedTitle || undefined,
+        favicon: formData.favicon || undefined,
       };
       const response = await apiRequest("POST", `/api/sites/${siteId}/onboarding/complete`, payload);
       return response.json();

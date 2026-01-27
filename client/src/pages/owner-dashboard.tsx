@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SiteEmblem } from "@/components/site-emblem";
 import { 
   Plus, 
   Globe, 
@@ -472,16 +473,12 @@ export default function OwnerDashboard() {
                   >
                     <div className="p-6 flex-1">
                       <div className="flex items-start justify-between mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted/70 to-muted/30 flex items-center justify-center border border-border">
-                          {site.logoUrl ? (
-                            <img
-                              src={site.logoUrl}
-                              alt={`${site.title} logo`}
-                              className="w-12 h-12 object-contain"
-                            />
-                          ) : (
-                            <Globe className="h-8 w-8 text-muted-foreground/70" />
-                          )}
+                        <div className="w-16 h-16 flex items-center justify-center">
+                          <SiteEmblem
+                            title={site.title}
+                            favicon={site.favicon}
+                            className="h-16 w-16 rounded-2xl bg-muted/60"
+                          />
                         </div>
                         <Badge className="bg-muted text-foreground font-medium border border-border px-3 py-1 rounded-lg text-xs">
                           {site.siteType}
