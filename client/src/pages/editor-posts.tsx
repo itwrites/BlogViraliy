@@ -1280,7 +1280,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       </p>
                       <div className="flex items-center justify-center gap-2 text-sm text-purple-600">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Generating 4 starter articles...</span>
+                        <span>Generating starter articles...</span>
                       </div>
                     </>
                   ) : (

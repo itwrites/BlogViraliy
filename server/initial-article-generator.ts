@@ -209,32 +209,68 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
       return { success: true, articlesCreated: 0 };
     }
 
-    console.log(`[Initial Articles] Generating initial articles for site ${siteId}`);
-
-    console.log(`[Initial Articles] Creating automation pillars for future monthly content`);
-    const pillarPlans = await generateInitialPillars(site);
-    const createdPillars: Pillar[] = [];
+    // Check for existing onboarding articles to avoid duplicates
+    const existingPosts = await storage.getPostsBySiteId(siteId);
+    const existingOnboardingPosts = existingPosts.filter(p => p.source === "onboarding");
+    const existingTitles = new Set(existingOnboardingPosts.map(p => p.title.toLowerCase()));
     
-    for (const pillarPlan of pillarPlans) {
-      try {
-        const pillar = await storage.createPillar({
-          siteId,
-          name: pillarPlan.name,
-          description: pillarPlan.description,
-          status: "generating",
-          packType: "authority",
-          targetArticleCount: 100,
-          targetLanguage: site.displayLanguage || "en",
-          defaultPostStatus: "draft",
-          isAutomation: true,
-          maxArticles: 100,
-        });
-        createdPillars.push(pillar);
-        console.log(`[Initial Articles] Created automation pillar: "${pillar.name}"`);
-      } catch (pillarError) {
-        console.error(`[Initial Articles] Failed to create pillar:`, pillarError);
+    console.log(`[Initial Articles] Generating initial articles for site ${siteId} (${existingOnboardingPosts.length} existing onboarding posts)`);
+
+    // Check for existing automation pillars to avoid duplicates
+    const existingPillars = await storage.getPillarsBySiteId(siteId);
+    const automationPillars = existingPillars.filter(p => p.isAutomation);
+    
+    let createdPillars: Pillar[] = [];
+    
+    if (automationPillars.length >= 4) {
+      console.log(`[Initial Articles] Using ${automationPillars.length} existing automation pillars`);
+      createdPillars = automationPillars;
+    } else {
+      console.log(`[Initial Articles] Creating automation pillars for future monthly content`);
+      const pillarPlans = await generateInitialPillars(site);
+      
+      for (const pillarPlan of pillarPlans) {
+        // Check if a pillar with similar name already exists
+        const existingPillar = automationPillars.find(
+          p => p.name.toLowerCase() === pillarPlan.name.toLowerCase()
+        );
+        if (existingPillar) {
+          createdPillars.push(existingPillar);
+          console.log(`[Initial Articles] Reusing existing automation pillar: "${existingPillar.name}"`);
+          continue;
+        }
+        
+        try {
+          const pillar = await storage.createPillar({
+            siteId,
+            name: pillarPlan.name,
+            description: pillarPlan.description,
+            status: "generating",
+            packType: "authority",
+            targetArticleCount: 100,
+            targetLanguage: site.displayLanguage || "en",
+            defaultPostStatus: "draft",
+            isAutomation: true,
+            maxArticles: 100,
+          });
+          createdPillars.push(pillar);
+          console.log(`[Initial Articles] Created automation pillar: "${pillar.name}"`);
+        } catch (pillarError) {
+          console.error(`[Initial Articles] Failed to create pillar:`, pillarError);
+        }
       }
     }
+
+    // If we already have 4+ onboarding articles, just mark as complete and skip
+    const TARGET_ARTICLES = 4;
+    if (existingOnboardingPosts.length >= TARGET_ARTICLES) {
+      console.log(`[Initial Articles] Site ${siteId} already has ${existingOnboardingPosts.length} onboarding articles, marking as complete`);
+      await storage.updateSite(siteId, { initialArticlesGenerated: true });
+      return { success: true, articlesCreated: 0 };
+    }
+
+    const articlesToCreate = TARGET_ARTICLES - existingOnboardingPosts.length;
+    console.log(`[Initial Articles] Need to create ${articlesToCreate} more articles (have ${existingOnboardingPosts.length}/${TARGET_ARTICLES})`);
 
     const plan = await generateInitialArticlePlan(site);
     
@@ -248,21 +284,38 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
 
     const pillarCounts: Record<string, number> = {};
     
-    for (let i = 0; i < plan.articles.length; i++) {
+    // Skip articles we already have (by checking titles)
+    let articlesCreatedCount = 0;
+    for (let i = 0; i < plan.articles.length && articlesCreatedCount < articlesToCreate; i++) {
       const articlePlan = plan.articles[i];
+      
+      // Skip if we already have an article with a similar title
+      if (existingTitles.has(articlePlan.title.toLowerCase())) {
+        console.log(`[Initial Articles] Skipping article "${articlePlan.title}" - already exists`);
+        continue;
+      }
+      
       const siblingTitles = articleTitles.filter((_, idx) => idx !== i);
       
       try {
         const article = await generateInitialArticleContent(articlePlan, site, siblingTitles);
+        
+        // Double-check the generated title isn't a duplicate
+        if (existingTitles.has(article.title.toLowerCase())) {
+          console.log(`[Initial Articles] Skipping generated article "${article.title}" - already exists`);
+          continue;
+        }
         
         const imageUrl = await searchPexelsImage(
           article.imageQuery,
           [article.tags[0], article.title].filter(Boolean)
         );
 
-        const isLocked = i >= 2;
+        // Calculate lock status based on total articles (existing + new)
+        const totalArticleIndex = existingOnboardingPosts.length + articlesCreatedCount;
+        const isLocked = totalArticleIndex >= 2;
         
-        const pillarIndex = createdPillars.length > 0 ? i % createdPillars.length : -1;
+        const pillarIndex = createdPillars.length > 0 ? totalArticleIndex % createdPillars.length : -1;
         const pillarId = pillarIndex >= 0 ? createdPillars[pillarIndex].id : undefined;
         
         const post = await storage.createPost({
@@ -283,10 +336,13 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
         });
 
         createdPosts.push(post.id);
+        existingTitles.add(article.title.toLowerCase()); // Add to set to prevent duplicates in this run
+        articlesCreatedCount++;
+        
         if (pillarId) {
           pillarCounts[pillarId] = (pillarCounts[pillarId] || 0) + 1;
         }
-        console.log(`[Initial Articles] Created article ${i + 1}/${plan.articles.length}: "${article.title}" (locked: ${isLocked}, pillar: ${pillarIndex >= 0 ? createdPillars[pillarIndex].name : 'none'})`);
+        console.log(`[Initial Articles] Created article ${existingOnboardingPosts.length + articlesCreatedCount}/${TARGET_ARTICLES}: "${article.title}" (locked: ${isLocked}, pillar: ${pillarIndex >= 0 ? createdPillars[pillarIndex].name : 'none'})`);
       } catch (articleError) {
         console.error(`[Initial Articles] Failed to generate article ${i + 1}:`, articleError);
       }
