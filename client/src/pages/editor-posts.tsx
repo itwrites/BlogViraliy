@@ -1210,7 +1210,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       <div className={`${viewMode === "grid" 
                         ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" 
                         : "space-y-4"
-                      } opacity-25 blur-[2px] select-none pointer-events-none`}>
+                      } opacity-40 blur-sm select-none pointer-events-none`}>
                         {lockedPosts.map((post) => (
                           <div
                             key={post.id}

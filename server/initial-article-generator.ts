@@ -376,27 +376,36 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     }
 
     // Create placeholder locked posts (quick, no AI generation needed)
-    const placeholderTitles = [
-      "Premium: Advanced Strategies for Your Business",
-      "Premium: Expert Tips You Need to Know",
+    const placeholderData = [
+      { title: "Premium: Advanced Strategies for Your Business", imageQuery: "business strategy planning" },
+      { title: "Premium: Expert Tips You Need to Know", imageQuery: "professional expertise tips" },
     ];
     const placeholderContent = `<p>This premium article is available to subscribers.</p><p>Upgrade your plan to unlock exclusive content, advanced strategies, and expert insights tailored to your business needs.</p>`;
     
     for (let i = 0; i < placeholdersToCreate; i++) {
       const placeholderIndex = existingLockedPlaceholders.length + i;
-      const title = placeholderTitles[placeholderIndex] || `Premium Article ${placeholderIndex + 1}`;
-      const slug = slugify(title + "-" + siteId.slice(0, 8) + "-" + placeholderIndex);
+      const data = placeholderData[placeholderIndex] || { title: `Premium Article ${placeholderIndex + 1}`, imageQuery: "premium content" };
+      const slug = slugify(data.title + "-" + siteId.slice(0, 8) + "-" + placeholderIndex);
       
       try {
+        // Get a stock image for the placeholder
+        let imageUrl: string | null = null;
+        try {
+          imageUrl = await searchPexelsImage(data.imageQuery);
+        } catch (imgError) {
+          console.log(`[Initial Articles] Could not fetch image for placeholder, continuing without`);
+        }
+        
         const post = await storage.createPost({
           siteId,
           authorId: defaultAuthor?.id || null,
-          title,
+          title: data.title,
           slug,
           content: placeholderContent,
+          imageUrl,
           tags: ["premium"],
           source: "onboarding",
-          metaTitle: title,
+          metaTitle: data.title,
           metaDescription: "Subscribe to unlock this premium content.",
           articleRole: "support",
           status: "draft",
@@ -404,7 +413,7 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           // No scheduled publish date - won't show in calendar
         });
         createdPosts.push(post.id);
-        console.log(`[Initial Articles] Created placeholder locked post: "${title}"`);
+        console.log(`[Initial Articles] Created placeholder locked post: "${data.title}"`);
       } catch (placeholderError) {
         console.error(`[Initial Articles] Failed to create placeholder post:`, placeholderError);
       }
