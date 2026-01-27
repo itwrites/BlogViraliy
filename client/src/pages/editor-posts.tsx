@@ -241,12 +241,12 @@ export default function EditorPosts() {
     enabled: !!siteId,
   });
   
-  // Check if site has business info but no posts yet (articles being generated)
-  // Count only unlocked articles (real AI-generated articles, not placeholder locked posts)
+  // Check if site is onboarded but initial articles haven't finished generating yet
+  // Use the initialArticlesGenerated flag which is only set true when ALL articles are created
   const realArticleCount = posts?.filter(p => !p.isLocked)?.length || 0;
-  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && realArticleCount < 2;
+  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !site?.initialArticlesGenerated;
   
-  // Auto-refresh when articles are being generated
+  // Auto-refresh posts and site data when articles are being generated
   useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts", "refresh"],
     queryFn: async () => {
@@ -254,6 +254,20 @@ export default function EditorPosts() {
       if (!res.ok) throw new Error("Failed to fetch posts");
       const data = await res.json();
       queryClient.setQueryData(["/api/editor/sites", siteId, "posts"], data);
+      return data;
+    },
+    enabled: !!siteId && !!isGeneratingInitialArticles,
+    refetchInterval: isGeneratingInitialArticles ? 5000 : false,
+  });
+  
+  // Also refresh site data to check when initialArticlesGenerated becomes true
+  useQuery({
+    queryKey: ["/api/editor/sites", siteId, "refresh"],
+    queryFn: async () => {
+      const res = await fetch(`/bv_api/editor/sites/${siteId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch site");
+      const data = await res.json();
+      queryClient.setQueryData([`/bv_api/editor/sites/${siteId}`], data);
       return data;
     },
     enabled: !!siteId && !!isGeneratingInitialArticles,
@@ -1329,6 +1343,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
                         >
                           We're generating personalized articles based on your business profile.
+                          <br />
+                          <span className="text-muted-foreground/50">This may take a few minutes the first time.</span>
                         </p>
                         {/* macOS-style progress bar */}
                         <div className="w-64 h-1 bg-muted/50 rounded-full overflow-hidden">
