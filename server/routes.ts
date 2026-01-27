@@ -3685,7 +3685,15 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         const site = await storage.getSiteById(siteId);
         // Only update if current domain looks like an auto-generated one (contains - or is very short)
         if (site && site.domain && (site.domain.includes("-") || site.domain.length < 10)) {
-          updateData.domain = suggestedDomain.trim();
+          const cleanDomain = suggestedDomain.trim().toLowerCase();
+          // Check if domain is already in use by another site
+          const existingSite = await storage.getSiteByDomain(cleanDomain);
+          if (existingSite && existingSite.id !== siteId) {
+            console.log(`[Onboarding] Domain "${cleanDomain}" already in use by site ${existingSite.id}, skipping domain update`);
+            // Don't fail - just skip the domain update
+          } else {
+            updateData.domain = cleanDomain;
+          }
         }
       }
 
