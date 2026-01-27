@@ -27,7 +27,7 @@ export function SiteEmblem({
   return (
     <div
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/60 text-foreground",
+        "flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-foreground/10 text-foreground",
         className
       )}
       aria-label={title || "Site"}
