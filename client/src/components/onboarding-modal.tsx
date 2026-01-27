@@ -715,7 +715,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl [&>button]:hidden"
-        overlayClassName="bg-gradient-to-br from-purple-500/20 via-blue-500/15 to-pink-500/20 backdrop-blur-sm"
+        overlayClassName="relative bg-zinc-900 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-purple-500/30 before:via-blue-500/20 before:to-pink-500/30"
       >
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
