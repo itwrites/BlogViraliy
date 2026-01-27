@@ -1501,13 +1501,13 @@ export default function SiteConfig() {
         >
           {/* Sidebar Header */}
           <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-10 h-10"
+                className="w-12 h-12"
               />
-              <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
+              <span className="text-[17px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
             </div>

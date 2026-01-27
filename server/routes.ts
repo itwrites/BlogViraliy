@@ -950,17 +950,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If site is onboarded with business info but initialArticlesGenerated is false, trigger generation
       const site = await storage.getSiteById(siteId);
       if (site && site.isOnboarded && site.businessDescription && !site.initialArticlesGenerated) {
-        console.log(`[Auto-Recovery] Site ${siteId} has business info but initialArticlesGenerated=false (${posts.length} posts) - triggering initial article generation`);
-        const { generateInitialArticlesForSite } = await import("./initial-article-generator");
-        generateInitialArticlesForSite(siteId).then(result => {
-          if (result.success) {
-            console.log(`[Auto-Recovery] Initial articles generated for site ${siteId}: ${result.articlesCreated} articles`);
-          } else {
-            console.error(`[Auto-Recovery] Failed to generate initial articles for site ${siteId}:`, result.error);
-          }
-        }).catch(err => {
-          console.error(`[Auto-Recovery] Error generating initial articles for site ${siteId}:`, err);
-        });
+        const { generateInitialArticlesForSite, isGenerating } = await import("./initial-article-generator");
+        // Only trigger if not already generating
+        if (!isGenerating(siteId)) {
+          console.log(`[Auto-Recovery] Site ${siteId} has business info but initialArticlesGenerated=false (${posts.length} posts) - triggering initial article generation`);
+          generateInitialArticlesForSite(siteId).then(result => {
+            if (result.success) {
+              console.log(`[Auto-Recovery] Initial articles generated for site ${siteId}: ${result.articlesCreated} articles`);
+            } else {
+              console.error(`[Auto-Recovery] Failed to generate initial articles for site ${siteId}:`, result.error);
+            }
+          }).catch(err => {
+            console.error(`[Auto-Recovery] Error generating initial articles for site ${siteId}:`, err);
+          });
+        }
       }
       
       res.json(posts);

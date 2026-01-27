@@ -239,7 +239,8 @@ export default function EditorPosts() {
   });
   
   // Check if site has business info but no posts yet (articles being generated)
-  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && (!posts || posts.length === 0);
+  // Wait until we have at least 4 articles before showing content (2 unlocked + 2 locked)
+  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && (!posts || posts.length < 4);
   
   // Auto-refresh when articles are being generated
   useQuery<Post[]>({
@@ -1274,26 +1275,37 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 >
                   {isGeneratingInitialArticles ? (
                     <>
-                      <div className="relative w-24 h-24 mx-auto mb-6">
-                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 opacity-20 blur-xl animate-pulse" />
-                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border border-border flex items-center justify-center">
+                      {/* macOS-style loading screen */}
+                      <div className="flex flex-col items-center justify-center min-h-[300px]">
+                        <h3 
+                          className="text-2xl font-light mb-3 text-foreground tracking-tight"
+                          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
+                        >
+                          Creating Your First Articles
+                        </h3>
+                        <p 
+                          className="text-muted-foreground/70 max-w-sm mx-auto mb-8 text-center"
+                          style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
+                        >
+                          We're generating {4 - (posts?.length || 0)} more personalized articles based on your business profile.
+                        </p>
+                        {/* macOS-style progress bar */}
+                        <div className="w-64 h-1 bg-muted/50 rounded-full overflow-hidden">
                           <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          >
-                            <Sparkles className="w-12 h-12 text-primary" />
-                          </motion.div>
+                            className="h-full bg-primary/60 rounded-full"
+                            initial={{ x: "-100%" }}
+                            animate={{ x: "100%" }}
+                            transition={{ 
+                              duration: 1.5, 
+                              repeat: Infinity, 
+                              ease: "easeInOut"
+                            }}
+                            style={{ width: "40%" }}
+                          />
                         </div>
-                      </div>
-                      <h3 className="text-xl font-semibold mb-3 text-foreground">
-                        Creating Your First Articles
-                      </h3>
-                      <p className="text-muted-foreground/80 max-w-md mx-auto mb-4">
-                        We're generating personalized content based on your business profile. This usually takes about a minute.
-                      </p>
-                      <div className="flex items-center justify-center gap-2 text-sm text-primary">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Generating starter articles...</span>
+                        <p className="text-xs text-muted-foreground/50 mt-4">
+                          {posts?.length || 0} of 4 articles created
+                        </p>
                       </div>
                     </>
                   ) : (

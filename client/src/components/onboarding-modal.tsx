@@ -341,7 +341,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
             data-testid="text-onboarding-description"
           >
-            Let's set up your blog.
+            Your content empire starts here.
           </p>
         </div>
       </motion.div>
@@ -403,7 +403,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-md mt-8 overflow-hidden"
+            className="w-full max-w-md mt-8"
           >
             <div className="space-y-4">
               <div className="flex gap-3">
@@ -713,7 +713,10 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background border border-border [&>button]:hidden">
+      <DialogContent 
+        className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl [&>button]:hidden"
+        overlayClassName="bg-gradient-to-br from-purple-500/20 via-blue-500/15 to-pink-500/20 backdrop-blur-sm"
+      >
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
         </VisuallyHidden>

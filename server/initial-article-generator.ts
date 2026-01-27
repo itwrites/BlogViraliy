@@ -7,6 +7,13 @@ import type { Site, Pillar } from "@shared/schema";
 
 let openai: OpenAI | null = null;
 
+// In-memory lock to prevent concurrent generation for the same site
+const generationLocks = new Set<string>();
+
+export function isGenerating(siteId: string): boolean {
+  return generationLocks.has(siteId);
+}
+
 function getOpenAIClient(): OpenAI {
   if (!openai) {
     if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
@@ -198,14 +205,25 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
   articlesCreated: number;
   error?: string;
 }> {
+  // Check if generation is already in progress
+  if (generationLocks.has(siteId)) {
+    console.log(`[Initial Articles] Generation already in progress for site ${siteId}, skipping`);
+    return { success: true, articlesCreated: 0, error: "Generation already in progress" };
+  }
+  
+  // Acquire lock
+  generationLocks.add(siteId);
+  
   try {
     const site = await storage.getSiteById(siteId);
     if (!site) {
+      generationLocks.delete(siteId);
       return { success: false, articlesCreated: 0, error: "Site not found" };
     }
 
     if (site.initialArticlesGenerated) {
       console.log(`[Initial Articles] Site ${siteId} already has initial articles generated`);
+      generationLocks.delete(siteId);
       return { success: true, articlesCreated: 0 };
     }
 
@@ -360,12 +378,17 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
 
     console.log(`[Initial Articles] Completed for site ${siteId}. Created ${createdPillars.length} pillars and ${createdPosts.length} articles.`);
 
+    // Release lock
+    generationLocks.delete(siteId);
+    
     return {
       success: true,
       articlesCreated: createdPosts.length,
     };
   } catch (error) {
     console.error("[Initial Articles] Error generating initial articles:", error);
+    // Release lock on error
+    generationLocks.delete(siteId);
     return {
       success: false,
       articlesCreated: 0,
