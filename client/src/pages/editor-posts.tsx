@@ -692,7 +692,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-8 h-8"
+                className="w-10 h-10"
               />
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
@@ -773,33 +773,17 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-2 rounded-xl p-3 bg-white card-elevate">
+            <div className="flex items-center justify-center gap-2 rounded-xl p-3 bg-white card-elevate">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">{stats.total}</span>
                 <span className="text-xs text-muted-foreground/70">articles</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">{stats.totalViews.toLocaleString()}</span>
-                <span className="text-xs text-muted-foreground/70">views</span>
               </div>
             </div>
 
           </div>
 
           <div className="p-4 border-t border-border space-y-3 bg-muted/30">
-            {!hasSiteContext && (
-              <Button
-                variant="ghost"
-                onClick={() => setLocation("/admin")}
-                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
-                data-testid="button-back-editor"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Sites
-              </Button>
-            )}
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
               <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">

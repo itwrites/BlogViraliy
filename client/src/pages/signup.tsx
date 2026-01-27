@@ -164,7 +164,7 @@ export default function Signup() {
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-16 h-16 mx-auto"
+                className="w-[70px] h-[70px] mx-auto"
                 data-testid="img-brand-logo"
               />
               <div>

@@ -217,7 +217,7 @@ export default function OwnerDashboard() {
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-9 h-9"
+                className="w-10 h-10"
               />
               <div className="flex-1 min-w-0">
                 <h1 className="text-[17px] font-semibold tracking-[-0.01em] text-foreground truncate" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }} data-testid="text-app-title">

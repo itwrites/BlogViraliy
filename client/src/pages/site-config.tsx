@@ -59,14 +59,14 @@ interface ApiKeyData {
 }
 
 const AVAILABLE_PERMISSIONS = [
-  { id: "posts_read", label: "Read Posts", description: "List and read published posts" },
-  { id: "posts_write", label: "Write Posts", description: "Create, update, and delete posts" },
-  { id: "pillars_read", label: "Read Pillars", description: "View topical authority pillars and articles" },
-  { id: "pillars_manage", label: "Manage Pillars", description: "Create and manage pillars" },
-  { id: "stats_read", label: "Read Stats", description: "Access site statistics and analytics" },
+  { id: "posts_read", label: "Read Posts", description: "List and read published posts", adminOnly: false },
+  { id: "posts_write", label: "Write Posts", description: "Create, update, and delete posts", adminOnly: false },
+  { id: "pillars_read", label: "Read Pillars", description: "View topical authority pillars and articles", adminOnly: true },
+  { id: "pillars_manage", label: "Manage Pillars", description: "Create and manage pillars", adminOnly: true },
+  { id: "stats_read", label: "Read Stats", description: "Access site statistics and analytics", adminOnly: true },
 ];
 
-function ApiKeysSection({ siteId }: { siteId: string }) {
+function ApiKeysSection({ siteId, isOwner }: { siteId: string; isOwner: boolean }) {
   const { toast } = useToast();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
@@ -248,7 +248,7 @@ function ApiKeysSection({ siteId }: { siteId: string }) {
                 <Label>Permissions</Label>
                 <p className="text-xs text-muted-foreground mb-2">Select what this key can access. Use minimal permissions for security.</p>
                 <div className="space-y-2">
-                  {AVAILABLE_PERMISSIONS.map((perm) => (
+                  {AVAILABLE_PERMISSIONS.filter(perm => !perm.adminOnly || !isOwner).map((perm) => (
                     <div key={perm.id} className="flex items-start gap-3">
                       <Checkbox
                         id={perm.id}
@@ -1451,16 +1451,18 @@ export default function SiteConfig() {
   };
 
   // Navigation items for sidebar
-  const navItems: { id: ActiveSection; label: string; description: string; icon: typeof Settings; disabled?: boolean }[] = [
+  type NavItem = { id: ActiveSection; label: string; description: string; icon: typeof Settings; disabled?: boolean; adminOnly?: boolean };
+  const allNavItems: NavItem[] = [
     { id: "general", label: "Site Info", description: "Domain, title, and routing", icon: Settings },
     { id: "business", label: "Business Profile", description: "Brand voice and target audience", icon: Building2 },
     { id: "navigation", label: "Menu & Navigation", description: "Configure your site's menu", icon: Menu },
     { id: "design", label: "Look & Feel", description: "Theme, branding, colors, and typography", icon: Palette },
     { id: "seo", label: "SEO & Meta", description: "Search engine optimization", icon: Search },
-    { id: "rss", label: "RSS Imports", description: "Import from external feeds", icon: Rss },
+    { id: "rss", label: "RSS Imports", description: "Import from external feeds", icon: Rss, adminOnly: true },
     { id: "api", label: "Public API", description: "API access for developers", icon: Key, disabled: isNewSite },
     { id: "troubleshooting", label: "Tools & Debug", description: "Diagnostics and tools", icon: Wrench, disabled: isNewSite },
   ];
+  const navItems = allNavItems.filter(tab => !tab.adminOnly || !isOwner);
 
   const handleNavClick = (section: ActiveSection) => {
     if (section === "posts" && id && !isNewSite) {
@@ -1503,7 +1505,7 @@ export default function SiteConfig() {
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-8 h-8"
+                className="w-10 h-10"
               />
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
@@ -1765,7 +1767,7 @@ export default function SiteConfig() {
             )}
 
             {activeSection === "api" && !isNewSite && id && (
-              <ApiKeysSection siteId={id} />
+              <ApiKeysSection siteId={id} isOwner={isOwner} />
             )}
 
             {activeSection === "troubleshooting" && !isNewSite && id && (

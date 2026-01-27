@@ -215,7 +215,7 @@ export default function EditorAnalytics() {
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-8 h-8"
+                className="w-10 h-10"
               />
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
