@@ -3545,6 +3545,11 @@ Sitemap: ${sitemapUrl}
       const faviconFromHtml = extractFaviconFromHtml(scrapeResult.html || "", url);
       const fallbackFavicon = normalizeFaviconUrl("/favicon.ico", url);
       const favicon = faviconFromMetadata || faviconFromHtml || fallbackFavicon;
+      
+      // Extract domain from URL and suggest blog subdomain
+      const parsedUrl = new URL(url);
+      const hostname = parsedUrl.hostname.replace(/^www\./, ""); // Remove www. prefix
+      const suggestedDomain = `blog.${hostname}`;
 
       console.log(`[Onboarding] Scraped content length: ${scrapedContent.length} chars`);
       console.log(`[Onboarding] Page title: ${pageTitle}`);
@@ -3616,6 +3621,8 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
 
       console.log(`[Onboarding] Successfully analyzed website: ${url}`);
       console.log(`[Onboarding] Parsed result:`, JSON.stringify(analysisResult, null, 2));
+      console.log(`[Onboarding] Suggested domain: ${suggestedDomain}`);
+      console.log(`[Onboarding] Favicon: ${favicon}`);
       res.json({
         businessDescription: pick(analysisResult.businessDescription, fallback.businessDescription),
         targetAudience: pick(analysisResult.targetAudience, fallback.targetAudience),
@@ -3626,6 +3633,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         suggestedTitle: pick(analysisResult.suggestedTitle, fallback.suggestedTitle),
         suggestedMetaDescription: pick(analysisResult.suggestedMetaDescription, fallback.suggestedMetaDescription),
         favicon,
+        suggestedDomain,
       });
     } catch (error) {
       console.error("[Onboarding] Error scraping website:", error);
@@ -3647,6 +3655,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         onboardingSourceUrl,
         siteName,
         favicon,
+        suggestedDomain,
       } = req.body;
 
       // Build update data with business profile and mark as onboarded
@@ -3667,6 +3676,14 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
       }
       if (favicon && typeof favicon === "string" && favicon.trim()) {
         updateData.favicon = favicon.trim();
+      }
+      // Update domain if suggested from onboarding (only if current domain is temporary/auto-generated)
+      if (suggestedDomain && typeof suggestedDomain === "string" && suggestedDomain.trim()) {
+        const site = await storage.getSite(siteId);
+        // Only update if current domain looks like an auto-generated one (contains - or is very short)
+        if (site && site.domain && (site.domain.includes("-") || site.domain.length < 10)) {
+          updateData.domain = suggestedDomain.trim();
+        }
       }
 
       const updatedSite = await storage.updateSite(siteId, updateData);
