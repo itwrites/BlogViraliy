@@ -682,7 +682,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border shadow-[2px_0_16px_rgba(15,23,42,0.08)] z-40 flex flex-col"
         >
           <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-2.5">
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
@@ -691,32 +691,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
-            </div>
-            <button
-              onClick={() => setLocation("/admin/dashboard")}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-              data-testid="button-back-to-sites"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Sites</span>
-            </button>
-            <div className="flex items-center gap-3">
-              <SiteEmblem title={site?.title} favicon={site?.favicon} />
-              <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-foreground" data-testid="text-site-title">
-                  {site?.title || "Loading..."}
-                </h1>
-                <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                data-testid="button-site-settings"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
             </div>
           </div>
 
@@ -847,7 +821,25 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             )}
           </div>
 
-          <div className="p-4 border-t border-border space-y-2 bg-muted/30">
+          <div className="p-4 border-t border-border space-y-3 bg-muted/30">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                  {site?.title || "Loading..."}
+                </h1>
+                <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                data-testid="button-site-settings"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
             {!hasSiteContext && (
               <Button
                 variant="ghost"

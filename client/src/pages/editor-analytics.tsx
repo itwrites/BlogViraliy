@@ -203,7 +203,7 @@ export default function EditorAnalytics() {
           className="fixed left-0 top-0 bottom-0 w-72 bg-card/50 backdrop-blur-xl border-r z-40 flex flex-col"
         >
           <div className="p-4 border-b">
-            <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-2.5">
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
@@ -212,23 +212,6 @@ export default function EditorAnalytics() {
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
-            </div>
-            <button
-              onClick={() => setLocation("/admin/dashboard")}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-              data-testid="button-back-to-sites"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Sites</span>
-            </button>
-            <div className="flex items-center gap-3">
-              <SiteEmblem title={site?.title} favicon={site?.favicon} />
-              <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate" data-testid="text-site-title">
-                  {site?.title || "Loading..."}
-                </h1>
-                <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
-              </div>
             </div>
           </div>
 
@@ -288,7 +271,16 @@ export default function EditorAnalytics() {
             </div>
           </div>
 
-          <div className="p-4 border-t space-y-2">
+          <div className="p-4 border-t space-y-3">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-background/60">
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                  {site?.title || "Loading..."}
+                </h1>
+                <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
+              </div>
+            </div>
             {!hasSiteContext && (
               <Button
                 variant="ghost"

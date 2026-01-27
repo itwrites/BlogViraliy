@@ -1488,7 +1488,7 @@ export default function SiteConfig() {
         >
           {/* Sidebar Header */}
           <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-2.5">
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
@@ -1497,24 +1497,6 @@ export default function SiteConfig() {
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
-            </div>
-            <button
-              onClick={() => setLocation("/admin/dashboard")}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-              data-testid="button-back-to-sites"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Sites</span>
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-sm tracking-tight text-foreground" data-testid="text-page-title">
-                  {isNewSite ? "New Site" : site?.title || "Site Config"}
-                </h1>
-                <p className="text-xs text-muted-foreground/80 truncate">
-                  {isNewSite ? "Create new website" : "Configuration"}
-                </p>
-              </div>
             </div>
           </div>
 
@@ -1558,8 +1540,18 @@ export default function SiteConfig() {
             ))}
           </div>
 
-          {/* Save Button at Bottom */}
-          <div className="p-5 border-t border-border bg-muted/30">
+          {/* Site Info and Save Button at Bottom */}
+          <div className="p-4 border-t border-border bg-muted/30 space-y-3">
+            {!isNewSite && (
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                    {site?.title || "Loading..."}
+                  </h1>
+                  <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
+                </div>
+              </div>
+            )}
             <Button 
               onClick={handleSave} 
               size="lg"
