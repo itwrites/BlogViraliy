@@ -2,38 +2,27 @@
   <title>Blog Autopilot</title>
   <defs>
     <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#1D4ED8"/>
+      <stop offset="0%" stop-color="#4A90F4"/>
+      <stop offset="100%" stop-color="#2563EB"/>
     </linearGradient>
-    <linearGradient id="planeBody" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F1F5F9"/>
-    </linearGradient>
-    <linearGradient id="planeFold" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#E2E8F0"/>
-      <stop offset="100%" stop-color="#CBD5E1"/>
-    </linearGradient>
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#1E40AF" flood-opacity="0.25"/>
-    </filter>
   </defs>
 
   <circle cx="32" cy="32" r="26" fill="url(#circleGrad)"/>
 
-  <g filter="url(#softShadow)">
-    <path 
-      d="M19 30.5L44 20c0.9-0.35 1.7 0.55 1.4 1.4L34 46c-0.3 0.85-1.5 0.75-1.7-0.15l-2.8-13-13-2.8c-0.9-0.2-1.05-1.4-0.25-1.75z"
-      fill="url(#planeBody)"
-    />
-  </g>
-
   <path 
-    d="M30.3 34.2l11.2-6.7c0.35-0.2 0.75 0.2 0.55 0.55l-6.7 11.2c-0.12 0.2-0.28 0.35-0.45 0.45l-3.5 2.1c-0.4 0.25-0.85-0.1-0.7-0.55l1.3-4.2c0.06-0.15 0.12-0.28 0.2-0.38 0.12-0.25-0.06-0.5-0.32-0.56l-4.2-0.85c-0.45-0.08-0.5-0.7-0.12-0.88l3.3-1.55z"
-    fill="url(#planeFold)"
-  />
-
-  <path 
-    d="M32.2 36.8l5.4-3.2-3.2 5.4-1.5-2.2z"
+    d="M18 32L44 20L36 44L30 34L18 32Z"
     fill="#FFFFFF"
+  />
+  
+  <path 
+    d="M30 34L44 20L36 44L30 34Z"
+    fill="#E0E7F0"
+  />
+  
+  <path 
+    d="M30 34L44 20"
+    stroke="#FFFFFF"
+    stroke-width="0.5"
+    fill="none"
   />
 </svg>
