@@ -289,7 +289,7 @@ export default function EditorPosts() {
   const filteredPosts = useMemo(() => {
     if (!posts) return [];
     
-    return posts.filter((post) => {
+    const filtered = posts.filter((post) => {
       const matchesSearch = 
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -300,13 +300,33 @@ export default function EditorPosts() {
       
       return matchesSearch && matchesSource;
     });
+    
+    // Sort: unlocked articles first, locked articles at bottom
+    return filtered.sort((a, b) => {
+      if (a.isLocked === b.isLocked) return 0;
+      return a.isLocked ? 1 : -1;
+    });
   }, [posts, searchQuery, sourceFilter]);
+  
+  // Separate unlocked and locked articles for grouped display
+  const unlockedPosts = useMemo(() => {
+    const unlocked = filteredPosts.filter(p => !p.isLocked);
+    return unlocked.slice(
+      (currentPage - 1) * POSTS_PER_PAGE,
+      Math.min(currentPage * POSTS_PER_PAGE, unlocked.length)
+    );
+  }, [filteredPosts, currentPage]);
+  
+  const lockedPosts = useMemo(() => {
+    return filteredPosts.filter(p => p.isLocked);
+  }, [filteredPosts]);
 
-  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
-  const paginatedPosts = filteredPosts.slice(
-    (currentPage - 1) * POSTS_PER_PAGE,
-    currentPage * POSTS_PER_PAGE
-  );
+  // Pagination is based on unlocked posts only - locked posts are always shown at bottom
+  const allUnlockedPosts = useMemo(() => filteredPosts.filter(p => !p.isLocked), [filteredPosts]);
+  const totalPages = Math.ceil(allUnlockedPosts.length / POSTS_PER_PAGE);
+  
+  // Check if there are any posts to display (used for showing content vs empty state)
+  const hasPostsToShow = allUnlockedPosts.length > 0 || lockedPosts.length > 0;
 
   const stats = useMemo(() => {
     if (!posts) return { total: 0, manual: 0, ai: 0, rss: 0, totalViews: 0 };
@@ -478,20 +498,21 @@ export default function EditorPosts() {
     });
   };
 
-  const allCurrentPageSelected = paginatedPosts.length > 0 && 
-    paginatedPosts.every(p => selectedPosts.has(p.id));
+  // Bulk selection only works on unlocked posts (current page)
+  const allCurrentPageSelected = unlockedPosts.length > 0 && 
+    unlockedPosts.every(p => selectedPosts.has(p.id));
 
   const toggleSelectAll = () => {
     if (allCurrentPageSelected) {
       setSelectedPosts(prev => {
         const newSet = new Set(prev);
-        paginatedPosts.forEach(p => newSet.delete(p.id));
+        unlockedPosts.forEach(p => newSet.delete(p.id));
         return newSet;
       });
     } else {
       setSelectedPosts(prev => {
         const newSet = new Set(prev);
-        paginatedPosts.forEach(p => newSet.add(p.id));
+        unlockedPosts.forEach(p => newSet.add(p.id));
         return newSet;
       });
     }
@@ -616,6 +637,23 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       case "rss": return "RSS Import";
       default: return "Manual";
     }
+  };
+  
+  const getStatusBadge = (status: string) => {
+    if (status === "published") {
+      return (
+        <Badge className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200">
+          <Globe className="w-3 h-3 mr-1" />
+          Published
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="text-xs bg-gray-50 text-gray-500 border border-gray-200">
+        <FileText className="w-3 h-3 mr-1" />
+        Draft
+      </Badge>
+    );
   };
 
   const hasSiteContext = !!siteContext;
@@ -746,41 +784,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               )}
             </div>
 
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
-              Quick Stats
-            </p>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="space-y-2"
-            >
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 text-center border border-blue-200">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Eye className="w-4 h-4 text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold text-blue-600">{stats.totalViews.toLocaleString()}</p>
-                <p className="text-xs text-gray-600">Total Views</p>
+            <div className="flex items-center justify-between gap-2 bg-gray-50/80 rounded-xl p-3 border border-gray-200/40">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">{stats.total}</span>
+                <span className="text-xs text-gray-400">articles</span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                  <p className="text-xs text-gray-500">Total Articles</p>
-                </div>
-                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-emerald-600">{stats.manual}</p>
-                  <p className="text-xs text-gray-500">Manual</p>
-                </div>
-                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-violet-600">{stats.ai}</p>
-                  <p className="text-xs text-gray-500">AI Generated</p>
-                </div>
-                <div className="bg-white border border-gray-200/60 rounded-xl p-3 text-center shadow-sm">
-                  <p className="text-2xl font-bold text-orange-600">{stats.rss}</p>
-                  <p className="text-xs text-gray-500">RSS Imports</p>
-                </div>
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">{stats.totalViews.toLocaleString()}</span>
+                <span className="text-xs text-gray-400">views</span>
               </div>
-            </motion.div>
+            </div>
 
             {activeTab === "posts" && (
               <div className="pt-4">
@@ -965,7 +980,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </motion.header>
 
           <div className="p-8">
-            {bulkMode && paginatedPosts.length > 0 && (
+            {bulkMode && unlockedPosts.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -979,8 +994,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 />
                 <span className="text-sm text-gray-600">
                   {allCurrentPageSelected 
-                    ? `All ${paginatedPosts.length} articles on this page selected`
-                    : `Select all ${paginatedPosts.length} articles on this page`
+                    ? `All ${unlockedPosts.length} articles on this page selected`
+                    : `Select all ${unlockedPosts.length} articles on this page`
                   }
                 </span>
                 {selectedPosts.size > 0 && (
@@ -1012,142 +1027,106 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     />
                   ))}
                 </motion.div>
-              ) : paginatedPosts.length > 0 ? (
-                <motion.div
-                  key="posts"
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                  className={viewMode === "grid" 
-                    ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
-                    : "space-y-3"
-                  }
-                >
-                  <AnimatePresence>
-                    {paginatedPosts.map((post) => (
-                      <motion.div
-                        key={post.id}
-                        variants={cardVariants}
-                        layout
-                        data-testid={`card-post-${post.id}`}
-                      >
-                        {viewMode === "grid" ? (
-                          <div
-                            className={`group relative rounded-xl overflow-hidden transition-all duration-300 bg-white border border-gray-200/60 ${
-                              post.isLocked 
-                                ? "cursor-not-allowed" 
-                                : "cursor-pointer hover:shadow-md hover:border-gray-300"
-                            } ${
-                              bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
-                            }`}
-                            onClick={() => {
-                              if (post.isLocked) {
-                                showPaywall("this article");
-                                return;
-                              }
-                              bulkMode ? togglePostSelection(post.id) : openEditor(post);
-                            }}
+              ) : hasPostsToShow ? (
+                <div className="space-y-8">
+                  {/* Unlocked Articles */}
+                  {unlockedPosts.length > 0 && (
+                    <motion.div
+                      key="unlocked-posts"
+                      variants={staggerContainer}
+                      initial="initial"
+                      animate="animate"
+                      className={viewMode === "grid" 
+                        ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
+                        : "space-y-3"
+                      }
+                    >
+                      <AnimatePresence>
+                        {unlockedPosts.map((post) => (
+                          <motion.div
+                            key={post.id}
+                            variants={cardVariants}
+                            layout
+                            data-testid={`card-post-${post.id}`}
                           >
-                            {post.imageUrl ? (
-                              <div className={`aspect-video relative overflow-hidden ${post.isLocked ? "blur-[2px]" : ""}`}>
-                                <img
-                                  src={post.imageUrl}
-                                  alt={post.title}
-                                  className={`w-full h-full object-cover transition-transform duration-500 ${!post.isLocked ? "group-hover:scale-105" : ""}`}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                {bulkMode && !post.isLocked && (
-                                  <div className="absolute top-2 left-2">
-                                    <Checkbox
-                                      checked={selectedPosts.has(post.id)}
-                                      className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className={`aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center ${post.isLocked ? "blur-[2px]" : ""}`}>
-                                <Image className="w-12 h-12 text-gray-300" />
-                                {bulkMode && !post.isLocked && (
-                                  <div className="absolute top-2 left-2">
-                                    <Checkbox
-                                      checked={selectedPosts.has(post.id)}
-                                      className="border-gray-400 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            <div className={`p-4 ${post.isLocked ? "blur-[2px]" : ""}`}>
-                              <h3 
-                                className={`font-semibold text-gray-900 line-clamp-2 mb-2 transition-colors ${!post.isLocked ? "group-hover:text-blue-600" : ""}`}
-                                data-testid={`text-post-title-${post.id}`}
+                            {viewMode === "grid" ? (
+                              <div
+                                className={`group relative rounded-xl overflow-hidden transition-all duration-300 bg-white border border-gray-200/60 cursor-pointer hover:shadow-md hover:border-gray-300 ${
+                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
+                                }`}
+                                onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
                               >
-                                {post.title}
-                              </h3>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Badge className={`text-xs border ${
-                                  isAiSource(post.source)
-                                    ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
-                                    : post.source === "rss"
-                                    ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                                    : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                }`}>
-                                  {getSourceIcon(post.source)}
-                                  <span className="ml-1">{getSourceLabel(post.source)}</span>
-                                </Badge>
-                                <span className="text-xs text-gray-500">
-                                  {getRelativeTime(post.createdAt)}
-                                </span>
-                              </div>
-                            </div>
-                            {post.isLocked && (
-                              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex flex-col items-center justify-center z-10">
-                                <div className="w-12 h-12 rounded-full bg-gray-900/90 flex items-center justify-center mb-2">
-                                  <Lock className="w-5 h-5 text-white" />
-                                </div>
-                                <span className="text-xs font-medium text-gray-700 bg-white/80 px-3 py-1 rounded-full">
-                                  Upgrade to Unlock
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className={`group relative rounded-xl overflow-hidden transition-all duration-200 bg-white border border-gray-200/60 ${
-                              post.isLocked 
-                                ? "cursor-not-allowed" 
-                                : "cursor-pointer hover:shadow-md hover:border-gray-300"
-                            } ${
-                              bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
-                            }`}
-                            onClick={() => {
-                              if (post.isLocked) {
-                                showPaywall("this article");
-                                return;
-                              }
-                              bulkMode ? togglePostSelection(post.id) : openEditor(post);
-                            }}
-                          >
-                            <div className={`p-4 ${post.isLocked ? "blur-[2px]" : ""}`}>
-                              <div className="flex items-start gap-4">
-                                {bulkMode && !post.isLocked && (
-                                  <div className="pt-1">
-                                    <Checkbox
-                                      checked={selectedPosts.has(post.id)}
-                                      className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
-                                    />
-                                  </div>
-                                )}
-                                {post.imageUrl && (
-                                  <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
+                                {post.imageUrl ? (
+                                  <div className="aspect-video relative overflow-hidden">
                                     <img
                                       src={post.imageUrl}
-                                      alt=""
-                                      className="w-full h-full object-cover"
+                                      alt={post.title}
+                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    {bulkMode && (
+                                      <div className="absolute top-2 left-2">
+                                        <Checkbox
+                                          checked={selectedPosts.has(post.id)}
+                                          className="border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                                    <Image className="w-12 h-12 text-gray-300" />
+                                    {bulkMode && (
+                                      <div className="absolute top-2 left-2">
+                                        <Checkbox
+                                          checked={selectedPosts.has(post.id)}
+                                          className="border-gray-400 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
+                                        />
+                                      </div>
+                                    )}
                                   </div>
                                 )}
+                                <div className="p-4">
+                                  <h3 
+                                    className="font-semibold text-gray-900 line-clamp-2 mb-2 transition-colors group-hover:text-blue-600"
+                                    data-testid={`text-post-title-${post.id}`}
+                                  >
+                                    {post.title}
+                                  </h3>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {getStatusBadge(post.status)}
+                                    <span className="text-xs text-gray-400">
+                                      {getRelativeTime(post.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className={`group relative rounded-xl overflow-hidden transition-all duration-200 bg-white border border-gray-200/60 cursor-pointer hover:shadow-md hover:border-gray-300 ${
+                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
+                                }`}
+                                onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
+                              >
+                                <div className="p-4">
+                                  <div className="flex items-start gap-4">
+                                    {bulkMode && (
+                                      <div className="pt-1">
+                                        <Checkbox
+                                          checked={selectedPosts.has(post.id)}
+                                          className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
+                                        />
+                                      </div>
+                                    )}
+                                    {post.imageUrl && (
+                                      <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
+                                        <img
+                                          src={post.imageUrl}
+                                          alt=""
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1 min-w-0">
@@ -1163,43 +1142,25 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                    <Badge className={`text-xs border ${
-                                      isAiSource(post.source)
-                                        ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
-                                        : post.source === "rss"
-                                        ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                                        : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                    }`}>
-                                      {getSourceIcon(post.source)}
-                                      <span className="ml-1">{getSourceLabel(post.source)}</span>
-                                    </Badge>
+                                    {getStatusBadge(post.status)}
                                     <span 
-                                      className="text-xs text-gray-500"
+                                      className="text-xs text-gray-400"
                                       data-testid={`text-post-date-${post.id}`}
                                       title={new Date(post.createdAt).toLocaleString()}
                                     >
                                       {getRelativeTime(post.createdAt)}
                                     </span>
-                                    <span className="text-xs text-gray-500">
-                                      {getReadingTime(post.content).minutes} min
-                                    </span>
-                                    <span className="flex items-center gap-1 text-xs text-blue-600">
-                                      <Eye className="w-3 h-3" />
-                                      {(post.viewCount || 0).toLocaleString()}
+                                    <span className="text-xs text-gray-400">
+                                      {getReadingTime(post.content).minutes} min read
                                     </span>
                                     {post.tags.slice(0, 2).map((tag) => (
                                       <Badge 
                                         key={tag} 
-                                        className="text-xs font-normal bg-gray-100 text-gray-600 border border-gray-200"
+                                        className="text-xs font-normal bg-gray-100 text-gray-500 border border-gray-200"
                                       >
                                         {tag}
                                       </Badge>
                                     ))}
-                                    {post.tags.length > 2 && (
-                                      <span className="text-xs text-gray-500">
-                                        +{post.tags.length - 2} more
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                                 {!bulkMode && !post.isLocked && (
@@ -1211,7 +1172,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         e.stopPropagation();
                                         openEditor(post);
                                       }}
-                                      className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                                      className="text-gray-400"
                                       data-testid={`button-edit-${post.id}`}
                                     >
                                       <Edit className="w-4 h-4" />
@@ -1224,7 +1185,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         setPostToDelete(post);
                                         setDeleteDialogOpen(true);
                                       }}
-                                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                      className="text-gray-400"
                                       data-testid={`button-delete-${post.id}`}
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -1233,24 +1194,126 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 )}
                               </div>
                             </div>
-                            {post.isLocked && (
-                              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
-                                <div className="flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full shadow-sm">
-                                  <div className="w-8 h-8 rounded-full bg-gray-900/90 flex items-center justify-center">
-                                    <Lock className="w-4 h-4 text-white" />
-                                  </div>
-                                  <span className="text-sm font-medium text-gray-700">
-                                    Upgrade to Unlock
-                                  </span>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         )}
                       </motion.div>
                     ))}
                   </AnimatePresence>
                 </motion.div>
+                )}
+
+                {/* Locked Articles Section */}
+                {lockedPosts.length > 0 && (
+                  <div className="space-y-4">
+                    {/* Upgrade Banner */}
+                    <div 
+                      className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => showPaywall("locked articles")}
+                      data-testid="banner-upgrade-unlock"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+                      <div className="relative flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                            <Lock className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">
+                              {lockedPosts.length} Locked Article{lockedPosts.length !== 1 ? 's' : ''}
+                            </h3>
+                            <p className="text-sm text-gray-300">
+                              Upgrade to unlock all articles and create unlimited content
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          className="bg-white text-gray-900 font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            showPaywall("locked articles");
+                          }}
+                        >
+                          Upgrade Now
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Locked Articles Preview */}
+                    <div className={viewMode === "grid" 
+                      ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-60" 
+                      : "space-y-3 opacity-60"
+                    }>
+                      {lockedPosts.map((post) => (
+                        <div
+                          key={post.id}
+                          data-testid={`card-post-locked-${post.id}`}
+                          className="relative"
+                        >
+                          {viewMode === "grid" ? (
+                            <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
+                              {post.imageUrl ? (
+                                <div className="aspect-video relative overflow-hidden">
+                                  <img
+                                    src={post.imageUrl}
+                                    alt={post.title}
+                                    className="w-full h-full object-cover grayscale"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                </div>
+                              ) : (
+                                <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                                  <Image className="w-12 h-12 text-gray-300" />
+                                </div>
+                              )}
+                              <div className="p-4">
+                                <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
+                                  {post.title}
+                                </h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {getStatusBadge(post.status)}
+                                  <span className="text-xs text-gray-400">
+                                    {getRelativeTime(post.createdAt)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
+                              <div className="p-4">
+                                <div className="flex items-start gap-4">
+                                  {post.imageUrl && (
+                                    <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
+                                      <img
+                                        src={post.imageUrl}
+                                        alt=""
+                                        className="w-full h-full object-cover grayscale"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-gray-900 line-clamp-1">
+                                      {post.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                                      {stripMarkdown(post.content).substring(0, 120)}
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                      {getStatusBadge(post.status)}
+                                      <span className="text-xs text-gray-400">
+                                        {getRelativeTime(post.createdAt)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               ) : (
                 <motion.div
                   key="empty"
