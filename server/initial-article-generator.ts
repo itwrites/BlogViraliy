@@ -246,6 +246,8 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     const createdPosts: string[] = [];
     const articleTitles = plan.articles.map(a => a.title);
 
+    const pillarCounts: Record<string, number> = {};
+    
     for (let i = 0; i < plan.articles.length; i++) {
       const articlePlan = plan.articles[i];
       const siblingTitles = articleTitles.filter((_, idx) => idx !== i);
@@ -260,7 +262,8 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
 
         const isLocked = i >= 2;
         
-        const pillarId = createdPillars.length > 0 ? createdPillars[0].id : undefined;
+        const pillarIndex = createdPillars.length > 0 ? i % createdPillars.length : -1;
+        const pillarId = pillarIndex >= 0 ? createdPillars[pillarIndex].id : undefined;
         
         const post = await storage.createPost({
           siteId,
@@ -280,15 +283,18 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
         });
 
         createdPosts.push(post.id);
-        console.log(`[Initial Articles] Created article ${i + 1}/${plan.articles.length}: "${article.title}" (locked: ${isLocked})`);
+        if (pillarId) {
+          pillarCounts[pillarId] = (pillarCounts[pillarId] || 0) + 1;
+        }
+        console.log(`[Initial Articles] Created article ${i + 1}/${plan.articles.length}: "${article.title}" (locked: ${isLocked}, pillar: ${pillarIndex >= 0 ? createdPillars[pillarIndex].name : 'none'})`);
       } catch (articleError) {
         console.error(`[Initial Articles] Failed to generate article ${i + 1}:`, articleError);
       }
     }
 
-    if (createdPillars.length > 0 && createdPosts.length > 0) {
-      await storage.updatePillar(createdPillars[0].id, {
-        generatedCount: createdPosts.length,
+    for (const [pillarId, count] of Object.entries(pillarCounts)) {
+      await storage.updatePillar(pillarId, {
+        generatedCount: count,
       });
     }
 

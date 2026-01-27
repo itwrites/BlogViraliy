@@ -207,10 +207,23 @@ Respond with valid JSON:
     return defaultArticles;
   }
   
-  return result.articles.map((a: ArticlePlan, i: number) => ({
-    ...a,
-    pillarId: a.pillarId || pillars[i % pillars.length].id,
-  }));
+  const validPillarIds = new Set(pillars.map(p => p.id));
+  
+  return result.articles.map((a: ArticlePlan, i: number) => {
+    let pillarId = a.pillarId;
+    
+    if (!pillarId || !validPillarIds.has(pillarId)) {
+      pillarId = pillars[i % pillars.length].id;
+      if (a.pillarId) {
+        console.log(`[Monthly Content] Invalid pillarId "${a.pillarId}" from AI, assigning to "${pillars[i % pillars.length].name}" instead`);
+      }
+    }
+    
+    return {
+      ...a,
+      pillarId,
+    };
+  });
 }
 
 export async function generateArticleContent(
@@ -318,9 +331,83 @@ async function getOrCreateAutomationPillars(site: Site): Promise<Pillar[]> {
   return newPillars;
 }
 
+async function generateReplacementPillars(
+  site: Site,
+  existingPillarNames: Set<string>,
+  count: number
+): Promise<PillarPlan[]> {
+  const lang = getLanguageForPrompt(site.displayLanguage || "en");
+  const languageDirective = buildLanguageDirective(lang);
+  
+  const businessContext = [
+    site.businessDescription ? `Business: ${site.businessDescription}` : "",
+    site.targetAudience ? `Target Audience: ${site.targetAudience}` : "",
+    site.industry ? `Industry: ${site.industry}` : "",
+  ].filter(Boolean).join("\n");
+
+  const existingList = Array.from(existingPillarNames).join(", ");
+
+  const prompt = `You are an SEO content strategist creating new content pillars to replace completed ones.
+
+${languageDirective}
+
+BUSINESS CONTEXT:
+${businessContext || "General business blog"}
+
+EXISTING/COMPLETED PILLARS (do NOT repeat these themes):
+${existingList || "None yet"}
+
+Create exactly ${count} NEW and DISTINCT content pillars. Each should:
+- Cover a different aspect of the business than existing pillars
+- Be broad enough to support 50-100 articles
+- NOT duplicate or overlap with existing pillar themes
+
+Respond with valid JSON:
+{
+  "pillars": [
+    {
+      "name": "Short pillar name (3-5 words)",
+      "description": "Brief description of what this pillar covers"
+    }
+  ]
+}`;
+
+  try {
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-5",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 4096,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    if (result.pillars && Array.isArray(result.pillars)) {
+      return result.pillars.filter((p: PillarPlan) => 
+        !existingPillarNames.has(p.name.toLowerCase())
+      ).slice(0, count);
+    }
+  } catch (error) {
+    console.error("[Monthly Content] Error generating replacement pillars:", error);
+  }
+  
+  const fallbackPillars: PillarPlan[] = [];
+  const industry = site.industry || "business";
+  const timestamp = Date.now();
+  for (let i = 0; i < count; i++) {
+    fallbackPillars.push({
+      name: `${industry} Insights ${i + 1} (${timestamp})`,
+      description: `Fresh perspectives on ${industry}`,
+    });
+  }
+  return fallbackPillars;
+}
+
 async function checkAndRotatePillars(site: Site, pillars: Pillar[]): Promise<Pillar[]> {
   const activePillars: Pillar[] = [];
-  let needsNewPillar = false;
+  
+  const allPillars = await storage.getPillarsBySiteId(site.id);
+  const existingPillarNames = new Set(allPillars.map(p => p.name.toLowerCase()));
   
   for (const pillar of pillars) {
     const articleCount = pillar.generatedCount || 0;
@@ -332,18 +419,22 @@ async function checkAndRotatePillars(site: Site, pillars: Pillar[]): Promise<Pil
         completedAt: new Date(),
       });
       console.log(`[Monthly Content] Pillar "${pillar.name}" reached ${maxArticles} articles, marking as complete`);
-      needsNewPillar = true;
     } else {
       activePillars.push(pillar);
     }
   }
   
-  if (needsNewPillar && activePillars.length < INITIAL_PILLAR_COUNT) {
-    console.log(`[Monthly Content] Creating replacement pillar(s) for completed ones`);
-    const newPillarPlans = await generateInitialPillars(site);
+  const pillarsNeeded = INITIAL_PILLAR_COUNT - activePillars.length;
+  
+  if (pillarsNeeded > 0) {
+    console.log(`[Monthly Content] Creating ${pillarsNeeded} replacement pillar(s) for completed ones`);
+    const newPillarPlans = await generateReplacementPillars(site, existingPillarNames, pillarsNeeded);
     
-    for (let i = activePillars.length; i < INITIAL_PILLAR_COUNT && i < newPillarPlans.length; i++) {
-      const plan = newPillarPlans[i];
+    for (const plan of newPillarPlans) {
+      if (existingPillarNames.has(plan.name.toLowerCase())) {
+        plan.name = `${plan.name} (new)`;
+      }
+      
       const pillar = await storage.createPillar({
         siteId: site.id,
         name: plan.name,
@@ -357,6 +448,8 @@ async function checkAndRotatePillars(site: Site, pillars: Pillar[]): Promise<Pil
         maxArticles: MAX_ARTICLES_PER_PILLAR,
       });
       activePillars.push(pillar);
+      existingPillarNames.add(plan.name.toLowerCase());
+      console.log(`[Monthly Content] Created replacement pillar: "${pillar.name}"`);
     }
   }
   
