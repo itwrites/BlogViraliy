@@ -649,7 +649,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       );
     }
     return (
-      <Badge className="text-xs bg-gray-50 text-gray-500 border border-gray-200">
+      <Badge className="text-xs bg-muted/60 text-muted-foreground border border-border">
         <FileText className="w-3 h-3 mr-1" />
         Draft
       </Badge>
@@ -659,7 +659,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
   const hasSiteContext = !!siteContext;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
@@ -678,32 +678,32 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200/60 z-40 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border shadow-[2px_0_16px_rgba(15,23,42,0.08)] z-40 flex flex-col"
         >
-          <div className="p-6 border-b border-gray-200/60">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3">
               {site?.logoUrl ? (
                 <img 
                   src={site.logoUrl} 
                   alt={site.title} 
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-gray-200" 
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-border" 
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-gray-700" />
+                <div className="w-10 h-10 rounded-xl bg-muted/70 border border-border flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-muted-foreground" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold truncate text-gray-900" data-testid="text-site-title">
+                <h1 className="font-semibold truncate text-foreground" data-testid="text-site-title">
                   {site?.title || "Loading..."}
                 </h1>
-                <p className="text-xs text-gray-500 truncate">{site?.domain}</p>
+                <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
-                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 data-testid="button-site-settings"
               >
                 <Settings className="w-4 h-4" />
@@ -712,21 +712,21 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
 
           <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
+            <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider px-3 mb-3">
               Navigation
             </p>
             <div className="space-y-1 mb-4">
               <button
                 onClick={() => setActiveTab("posts")}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                  activeTab === "posts" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  activeTab === "posts" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 }`}
                 data-testid="nav-posts"
               >
                 <FileText className="w-4 h-4" />
                 <span className="flex-1 text-left">Articles</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  activeTab === "posts" ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
+                  activeTab === "posts" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
                 }`}>
                   {stats.total}
                 </span>
@@ -734,7 +734,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <button
                 onClick={() => setActiveTab("calendar")}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                  activeTab === "calendar" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  activeTab === "calendar" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 }`}
                 data-testid="nav-calendar"
               >
@@ -742,7 +742,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 <span className="flex-1 text-left">Calendar</span>
                 {scheduledPosts && scheduledPosts.length > 0 && (
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    activeTab === "calendar" ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
+                    activeTab === "calendar" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
                   }`}>
                     {scheduledPosts.length}
                   </span>
@@ -752,7 +752,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 <button
                   onClick={() => setActiveTab("topical")}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                    activeTab === "topical" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                    activeTab === "topical" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                   data-testid="nav-topical"
                 >
@@ -764,7 +764,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 <button
                   onClick={() => setActiveTab("bulk")}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                    activeTab === "bulk" ? "bg-gray-100 text-gray-900 shadow-sm" : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                    activeTab === "bulk" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                   data-testid="nav-bulk"
                 >
@@ -775,7 +775,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               {user?.role === "admin" && (
                 <button
                   onClick={() => setLocation(`/admin/sites/${siteId}/analytics`)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
                   data-testid="nav-analytics"
                 >
                   <BarChart3 className="w-4 h-4" />
@@ -784,22 +784,22 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-2 bg-gray-50/80 rounded-xl p-3 border border-gray-200/40">
+            <div className="flex items-center justify-between gap-2 rounded-xl p-3 bg-white card-elevate">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">{stats.total}</span>
-                <span className="text-xs text-gray-400">articles</span>
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">{stats.total}</span>
+                <span className="text-xs text-muted-foreground/70">articles</span>
               </div>
               <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">{stats.totalViews.toLocaleString()}</span>
-                <span className="text-xs text-gray-400">views</span>
+                <Eye className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">{stats.totalViews.toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground/70">views</span>
               </div>
             </div>
 
             {activeTab === "posts" && (
               <div className="pt-4">
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider px-3 mb-3">
+                <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider px-3 mb-3">
                   Filter by Source
                 </p>
                 <div className="space-y-1">
@@ -817,8 +817,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                         sourceFilter === item.value
-                          ? "bg-gray-100 text-gray-900 shadow-sm"
-                          : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
+                          ? "bg-primary/10 text-primary shadow-sm"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
                       }`}
                       data-testid={`filter-${item.value}`}
                     >
@@ -826,8 +826,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       <span className="flex-1 text-left">{item.label}</span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                         sourceFilter === item.value
-                          ? "bg-gray-200 text-gray-700"
-                          : "bg-gray-100 text-gray-500"
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
                       }`}>
                         {item.count}
                       </span>
@@ -838,33 +838,33 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             )}
           </div>
 
-          <div className="p-4 border-t border-gray-200/60 space-y-2 bg-gray-50/50">
+          <div className="p-4 border-t border-border space-y-2 bg-muted/30">
             {!hasSiteContext && (
               <Button
                 variant="ghost"
                 onClick={() => setLocation("/admin")}
-                className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
                 data-testid="button-back-editor"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Sites
               </Button>
             )}
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white border border-gray-200/60 shadow-sm">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-100 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-700">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-gray-900">{user?.username}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <p className="text-sm font-medium truncate text-foreground">{user?.username}</p>
+                <p className="text-xs text-muted-foreground/80 capitalize">{user?.role}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 data-testid="button-logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -873,19 +873,19 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
         </motion.aside>
 
-        <main className="flex-1 ml-72">
+        <main className="flex-1 ml-72 bg-background">
           {activeTab === "posts" && (
           <>
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur-xl"
+            className="sticky top-0 z-30 border-b border-border bg-white/90 backdrop-blur-xl"
           >
             <div className="px-8 py-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                     <Input
                       placeholder="Search articles..."
                       value={searchQuery}
@@ -893,13 +893,13 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         setSearchQuery(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="pl-9 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                      className="pl-9 bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                       data-testid="input-search"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -913,7 +913,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         variant="ghost"
                         size="sm"
                         onClick={exitBulkMode}
-                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted"
                         data-testid="button-exit-bulk"
                       >
                         Cancel
@@ -931,11 +931,11 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center rounded-lg border border-gray-200 p-1 bg-gray-50">
+                      <div className="flex items-center rounded-lg border border-border p-1 bg-muted/30">
                         <button
                           onClick={() => setViewMode("list")}
                           className={`p-1.5 rounded transition-colors ${
-                            viewMode === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                            viewMode === "list" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                           }`}
                           data-testid="button-view-list"
                         >
@@ -944,7 +944,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         <button
                           onClick={() => setViewMode("grid")}
                           className={`p-1.5 rounded transition-colors ${
-                            viewMode === "grid" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                            viewMode === "grid" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                           }`}
                           data-testid="button-view-grid"
                         >
@@ -955,7 +955,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         variant="ghost"
                         size="sm"
                         onClick={() => setBulkMode(true)}
-                        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted"
                         data-testid="button-bulk-mode"
                       >
                         <CheckSquare className="w-4 h-4 mr-2" />
@@ -984,22 +984,22 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200/60 shadow-sm"
+                className="mb-5 flex items-center gap-3 p-4 rounded-xl bg-white card-elevate"
               >
                 <Checkbox
                   checked={allCurrentPageSelected}
                   onCheckedChange={toggleSelectAll}
-                  className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
+                  className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-white"
                   data-testid="checkbox-select-all"
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground/80">
                   {allCurrentPageSelected 
                     ? `All ${unlockedPosts.length} articles on this page selected`
                     : `Select all ${unlockedPosts.length} articles on this page`
                   }
                 </span>
                 {selectedPosts.size > 0 && (
-                  <Badge className="bg-gray-100 text-gray-700 border border-gray-200">
+                  <Badge className="bg-muted text-muted-foreground border border-border">
                     {selectedPosts.size} selected total
                   </Badge>
                 )}
@@ -1014,14 +1014,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className={viewMode === "grid" 
-                    ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
-                    : "space-y-3"
+                    ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" 
+                    : "space-y-4"
                   }
                 >
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
-                      className={`bg-white animate-pulse rounded-xl border border-gray-200/60 ${
+                      className={`bg-white animate-pulse rounded-xl card-elevate ${
                         viewMode === "grid" ? "h-48" : "h-24"
                       }`}
                     />
@@ -1037,8 +1037,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       initial="initial"
                       animate="animate"
                       className={viewMode === "grid" 
-                        ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
-                        : "space-y-3"
+                        ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" 
+                        : "space-y-4"
                       }
                     >
                       <AnimatePresence>
@@ -1051,8 +1051,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           >
                             {viewMode === "grid" ? (
                               <div
-                                className={`group relative rounded-xl overflow-hidden transition-all duration-300 bg-white border border-gray-200/60 cursor-pointer hover:shadow-md hover:border-gray-300 ${
-                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
+                                className={`group relative rounded-xl overflow-hidden bg-white card-elevate cursor-pointer ${
+                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-primary" : ""
                                 }`}
                                 onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
                               >
@@ -1074,28 +1074,28 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                     )}
                                   </div>
                                 ) : (
-                                  <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                                    <Image className="w-12 h-12 text-gray-300" />
+                                  <div className="aspect-video relative bg-muted/50 flex items-center justify-center">
+                                    <Image className="w-12 h-12 text-muted-foreground/40" />
                                     {bulkMode && (
                                       <div className="absolute top-2 left-2">
                                         <Checkbox
                                           checked={selectedPosts.has(post.id)}
-                                          className="border-gray-400 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
+                                          className="border-white/70 data-[state=checked]:bg-white data-[state=checked]:text-black"
                                         />
                                       </div>
                                     )}
                                   </div>
                                 )}
-                                <div className="p-4">
+                                <div className="p-5">
                                   <h3 
-                                    className="font-semibold text-gray-900 line-clamp-2 mb-2 transition-colors group-hover:text-blue-600"
+                                    className="text-lg font-semibold text-foreground line-clamp-2 mb-2 transition-colors group-hover:text-primary"
                                     data-testid={`text-post-title-${post.id}`}
                                   >
                                     {post.title}
                                   </h3>
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {getStatusBadge(post.status)}
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-[11px] text-muted-foreground/70">
                                       {getRelativeTime(post.createdAt)}
                                     </span>
                                   </div>
@@ -1103,18 +1103,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                               </div>
                             ) : (
                               <div
-                                className={`group relative rounded-xl overflow-hidden transition-all duration-200 bg-white border border-gray-200/60 cursor-pointer hover:shadow-md hover:border-gray-300 ${
-                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-blue-500" : ""
+                                className={`group relative rounded-xl overflow-hidden bg-white card-elevate cursor-pointer ${
+                                  bulkMode && selectedPosts.has(post.id) ? "ring-2 ring-primary" : ""
                                 }`}
                                 onClick={() => bulkMode ? togglePostSelection(post.id) : openEditor(post)}
                               >
-                                <div className="p-4">
+                                <div className="p-5">
                                   <div className="flex items-start gap-4">
                                     {bulkMode && (
                                       <div className="pt-1">
                                         <Checkbox
                                           checked={selectedPosts.has(post.id)}
-                                          className="border-gray-300 data-[state=checked]:bg-gray-900 data-[state=checked]:text-white"
+                                          className="border-border data-[state=checked]:bg-primary data-[state=checked]:text-white"
                                         />
                                       </div>
                                     )}
@@ -1131,12 +1131,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                       <h3 
-                                        className={`font-semibold text-gray-900 line-clamp-1 transition-colors ${!post.isLocked ? "group-hover:text-blue-600" : ""}`}
+                                        className={`text-lg font-semibold text-foreground line-clamp-1 transition-colors ${!post.isLocked ? "group-hover:text-primary" : ""}`}
                                         data-testid={`text-post-title-${post.id}`}
                                       >
                                         {post.title}
                                       </h3>
-                                      <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                                      <p className="text-[13px] text-muted-foreground/80 line-clamp-1 mt-1">
                                         {stripMarkdown(post.content).substring(0, 120)}
                                       </p>
                                     </div>
@@ -1144,19 +1144,19 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                                     {getStatusBadge(post.status)}
                                     <span 
-                                      className="text-xs text-gray-400"
+                                      className="text-[11px] text-muted-foreground/70"
                                       data-testid={`text-post-date-${post.id}`}
                                       title={new Date(post.createdAt).toLocaleString()}
                                     >
                                       {getRelativeTime(post.createdAt)}
                                     </span>
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-[11px] text-muted-foreground/70">
                                       {getReadingTime(post.content).minutes} min read
                                     </span>
                                     {post.tags.slice(0, 2).map((tag) => (
                                       <Badge 
                                         key={tag} 
-                                        className="text-xs font-normal bg-gray-100 text-gray-500 border border-gray-200"
+                                        className="text-[11px] font-normal bg-muted text-muted-foreground border border-border"
                                       >
                                         {tag}
                                       </Badge>
@@ -1172,7 +1172,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         e.stopPropagation();
                                         openEditor(post);
                                       }}
-                                      className="text-gray-400"
+                                      className="text-muted-foreground hover:text-foreground"
                                       data-testid={`button-edit-${post.id}`}
                                     >
                                       <Edit className="w-4 h-4" />
@@ -1185,7 +1185,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                         setPostToDelete(post);
                                         setDeleteDialogOpen(true);
                                       }}
-                                      className="text-gray-400"
+                                      className="text-muted-foreground hover:text-foreground"
                                       data-testid={`button-delete-${post.id}`}
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -1207,8 +1207,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <div className="relative">
                       {/* Locked Articles List (heavily blurred) */}
                       <div className={`${viewMode === "grid" 
-                        ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
-                        : "space-y-3"
+                        ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" 
+                        : "space-y-4"
                       } opacity-30 blur-[3px] select-none pointer-events-none`}>
                         {lockedPosts.map((post) => (
                           <div
@@ -1216,7 +1216,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             data-testid={`card-post-locked-${post.id}`}
                           >
                             {viewMode === "grid" ? (
-                              <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
+                              <div className="relative rounded-xl overflow-hidden bg-white card-elevate">
                                 {post.imageUrl ? (
                                   <div className="aspect-video relative overflow-hidden">
                                     <img
@@ -1227,25 +1227,25 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                   </div>
                                 ) : (
-                                  <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                                    <Image className="w-12 h-12 text-gray-300" />
+                                  <div className="aspect-video relative bg-muted/50 flex items-center justify-center">
+                                    <Image className="w-12 h-12 text-muted-foreground/40" />
                                   </div>
                                 )}
-                                <div className="p-4">
-                                  <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
+                                <div className="p-5">
+                                  <h3 className="text-lg font-semibold text-foreground line-clamp-2 mb-2">
                                     {post.title}
                                   </h3>
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {getStatusBadge(post.status)}
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-[11px] text-muted-foreground/70">
                                       {getRelativeTime(post.createdAt)}
                                     </span>
                                   </div>
                                 </div>
                               </div>
                             ) : (
-                              <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
-                                <div className="p-4">
+                              <div className="relative rounded-xl overflow-hidden bg-white card-elevate">
+                                <div className="p-5">
                                   <div className="flex items-start gap-4">
                                     {post.imageUrl && (
                                       <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
@@ -1257,15 +1257,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <h3 className="font-semibold text-gray-900 line-clamp-1">
+                                      <h3 className="text-lg font-semibold text-foreground line-clamp-1">
                                         {post.title}
                                       </h3>
-                                      <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                                      <p className="text-[13px] text-muted-foreground/80 line-clamp-1 mt-1">
                                         {stripMarkdown(post.content).substring(0, 120)}
                                       </p>
                                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                                         {getStatusBadge(post.status)}
-                                        <span className="text-xs text-gray-400">
+                                        <span className="text-[11px] text-muted-foreground/70">
                                           {getRelativeTime(post.createdAt)}
                                         </span>
                                       </div>
@@ -1285,14 +1285,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           onClick={() => showPaywall("locked articles")}
                           data-testid="banner-upgrade-unlock"
                         >
-                          <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center">
-                            <Lock className="w-10 h-10 text-gray-500" />
+                          <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
+                            <Lock className="w-10 h-10 text-muted-foreground" />
                           </div>
-                          <p className="text-gray-600 font-medium text-center">
+                          <p className="text-muted-foreground font-medium text-center">
                             Subscribe to unlock further articles
                           </p>
                           <Button
-                            className="bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-full px-6"
+                            className="rounded-full px-6"
                             onClick={(e) => {
                               e.stopPropagation();
                               showPaywall("locked articles");
@@ -1317,39 +1317,39 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <>
                       <div className="relative w-24 h-24 mx-auto mb-6">
                         <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 opacity-20 blur-xl animate-pulse" />
-                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 border border-gray-200 flex items-center justify-center">
+                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border border-border flex items-center justify-center">
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                           >
-                            <Sparkles className="w-12 h-12 text-purple-600" />
+                            <Sparkles className="w-12 h-12 text-primary" />
                           </motion.div>
                         </div>
                       </div>
-                      <h3 className="text-2xl font-bold mb-3 text-gray-900">
+                      <h3 className="text-2xl font-bold mb-3 text-foreground">
                         Creating Your First Articles
                       </h3>
-                      <p className="text-gray-500 max-w-md mx-auto mb-4">
+                      <p className="text-muted-foreground/80 max-w-md mx-auto mb-4">
                         We're generating personalized content based on your business profile. This usually takes about a minute.
                       </p>
-                      <div className="flex items-center justify-center gap-2 text-sm text-purple-600">
+                      <div className="flex items-center justify-center gap-2 text-sm text-primary">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Generating starter articles...</span>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-6">
+                      <div className="w-20 h-20 rounded-3xl bg-muted/60 border border-border flex items-center justify-center mx-auto mb-6">
                         {searchQuery || sourceFilter !== "all" ? (
-                          <Search className="w-10 h-10 text-gray-400" />
+                          <Search className="w-10 h-10 text-muted-foreground/60" />
                         ) : (
-                          <Sparkles className="w-10 h-10 text-gray-400" />
+                          <Sparkles className="w-10 h-10 text-muted-foreground/60" />
                         )}
                       </div>
-                      <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                      <h3 className="text-xl font-semibold mb-2 text-foreground">
                         {searchQuery || sourceFilter !== "all" ? "No articles found" : "No articles yet"}
                       </h3>
-                      <p className="text-gray-500 max-w-md mx-auto mb-6">
+                      <p className="text-muted-foreground/80 max-w-md mx-auto mb-6">
                         {searchQuery
                           ? "Try adjusting your search terms or filters"
                           : sourceFilter !== "all"
@@ -1378,9 +1378,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200"
+                className="flex items-center justify-between mt-8 pt-6 border-t border-border"
               >
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground/80">
                   Showing {((currentPage - 1) * POSTS_PER_PAGE) + 1} - {Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} of {filteredPosts.length} articles
                 </p>
                 <div className="flex items-center gap-2">
@@ -1389,7 +1389,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30"
                     data-testid="button-prev-page"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -1413,8 +1413,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           size="icon"
                           className={`h-9 w-9 ${
                             currentPage === page 
-                              ? "bg-gray-900 text-white hover:bg-gray-800" 
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                              ? "bg-primary text-white hover:bg-[hsl(var(--primary-hover))]" 
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
                           }`}
                           onClick={() => setCurrentPage(page)}
                           data-testid={`button-page-${page}`}
@@ -1429,7 +1429,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 disabled:opacity-30"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30"
                     data-testid="button-next-page"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1517,13 +1517,13 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             onClick={() => setSelectedDate(date)}
                             className={`relative p-2 min-h-[80px] border-b border-r border-gray-100 text-left transition-colors ${
                               !isCurrentMonth ? "bg-gray-50/50" : "bg-white hover:bg-gray-50"
-                            } ${isSelected ? "ring-2 ring-inset ring-blue-500" : ""}`}
+                            } ${isSelected ? "ring-2 ring-inset ring-primary" : ""}`}
                             data-testid={`calendar-day-${format(date, "yyyy-MM-dd")}`}
                           >
                             <span
                               className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm ${
                                 isTodayDate
-                                  ? "bg-blue-500 text-white font-semibold"
+                                  ? "bg-primary text-white font-semibold"
                                   : isCurrentMonth
                                   ? "text-gray-900"
                                   : "text-gray-400"

@@ -29,23 +29,28 @@
   --card-foreground: 224 22% 14%;
   --card-border: 222 21% 88%;
 
-  /* Sidebar: Subtle separation from canvas */
-  --sidebar: 218 31% 95%;
+  /* Sidebar: Clear separation from canvas */
+  --sidebar: 220 20% 92%;
   --sidebar-foreground: 224 22% 14%;
-  --sidebar-border: 225 19% 92%;
+  --sidebar-border: 220 14% 86%;
   --sidebar-primary: 224 22% 14%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 16% 96%;
   --sidebar-accent-foreground: 224 22% 14%;
-  --sidebar-ring: 224 22% 14%;
+  --sidebar-ring: 231 100% 56%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 224 22% 14%;
   --popover-border: 225 19% 92%;
 
-  /* Trustworthy blue: #2563EB */
-  --primary: 221 83% 53%;
+  /* Confident blue: #1F40FF */
+  --primary: 231 100% 56%;
   --primary-foreground: 0 0% 100%;
+  --primary-hover: 231 100% 52%;
+  --primary-active: 231 100% 48%;
+  --primary-disabled: 220 16% 84%;
+  --primary-disabled-foreground: 224 12% 36%;
+  --primary-disabled-border: 220 14% 78%;
 
   --secondary: 220 16% 96%;
   --secondary-foreground: 224 22% 14%;
@@ -60,7 +65,10 @@
   --destructive-foreground: 0 0% 98%;
 
   --input: 225 19% 92%;
-  --ring: 221 83% 53%; /* Match primary */
+  --ring: 231 100% 56%; /* Match primary */
+  --card-border-color: rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.12);
   
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
@@ -150,18 +158,23 @@
   --sidebar: 0 0% 10%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 0 0% 20%;
-  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary: 231 100% 56%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 20%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 221 83% 53%;
+  --sidebar-ring: 231 100% 56%;
 
   --popover: 0 0% 14%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 0 0% 20%;
 
-  --primary: 221 83% 53%;
+  --primary: 231 100% 56%;
   --primary-foreground: 0 0% 100%;
+  --primary-hover: 231 100% 48%;
+  --primary-active: 231 100% 42%;
+  --primary-disabled: 220 10% 28%;
+  --primary-disabled-foreground: 0 0% 80%;
+  --primary-disabled-border: 220 10% 35%;
 
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
@@ -176,7 +189,10 @@
   --destructive-foreground: 0 0% 98%;
 
   --input: 0 0% 14.9%;
-  --ring: 221 83% 53%;
+  --ring: 231 100% 56%;
+  --card-border-color: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.55);
   
   --chart-1: 220 70% 50%;
   --chart-2: 160 60% 45%;
@@ -291,6 +307,16 @@
  * need to be distinguished from eachother visually.
  */
 @layer utilities {
+  .card-elevate {
+    border: 1px solid var(--card-border-color);
+    box-shadow: var(--card-shadow);
+    transition: all 160ms ease;
+  }
+
+  .card-elevate:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-hover);
+  }
 
   /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type="search"]::-webkit-search-cancel-button {

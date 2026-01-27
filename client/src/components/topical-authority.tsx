@@ -340,11 +340,11 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="space-y-10">
+      <div className="flex items-start justify-between gap-5 flex-wrap">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Authority Workspace</h2>
-          <p className="text-sm text-muted-foreground">Autonomous authority growth system</p>
+          <h2 className="text-3xl font-semibold text-foreground">Authority Workspace</h2>
+          <p className="text-[13px] text-muted-foreground/80">Autonomous authority growth system</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -520,43 +520,43 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
+        <div className="space-y-7">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <LayoutGrid className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Authority Topics</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">Authority Topics</p>
                     <p className="text-xl font-semibold">{formatCount(pillars?.length || 0)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
+            <Card>
+              <CardContent className="p-5">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                     <FileText className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Assets</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">Total Assets</p>
                     <p className="text-xl font-semibold">{formatCount(totalAssets)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             {hasPillars && (
-              <Card className="shadow-sm">
-                <CardContent className="p-4">
+              <Card>
+                <CardContent className="p-5">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
                       <Play className="h-4 w-4 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">In Automation</p>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">In Automation</p>
                       <p className="text-xl font-semibold">{formatCount(automationTopics)}</p>
                     </div>
                   </div>
@@ -564,14 +564,14 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
               </Card>
             )}
             {hasPillars && (
-              <Card className="shadow-sm">
-                <CardContent className="p-4">
+              <Card>
+                <CardContent className="p-5">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                       <CheckCircle className="h-4 w-4 text-emerald-500" />
                     </div>
                     <div>
-                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Assets Produced</p>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">Assets Produced</p>
                       <p className="text-xl font-semibold">{formatCount(totalCompleted)}</p>
                     </div>
                   </div>
@@ -581,23 +581,23 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
           </div>
 
           {hasPillars ? (
-            <Card className="shadow-sm">
+            <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Growth Pulse</CardTitle>
                 <CardDescription>Live system activity across your authority topics.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-lg border bg-muted/20 p-3">
-                    <p className="text-xs text-muted-foreground">Assets Produced</p>
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <div className="rounded-lg border bg-muted/20 p-4">
+                    <p className="text-[11px] text-muted-foreground/80">Assets Produced</p>
                     <p className="text-lg font-semibold">{formatCount(totalCompleted)}</p>
                   </div>
-                  <div className="rounded-lg border bg-muted/20 p-3">
-                    <p className="text-xs text-muted-foreground">Assets in Queue</p>
+                  <div className="rounded-lg border bg-muted/20 p-4">
+                    <p className="text-[11px] text-muted-foreground/80">Assets in Queue</p>
                     <p className="text-lg font-semibold">{formatCount(totalPending)}</p>
                   </div>
-                  <div className="rounded-lg border bg-muted/20 p-3">
-                    <p className="text-xs text-muted-foreground">Attention Needed</p>
+                  <div className="rounded-lg border bg-muted/20 p-4">
+                    <p className="text-[11px] text-muted-foreground/80">Attention Needed</p>
                     <p className="text-lg font-semibold">{formatCount(totalFailed)}</p>
                   </div>
                 </div>
@@ -607,12 +607,12 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         </div>
 
         {systemStatusItems.length > 0 && (
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">System Status</CardTitle>
               <CardDescription>Automation health and activity.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               {systemStatusItems.map((item) => (
                 <div key={item.label} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
@@ -629,7 +629,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
 
       <Card>
         <CardHeader>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <CardTitle data-testid="text-topical-authority-title">All Authority Topics</CardTitle>
             <CardDescription data-testid="text-topical-authority-description">
               Build market authority with an automated growth system
@@ -638,20 +638,20 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         </CardHeader>
         <CardContent>
           {!pillars || pillars.length === 0 ? (
-            <div className="py-8">
-              <div className="grid gap-6 md:grid-cols-[220px,1fr] items-center rounded-2xl border border-dashed bg-muted/10 p-6">
+            <div className="py-10">
+              <div className="grid gap-8 md:grid-cols-[240px,1fr] items-center rounded-2xl border border-dashed bg-muted/10 p-7">
                 <div className="flex items-center justify-center">
                   <img
                     src="https://i.ibb.co/mVt2W1yk/3fa43b55-0e16-465a-acef-0ecf8020818c.png"
                     alt="Authority map illustration"
-                    className="w-56 h-auto"
+                    className="w-64 h-auto"
                     loading="lazy"
                   />
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-lg font-semibold">Launch Your First Authority Topic</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xl font-semibold">Launch Your First Authority Topic</p>
+                    <p className="text-[13px] text-muted-foreground/80">
                       Set an authority topic to start building a self-growing content ecosystem.
                     </p>
                   </div>
@@ -663,23 +663,23 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {pillars.map((pillar) => (
                 <Card
                   key={pillar.id}
-                  className={`cursor-pointer transition-all ${selectedPillar === pillar.id ? 'ring-2 ring-primary' : 'hover-elevate'}`}
+                  className={`cursor-pointer ${selectedPillar === pillar.id ? 'ring-2 ring-primary' : ''}`}
                   onClick={() => setSelectedPillar(selectedPillar === pillar.id ? null : pillar.id)}
                   data-testid={`card-pillar-${pillar.id}`}
                 >
-                  <CardContent className="p-4">
+                  <CardContent className="p-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                           <LayoutGrid className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-medium" data-testid={`text-pillar-name-${pillar.id}`}>{pillar.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <h3 className="text-lg font-semibold text-foreground" data-testid={`text-pillar-name-${pillar.id}`}>{pillar.name}</h3>
+                          <div className="flex items-center gap-2 text-[13px] text-muted-foreground/80">
                             <span>{pillar.clusterCount} content streams</span>
                             <span>•</span>
                             <span>{pillar.stats.total} assets</span>
@@ -714,8 +714,8 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       </Card>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h3 className="text-lg font-semibold">Content Opportunities</h3>
-          <p className="text-sm text-muted-foreground">Discover new authority ideas powered by your business profile.</p>
+          <h3 className="text-xl font-semibold">Content Opportunities</h3>
+          <p className="text-[13px] text-muted-foreground/80">Discover new authority ideas powered by your business profile.</p>
         </div>
         <Button
           onClick={fetchSuggestions}
@@ -739,21 +739,21 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       </div>
 
       {suggestions.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {suggestions.map((suggestion) => (
             <Card
               key={suggestion.id}
-              className={`transition-all cursor-pointer ${suggestion.used ? "opacity-60" : "hover-elevate"}`}
+              className={`cursor-pointer ${suggestion.used ? "opacity-60" : ""}`}
               onClick={() => !suggestion.used && useSuggestion(suggestion)}
               data-testid={`suggestion-card-${suggestion.id}`}
             >
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-5 space-y-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">
                       {PACK_DEFINITIONS[suggestion.packType as PackType]?.name || suggestion.packType}
                     </p>
-                    <h4 className="font-medium text-foreground line-clamp-2">
+                    <h4 className="text-lg font-semibold text-foreground line-clamp-2">
                       {formatSuggestionTitle(suggestion.name)}
                     </h4>
                   </div>
@@ -765,10 +765,10 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="text-[13px] text-muted-foreground/80 line-clamp-2">
                   {suggestion.description}
                 </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground/80">
                   <span>{suggestion.suggestedArticleCount} assets</span>
                   <span>Tap to prefill</span>
                 </div>
@@ -778,7 +778,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
         </div>
       ) : !isLoadingSuggestions ? (
         <Card className="border-dashed bg-muted/10">
-          <CardContent className="p-6 text-sm text-muted-foreground">
+          <CardContent className="p-7 text-[13px] text-muted-foreground/80">
             No opportunities yet. Discover topics to generate tailored authority ideas.
           </CardContent>
         </Card>
@@ -962,10 +962,3 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     </div>
   );
 }
-
-
-
-
-
-
-
