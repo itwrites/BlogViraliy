@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
-import type { Site } from "@shared/schema";
+import { generateInitialPillars } from "./monthly-content-engine";
+import type { Site, Pillar } from "@shared/schema";
 
 let openai: OpenAI | null = null;
 
@@ -210,6 +211,31 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
 
     console.log(`[Initial Articles] Generating initial articles for site ${siteId}`);
 
+    console.log(`[Initial Articles] Creating automation pillars for future monthly content`);
+    const pillarPlans = await generateInitialPillars(site);
+    const createdPillars: Pillar[] = [];
+    
+    for (const pillarPlan of pillarPlans) {
+      try {
+        const pillar = await storage.createPillar({
+          siteId,
+          name: pillarPlan.name,
+          description: pillarPlan.description,
+          status: "generating",
+          packType: "authority",
+          targetArticleCount: 100,
+          targetLanguage: site.displayLanguage || "en",
+          defaultPostStatus: "draft",
+          isAutomation: true,
+          maxArticles: 100,
+        });
+        createdPillars.push(pillar);
+        console.log(`[Initial Articles] Created automation pillar: "${pillar.name}"`);
+      } catch (pillarError) {
+        console.error(`[Initial Articles] Failed to create pillar:`, pillarError);
+      }
+    }
+
     const plan = await generateInitialArticlePlan(site);
     
     if (!plan.articles || plan.articles.length === 0) {
@@ -234,6 +260,8 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
 
         const isLocked = i >= 2;
         
+        const pillarId = createdPillars.length > 0 ? createdPillars[0].id : undefined;
+        
         const post = await storage.createPost({
           siteId,
           authorId: defaultAuthor?.id || null,
@@ -248,6 +276,7 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           articleRole: articlePlan.isPillar ? "pillar" : "support",
           status: "draft",
           isLocked,
+          pillarId,
         });
 
         createdPosts.push(post.id);
@@ -257,11 +286,17 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
       }
     }
 
+    if (createdPillars.length > 0 && createdPosts.length > 0) {
+      await storage.updatePillar(createdPillars[0].id, {
+        generatedCount: createdPosts.length,
+      });
+    }
+
     await storage.updateSite(siteId, {
       initialArticlesGenerated: true,
     });
 
-    console.log(`[Initial Articles] Completed for site ${siteId}. Created ${createdPosts.length} articles.`);
+    console.log(`[Initial Articles] Completed for site ${siteId}. Created ${createdPillars.length} pillars and ${createdPosts.length} articles.`);
 
     return {
       success: true,

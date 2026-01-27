@@ -660,6 +660,8 @@ export const pillars = pgTable("pillars", {
   targetLanguage: text("target_language").notNull().default("en"), // Target language for generated articles
   defaultPostStatus: text("default_post_status").notNull().default("published"), // published or draft for generated articles
   nextPublishAt: timestamp("next_publish_at"), // Next scheduled publish time
+  isAutomation: boolean("is_automation").notNull().default(false), // True for auto-created pillars from monthly engine
+  maxArticles: integer("max_articles").notNull().default(100), // Max articles before pillar is considered complete
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),

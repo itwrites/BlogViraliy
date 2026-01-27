@@ -4,7 +4,7 @@ import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
 import { buildRoleSpecificPrompt, type LinkTarget } from "./role-prompts";
 import type { BusinessContext } from "./openai";
-import type { Site, Post, ArticleRole, User } from "@shared/schema";
+import type { Site, Post, ArticleRole, User, Pillar } from "@shared/schema";
 import { PLAN_LIMITS } from "@shared/schema";
 import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle } from "@shared/pack-definitions";
 
@@ -42,14 +42,16 @@ function slugify(text: string): string {
     .substring(0, 100);
 }
 
-interface TopicPlan {
-  pillarTopic: string;
-  articles: {
-    title: string;
-    keywords: string[];
-    role: ArticleRole;
-    isPillar: boolean;
-  }[];
+interface PillarPlan {
+  name: string;
+  description: string;
+}
+
+interface ArticlePlan {
+  title: string;
+  keywords: string[];
+  role: ArticleRole;
+  pillarId: string;
 }
 
 interface GeneratedArticle {
@@ -62,11 +64,10 @@ interface GeneratedArticle {
   articleRole: ArticleRole;
 }
 
-export async function generateMonthlyTopicPlan(
-  site: Site,
-  articleCount: number,
-  topicIndex: number
-): Promise<TopicPlan> {
+const MAX_ARTICLES_PER_PILLAR = 100;
+const INITIAL_PILLAR_COUNT = 4;
+
+export async function generateInitialPillars(site: Site): Promise<PillarPlan[]> {
   const lang = getLanguageForPrompt(site.displayLanguage || "en");
   const languageDirective = buildLanguageDirective(lang);
   
@@ -78,46 +79,106 @@ export async function generateMonthlyTopicPlan(
     site.valuePropositions ? `Value Propositions: ${site.valuePropositions}` : "",
   ].filter(Boolean).join("\n");
 
-  const packType: PackType = "authority";
-  const packDef = PACK_DEFINITIONS[packType];
-  const roleDistribution = getPackRoleDistribution(packDef.defaultRoleDistribution);
-
-  const prompt = `You are an SEO content strategist creating a monthly content plan.
+  const prompt = `You are an SEO content strategist creating a long-term content strategy.
 
 ${languageDirective}
 
 BUSINESS CONTEXT:
 ${businessContext || "General business blog"}
 
-MONTH INDEX: ${topicIndex} (use this to vary the topic focus - each month should cover a different aspect)
-
-Create a focused content cluster with exactly ${articleCount} articles:
-- 1 pillar article (comprehensive overview, cornerstone content)
-- ${articleCount - 1} supporting articles (more specific topics, varied roles)
-
-The articles should:
-- Be highly relevant to the business and target audience
-- Target keywords with good search potential
-- Form a logical internal linking structure
-- Be different from typical month ${topicIndex % 12} content (vary the angle)
-
-Available article roles: ${Object.keys(roleDistribution).slice(0, 8).join(", ")}
+Create exactly ${INITIAL_PILLAR_COUNT} distinct content pillars (major topic themes) for this business.
+Each pillar should:
+- Cover a major aspect of the business's expertise
+- Be broad enough to support 50-100 articles
+- Target different keyword clusters
+- Together form a comprehensive content strategy
 
 Respond with valid JSON:
 {
-  "pillarTopic": "The main theme for this month's content",
+  "pillars": [
+    {
+      "name": "Short pillar name (3-5 words)",
+      "description": "Brief description of what this pillar covers and its SEO value"
+    }
+  ]
+}`;
+
+  const response = await getOpenAIClient().chat.completions.create({
+    model: "gpt-5",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    max_completion_tokens: 4096,
+  });
+
+  const result = JSON.parse(response.choices[0].message.content || "{}");
+  
+  if (!result.pillars || result.pillars.length < INITIAL_PILLAR_COUNT) {
+    const defaultPillars: PillarPlan[] = [];
+    const industry = site.industry || "business";
+    const suggestions = [
+      { name: `${industry} Fundamentals`, description: "Core concepts and best practices" },
+      { name: `${industry} Strategies`, description: "Advanced tactics and approaches" },
+      { name: `${industry} Tools & Resources`, description: "Reviews, comparisons, and guides" },
+      { name: `${industry} Case Studies`, description: "Real-world examples and success stories" },
+    ];
+    
+    for (let i = result.pillars?.length || 0; i < INITIAL_PILLAR_COUNT; i++) {
+      defaultPillars.push(suggestions[i] || suggestions[0]);
+    }
+    result.pillars = [...(result.pillars || []), ...defaultPillars];
+  }
+  
+  return result.pillars;
+}
+
+export async function generateArticlesForPillars(
+  pillars: Pillar[],
+  site: Site,
+  articlesPerPillar: number
+): Promise<ArticlePlan[]> {
+  const lang = getLanguageForPrompt(site.displayLanguage || "en");
+  const languageDirective = buildLanguageDirective(lang);
+  
+  const businessContext = [
+    site.businessDescription ? `Business: ${site.businessDescription}` : "",
+    site.targetAudience ? `Target Audience: ${site.targetAudience}` : "",
+    site.industry ? `Industry: ${site.industry}` : "",
+  ].filter(Boolean).join("\n");
+
+  const pillarInfo = pillars.map((p, i) => 
+    `${i + 1}. "${p.name}" (ID: ${p.id}) - ${p.description || "Main topic pillar"} - Already has ${p.generatedCount} articles`
+  ).join("\n");
+
+  const packType: PackType = "authority";
+  const packDef = PACK_DEFINITIONS[packType];
+  const roleDistribution = getPackRoleDistribution(packDef.defaultRoleDistribution);
+
+  const prompt = `You are an SEO content strategist creating monthly article assignments.
+
+${languageDirective}
+
+BUSINESS CONTEXT:
+${businessContext || "General business blog"}
+
+EXISTING CONTENT PILLARS:
+${pillarInfo}
+
+Generate exactly ${articlesPerPillar * pillars.length} article ideas, distributing them evenly across all pillars (${articlesPerPillar} per pillar).
+
+For each article:
+- Choose the most relevant pillar
+- Create a compelling, SEO-friendly title
+- Include 2-3 target keywords
+- Assign an article role from: ${Object.keys(roleDistribution).slice(0, 8).join(", ")}
+
+Respond with valid JSON:
+{
   "articles": [
     {
-      "title": "Pillar article title",
-      "keywords": ["primary keyword", "secondary keyword"],
-      "role": "pillar",
-      "isPillar": true
-    },
-    {
-      "title": "Supporting article title",
+      "title": "Article title",
       "keywords": ["keyword1", "keyword2"],
       "role": "support",
-      "isPillar": false
+      "pillarId": "pillar-uuid-here"
     }
   ]
 }`;
@@ -131,26 +192,31 @@ Respond with valid JSON:
 
   const result = JSON.parse(response.choices[0].message.content || "{}");
   
-  if (!result.articles || result.articles.length < articleCount) {
-    const defaultArticles = [];
-    for (let i = result.articles?.length || 0; i < articleCount; i++) {
+  if (!result.articles || result.articles.length === 0) {
+    const defaultArticles: ArticlePlan[] = [];
+    for (let i = 0; i < pillars.length * articlesPerPillar; i++) {
+      const pillarIndex = i % pillars.length;
       const role = selectRoleForArticle(roleDistribution, i);
       defaultArticles.push({
-        title: `Article ${i + 1} about ${site.industry || "your business"}`,
+        title: `${pillars[pillarIndex].name} Guide ${i + 1}`,
         keywords: [site.industry || "business", "guide"],
         role,
-        isPillar: i === 0,
+        pillarId: pillars[pillarIndex].id,
       });
     }
-    result.articles = [...(result.articles || []), ...defaultArticles];
+    return defaultArticles;
   }
   
-  return result;
+  return result.articles.map((a: ArticlePlan, i: number) => ({
+    ...a,
+    pillarId: a.pillarId || pillars[i % pillars.length].id,
+  }));
 }
 
 export async function generateArticleContent(
-  articlePlan: TopicPlan["articles"][0],
+  articlePlan: ArticlePlan,
   site: Site,
+  pillar: Pillar,
   siblingTitles: string[]
 ): Promise<GeneratedArticle> {
   const lang = getLanguageForPrompt(site.displayLanguage || "en");
@@ -164,6 +230,8 @@ export async function generateArticleContent(
     anchorPattern: "semantic",
   }));
 
+  const pillarContext = `This article belongs to the "${pillar.name}" content pillar. ${pillar.description || ""}`;
+
   const prompt = buildRoleSpecificPrompt(
     articlePlan.role,
     "authority",
@@ -171,7 +239,7 @@ export async function generateArticleContent(
     articlePlan.keywords,
     linkTargets,
     languageDirective,
-    "",
+    pillarContext,
     businessContext
   );
 
@@ -213,6 +281,88 @@ function calculatePublishSchedule(
   return dates;
 }
 
+async function getOrCreateAutomationPillars(site: Site): Promise<Pillar[]> {
+  const existingPillars = await storage.getPillarsBySiteId(site.id);
+  
+  const automationPillars = existingPillars.filter(
+    p => p.isAutomation && p.status !== "completed" && (p.generatedCount || 0) < (p.maxArticles || MAX_ARTICLES_PER_PILLAR)
+  );
+  
+  if (automationPillars.length > 0) {
+    console.log(`[Monthly Content] Found ${automationPillars.length} active automation pillars for site ${site.id}`);
+    return automationPillars;
+  }
+  
+  console.log(`[Monthly Content] No active automation pillars found, creating ${INITIAL_PILLAR_COUNT} new ones`);
+  
+  const pillarPlans = await generateInitialPillars(site);
+  const newPillars: Pillar[] = [];
+  
+  for (const plan of pillarPlans) {
+    const pillar = await storage.createPillar({
+      siteId: site.id,
+      name: plan.name,
+      description: plan.description,
+      status: "generating",
+      packType: "authority",
+      targetArticleCount: MAX_ARTICLES_PER_PILLAR,
+      targetLanguage: site.displayLanguage || "en",
+      defaultPostStatus: "draft",
+      isAutomation: true,
+      maxArticles: MAX_ARTICLES_PER_PILLAR,
+    });
+    newPillars.push(pillar);
+  }
+  
+  console.log(`[Monthly Content] Created ${newPillars.length} automation pillars for site ${site.id}`);
+  return newPillars;
+}
+
+async function checkAndRotatePillars(site: Site, pillars: Pillar[]): Promise<Pillar[]> {
+  const activePillars: Pillar[] = [];
+  let needsNewPillar = false;
+  
+  for (const pillar of pillars) {
+    const articleCount = pillar.generatedCount || 0;
+    const maxArticles = pillar.maxArticles || MAX_ARTICLES_PER_PILLAR;
+    
+    if (articleCount >= maxArticles) {
+      await storage.updatePillar(pillar.id, {
+        status: "completed",
+        completedAt: new Date(),
+      });
+      console.log(`[Monthly Content] Pillar "${pillar.name}" reached ${maxArticles} articles, marking as complete`);
+      needsNewPillar = true;
+    } else {
+      activePillars.push(pillar);
+    }
+  }
+  
+  if (needsNewPillar && activePillars.length < INITIAL_PILLAR_COUNT) {
+    console.log(`[Monthly Content] Creating replacement pillar(s) for completed ones`);
+    const newPillarPlans = await generateInitialPillars(site);
+    
+    for (let i = activePillars.length; i < INITIAL_PILLAR_COUNT && i < newPillarPlans.length; i++) {
+      const plan = newPillarPlans[i];
+      const pillar = await storage.createPillar({
+        siteId: site.id,
+        name: plan.name,
+        description: plan.description,
+        status: "generating",
+        packType: "authority",
+        targetArticleCount: MAX_ARTICLES_PER_PILLAR,
+        targetLanguage: site.displayLanguage || "en",
+        defaultPostStatus: "draft",
+        isAutomation: true,
+        maxArticles: MAX_ARTICLES_PER_PILLAR,
+      });
+      activePillars.push(pillar);
+    }
+  }
+  
+  return activePillars;
+}
+
 export async function generateMonthlyContentForSite(
   siteId: string,
   owner: User
@@ -240,29 +390,42 @@ export async function generateMonthlyContentForSite(
     const sitesCount = ownerSites.length;
     const postsPerSite = Math.floor(planLimits.postsPerMonth / sitesCount);
     
-    const articleCount = Math.max(4, Math.min(postsPerSite, 30));
-    const currentTopicIndex = site.currentTopicIndex || 0;
+    const totalArticleCount = Math.max(4, Math.min(postsPerSite, 40));
 
-    console.log(`[Monthly Content] Generating ${articleCount} articles for site ${siteId} (topic index: ${currentTopicIndex})`);
-
-    const plan = await generateMonthlyTopicPlan(site, articleCount, currentTopicIndex);
+    let pillars = await getOrCreateAutomationPillars(site);
     
-    if (!plan.articles || plan.articles.length === 0) {
-      return { success: false, articlesCreated: 0, error: "Failed to generate topic plan" };
+    pillars = await checkAndRotatePillars(site, pillars);
+    
+    if (pillars.length === 0) {
+      return { success: false, articlesCreated: 0, error: "No active pillars available" };
     }
 
+    const articlesPerPillar = Math.ceil(totalArticleCount / pillars.length);
+    
+    console.log(`[Monthly Content] Generating ${totalArticleCount} articles across ${pillars.length} pillars for site ${siteId}`);
+
+    const articlePlans = await generateArticlesForPillars(pillars, site, articlesPerPillar);
+    
+    if (!articlePlans || articlePlans.length === 0) {
+      return { success: false, articlesCreated: 0, error: "Failed to generate article plans" };
+    }
+
+    const limitedPlans = articlePlans.slice(0, totalArticleCount);
+    
     const defaultAuthor = await storage.getDefaultAuthor(siteId);
-    const publishDates = calculatePublishSchedule(plan.articles.length);
-    const articleTitles = plan.articles.map(a => a.title);
+    const publishDates = calculatePublishSchedule(limitedPlans.length);
+    const articleTitles = limitedPlans.map(a => a.title);
     
     let createdCount = 0;
+    const pillarCounts: Record<string, number> = {};
 
-    for (let i = 0; i < plan.articles.length; i++) {
-      const articlePlan = plan.articles[i];
+    for (let i = 0; i < limitedPlans.length; i++) {
+      const articlePlan = limitedPlans[i];
+      const pillar = pillars.find(p => p.id === articlePlan.pillarId) || pillars[0];
       const siblingTitles = articleTitles.filter((_, idx) => idx !== i);
       
       try {
-        const article = await generateArticleContent(articlePlan, site, siblingTitles);
+        const article = await generateArticleContent(articlePlan, site, pillar, siblingTitles);
         
         const imageUrl = await searchPexelsImage(
           articlePlan.keywords[0] || article.title,
@@ -284,10 +447,13 @@ export async function generateMonthlyContentForSite(
           status: "draft",
           isLocked: false,
           scheduledPublishDate: publishDates[i],
+          pillarId: pillar.id,
         });
 
         createdCount++;
-        console.log(`[Monthly Content] Created article ${i + 1}/${plan.articles.length}: "${article.title}"`);
+        pillarCounts[pillar.id] = (pillarCounts[pillar.id] || 0) + 1;
+        
+        console.log(`[Monthly Content] Created article ${i + 1}/${limitedPlans.length}: "${article.title}" (Pillar: ${pillar.name})`);
         
         await storage.updateUser(owner.id, {
           postsUsedThisMonth: (owner.postsUsedThisMonth || 0) + 1,
@@ -297,11 +463,16 @@ export async function generateMonthlyContentForSite(
       }
     }
 
-    await storage.updateSite(siteId, {
-      currentTopicIndex: currentTopicIndex + 1,
-    });
+    for (const [pillarId, count] of Object.entries(pillarCounts)) {
+      const pillar = pillars.find(p => p.id === pillarId);
+      if (pillar) {
+        await storage.updatePillar(pillarId, {
+          generatedCount: (pillar.generatedCount || 0) + count,
+        });
+      }
+    }
 
-    console.log(`[Monthly Content] Completed for site ${siteId}. Created ${createdCount}/${plan.articles.length} articles.`);
+    console.log(`[Monthly Content] Completed for site ${siteId}. Created ${createdCount}/${limitedPlans.length} articles across ${pillars.length} pillars.`);
 
     return {
       success: true,
