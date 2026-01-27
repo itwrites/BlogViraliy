@@ -242,8 +242,9 @@ export default function EditorPosts() {
   });
   
   // Check if site has business info but no posts yet (articles being generated)
-  // Wait until we have at least 4 articles before showing content (2 unlocked + 2 locked)
-  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && (!posts || posts.length < 4);
+  // Count only unlocked articles (real AI-generated articles, not placeholder locked posts)
+  const realArticleCount = posts?.filter(p => !p.isLocked)?.length || 0;
+  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && realArticleCount < 2;
   
   // Auto-refresh when articles are being generated
   useQuery<Post[]>({
@@ -1327,7 +1328,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           className="text-muted-foreground/70 max-w-sm mx-auto mb-8 text-center"
                           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
                         >
-                          We're generating {4 - (posts?.length || 0)} more personalized articles based on your business profile.
+                          We're generating personalized articles based on your business profile.
                         </p>
                         {/* macOS-style progress bar */}
                         <div className="w-64 h-1 bg-muted/50 rounded-full overflow-hidden">
@@ -1344,7 +1345,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           />
                         </div>
                         <p className="text-xs text-muted-foreground/50 mt-4">
-                          {posts?.length || 0} of 4 articles created
+                          {realArticleCount} of 2 articles created
                         </p>
                       </div>
                     </>

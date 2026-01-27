@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -88,79 +88,6 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     favicon: "",
     suggestedDomain: "",
   });
-  const [isGeneratingArticles, setIsGeneratingArticles] = useState(false);
-  const [articleCount, setArticleCount] = useState(0);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingStartTimeRef = useRef<number | null>(null);
-
-  const pollForArticles = useCallback(async () => {
-    const MAX_POLLING_TIME = 3 * 60 * 1000; // 3 minutes max (faster now with only 2 real articles)
-    const EXPECTED_ARTICLES = 2; // Only wait for 2 real articles (placeholder locked posts are instant)
-
-    try {
-      const response = await fetch(`/bv_api/editor/sites/${siteId}/posts`, {
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const posts = await response.json();
-        // Only count non-locked (real) articles, not placeholder locked posts
-        const realArticles = Array.isArray(posts) ? posts.filter((p: any) => !p.isLocked) : [];
-        const count = realArticles.length;
-        setArticleCount(count);
-        
-        if (count >= EXPECTED_ARTICLES) {
-          // All articles generated
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-          setIsGeneratingArticles(false);
-          queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
-          queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
-          toast({
-            title: "You're all set!",
-            description: `Your site is ready with ${count} starter articles.`,
-          });
-          onOpenChange(false);
-          if (onComplete) {
-            onComplete();
-          }
-          return;
-        }
-
-        // Check timeout
-        if (pollingStartTimeRef.current && Date.now() - pollingStartTimeRef.current > MAX_POLLING_TIME) {
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-          setIsGeneratingArticles(false);
-          queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
-          queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
-          toast({
-            title: "Setup complete",
-            description: `Your site is ready. ${count} articles were generated.`,
-          });
-          onOpenChange(false);
-          if (onComplete) {
-            onComplete();
-          }
-        }
-      }
-    } catch (error) {
-      console.error("[Onboarding] Error polling for articles:", error);
-    }
-  }, [siteId, toast, onOpenChange, onComplete]);
-
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, []);
 
   const scrapeMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -220,15 +147,16 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
       return response.json();
     },
     onSuccess: () => {
-      // Start polling for articles instead of immediately closing
-      setIsGeneratingArticles(true);
-      setArticleCount(0);
-      pollingStartTimeRef.current = Date.now();
-      
-      // Start polling every 3 seconds
-      pollingRef.current = setInterval(pollForArticles, 3000);
-      // Also poll immediately
-      pollForArticles();
+      // Close modal immediately and let the articles page show loading state
+      queryClient.invalidateQueries({ queryKey: [`/bv_api/editor/sites/${siteId}`] });
+      toast({
+        title: "Setup complete!",
+        description: "Your site is ready. We're generating your first articles in the background.",
+      });
+      onOpenChange(false);
+      if (onComplete) {
+        onComplete();
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -742,20 +670,15 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="pt-4 space-y-3">
+      <motion.div variants={itemVariants} className="pt-4">
         <Button 
           onClick={handleComplete} 
-          disabled={completeMutation.isPending || isGeneratingArticles}
+          disabled={completeMutation.isPending}
           size="lg"
           className="w-full h-14 rounded-xl text-base font-medium"
           data-testid="button-complete-onboarding"
         >
-          {isGeneratingArticles ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating articles... ({articleCount}/2)
-            </>
-          ) : completeMutation.isPending ? (
+          {completeMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Setting up...
@@ -767,11 +690,6 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             </>
           )}
         </Button>
-        {isGeneratingArticles && (
-          <p className="text-sm text-center text-muted-foreground">
-            This could take a few minutes. Please don't close this window.
-          </p>
-        )}
       </motion.div>
     </motion.div>
   );
@@ -824,7 +742,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         
         {/* Progress bar */}
         {method && currentStep > 0 && (
-          <div className="border-b border-border/50 bg-white p-4 shadow-sm">
+          <div className="border-b border-border/50 bg-white p-4 shadow-sm rounded-t-lg">
             <div className="flex items-center justify-between max-w-md mx-auto">
               {STEPS.slice(1).map((step, index) => {
                 const stepIndex = index + 1;
