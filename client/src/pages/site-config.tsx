@@ -1487,7 +1487,17 @@ export default function SiteConfig() {
           className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar backdrop-blur-xl border-r border-border z-40 flex flex-col"
         >
           {/* Sidebar Header */}
-          <div className="p-6 border-b border-border">
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2.5 mb-4">
+              <img 
+                src="/assets/blog-autopilot-mark.svg" 
+                alt="Blog Autopilot" 
+                className="w-7 h-7"
+              />
+              <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
+                Blog Autopilot
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -1507,7 +1517,6 @@ export default function SiteConfig() {
                 </p>
               </div>
             </div>
-
           </div>
 
           {/* Navigation */}

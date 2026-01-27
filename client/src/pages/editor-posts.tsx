@@ -681,7 +681,17 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           animate="animate"
           className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border shadow-[2px_0_16px_rgba(15,23,42,0.08)] z-40 flex flex-col"
         >
-          <div className="p-6 border-b border-border">
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2.5 mb-4">
+              <img 
+                src="/assets/blog-autopilot-mark.svg" 
+                alt="Blog Autopilot" 
+                className="w-7 h-7"
+              />
+              <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
+                Blog Autopilot
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">
