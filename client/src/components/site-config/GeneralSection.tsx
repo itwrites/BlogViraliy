@@ -134,6 +134,16 @@ export function GeneralSection({
                   Path prefix for reverse proxy deployments. If you're hosting the blog under a subdirectory
                   (e.g., yoursite.com/blog), enter the path prefix here (e.g., /blog). Leave empty for root deployment.
                 </p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Need help?{" "}
+                  <a
+                    href="/owner/wiki#reverse-proxy"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    See the reverse proxy guide
+                  </a>
+                  .
+                </p>
                 <Input
                   id="basePath"
                   data-testid="input-base-path"
@@ -180,11 +190,21 @@ export function GeneralSection({
 
               {siteData.deploymentMode === "reverse_proxy" && (
                 <div className="space-y-3 md:col-span-2">
-                  <Label htmlFor="proxyVisitorHostname" data-testid="label-proxy-visitor-hostname">Visitor Hostname</Label>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    The domain visitors use to access this site (e.g., vyfy.co.uk). When requests come through
-                    the shared deployment domain with X-BV-Visitor-Host header matching this value, this site will be served.
-                  </p>
+                <Label htmlFor="proxyVisitorHostname" data-testid="label-proxy-visitor-hostname">Visitor Hostname</Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  The domain visitors use to access this site (e.g., vyfy.co.uk). When requests come through
+                  the shared deployment domain with X-BV-Visitor-Host header matching this value, this site will be served.
+                </p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Need help with headers?{" "}
+                  <a
+                    href="/owner/wiki#reverse-proxy"
+                    className="text-primary underline underline-offset-2"
+                  >
+                    View the reverse proxy setup
+                  </a>
+                  .
+                </p>
                   <Input
                     id="proxyVisitorHostname"
                     data-testid="input-proxy-visitor-hostname"

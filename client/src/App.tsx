@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
 import AdminWiki from "@/pages/admin-wiki";
+import OwnerWiki from "@/pages/owner-wiki";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
 import EditorAnalytics from "@/pages/editor-analytics";
@@ -31,6 +32,7 @@ function AdminRouter() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/owner" component={OwnerDashboard} />
       <Route path="/owner/checkout-success" component={CheckoutSuccess} />
+      <Route path="/owner/wiki" component={OwnerWiki} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/sites/:id" component={EditorPosts} />

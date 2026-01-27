@@ -1521,6 +1521,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === OWNER WIKI ===
+
+  app.get("/api/owner/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (req.user?.role !== "owner") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const { ownerWikiData } = await import("@shared/owner-wiki");
+      res.json(ownerWikiData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to load documentation" });
+    }
+  });
+
   // === SITES CRUD ===
 
   app.get("/api/sites", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
