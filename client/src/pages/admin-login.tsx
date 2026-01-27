@@ -143,24 +143,12 @@ export default function AdminLogin() {
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/60 border border-border">
-                <svg 
-                  width="32" 
-                  height="32" 
-                  viewBox="0 0 48 48" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                  data-testid="img-brand-logo"
-                >
-                  <path 
-                    d="M24 4L44 40H4L24 4Z" 
-                    fill="#1f2937" 
-                    stroke="#1f2937" 
-                    strokeWidth="2"
-                    strokeLinejoin="miter"
-                  />
-                </svg>
-              </div>
+              <img 
+                src="/assets/blog-autopilot-mark.svg" 
+                alt="Blog Autopilot" 
+                className="w-16 h-16 mx-auto"
+                data-testid="img-brand-logo"
+              />
               <div>
                 <h1 
                   className="text-2xl font-semibold tracking-tight text-foreground"

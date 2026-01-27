@@ -159,11 +159,13 @@ export default function AdminDashboard() {
         >
           <div className="p-5 pt-6">
             <div className="flex items-center gap-3 px-2">
-              <div className="w-10 h-10 rounded-xl bg-muted/60 border border-border flex items-center justify-center">
-                <LayoutGrid className="w-5 h-5 text-foreground" />
-              </div>
+              <img 
+                src="/assets/blog-autopilot-mark.svg" 
+                alt="Blog Autopilot" 
+                className="w-9 h-9"
+              />
               <div className="flex-1 min-w-0">
-                <h1 className="text-[15px] font-bold tracking-tight text-foreground truncate" data-testid="text-app-title">
+                <h1 className="text-[17px] font-semibold tracking-[-0.01em] text-foreground truncate" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }} data-testid="text-app-title">
                   Blog Autopilot
                 </h1>
                 <p className="text-[11px] text-muted-foreground/70">Multi-tenant CMS</p>
