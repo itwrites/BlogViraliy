@@ -1525,7 +1525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/owner/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      if (req.user?.role !== "owner") {
+      if (req.user?.role !== "owner" && req.user?.role !== "admin") {
         return res.status(403).json({ error: "Access denied" });
       }
       const { ownerWikiData } = await import("@shared/owner-wiki");

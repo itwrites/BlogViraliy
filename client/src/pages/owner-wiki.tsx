@@ -252,16 +252,14 @@ export default function OwnerWikiPage() {
   const [activeSection, setActiveSection] = useState("overview");
 
   useEffect(() => {
-    if (!authLoading && isAdmin) {
-      setLocation("/admin/wiki");
-    } else if (!authLoading && !isOwner) {
+    if (!authLoading && !isOwner && !isAdmin) {
       setLocation("/admin");
     }
   }, [authLoading, isAdmin, isOwner, setLocation]);
 
   const { data: wiki, isLoading } = useQuery<WikiData>({
     queryKey: ["/api/owner/wiki"],
-    enabled: !authLoading && isOwner,
+    enabled: !authLoading && (isOwner || isAdmin),
   });
 
   useEffect(() => {
