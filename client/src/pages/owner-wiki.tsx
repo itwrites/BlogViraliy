@@ -257,7 +257,7 @@ export default function OwnerWikiPage() {
     }
   }, [authLoading, isAdmin, isOwner, setLocation]);
 
-  const { data: wiki, isLoading } = useQuery<WikiData>({
+  const { data: wiki, isLoading, error } = useQuery<WikiData>({
     queryKey: ["/api/owner/wiki"],
     enabled: !authLoading && (isOwner || isAdmin),
   });
@@ -302,6 +302,20 @@ export default function OwnerWikiPage() {
         <div className="flex items-center gap-3 text-muted-foreground/80">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <span>Loading documentation...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full bg-background">
+        <div className="text-center max-w-md">
+          <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <div className="text-foreground font-medium mb-1">Documentation unavailable</div>
+          <div className="text-sm text-muted-foreground/80">
+            {error instanceof Error ? error.message : "Please try again in a moment."}
+          </div>
         </div>
       </div>
     );
