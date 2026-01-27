@@ -23,6 +23,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import type { WikiData, WikiSection } from "@shared/owner-wiki";
+import { ownerWikiData } from "@shared/owner-wiki";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 
@@ -260,6 +261,22 @@ export default function OwnerWikiPage() {
   const { data: wiki, isLoading, error } = useQuery<WikiData>({
     queryKey: ["/api/owner/wiki"],
     enabled: !authLoading && (isOwner || isAdmin),
+    queryFn: async () => {
+      const res = await fetch("/bv_api/owner/wiki", { credentials: "include" });
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
+
+      if (!contentType.includes("application/json")) {
+        console.warn("[Owner Wiki] Non-JSON response, falling back to local data.");
+        return ownerWikiData;
+      }
+
+      return (await res.json()) as WikiData;
+    },
   });
 
   useEffect(() => {
