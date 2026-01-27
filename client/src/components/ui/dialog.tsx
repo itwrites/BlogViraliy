@@ -16,12 +16,13 @@ const DialogClose = DialogPrimitive.Close
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & { useCustomBg?: boolean }
+>(({ className, useCustomBg, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      useCustomBg ? "" : "bg-black/80",
       className
     )}
     {...props}
@@ -39,7 +40,7 @@ const DialogContent = React.forwardRef<
   DialogContentProps
 >(({ className, children, overlayClassName, overlayChildren, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay className={overlayClassName} />
+    <DialogOverlay className={overlayClassName} useCustomBg={!!overlayClassName} />
     {overlayChildren && (
       <div className="fixed inset-0 z-50 pointer-events-none">
         {overlayChildren}
