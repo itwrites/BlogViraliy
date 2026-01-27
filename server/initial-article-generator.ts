@@ -279,16 +279,24 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
       }
     }
 
-    // If we already have 4+ onboarding articles, just mark as complete and skip
-    const TARGET_ARTICLES = 4;
-    if (existingOnboardingPosts.length >= TARGET_ARTICLES) {
-      console.log(`[Initial Articles] Site ${siteId} already has ${existingOnboardingPosts.length} onboarding articles, marking as complete`);
+    // Generate 2 real articles + 2 placeholder locked posts
+    const TARGET_REAL_ARTICLES = 2;
+    const TARGET_PLACEHOLDER_ARTICLES = 2;
+    
+    // Separate existing real articles from locked placeholders
+    const existingRealArticles = existingOnboardingPosts.filter(p => !p.isLocked);
+    const existingLockedPlaceholders = existingOnboardingPosts.filter(p => p.isLocked);
+    
+    // Check if we already have all articles
+    if (existingRealArticles.length >= TARGET_REAL_ARTICLES && existingLockedPlaceholders.length >= TARGET_PLACEHOLDER_ARTICLES) {
+      console.log(`[Initial Articles] Site ${siteId} already has ${existingRealArticles.length} real + ${existingLockedPlaceholders.length} locked articles, marking as complete`);
       await storage.updateSite(siteId, { initialArticlesGenerated: true });
       return { success: true, articlesCreated: 0 };
     }
 
-    const articlesToCreate = TARGET_ARTICLES - existingOnboardingPosts.length;
-    console.log(`[Initial Articles] Need to create ${articlesToCreate} more articles (have ${existingOnboardingPosts.length}/${TARGET_ARTICLES})`);
+    const realArticlesToCreate = Math.max(0, TARGET_REAL_ARTICLES - existingRealArticles.length);
+    const placeholdersToCreate = Math.max(0, TARGET_PLACEHOLDER_ARTICLES - existingLockedPlaceholders.length);
+    console.log(`[Initial Articles] Need to create ${realArticlesToCreate} real articles + ${placeholdersToCreate} placeholder locked posts`);
 
     const plan = await generateInitialArticlePlan(site);
     
@@ -301,13 +309,13 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     const articleTitles = plan.articles.map(a => a.title);
     
     // Calculate scheduled publish dates for new articles (spread over 2 weeks for initial content)
-    const publishDates = calculatePublishSchedule(articlesToCreate, new Date());
+    const publishDates = calculatePublishSchedule(realArticlesToCreate, new Date());
 
     const pillarCounts: Record<string, number> = {};
     
     // Skip articles we already have (by checking titles)
     let articlesCreatedCount = 0;
-    for (let i = 0; i < plan.articles.length && articlesCreatedCount < articlesToCreate; i++) {
+    for (let i = 0; i < plan.articles.length && articlesCreatedCount < realArticlesToCreate; i++) {
       const articlePlan = plan.articles[i];
       
       // Skip if we already have an article with a similar title
@@ -332,11 +340,8 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           [article.tags[0], article.title].filter(Boolean)
         );
 
-        // Calculate lock status based on total articles (existing + new)
-        const totalArticleIndex = existingOnboardingPosts.length + articlesCreatedCount;
-        const isLocked = totalArticleIndex >= 2;
-        
-        const pillarIndex = createdPillars.length > 0 ? totalArticleIndex % createdPillars.length : -1;
+        // Real articles are never locked - they're the unlocked ones
+        const pillarIndex = createdPillars.length > 0 ? articlesCreatedCount % createdPillars.length : -1;
         const pillarId = pillarIndex >= 0 ? createdPillars[pillarIndex].id : undefined;
         
         const post = await storage.createPost({
@@ -352,21 +357,56 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           metaDescription: article.metaDescription,
           articleRole: articlePlan.isPillar ? "pillar" : "support",
           status: "draft",
-          isLocked,
+          isLocked: false, // Real articles are always unlocked
           pillarId,
           scheduledPublishDate: publishDates[articlesCreatedCount],
         });
 
         createdPosts.push(post.id);
-        existingTitles.add(article.title.toLowerCase()); // Add to set to prevent duplicates in this run
+        existingTitles.add(article.title.toLowerCase());
         articlesCreatedCount++;
         
         if (pillarId) {
           pillarCounts[pillarId] = (pillarCounts[pillarId] || 0) + 1;
         }
-        console.log(`[Initial Articles] Created article ${existingOnboardingPosts.length + articlesCreatedCount}/${TARGET_ARTICLES}: "${article.title}" (locked: ${isLocked}, pillar: ${pillarIndex >= 0 ? createdPillars[pillarIndex].name : 'none'})`);
+        console.log(`[Initial Articles] Created real article ${articlesCreatedCount}/${TARGET_REAL_ARTICLES}: "${article.title}"`);
       } catch (articleError) {
         console.error(`[Initial Articles] Failed to generate article ${i + 1}:`, articleError);
+      }
+    }
+
+    // Create placeholder locked posts (quick, no AI generation needed)
+    const placeholderTitles = [
+      "Premium: Advanced Strategies for Your Business",
+      "Premium: Expert Tips You Need to Know",
+    ];
+    const placeholderContent = `<p>This premium article is available to subscribers.</p><p>Upgrade your plan to unlock exclusive content, advanced strategies, and expert insights tailored to your business needs.</p>`;
+    
+    for (let i = 0; i < placeholdersToCreate; i++) {
+      const placeholderIndex = existingLockedPlaceholders.length + i;
+      const title = placeholderTitles[placeholderIndex] || `Premium Article ${placeholderIndex + 1}`;
+      const slug = slugify(title + "-" + siteId.slice(0, 8) + "-" + placeholderIndex);
+      
+      try {
+        const post = await storage.createPost({
+          siteId,
+          authorId: defaultAuthor?.id || null,
+          title,
+          slug,
+          content: placeholderContent,
+          tags: ["premium"],
+          source: "onboarding",
+          metaTitle: title,
+          metaDescription: "Subscribe to unlock this premium content.",
+          articleRole: "support",
+          status: "draft",
+          isLocked: true,
+          // No scheduled publish date - won't show in calendar
+        });
+        createdPosts.push(post.id);
+        console.log(`[Initial Articles] Created placeholder locked post: "${title}"`);
+      } catch (placeholderError) {
+        console.error(`[Initial Articles] Failed to create placeholder post:`, placeholderError);
       }
     }
 

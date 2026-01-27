@@ -94,8 +94,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
   const pollingStartTimeRef = useRef<number | null>(null);
 
   const pollForArticles = useCallback(async () => {
-    const MAX_POLLING_TIME = 5 * 60 * 1000; // 5 minutes max
-    const EXPECTED_ARTICLES = 4;
+    const MAX_POLLING_TIME = 3 * 60 * 1000; // 3 minutes max (faster now with only 2 real articles)
+    const EXPECTED_ARTICLES = 2; // Only wait for 2 real articles (placeholder locked posts are instant)
 
     try {
       const response = await fetch(`/bv_api/editor/sites/${siteId}/posts`, {
@@ -103,7 +103,9 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
       });
       if (response.ok) {
         const posts = await response.json();
-        const count = Array.isArray(posts) ? posts.length : 0;
+        // Only count non-locked (real) articles, not placeholder locked posts
+        const realArticles = Array.isArray(posts) ? posts.filter((p: any) => !p.isLocked) : [];
+        const count = realArticles.length;
         setArticleCount(count);
         
         if (count >= EXPECTED_ARTICLES) {
@@ -751,7 +753,7 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
           {isGeneratingArticles ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating articles... ({articleCount}/4)
+              Generating articles... ({articleCount}/2)
             </>
           ) : completeMutation.isPending ? (
             <>
