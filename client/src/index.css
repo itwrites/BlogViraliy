@@ -15,60 +15,61 @@
   --elevate-2: rgba(0,0,0, .08);
 
   /* Calm macOS-inspired Light Palette */
-  /* Background: #F4F5F7 */
-  --background: 220 16% 96%;
+  /* Background: #F3F5F8 */
+  --background: 216 26% 96%;
   
-  /* Foreground: #1B1F2A */
-  --foreground: 224 22% 14%;
+  /* Foreground: #111827 */
+  --foreground: 221 39% 11%;
 
   /* Soft borders */
-  --border: 225 19% 92%;
+  /* rgba(0,0,0,0.06) ~= #F0F0F0 */
+  --border: 0 0% 94%;
 
   /* Cards: Pure white with gentle separation */
   --card: 0 0% 100%;
-  --card-foreground: 224 22% 14%;
-  --card-border: 222 21% 88%;
+  --card-foreground: 221 39% 11%;
+  --card-border: 0 0% 94%;
 
   /* Sidebar: Clear separation from canvas */
-  --sidebar: 220 18% 90%;
-  --sidebar-foreground: 224 22% 14%;
-  --sidebar-border: 220 12% 84%;
-  --sidebar-primary: 224 22% 14%;
+  --sidebar: 218 27% 94%;
+  --sidebar-foreground: 221 39% 11%;
+  --sidebar-border: 0 0% 94%;
+  --sidebar-primary: 221 39% 11%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 16% 96%;
-  --sidebar-accent-foreground: 224 22% 14%;
-  --sidebar-ring: 232 96% 58%;
+  --sidebar-accent: 216 26% 96%;
+  --sidebar-accent-foreground: 221 39% 11%;
+  --sidebar-ring: 227 100% 59%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 224 22% 14%;
-  --popover-border: 225 19% 92%;
+  --popover-foreground: 221 39% 11%;
+  --popover-border: 0 0% 94%;
 
-  /* Confident violet-blue: #2D49FB */
-  --primary: 232 96% 58%;
+  /* Primary: #2F5BFF */
+  --primary: 227 100% 59%;
   --primary-foreground: 0 0% 100%;
-  --primary-hover: 232 96% 54%;
-  --primary-active: 232 96% 48%;
-  --primary-disabled: 220 16% 86%;
-  --primary-disabled-foreground: 224 12% 38%;
-  --primary-disabled-border: 220 14% 80%;
+  --primary-hover: 229 80% 52%;
+  --primary-active: 230 74% 46%;
+  --primary-disabled: 228 100% 89%;
+  --primary-disabled-foreground: 220 9% 46%;
+  --primary-disabled-border: 228 60% 84%;
 
-  --secondary: 220 16% 96%;
-  --secondary-foreground: 224 22% 14%;
+  --secondary: 216 26% 96%;
+  --secondary-foreground: 221 39% 11%;
 
-  --muted: 220 16% 96%;
+  --muted: 216 26% 96%;
   --muted-foreground: 220 9% 46%;
 
-  --accent: 220 16% 96%;
-  --accent-foreground: 224 22% 14%;
+  --accent: 216 26% 96%;
+  --accent-foreground: 221 39% 11%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
 
-  --input: 225 19% 92%;
-  --ring: 232 96% 58%; /* Match primary */
-  --card-border-color: rgba(0, 0, 0, 0.04);
-  --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  --card-shadow-hover: 0 8px 22px rgba(0, 0, 0, 0.12);
+  --input: 0 0% 94%;
+  --ring: 227 100% 59%; /* Match primary */
+  --card-border-color: rgba(0, 0, 0, 0.06);
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.12);
   
   --chart-1: 12 76% 61%;
   --chart-2: 173 58% 39%;
@@ -158,21 +159,21 @@
   --sidebar: 0 0% 10%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 0 0% 20%;
-  --sidebar-primary: 232 96% 58%;
+  --sidebar-primary: 227 100% 59%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 20%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 232 96% 58%;
+  --sidebar-ring: 227 100% 59%;
 
   --popover: 0 0% 14%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 0 0% 20%;
 
-  --primary: 232 96% 58%;
+  --primary: 227 100% 59%;
   --primary-foreground: 0 0% 100%;
-  --primary-hover: 232 96% 50%;
-  --primary-active: 232 96% 44%;
-  --primary-disabled: 220 10% 28%;
+  --primary-hover: 229 80% 52%;
+  --primary-active: 230 74% 46%;
+  --primary-disabled: 228 100% 89%;
   --primary-disabled-foreground: 0 0% 80%;
   --primary-disabled-border: 220 10% 35%;
 
@@ -189,7 +190,7 @@
   --destructive-foreground: 0 0% 98%;
 
   --input: 0 0% 14.9%;
-  --ring: 232 96% 58%;
+  --ring: 227 100% 59%;
   --card-border-color: rgba(255, 255, 255, 0.08);
   --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   --card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.55);

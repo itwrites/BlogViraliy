@@ -1326,7 +1326,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           </motion.div>
                         </div>
                       </div>
-                      <h3 className="text-2xl font-bold mb-3 text-foreground">
+                      <h3 className="text-xl font-semibold mb-3 text-foreground">
                         Creating Your First Articles
                       </h3>
                       <p className="text-muted-foreground/80 max-w-md mx-auto mb-4">
@@ -1462,7 +1462,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground">Content Calendar</h2>
+                    <h2 className="text-[22px] font-semibold text-foreground">Content Calendar</h2>
                     <p className="text-muted-foreground/80 text-sm mt-1">View and manage your scheduled articles</p>
                   </div>
                 </div>

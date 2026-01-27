@@ -343,7 +343,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
     <div className="space-y-10">
       <div className="flex items-start justify-between gap-5 flex-wrap">
         <div>
-          <h2 className="text-3xl font-semibold text-foreground">Authority Workspace</h2>
+          <h2 className="text-[22px] font-semibold text-foreground">Authority Workspace</h2>
           <p className="text-[13px] text-muted-foreground/80">Autonomous authority growth system</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
