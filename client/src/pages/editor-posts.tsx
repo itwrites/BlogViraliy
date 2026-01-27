@@ -1029,6 +1029,109 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 </motion.div>
               ) : hasPostsToShow ? (
                 <div className="space-y-8">
+                  {/* Locked Articles Section - Now at TOP */}
+                  {lockedPosts.length > 0 && (
+                    <div className="relative">
+                      {/* Locked Articles List (faded) */}
+                      <div className={`${viewMode === "grid" 
+                        ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" 
+                        : "space-y-3"
+                      } opacity-40 blur-[1px]`}>
+                        {lockedPosts.map((post) => (
+                          <div
+                            key={post.id}
+                            data-testid={`card-post-locked-${post.id}`}
+                          >
+                            {viewMode === "grid" ? (
+                              <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
+                                {post.imageUrl ? (
+                                  <div className="aspect-video relative overflow-hidden">
+                                    <img
+                                      src={post.imageUrl}
+                                      alt={post.title}
+                                      className="w-full h-full object-cover grayscale"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                  </div>
+                                ) : (
+                                  <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                                    <Image className="w-12 h-12 text-gray-300" />
+                                  </div>
+                                )}
+                                <div className="p-4">
+                                  <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
+                                    {post.title}
+                                  </h3>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {getStatusBadge(post.status)}
+                                    <span className="text-xs text-gray-400">
+                                      {getRelativeTime(post.createdAt)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
+                                <div className="p-4">
+                                  <div className="flex items-start gap-4">
+                                    {post.imageUrl && (
+                                      <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
+                                        <img
+                                          src={post.imageUrl}
+                                          alt=""
+                                          className="w-full h-full object-cover grayscale"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-semibold text-gray-900 line-clamp-1">
+                                        {post.title}
+                                      </h3>
+                                      <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                                        {stripMarkdown(post.content).substring(0, 120)}
+                                      </p>
+                                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                        {getStatusBadge(post.status)}
+                                        <span className="text-xs text-gray-400">
+                                          {getRelativeTime(post.createdAt)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Centered Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div 
+                          className="flex flex-col items-center gap-4 pointer-events-auto cursor-pointer"
+                          onClick={() => showPaywall("locked articles")}
+                          data-testid="banner-upgrade-unlock"
+                        >
+                          <div className="w-20 h-20 rounded-2xl bg-amber-100 flex items-center justify-center">
+                            <Lock className="w-10 h-10 text-amber-600" />
+                          </div>
+                          <p className="text-gray-600 font-medium text-center">
+                            Subscribe to unlock further articles
+                          </p>
+                          <Button
+                            className="bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-full px-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              showPaywall("locked articles");
+                            }}
+                          >
+                            Subscribe now! <ExternalLink className="w-4 h-4 ml-2" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Unlocked Articles */}
                   {unlockedPosts.length > 0 && (
                     <motion.div
@@ -1200,118 +1303,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     ))}
                   </AnimatePresence>
                 </motion.div>
-                )}
-
-                {/* Locked Articles Section */}
-                {lockedPosts.length > 0 && (
-                  <div className="space-y-4">
-                    {/* Upgrade Banner */}
-                    <div 
-                      className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-6 cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => showPaywall("locked articles")}
-                      data-testid="banner-upgrade-unlock"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
-                      <div className="relative flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-                            <Lock className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-white">
-                              {lockedPosts.length} Locked Article{lockedPosts.length !== 1 ? 's' : ''}
-                            </h3>
-                            <p className="text-sm text-gray-300">
-                              Upgrade to unlock all articles and create unlimited content
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          className="bg-white text-gray-900 font-medium"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            showPaywall("locked articles");
-                          }}
-                        >
-                          Upgrade Now
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Locked Articles Preview */}
-                    <div className={viewMode === "grid" 
-                      ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-60" 
-                      : "space-y-3 opacity-60"
-                    }>
-                      {lockedPosts.map((post) => (
-                        <div
-                          key={post.id}
-                          data-testid={`card-post-locked-${post.id}`}
-                          className="relative"
-                        >
-                          {viewMode === "grid" ? (
-                            <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
-                              {post.imageUrl ? (
-                                <div className="aspect-video relative overflow-hidden">
-                                  <img
-                                    src={post.imageUrl}
-                                    alt={post.title}
-                                    className="w-full h-full object-cover grayscale"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                </div>
-                              ) : (
-                                <div className="aspect-video relative bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                                  <Image className="w-12 h-12 text-gray-300" />
-                                </div>
-                              )}
-                              <div className="p-4">
-                                <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
-                                  {post.title}
-                                </h3>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  {getStatusBadge(post.status)}
-                                  <span className="text-xs text-gray-400">
-                                    {getRelativeTime(post.createdAt)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="relative rounded-xl overflow-hidden bg-white border border-gray-200/60">
-                              <div className="p-4">
-                                <div className="flex items-start gap-4">
-                                  {post.imageUrl && (
-                                    <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0">
-                                      <img
-                                        src={post.imageUrl}
-                                        alt=""
-                                        className="w-full h-full object-cover grayscale"
-                                      />
-                                    </div>
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 line-clamp-1">
-                                      {post.title}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 line-clamp-1 mt-1">
-                                      {stripMarkdown(post.content).substring(0, 120)}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                      {getStatusBadge(post.status)}
-                                      <span className="text-xs text-gray-400">
-                                        {getRelativeTime(post.createdAt)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 )}
               </div>
               ) : (
