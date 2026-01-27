@@ -226,10 +226,29 @@ export default function EditorPosts() {
     enabled: !!siteId,
   });
 
-  const { data: posts, isLoading } = useQuery<Post[]>({
+  const { data: posts, isLoading: isLoadingPosts } = useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts"],
     enabled: !!siteId,
   });
+  
+  // Check if site has business info but no posts yet (articles being generated)
+  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !isLoadingPosts && (!posts || posts.length === 0);
+  
+  // Auto-refresh when articles are being generated
+  useQuery<Post[]>({
+    queryKey: ["/api/editor/sites", siteId, "posts", "refresh"],
+    queryFn: async () => {
+      const res = await fetch(`/bv_api/editor/sites/${siteId}/posts`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch posts");
+      const data = await res.json();
+      queryClient.setQueryData(["/api/editor/sites", siteId, "posts"], data);
+      return data;
+    },
+    enabled: !!siteId && !!isGeneratingInitialArticles,
+    refetchInterval: isGeneratingInitialArticles ? 5000 : false,
+  });
+  
+  const isLoading = isLoadingPosts;
 
   const { data: authors } = useQuery<SiteAuthor[]>({
     queryKey: ["/api/sites", siteId, "authors"],
@@ -1240,33 +1259,61 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="text-center py-20"
                 >
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-6">
-                    {searchQuery || sourceFilter !== "all" ? (
-                      <Search className="w-10 h-10 text-gray-400" />
-                    ) : (
-                      <Sparkles className="w-10 h-10 text-gray-400" />
-                    )}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                    {searchQuery || sourceFilter !== "all" ? "No articles found" : "No articles yet"}
-                  </h3>
-                  <p className="text-gray-500 max-w-md mx-auto mb-6">
-                    {searchQuery
-                      ? "Try adjusting your search terms or filters"
-                      : sourceFilter !== "all"
-                      ? `No ${sourceFilter === "ai" ? "AI generated" : sourceFilter === "rss" ? "RSS imported" : "manual"} articles found`
-                      : "Create your first article to get started with your content"}
-                  </p>
-                  {!searchQuery && sourceFilter === "all" && (
-                    <Button 
-                      onClick={() => openEditor()} 
-                      size="lg"
-                      className="gap-2"
-                      data-testid="button-create-first"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Create Your First Article
-                    </Button>
+                  {isGeneratingInitialArticles ? (
+                    <>
+                      <div className="relative w-24 h-24 mx-auto mb-6">
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 opacity-20 blur-xl animate-pulse" />
+                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 border border-gray-200 flex items-center justify-center">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Sparkles className="w-12 h-12 text-purple-600" />
+                          </motion.div>
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3 text-gray-900">
+                        Creating Your First Articles
+                      </h3>
+                      <p className="text-gray-500 max-w-md mx-auto mb-4">
+                        We're generating personalized content based on your business profile. This usually takes about a minute.
+                      </p>
+                      <div className="flex items-center justify-center gap-2 text-sm text-purple-600">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Generating 4 starter articles...</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-6">
+                        {searchQuery || sourceFilter !== "all" ? (
+                          <Search className="w-10 h-10 text-gray-400" />
+                        ) : (
+                          <Sparkles className="w-10 h-10 text-gray-400" />
+                        )}
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                        {searchQuery || sourceFilter !== "all" ? "No articles found" : "No articles yet"}
+                      </h3>
+                      <p className="text-gray-500 max-w-md mx-auto mb-6">
+                        {searchQuery
+                          ? "Try adjusting your search terms or filters"
+                          : sourceFilter !== "all"
+                          ? `No ${sourceFilter === "ai" ? "AI generated" : sourceFilter === "rss" ? "RSS imported" : "manual"} articles found`
+                          : "Create your first article to get started with your content"}
+                      </p>
+                      {!searchQuery && sourceFilter === "all" && (
+                        <Button 
+                          onClick={() => openEditor()} 
+                          size="lg"
+                          className="gap-2"
+                          data-testid="button-create-first"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Create Your First Article
+                        </Button>
+                      )}
+                    </>
                   )}
                 </motion.div>
               )}
