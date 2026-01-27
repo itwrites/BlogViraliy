@@ -686,12 +686,20 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-7 h-7"
+                className="w-8 h-8"
               />
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
             </div>
+            <button
+              onClick={() => setLocation("/admin/dashboard")}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+              data-testid="button-back-to-sites"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Sites</span>
+            </button>
             <div className="flex items-center gap-3">
               <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">

@@ -1492,22 +1492,21 @@ export default function SiteConfig() {
               <img 
                 src="/assets/blog-autopilot-mark.svg" 
                 alt="Blog Autopilot" 
-                className="w-7 h-7"
+                className="w-8 h-8"
               />
               <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground" style={{ fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial' }}>
                 Blog Autopilot
               </span>
             </div>
+            <button
+              onClick={() => setLocation("/admin/dashboard")}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+              data-testid="button-back-to-sites"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Sites</span>
+            </button>
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation("/admin/dashboard")}
-                className="rounded-xl bg-muted border border-border text-muted-foreground/80 hover:text-foreground hover:bg-muted/60"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
               <div className="flex-1 min-w-0">
                 <h1 className="font-semibold truncate text-sm tracking-tight text-foreground" data-testid="text-page-title">
                   {isNewSite ? "New Site" : site?.title || "Site Config"}
