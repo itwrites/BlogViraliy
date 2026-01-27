@@ -1562,17 +1562,39 @@ export default function SiteConfig() {
               <Save className="h-4 w-4" />
               Save Changes
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setLocation("/admin")}
-              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Sites
-            </Button>
+            {!isNewSite && (
+              <Button
+                variant="ghost"
+                onClick={() => setLocation(`/admin/sites/${id}/posts`)}
+                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Articles
+              </Button>
+            )}
+            {isNewSite && (
+              <Button
+                variant="ghost"
+                onClick={() => setLocation("/admin")}
+                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Sites
+              </Button>
+            )}
             {!isNewSite && (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
+                {site?.favicon ? (
+                  <img src={site.favicon} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-primary">
+                      {site?.title?.charAt(0).toUpperCase() || "?"}
+                    </span>
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
                     {site?.title || "Loading..."}
