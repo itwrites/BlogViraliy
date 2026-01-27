@@ -81,7 +81,7 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] p-0 gap-0 overflow-hidden bg-white/95 backdrop-blur-2xl border-gray-200/60">
+      <DialogContent className="sm:max-w-[900px] p-0 gap-0 overflow-hidden bg-white/95 backdrop-blur-2xl border border-border text-foreground">
         <VisuallyHidden>
           <DialogTitle>Choose Your Plan</DialogTitle>
         </VisuallyHidden>
@@ -92,10 +92,10 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200/60 mb-2">
               <Lock className="w-7 h-7 text-amber-600" />
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-gray-900">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               Unlock {feature}
             </h2>
-            <p className="text-gray-500 max-w-md mx-auto">
+            <p className="text-muted-foreground/80 max-w-md mx-auto">
               Subscribe to Blog Autopilot to start creating content, generating articles, and growing your audience.
             </p>
           </div>
@@ -111,7 +111,7 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
                 className={`relative rounded-2xl border p-5 flex flex-col ${
                   plan.id === "growth" 
                     ? "border-purple-200 bg-purple-50/50 ring-2 ring-purple-500/20" 
-                    : "border-gray-200 bg-white"
+                    : "border-border bg-white"
                 }`}
               >
                 {plan.id === "growth" && (
@@ -130,8 +130,8 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
                     {PLAN_ICONS[plan.id]}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{plan.name}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-semibold text-foreground">{plan.name}</h3>
+                    <p className="text-sm text-muted-foreground/80">
                       {plan.maxSites === 1 ? "1 website" : `Up to ${plan.maxSites} websites`}
                     </p>
                   </div>
@@ -139,25 +139,25 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
 
                 {/* Price */}
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900">${Math.round(plan.price / 100)}</span>
-                  <span className="text-gray-500 text-sm">/month</span>
+                  <span className="text-3xl font-bold text-foreground">${Math.round(plan.price / 100)}</span>
+                  <span className="text-muted-foreground/80 text-sm">/month</span>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-2 flex-1 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
                     <Check className="w-4 h-4 text-green-500 shrink-0" />
                     <span>{plan.maxSites} {plan.maxSites === 1 ? "website" : "websites"}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
                     <Check className="w-4 h-4 text-green-500 shrink-0" />
                     <span>{plan.postsPerMonth} posts/month</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
                     <Check className="w-4 h-4 text-green-500 shrink-0" />
                     <span>AI content generation</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
                     <Check className="w-4 h-4 text-green-500 shrink-0" />
                     <span>RSS automation</span>
                   </div>
@@ -189,7 +189,7 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
           </div>
 
           {/* Footer */}
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-muted-foreground/60">
             Cancel anytime. All plans include a 7-day money-back guarantee.
           </p>
         </div>

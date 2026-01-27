@@ -70,17 +70,17 @@ export default function CheckoutSuccess() {
 
   if (authLoading || subscriptionLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading your subscription...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
+          <p className="text-muted-foreground/80">Loading your subscription...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-green-400/10 via-blue-400/5 to-transparent rounded-full blur-3xl"
@@ -113,7 +113,7 @@ export default function CheckoutSuccess() {
           animate="visible"
           className="w-full max-w-lg"
         >
-          <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 shadow-xl overflow-hidden">
+          <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
             <div className="p-8 text-center">
               <motion.div 
                 variants={itemVariants}
@@ -124,14 +124,14 @@ export default function CheckoutSuccess() {
 
               <motion.h1 
                 variants={itemVariants}
-                className="text-3xl font-bold tracking-tight text-gray-900 mb-3"
+                className="text-3xl font-bold tracking-tight text-foreground mb-3"
               >
                 Welcome to Blog Autopilot!
               </motion.h1>
 
               <motion.p 
                 variants={itemVariants}
-                className="text-gray-600 mb-8"
+                className="text-muted-foreground/80 mb-8"
               >
                 Your subscription is now active. You're ready to start creating amazing content.
               </motion.p>
@@ -139,11 +139,11 @@ export default function CheckoutSuccess() {
               {planDetails && (
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl p-6 mb-8 border border-gray-200/60"
+                  className="bg-gradient-to-br from-muted/40 to-muted/10 rounded-2xl p-6 mb-8 border border-border"
                 >
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <Zap className="w-5 h-5 text-blue-600" />
-                    <span className="text-lg font-semibold text-gray-900">
+                    <Zap className="w-5 h-5 text-primary" />
+                    <span className="text-lg font-semibold text-foreground">
                       {planDetails.name} Plan
                     </span>
                   </div>
@@ -151,28 +151,28 @@ export default function CheckoutSuccess() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <FileText className="w-4 h-4 text-gray-400" />
+                        <FileText className="w-4 h-4 text-muted-foreground/70" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">{planDetails.postsPerMonth}</p>
-                      <p className="text-[11px] text-gray-500 uppercase font-medium">Articles/mo</p>
+                      <p className="text-2xl font-bold text-foreground">{planDetails.postsPerMonth}</p>
+                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Articles/mo</p>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <Globe className="w-4 h-4 text-gray-400" />
+                        <Globe className="w-4 h-4 text-muted-foreground/70" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {planDetails.maxSites === -1 ? '∞' : planDetails.maxSites}
                       </p>
-                      <p className="text-[11px] text-gray-500 uppercase font-medium">Sites</p>
+                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Sites</p>
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <span className="text-gray-400 font-medium">$</span>
+                        <span className="text-muted-foreground/70 font-medium">$</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {(planDetails.price / 100).toFixed(0)}
                       </p>
-                      <p className="text-[11px] text-gray-500 uppercase font-medium">Per Month</p>
+                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Per Month</p>
                     </div>
                   </div>
                 </motion.div>
@@ -193,7 +193,7 @@ export default function CheckoutSuccess() {
 
           <motion.p 
             variants={itemVariants}
-            className="text-center text-[13px] text-gray-500 mt-6"
+            className="text-center text-[13px] text-muted-foreground/80 mt-6"
           >
             A confirmation email has been sent to your inbox.
           </motion.p>

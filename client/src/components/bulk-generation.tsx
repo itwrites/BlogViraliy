@@ -162,7 +162,7 @@ export function BulkGeneration({ siteId, onPaywallRequired }: BulkGenerationProp
       case "pending":
         return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
       case "processing":
-        return <Badge variant="default" className="bg-blue-500"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Processing</Badge>;
+        return <Badge variant="default" className="bg-primary"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Processing</Badge>;
       case "completed":
         return <Badge variant="default" className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>;
       case "failed":

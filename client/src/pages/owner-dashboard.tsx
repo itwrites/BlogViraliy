@@ -167,10 +167,10 @@ export default function OwnerDashboard() {
   // This prevents flash of dashboard content before redirect
   if (authLoading || (user?.role === "owner" && subscriptionLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-muted-foreground/80">Loading...</p>
         </div>
       </div>
     );
@@ -190,7 +190,7 @@ export default function OwnerDashboard() {
   const canCreateSite = sitesLimit === -1 || sitesUsed < sitesLimit;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 font-sans selection:bg-blue-500/20 selection:text-gray-900">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
@@ -209,18 +209,18 @@ export default function OwnerDashboard() {
           variants={sidebarVariants}
           initial="initial"
           animate="animate"
-          className="fixed left-0 top-0 bottom-0 w-[280px] bg-white/80 backdrop-blur-xl border-r border-gray-200/60 z-50 flex flex-col"
+          className="fixed left-0 top-0 bottom-0 w-[280px] bg-sidebar backdrop-blur-xl border-r border-border z-50 flex flex-col"
         >
           <div className="p-5 pt-6">
             <div className="flex items-center gap-3 px-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center">
-                <LayoutGrid className="w-5 h-5 text-gray-700" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-muted/70 to-muted/30 border border-border flex items-center justify-center">
+                <LayoutGrid className="w-5 h-5 text-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-[15px] font-bold tracking-tight text-gray-900 truncate" data-testid="text-app-title">
+                <h1 className="text-[15px] font-bold tracking-tight text-foreground truncate" data-testid="text-app-title">
                   Blog Autopilot
                 </h1>
-                <p className="text-[11px] text-gray-400">Owner Dashboard</p>
+                <p className="text-[11px] text-muted-foreground/70">Owner Dashboard</p>
               </div>
             </div>
           </div>
@@ -228,16 +228,16 @@ export default function OwnerDashboard() {
           <div className="flex-1 px-3 py-2 space-y-6 overflow-y-auto">
             <div className="space-y-1">
               <div className="px-3 mb-2">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">My Account</span>
+                <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">My Account</span>
               </div>
 
               <button
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 bg-gray-100 text-gray-900 shadow-sm"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 bg-muted text-foreground shadow-sm"
                 data-testid="nav-sites"
               >
-                <Globe className="w-4 h-4 text-blue-600" />
+                <Globe className="w-4 h-4 text-primary" />
                 <span className="flex-1 text-left">My Sites</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-gray-200 text-gray-600 border border-gray-200">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-muted/60 text-muted-foreground/80 border border-border">
                   {sitesUsed}
                 </span>
               </button>
@@ -245,7 +245,7 @@ export default function OwnerDashboard() {
               <button
                 onClick={handleManageBilling}
                 disabled={portalMutation.isPending}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 text-muted-foreground/80 hover:bg-muted/40 hover:text-foreground"
                 data-testid="nav-billing"
               >
                 <CreditCard className="w-4 h-4" />
@@ -255,23 +255,23 @@ export default function OwnerDashboard() {
 
             <div className="space-y-3">
               <div className="px-3">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Usage</span>
+                <span className="text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Usage</span>
               </div>
 
-              <div className="bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm space-y-3">
+              <div className="bg-white p-4 rounded-xl border border-border shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[13px] font-medium text-gray-600">Articles This Month</span>
-                  <span className="text-[13px] font-semibold text-gray-900">
+                  <span className="text-[13px] font-medium text-muted-foreground/80">Articles This Month</span>
+                  <span className="text-[13px] font-semibold text-foreground">
                     {postsUsed} / {postsLimit}
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                    className="bg-primary h-2 rounded-full transition-all duration-500"
                     style={{ width: `${postsPercentage}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-gray-400">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground/70">
                   <span>{Math.round(postsPercentage)}% used</span>
                   <span>{postsLimit - postsUsed} remaining</span>
                 </div>
@@ -279,14 +279,14 @@ export default function OwnerDashboard() {
             </div>
           </div>
 
-          <div className="p-4 border-t border-gray-200/60 bg-gray-50/50">
+          <div className="p-4 border-t border-border bg-muted/30">
             <div className="flex items-center gap-3 px-2 py-1 mb-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-violet-500 flex items-center justify-center text-[13px] font-semibold text-white shadow-lg shadow-blue-500/20">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium truncate text-gray-900">{user?.username}</p>
-                <p className="text-[11px] text-gray-400 truncate">
+                <p className="text-[13px] font-medium truncate text-foreground">{user?.username}</p>
+                <p className="text-[11px] text-muted-foreground/70 truncate">
                   {planDetails?.name || 'No Plan'} Plan
                 </p>
               </div>
@@ -294,7 +294,7 @@ export default function OwnerDashboard() {
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full h-9 justify-start gap-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl text-[13px]"
+              className="w-full h-9 justify-start gap-2.5 text-muted-foreground/80 hover:text-red-600 hover:bg-red-50 rounded-xl text-[13px]"
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" />
@@ -310,12 +310,12 @@ export default function OwnerDashboard() {
             transition={{ delay: 0.1, duration: 0.4 }}
             className="mb-10"
           >
-            <div className="flex items-end justify-between gap-4 border-b border-gray-200 pb-6">
+            <div className="flex items-end justify-between gap-4 border-b border-border pb-6">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900" data-testid="text-section-title">
+                <h1 className="text-3xl font-bold tracking-tight text-foreground" data-testid="text-section-title">
                   Welcome back, {user?.username}
                 </h1>
-                <p className="text-[15px] text-gray-500 mt-2 max-w-2xl" data-testid="text-section-description">
+                <p className="text-[15px] text-muted-foreground/80 mt-2 max-w-2xl" data-testid="text-section-description">
                   Manage your sites and subscription from your dashboard.
                 </p>
               </div>
@@ -325,7 +325,7 @@ export default function OwnerDashboard() {
           {isLoading ? (
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 mb-8">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-[140px] bg-white animate-pulse rounded-2xl border border-gray-200/60" />
+                <div key={i} className="h-[140px] bg-white animate-pulse rounded-2xl border border-border" />
               ))}
             </div>
           ) : (
@@ -336,17 +336,17 @@ export default function OwnerDashboard() {
               className="grid gap-6 grid-cols-1 lg:grid-cols-3 mb-10"
             >
               <motion.div variants={item} className="col-span-1 lg:col-span-2">
-                <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm">
+                <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-violet-500 flex items-center justify-center">
                         <Zap className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-foreground">
                           {planDetails?.name || 'No'} Plan
                         </h3>
-                        <p className="text-[13px] text-gray-500">
+                        <p className="text-[13px] text-muted-foreground/80">
                           {subscriptionData?.status === 'active' ? 'Active subscription' : 'No active subscription'}
                         </p>
                       </div>
@@ -357,28 +357,28 @@ export default function OwnerDashboard() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-xl">
+                    <div className="p-3 bg-muted/40 rounded-xl">
                       <div className="flex items-center gap-2 mb-1">
-                        <FileText className="w-4 h-4 text-gray-400" />
-                        <span className="text-[11px] font-medium text-gray-500 uppercase">Articles/mo</span>
+                        <FileText className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="text-[11px] font-medium text-muted-foreground/80 uppercase">Articles/mo</span>
                       </div>
-                      <p className="text-xl font-bold text-gray-900">{postsLimit}</p>
+                      <p className="text-xl font-bold text-foreground">{postsLimit}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-xl">
+                    <div className="p-3 bg-muted/40 rounded-xl">
                       <div className="flex items-center gap-2 mb-1">
-                        <Globe className="w-4 h-4 text-gray-400" />
-                        <span className="text-[11px] font-medium text-gray-500 uppercase">Sites</span>
+                        <Globe className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="text-[11px] font-medium text-muted-foreground/80 uppercase">Sites</span>
                       </div>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-xl font-bold text-foreground">
                         {sitesLimit === -1 ? 'Unlimited' : sitesLimit}
                       </p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded-xl">
+                    <div className="p-3 bg-muted/40 rounded-xl">
                       <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-4 h-4 text-gray-400" />
-                        <span className="text-[11px] font-medium text-gray-500 uppercase">Price</span>
+                        <TrendingUp className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="text-[11px] font-medium text-muted-foreground/80 uppercase">Price</span>
                       </div>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-xl font-bold text-foreground">
                         ${planDetails ? (planDetails.price / 100).toFixed(0) : 0}/mo
                       </p>
                     </div>
@@ -398,21 +398,21 @@ export default function OwnerDashboard() {
               </motion.div>
 
               <motion.div variants={item}>
-                <div className="bg-white border border-gray-200/60 rounded-2xl p-6 shadow-sm h-full flex flex-col justify-between">
+                <div className="bg-white border border-border rounded-2xl p-6 shadow-sm h-full flex flex-col justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Site Summary</h3>
-                    <p className="text-[13px] text-gray-500 mb-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Site Summary</h3>
+                    <p className="text-[13px] text-muted-foreground/80 mb-4">
                       {sitesUsed} of {sitesLimit === -1 ? 'unlimited' : sitesLimit} sites created
                     </p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-[13px]">
-                      <span className="text-gray-500">Active Sites</span>
-                      <span className="font-semibold text-gray-900">{sitesUsed}</span>
+                      <span className="text-muted-foreground/80">Active Sites</span>
+                      <span className="font-semibold text-foreground">{sitesUsed}</span>
                     </div>
                     <div className="flex items-center justify-between text-[13px]">
-                      <span className="text-gray-500">Available Slots</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-muted-foreground/80">Available Slots</span>
+                      <span className="font-semibold text-foreground">
                         {sitesLimit === -1 ? 'Unlimited' : Math.max(0, sitesLimit - sitesUsed)}
                       </span>
                     </div>
@@ -429,8 +429,8 @@ export default function OwnerDashboard() {
             className="mb-6 flex items-end justify-between gap-4"
           >
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-gray-900">My Sites</h2>
-              <p className="text-[14px] text-gray-500 mt-1">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">My Sites</h2>
+              <p className="text-[14px] text-muted-foreground/80 mt-1">
                 Click on a site to manage content and settings
               </p>
             </div>
@@ -448,7 +448,7 @@ export default function OwnerDashboard() {
           {sitesLoading ? (
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-[200px] bg-white animate-pulse rounded-2xl border border-gray-200/60" />
+                <div key={i} className="h-[200px] bg-white animate-pulse rounded-2xl border border-border" />
               ))}
             </div>
           ) : sites && sites.length > 0 ? (
@@ -467,12 +467,12 @@ export default function OwnerDashboard() {
                 >
                   <div
                     data-testid={`card-site-${site.id}`}
-                    className="group cursor-pointer bg-white border border-gray-200/60 rounded-2xl h-full flex flex-col overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-300"
+                    className="group cursor-pointer bg-white border border-border rounded-2xl h-full flex flex-col overflow-hidden hover:shadow-md hover:border-muted transition-all duration-300"
                     onClick={() => setLocation(`/admin/sites/${site.id}`)}
                   >
                     <div className="p-6 flex-1">
                       <div className="flex items-start justify-between mb-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center border border-gray-200">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted/70 to-muted/30 flex items-center justify-center border border-border">
                           {site.logoUrl ? (
                             <img
                               src={site.logoUrl}
@@ -480,34 +480,34 @@ export default function OwnerDashboard() {
                               className="w-12 h-12 object-contain"
                             />
                           ) : (
-                            <Globe className="h-8 w-8 text-gray-400" />
+                            <Globe className="h-8 w-8 text-muted-foreground/70" />
                           )}
                         </div>
-                        <Badge className="bg-gray-100 text-gray-700 font-medium border border-gray-200 px-3 py-1 rounded-lg text-xs">
+                        <Badge className="bg-muted text-foreground font-medium border border-border px-3 py-1 rounded-lg text-xs">
                           {site.siteType}
                         </Badge>
                       </div>
 
                       <div className="space-y-1">
-                        <h3 className="text-[19px] font-semibold tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors duration-300">
+                        <h3 className="text-[19px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
                           {site.title}
                         </h3>
-                        <div className="flex items-center gap-2 text-[13px] text-gray-400 font-medium font-mono">
+                        <div className="flex items-center gap-2 text-[13px] text-muted-foreground/70 font-medium font-mono">
                           <Globe className="w-3 h-3" />
                           <span className="truncate">{site.domain || site.proxyVisitorHostname || 'No domain'}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between mt-auto">
-                      <span className="text-xs text-gray-400 font-medium">
+                    <div className="px-6 py-4 bg-muted/30 border-t border-border flex items-center justify-between mt-auto">
+                      <span className="text-xs text-muted-foreground/70 font-medium">
                         Click to manage
                       </span>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full text-gray-400 hover:bg-blue-50 hover:text-blue-600"
+                          className="h-8 w-8 rounded-full text-muted-foreground/70 hover:bg-primary/10 hover:text-primary"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -524,11 +524,11 @@ export default function OwnerDashboard() {
               transition={{ duration: 0.4 }}
               className="flex flex-col items-center justify-center py-32 text-center"
             >
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center mb-6 border border-gray-200">
-                <Globe className="w-10 h-10 text-gray-400" />
+              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-muted/70 to-muted/30 flex items-center justify-center mb-6 border border-border">
+                <Globe className="w-10 h-10 text-muted-foreground/70" />
               </div>
-              <h3 className="text-2xl font-bold tracking-tight text-gray-900 mb-3">No sites yet</h3>
-              <p className="text-gray-500 text-[15px] max-w-md mb-8 leading-relaxed">
+              <h3 className="text-2xl font-bold tracking-tight text-foreground mb-3">No sites yet</h3>
+              <p className="text-muted-foreground/80 text-[15px] max-w-md mb-8 leading-relaxed">
                 Create your first site to start publishing AI-powered content.
               </p>
               <Button

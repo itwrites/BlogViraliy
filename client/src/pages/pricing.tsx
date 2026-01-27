@@ -134,17 +134,17 @@ export default function Pricing() {
   // Show loading while checking auth or subscription status
   if (authLoading || (user?.role === "owner" && subscriptionLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground/80">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -182,14 +182,14 @@ export default function Pricing() {
           {/* Header */}
           <motion.h1
             variants={itemVariants}
-            className="text-5xl sm:text-6xl font-bold tracking-tight text-gray-900 mb-6"
+            className="text-5xl sm:text-6xl font-bold tracking-tight text-foreground mb-6"
           >
             Simple, Automated Blogging — Done For You
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="text-xl text-gray-600 max-w-2xl mx-auto mb-12"
+            className="text-xl text-muted-foreground/80 max-w-2xl mx-auto mb-12"
           >
             Turn your ideas and RSS feeds into fully published SEO blog posts
           </motion.p>
@@ -197,9 +197,9 @@ export default function Pricing() {
           {/* Common Features Section */}
           <motion.div
             variants={itemVariants}
-            className="rounded-2xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 p-8 max-w-4xl mx-auto mb-16"
+            className="rounded-2xl bg-white/95 backdrop-blur-2xl border border-border p-8 max-w-4xl mx-auto mb-16"
           >
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
+            <h2 className="text-lg font-semibold text-foreground mb-6">
               All plans include
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -210,7 +210,7 @@ export default function Pricing() {
                   className="flex items-start gap-3"
                 >
                   <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">{feature}</span>
+                  <span className="text-muted-foreground/80">{feature}</span>
                 </motion.div>
               ))}
             </div>
@@ -234,8 +234,8 @@ export default function Pricing() {
                 key={planId}
                 variants={cardVariants}
                 whileHover="hover"
-                className={`relative rounded-2xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 overflow-hidden transition-all ${
-                  isPopular ? "ring-2 ring-blue-500 md:scale-105" : ""
+                className={`relative rounded-2xl bg-white/95 backdrop-blur-2xl border border-border overflow-hidden transition-all ${
+                  isPopular ? "ring-2 ring-primary/30 md:scale-105" : ""
                 }`}
               >
                 {/* Popular Badge */}
@@ -246,7 +246,7 @@ export default function Pricing() {
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2"
                   >
-                    <Badge className="bg-blue-500 text-white px-3 py-1">
+                    <Badge className="bg-primary text-white px-3 py-1">
                       Most Popular
                     </Badge>
                   </motion.div>
@@ -256,8 +256,8 @@ export default function Pricing() {
                   {/* Plan Name & Icon */}
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="text-gray-900">{PLAN_ICONS[planId]}</div>
-                      <h3 className="text-2xl font-bold text-gray-900">
+                      <div className="text-foreground">{PLAN_ICONS[planId]}</div>
+                      <h3 className="text-2xl font-bold text-foreground">
                         {plan.name}
                       </h3>
                     </div>
@@ -269,22 +269,22 @@ export default function Pricing() {
                     className="mb-6"
                   >
                     <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-bold text-gray-900">
+                      <span className="text-5xl font-bold text-foreground">
                         ${price.toFixed(0)}
                       </span>
-                      <span className="text-gray-600">/month</span>
+                      <span className="text-muted-foreground/80">/month</span>
                     </div>
                   </motion.div>
 
                   {/* Articles Per Month Highlight */}
                   <motion.div
                     variants={itemVariants}
-                    className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200/60"
+                    className="mb-8 p-4 bg-muted/40 rounded-lg border border-border"
                   >
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className="text-sm font-medium text-muted-foreground/80 mb-1">
                       Articles per month
                     </p>
-                    <p className="text-3xl font-bold text-gray-900">
+                    <p className="text-3xl font-bold text-foreground">
                       {plan.postsPerMonth}
                     </p>
                   </motion.div>
@@ -294,14 +294,14 @@ export default function Pricing() {
                     variants={itemVariants}
                     className="mb-8 flex-grow"
                   >
-                    <p className="text-sm font-semibold text-gray-600 mb-4">
+                    <p className="text-sm font-semibold text-muted-foreground/80 mb-4">
                       Includes:
                     </p>
                     <ul className="space-y-3">
                       {plan.features.map((feature) => (
                         <li
                           key={feature}
-                          className="flex items-start gap-3 text-gray-700 text-sm"
+                          className="flex items-start gap-3 text-muted-foreground/80 text-sm"
                         >
                           <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                           <span>{feature}</span>
@@ -317,8 +317,8 @@ export default function Pricing() {
                       disabled={loadingPlan !== null}
                       className={`w-full h-12 text-base font-medium rounded-xl transition-all ${
                         isPopular
-                          ? "bg-blue-500 text-white hover:bg-blue-600"
-                          : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                          ? "bg-primary text-white hover:bg-[hsl(var(--primary-hover))]"
+                          : "bg-muted text-foreground hover:bg-muted/80"
                       }`}
                       data-testid={`button-plan-${planId}`}
                     >
@@ -343,7 +343,7 @@ export default function Pricing() {
           variants={itemVariants}
           initial="hidden"
           animate="visible"
-          className="text-center text-gray-600 text-sm"
+          className="text-center text-muted-foreground/80 text-sm"
         >
           <p>
             All plans include a 14-day free trial. No credit card required.

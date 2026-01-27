@@ -123,7 +123,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f5f5f7] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
@@ -157,11 +157,11 @@ export default function Signup() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Signup Card */}
-        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 shadow-xl overflow-hidden">
+        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/60 border border-border">
                 <svg 
                   width="32" 
                   height="32" 
@@ -181,12 +181,12 @@ export default function Signup() {
               </div>
               <div>
                 <h1 
-                  className="text-2xl font-semibold tracking-tight text-gray-900"
+                  className="text-2xl font-semibold tracking-tight text-foreground"
                   data-testid="text-signup-title"
                 >
                   Create account
                 </h1>
-                <p className="text-gray-500 mt-1">
+                <p className="text-muted-foreground/80 mt-1">
                   Join Blog Autopilot today
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default function Signup() {
             <motion.form variants={itemVariants} onSubmit={handleSignup} className="space-y-5">
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="email" className="text-sm font-medium text-muted-foreground/80">
                   Email
                 </Label>
                 <div className="relative">
@@ -213,7 +213,7 @@ export default function Signup() {
                       }
                     }}
                     disabled={isLoading}
-                    className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                    className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   />
                   {errors.email && (
                     <p className="text-xs text-red-500 mt-1">{errors.email}</p>
@@ -223,7 +223,7 @@ export default function Signup() {
 
               {/* Username Field */}
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="username" className="text-sm font-medium text-muted-foreground/80">
                   Username
                 </Label>
                 <div className="relative">
@@ -239,7 +239,7 @@ export default function Signup() {
                       }
                     }}
                     disabled={isLoading}
-                    className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                    className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   />
                   {errors.username && (
                     <p className="text-xs text-red-500 mt-1">{errors.username}</p>
@@ -249,7 +249,7 @@ export default function Signup() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="password" className="text-sm font-medium text-muted-foreground/80">
                   Password
                 </Label>
                 <div className="relative">
@@ -266,7 +266,7 @@ export default function Signup() {
                       }
                     }}
                     disabled={isLoading}
-                    className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                    className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   />
                   {errors.password && (
                     <p className="text-xs text-red-500 mt-1">{errors.password}</p>
@@ -276,7 +276,7 @@ export default function Signup() {
 
               {/* Confirm Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="confirmPassword" className="text-sm font-medium text-muted-foreground/80">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -293,7 +293,7 @@ export default function Signup() {
                       }
                     }}
                     disabled={isLoading}
-                    className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                    className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   />
                   {errors.confirmPassword && (
                     <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
@@ -325,14 +325,14 @@ export default function Signup() {
           {/* Footer */}
           <motion.div 
             variants={itemVariants}
-            className="px-8 py-4 border-t border-gray-100 bg-gray-50/50"
+            className="px-8 py-4 border-t border-border bg-muted/30"
           >
-            <p className="text-center text-xs text-gray-500">
+            <p className="text-center text-xs text-muted-foreground/80">
               Already have an account?{" "}
               <a
                 href="/admin"
                 data-testid="link-login"
-                className="font-medium text-gray-900 hover:text-gray-600 transition-colors"
+                className="font-medium text-foreground hover:text-muted-foreground transition-colors"
               >
                 Sign in
               </a>

@@ -139,21 +139,21 @@ export function Step2Design({ site, onNext }: Step2DesignProps) {
                         <div className="transform scale-75 origin-center w-full h-full p-4 pointer-events-none select-none opacity-50">
                             {/* Mock Preview Content */}
                             <div className="w-full h-8 bg-white rounded mb-4 flex items-center px-4 justify-between shadow-sm">
-                                <div className="w-20 h-3 bg-gray-200 rounded" />
+                                <div className="w-20 h-3 bg-muted/70 rounded" />
                                 <div className="flex gap-2">
-                                    <div className="w-10 h-2 bg-gray-100 rounded" />
-                                    <div className="w-10 h-2 bg-gray-100 rounded" />
+                                    <div className="w-10 h-2 bg-muted/50 rounded" />
+                                    <div className="w-10 h-2 bg-muted/50 rounded" />
                                 </div>
                             </div>
-                            <div className="w-full h-32 bg-gray-100 rounded-lg mb-4" style={{ backgroundColor: settings.primaryColor + '20' }} />
+                            <div className="w-full h-32 bg-muted/40 rounded-lg mb-4" style={{ backgroundColor: settings.primaryColor + '20' }} />
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="h-24 bg-white rounded shadow-sm p-2">
-                                    <div className="w-full h-12 bg-gray-100 rounded mb-2" />
-                                    <div className="w-2/3 h-2 bg-gray-200 rounded" />
+                                    <div className="w-full h-12 bg-muted/50 rounded mb-2" />
+                                    <div className="w-2/3 h-2 bg-muted/70 rounded" />
                                 </div>
                                 <div className="h-24 bg-white rounded shadow-sm p-2">
-                                    <div className="w-full h-12 bg-gray-100 rounded mb-2" />
-                                    <div className="w-2/3 h-2 bg-gray-200 rounded" />
+                                    <div className="w-full h-12 bg-muted/50 rounded mb-2" />
+                                    <div className="w-2/3 h-2 bg-muted/70 rounded" />
                                 </div>
                             </div>
                         </div>

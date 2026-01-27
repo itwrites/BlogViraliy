@@ -98,8 +98,8 @@ export function Step4Content({ site, onNext }: Step4ContentProps) {
                     onClick={() => setStrategy('manual')}
                 >
                     <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
-                        <div className="p-3 rounded-full bg-slate-500/10 text-slate-500">
-                            <PenTool className="w-6 h-6" />
+                        <div className="p-3 rounded-full bg-muted text-muted-foreground/80">
+                          <PenTool className="w-6 h-6" />
                         </div>
                         <div>
                             <h3 className="font-semibold">Manual</h3>

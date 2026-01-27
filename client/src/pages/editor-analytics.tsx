@@ -257,11 +257,11 @@ export default function EditorAnalytics() {
                 transition={{ delay: 0.1 }}
                 className="space-y-2"
               >
-                <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 rounded-xl p-3 text-center border border-blue-500/20">
+                <div className="bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl p-3 text-center border border-primary/20">
                   <div className="flex items-center justify-center gap-1 mb-1">
-                    <Eye className="w-4 h-4 text-blue-500" />
+                    <Eye className="w-4 h-4 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-500">{stats.totalViews.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-primary">{stats.totalViews.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Total Views</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -343,7 +343,7 @@ export default function EditorAnalytics() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-blue-500" />
+                    <Eye className="w-5 h-5 text-primary" />
                     <span className="text-3xl font-bold">{stats.totalViews.toLocaleString()}</span>
                   </div>
                 </CardContent>
@@ -400,8 +400,8 @@ export default function EditorAnalytics() {
                       <AreaChart data={viewsOverTime}>
                         <defs>
                           <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
@@ -417,7 +417,7 @@ export default function EditorAnalytics() {
                         <Area 
                           type="monotone" 
                           dataKey="views" 
-                          stroke="#3b82f6" 
+                          stroke="hsl(var(--primary))" 
                           fillOpacity={1} 
                           fill="url(#colorViews)" 
                         />

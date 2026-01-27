@@ -52,7 +52,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="absolute top-2 right-2 p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
+      className="absolute top-2 right-2 p-1.5 rounded-md bg-muted hover:bg-muted/60 text-muted-foreground/80 hover:text-foreground transition-colors"
       data-testid="button-copy-code"
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -83,8 +83,8 @@ function TableOfContents({
               className={cn(
                 "w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-lg transition-all text-left",
                 isActive 
-                  ? "bg-gray-100 text-gray-900 border-l-2 border-blue-500 shadow-sm" 
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-muted text-foreground border-l-2 border-primary shadow-sm" 
+                  : "text-muted-foreground/80 hover:bg-muted/40 hover:text-foreground"
               )}
               data-testid={`nav-${section.id}`}
             >
@@ -92,7 +92,7 @@ function TableOfContents({
               <span className="truncate">{section.title}</span>
             </button>
             {section.subsections && isActive && (
-              <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-200 pl-3">
+              <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-3">
                 {section.subsections.map((sub) => (
                   <button
                     key={sub.id}
@@ -100,8 +100,8 @@ function TableOfContents({
                     className={cn(
                       "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-all text-left",
                       activeSection === sub.id
-                        ? "bg-gray-50 text-gray-900 font-medium"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-muted/40 text-foreground font-medium"
+                        : "text-muted-foreground/80 hover:bg-muted/40 hover:text-foreground"
                     )}
                     data-testid={`nav-${sub.id}`}
                   >
@@ -123,28 +123,28 @@ function MarkdownContent({ content }: { content: string }) {
     <ReactMarkdown
       components={{
         h1: ({ children }) => (
-          <h1 className="text-2xl font-bold tracking-tight mb-4 text-gray-900">{children}</h1>
+          <h1 className="text-2xl font-bold tracking-tight mb-4 text-foreground">{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-xl font-semibold tracking-tight mt-6 mb-3 text-gray-900">{children}</h2>
+          <h2 className="text-xl font-semibold tracking-tight mt-6 mb-3 text-foreground">{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-lg font-medium mt-4 mb-2 text-gray-900">{children}</h3>
+          <h3 className="text-lg font-medium mt-4 mb-2 text-foreground">{children}</h3>
         ),
         p: ({ children }) => (
-          <p className="text-gray-600 leading-relaxed mb-4">{children}</p>
+          <p className="text-muted-foreground/80 leading-relaxed mb-4">{children}</p>
         ),
         ul: ({ children }) => (
-          <ul className="list-disc list-inside space-y-1.5 mb-4 text-gray-600">{children}</ul>
+          <ul className="list-disc list-inside space-y-1.5 mb-4 text-muted-foreground/80">{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal list-inside space-y-1.5 mb-4 text-gray-600">{children}</ol>
+          <ol className="list-decimal list-inside space-y-1.5 mb-4 text-muted-foreground/80">{children}</ol>
         ),
         li: ({ children }) => (
           <li className="leading-relaxed">{children}</li>
         ),
         strong: ({ children }) => (
-          <strong className="font-semibold text-gray-900">{children}</strong>
+          <strong className="font-semibold text-foreground">{children}</strong>
         ),
         code: ({ className, children }) => {
           const isBlock = className?.includes("language-");
@@ -155,13 +155,13 @@ function MarkdownContent({ content }: { content: string }) {
             return (
               <div className="relative group my-4">
                 {language && (
-                  <div className="absolute top-0 left-0 px-3 py-1 text-xs font-mono text-gray-500 bg-gray-100 rounded-tl-lg rounded-br-lg border-r border-b border-gray-200">
+                  <div className="absolute top-0 left-0 px-3 py-1 text-xs font-mono text-muted-foreground/80 bg-muted rounded-tl-lg rounded-br-lg border-r border-b border-border">
                     {language}
                   </div>
                 )}
                 <CopyButton text={codeString} />
-                <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 pt-8 overflow-x-auto">
-                  <code className="text-sm font-mono text-gray-800 leading-relaxed">
+                <pre className="bg-muted/40 border border-border rounded-lg p-4 pt-8 overflow-x-auto">
+                  <code className="text-sm font-mono text-foreground leading-relaxed">
                     {children}
                   </code>
                 </pre>
@@ -170,46 +170,46 @@ function MarkdownContent({ content }: { content: string }) {
           }
           
           return (
-            <code className="px-1.5 py-0.5 bg-gray-100 rounded-md text-sm font-mono text-gray-800">
+            <code className="px-1.5 py-0.5 bg-muted rounded-md text-sm font-mono text-foreground">
               {children}
             </code>
           );
         },
         pre: ({ children }) => <>{children}</>,
         table: ({ children }) => (
-          <div className="my-4 overflow-x-auto rounded-lg border border-gray-200">
+          <div className="my-4 overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               {children}
             </table>
           </div>
         ),
         thead: ({ children }) => (
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-muted/40 border-b border-border">
             {children}
           </thead>
         ),
         tbody: ({ children }) => (
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {children}
           </tbody>
         ),
         tr: ({ children }) => (
-          <tr className="hover:bg-gray-50 transition-colors">
+          <tr className="hover:bg-muted/40 transition-colors">
             {children}
           </tr>
         ),
         th: ({ children }) => (
-          <th className="px-4 py-3 text-left font-semibold text-gray-900">
+          <th className="px-4 py-3 text-left font-semibold text-foreground">
             {children}
           </th>
         ),
         td: ({ children }) => (
-          <td className="px-4 py-3 text-gray-600">
+          <td className="px-4 py-3 text-muted-foreground/80">
             {children}
           </td>
         ),
         blockquote: ({ children }) => (
-          <blockquote className="border-l-4 border-blue-300 pl-4 py-1 my-4 italic text-gray-600 bg-blue-50/50 rounded-r-lg">
+          <blockquote className="border-l-4 border-primary/40 pl-4 py-1 my-4 italic text-muted-foreground/80 bg-primary/5 rounded-r-lg">
             {children}
           </blockquote>
         ),
@@ -218,7 +218,7 @@ function MarkdownContent({ content }: { content: string }) {
             href={href} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors"
+            className="text-primary hover:text-[hsl(var(--primary-hover))] underline underline-offset-2 transition-colors"
           >
             {children}
           </a>
@@ -236,9 +236,9 @@ function SectionContent({ section }: { section: WikiSection }) {
       <div className="flex items-center gap-3 mb-6">
         {(() => {
           const Icon = sectionIcons[section.id] || FileText;
-          return <Icon className="h-6 w-6 text-blue-600" />;
+          return <Icon className="h-6 w-6 text-primary" />;
         })()}
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">{section.title}</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">{section.title}</h2>
       </div>
       <div className="pl-9">
         <MarkdownContent content={section.content} />
@@ -249,10 +249,10 @@ function SectionContent({ section }: { section: WikiSection }) {
               <div 
                 key={sub.id} 
                 id={sub.id} 
-                className="scroll-mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                className="scroll-mt-8 rounded-xl border border-border bg-white p-6 shadow-sm"
               >
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-                  <ChevronRight className="h-4 w-4 text-blue-600" />
+                <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                  <ChevronRight className="h-4 w-4 text-primary" />
                   {sub.title}
                 </h3>
                 <MarkdownContent content={sub.content} />
@@ -306,9 +306,9 @@ export default function AdminWikiPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#f5f5f7]">
-        <div className="flex items-center gap-3 text-gray-500">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <div className="flex items-center justify-center h-full bg-background">
+        <div className="flex items-center gap-3 text-muted-foreground/80">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <span>Loading documentation...</span>
         </div>
       </div>
@@ -317,17 +317,17 @@ export default function AdminWikiPage() {
 
   if (!wiki) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#f5f5f7]">
+      <div className="flex items-center justify-center h-full bg-background">
         <div className="text-center">
-          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <div className="text-gray-500">Documentation not available</div>
+          <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+          <div className="text-muted-foreground/80">Documentation not available</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#f5f5f7] text-gray-900">
+    <div className="h-full flex flex-col bg-background text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
@@ -342,19 +342,19 @@ export default function AdminWikiPage() {
       </div>
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="border-b border-gray-200 bg-white/80 backdrop-blur-xl sticky top-0 z-10">
+        <div className="border-b border-border bg-sidebar backdrop-blur-xl sticky top-0 z-10">
           <div className="p-4 md:p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-4">
-                <div className="p-2.5 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
-                  <BookOpen className="h-6 w-6 text-gray-700" />
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-muted/70 to-muted/30 border border-border">
+                  <BookOpen className="h-6 w-6 text-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight text-gray-900">{wiki.title}</h1>
-                  <p className="text-sm text-gray-500 mt-0.5">{wiki.description}</p>
+                  <h1 className="text-xl font-bold tracking-tight text-foreground">{wiki.title}</h1>
+                  <p className="text-sm text-muted-foreground/80 mt-0.5">{wiki.description}</p>
                 </div>
               </div>
-              <Badge className="shrink-0 font-normal bg-gray-100 text-gray-600 border border-gray-200">
+              <Badge className="shrink-0 font-normal bg-muted text-muted-foreground/80 border border-border">
                 Updated {wiki.lastUpdated}
               </Badge>
             </div>
@@ -362,15 +362,15 @@ export default function AdminWikiPage() {
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          <div className="w-72 border-r border-gray-200/60 bg-white/50 flex flex-col shrink-0 hidden md:flex">
-            <div className="p-4 border-b border-gray-200/60 bg-white/30">
+          <div className="w-72 border-r border-border bg-white/50 flex flex-col shrink-0 hidden md:flex">
+            <div className="p-4 border-b border-border bg-white/30">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                 <Input
                   placeholder="Search documentation..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                  className="pl-9 bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                   data-testid="input-wiki-search"
                 />
               </div>
@@ -386,14 +386,14 @@ export default function AdminWikiPage() {
             </ScrollArea>
           </div>
 
-          <ScrollArea className="flex-1 bg-[#f5f5f7]/50">
+          <ScrollArea className="flex-1 bg-background/50">
             <div className="p-6 md:p-8 max-w-4xl mx-auto">
               <div className="space-y-16">
                 {filteredSections.map((section, index) => (
                   <div key={section.id}>
                     <SectionContent section={section} />
                     {index < filteredSections.length - 1 && (
-                      <Separator className="mt-16 bg-gray-200" />
+                      <Separator className="mt-16 bg-muted/60" />
                     )}
                   </div>
                 ))}

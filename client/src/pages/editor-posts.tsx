@@ -1209,7 +1209,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       <div className={`${viewMode === "grid" 
                         ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-3" 
                         : "space-y-4"
-                      } opacity-30 blur-[3px] select-none pointer-events-none`}>
+                      } opacity-25 blur-[2px] select-none pointer-events-none`}>
                         {lockedPosts.map((post) => (
                           <div
                             key={post.id}
@@ -1316,7 +1316,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   {isGeneratingInitialArticles ? (
                     <>
                       <div className="relative w-24 h-24 mx-auto mb-6">
-                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 opacity-20 blur-xl animate-pulse" />
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 opacity-20 blur-xl animate-pulse" />
                         <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border border-border flex items-center justify-center">
                           <motion.div
                             animate={{ rotate: 360 }}
@@ -1462,42 +1462,42 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Content Calendar</h2>
-                    <p className="text-gray-500 text-sm mt-1">View and manage your scheduled articles</p>
+                    <h2 className="text-2xl font-bold text-foreground">Content Calendar</h2>
+                    <p className="text-muted-foreground/80 text-sm mt-1">View and manage your scheduled articles</p>
                   </div>
                 </div>
 
                 <div className="flex gap-6">
-                  <div className="flex-1 bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                  <div className="flex-1 bg-white rounded-2xl overflow-hidden card-elevate">
+                    <div className="flex items-center justify-between p-4 border-b border-border">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
-                        className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted"
                         data-testid="button-prev-month"
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </Button>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {format(calendarMonth, "MMMM yyyy")}
                       </h3>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-                        className="text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted"
                         data-testid="button-next-month"
                       >
                         <ChevronRight className="w-5 h-5" />
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-7 border-b border-gray-100">
+                    <div className="grid grid-cols-7 border-b border-border">
                       {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                         <div
                           key={day}
-                          className="py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          className="py-2 text-center text-xs font-medium text-muted-foreground/70 uppercase tracking-wider"
                         >
                           {day}
                         </div>
@@ -1515,8 +1515,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           <button
                             key={index}
                             onClick={() => setSelectedDate(date)}
-                            className={`relative p-2 min-h-[80px] border-b border-r border-gray-100 text-left transition-colors ${
-                              !isCurrentMonth ? "bg-gray-50/50" : "bg-white hover:bg-gray-50"
+                            className={`relative p-2 min-h-[80px] border-b border-r border-border text-left transition-colors ${
+                              !isCurrentMonth ? "bg-muted/30" : "bg-white hover:bg-muted/40"
                             } ${isSelected ? "ring-2 ring-inset ring-primary" : ""}`}
                             data-testid={`calendar-day-${format(date, "yyyy-MM-dd")}`}
                           >
@@ -1525,8 +1525,8 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 isTodayDate
                                   ? "bg-primary text-white font-semibold"
                                   : isCurrentMonth
-                                  ? "text-gray-900"
-                                  : "text-gray-400"
+                                  ? "text-foreground"
+                                  : "text-muted-foreground/60"
                               }`}
                             >
                               {format(date, "d")}
@@ -1547,7 +1547,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                   </div>
                                 ))}
                                 {postsForDay.length > 3 && (
-                                  <div className="text-xs text-gray-500 px-1.5">
+                                  <div className="text-xs text-muted-foreground/70 px-1.5">
                                     +{postsForDay.length - 3} more
                                   </div>
                                 )}
@@ -1565,14 +1565,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        className="w-80 bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden"
+                        className="w-80 bg-white rounded-2xl overflow-hidden card-elevate"
                       >
-                        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <div className="p-4 border-b border-border flex items-center justify-between">
                           <div>
-                            <h4 className="font-semibold text-gray-900">
+                            <h4 className="font-semibold text-foreground">
                               {format(selectedDate, "EEEE")}
                             </h4>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-muted-foreground/80">
                               {format(selectedDate, "MMMM d, yyyy")}
                             </p>
                           </div>
@@ -1580,7 +1580,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             variant="ghost"
                             size="icon"
                             onClick={() => setSelectedDate(null)}
-                            className="text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted"
                             data-testid="button-close-day-panel"
                           >
                             <X className="w-4 h-4" />
@@ -1594,11 +1594,11 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 key={post.id}
                                 initial={{ opacity: 0, y: 5 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                                className="p-3 rounded-xl border border-border hover:shadow-sm transition-all cursor-pointer hover:bg-muted/30"
                                 onClick={() => openEditor(post)}
                                 data-testid={`scheduled-post-${post.id}`}
                               >
-                                <h5 className="font-medium text-gray-900 text-sm line-clamp-2">
+                                <h5 className="font-medium text-foreground text-sm line-clamp-2">
                                   {post.title}
                                 </h5>
                                 <div className="flex items-center gap-2 mt-2">
@@ -1612,7 +1612,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                     {post.status === "published" ? "Published" : "Draft"}
                                   </Badge>
                                   {post.scheduledPublishDate && (
-                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                    <span className="text-xs text-muted-foreground/70 flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
                                       {format(new Date(post.scheduledPublishDate), "h:mm a")}
                                     </span>
@@ -1629,9 +1629,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             ))
                           ) : (
                             <div className="text-center py-8">
-                              <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                              <p className="text-sm text-gray-500">No scheduled articles</p>
-                              <p className="text-xs text-gray-400 mt-1">
+                              <Calendar className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+                              <p className="text-sm text-muted-foreground/80">No scheduled articles</p>
+                              <p className="text-xs text-muted-foreground/60 mt-1">
                                 Articles with scheduled dates will appear here
                               </p>
                             </div>
@@ -1646,23 +1646,23 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-white rounded-2xl border border-gray-200/60 p-8 text-center"
+                    className="bg-white rounded-2xl p-8 text-center card-elevate"
                   >
-                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Scheduled Articles</h3>
-                    <p className="text-gray-500 text-sm max-w-md mx-auto">
+                    <Calendar className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Scheduled Articles</h3>
+                    <p className="text-muted-foreground/80 text-sm max-w-md mx-auto">
                       When you schedule articles for future publication, they will appear on this calendar.
                       Set a scheduled publish date on any draft article to see it here.
                     </p>
                   </motion.div>
                 ) : (
-                  <div className="bg-white rounded-2xl border border-gray-200/60 p-4">
-                    <h3 className="font-semibold text-gray-900 mb-3">Upcoming Scheduled</h3>
+                  <div className="bg-white rounded-2xl p-4 card-elevate">
+                    <h3 className="font-semibold text-foreground mb-3">Upcoming Scheduled</h3>
                     <div className="space-y-2">
                       {scheduledPosts.slice(0, 5).map((post) => (
                         <div
                           key={post.id}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 cursor-pointer transition-colors"
                           onClick={() => {
                             if (post.scheduledPublishDate) {
                               setSelectedDate(new Date(post.scheduledPublishDate));
@@ -1677,9 +1677,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                             }`}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{post.title}</p>
+                            <p className="text-sm font-medium text-foreground truncate">{post.title}</p>
                             {post.scheduledPublishDate && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground/70">
                                 {format(new Date(post.scheduledPublishDate), "MMM d, yyyy 'at' h:mm a")}
                               </p>
                             )}
@@ -1705,10 +1705,10 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </div>
 
       <Dialog open={newPostModalOpen} onOpenChange={(open) => { if (!aiGenerating) setNewPostModalOpen(open); }}>
-        <DialogContent className="max-w-md bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <DialogContent className="max-w-md bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-xl text-gray-900">Create New Article</DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogTitle className="text-xl text-foreground">Create New Article</DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">
               Choose how you'd like to create your article
             </DialogDescription>
           </DialogHeader>
@@ -1719,36 +1719,36 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 setNewPostModalOpen(false);
                 openEditor();
               }}
-              className="w-full h-auto flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-left justify-start"
+              className="w-full h-auto flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/40 transition-all duration-200 text-left justify-start"
               data-testid="button-create-manual"
             >
               <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
                 <PenLine className="w-6 h-6 text-emerald-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">Write by Hand</h3>
-                <p className="text-sm text-gray-500">Create an article manually with full control</p>
+                <h3 className="font-medium text-foreground">Write by Hand</h3>
+                <p className="text-sm text-muted-foreground/80">Create an article manually with full control</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground/70" />
             </Button>
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">or</span>
+                <span className="bg-white px-2 text-muted-foreground/70">or</span>
               </div>
             </div>
             
-            <div className="p-4 rounded-xl border border-gray-200 space-y-4">
+            <div className="p-4 rounded-xl border border-border space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
                   <Sparkles className="w-6 h-6 text-violet-600" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">Generate with AI</h3>
-                  <p className="text-sm text-gray-500">Enter a topic and let AI write it</p>
+                  <h3 className="font-medium text-foreground">Generate with AI</h3>
+                  <p className="text-sm text-muted-foreground/80">Enter a topic and let AI write it</p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -1757,7 +1757,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   value={aiTopicInput}
                   onChange={(e) => setAiTopicInput(e.target.value)}
                   disabled={aiGenerating}
-                  className="bg-white border-gray-200"
+                  className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   data-testid="input-ai-topic"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && aiTopicInput.trim() && !aiGenerating) {
@@ -1790,12 +1790,12 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </Dialog>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-xl text-gray-900">
+            <DialogTitle className="text-xl text-foreground">
               {currentPost ? "Edit Article" : "Create New Article"}
             </DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogDescription className="text-muted-foreground/80">
               {currentPost ? "Update your article content and settings" : "Write and publish a new article for your site"}
             </DialogDescription>
           </DialogHeader>
@@ -1806,18 +1806,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             className="space-y-6 py-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium text-gray-600">Title</Label>
+              <Label htmlFor="title" className="text-sm font-medium text-muted-foreground/80">Title</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Enter an engaging title..."
-                className="text-lg bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                className="text-lg bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                 data-testid="input-title"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="content" className="text-sm font-medium text-gray-600">Content</Label>
+              <Label htmlFor="content" className="text-sm font-medium text-muted-foreground/80">Content</Label>
               <RichTextEditor
                 value={formData.content}
                 onChange={(value) => setFormData({ ...formData, content: value })}
@@ -1827,75 +1827,75 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="tags" className="text-sm font-medium text-gray-600">Tags</Label>
+                <Label htmlFor="tags" className="text-sm font-medium text-muted-foreground/80">Tags</Label>
                 <Input
                   id="tags"
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="technology, news, tutorial"
-                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                  className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   data-testid="input-tags"
                 />
-                <p className="text-xs text-gray-400">Separate tags with commas</p>
+                <p className="text-xs text-muted-foreground/60">Separate tags with commas</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-600">Featured Image URL</Label>
+                <Label htmlFor="imageUrl" className="text-sm font-medium text-muted-foreground/80">Featured Image URL</Label>
                 <Input
                   id="imageUrl"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
-                  className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                  className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                   data-testid="input-image-url"
                 />
-                <p className="text-xs text-gray-400">Optional cover image for the post</p>
+                <p className="text-xs text-muted-foreground/60">Optional cover image for the post</p>
               </div>
             </div>
             {authors && authors.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="author" className="text-sm font-medium text-gray-600">Author</Label>
+                <Label htmlFor="author" className="text-sm font-medium text-muted-foreground/80">Author</Label>
                 <Select
                   value={formData.authorId}
                   onValueChange={(value) => setFormData({ ...formData, authorId: value })}
                 >
-                  <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-author">
+                  <SelectTrigger className="bg-white border-border text-foreground" data-testid="select-author">
                     <SelectValue placeholder="Select an author" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200">
-                    <SelectItem value="none" className="text-gray-900 focus:bg-gray-100">No author</SelectItem>
+                  <SelectContent className="bg-white border-border">
+                    <SelectItem value="none" className="text-foreground focus:bg-muted">No author</SelectItem>
                     {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id} className="text-gray-900 focus:bg-gray-100">
+                      <SelectItem key={author.id} value={author.id} className="text-foreground focus:bg-muted">
                         {author.name} {author.isDefault && "(Default)"}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-400">Select the post author</p>
+                <p className="text-xs text-muted-foreground/60">Select the post author</p>
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="articleRole" className="text-sm font-medium text-gray-600">Article Role</Label>
+              <Label htmlFor="articleRole" className="text-sm font-medium text-muted-foreground/80">Article Role</Label>
               <Select
                 value={formData.articleRole}
                 onValueChange={(value) => setFormData({ ...formData, articleRole: value as ArticleRole })}
               >
-                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-article-role">
+                <SelectTrigger className="bg-white border-border text-foreground" data-testid="select-article-role">
                   <SelectValue placeholder="Select article role" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200 max-h-[300px]">
+                <SelectContent className="bg-white border-border max-h-[300px]">
                   {ARTICLE_ROLES.map((role) => (
-                    <SelectItem key={role.value} value={role.value} className="text-gray-900 focus:bg-gray-100">
+                    <SelectItem key={role.value} value={role.value} className="text-foreground focus:bg-muted">
                       <span className="font-medium">{role.label}</span>
-                      <span className="text-gray-500 ml-2 text-xs">{role.description}</span>
+                      <span className="text-muted-foreground/70 ml-2 text-xs">{role.description}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-400">Determines content structure and JSON-LD schema for SEO</p>
+              <p className="text-xs text-muted-foreground/60">Determines content structure and JSON-LD schema for SEO</p>
             </div>
           </motion.div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button variant="ghost" onClick={closeEditor} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100" data-testid="button-cancel">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button variant="ghost" onClick={closeEditor} className="text-muted-foreground hover:text-foreground hover:bg-muted" data-testid="button-cancel">
               Cancel
             </Button>
             <Button onClick={handleSave} className="gap-2" data-testid="button-save">
@@ -1916,15 +1916,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">Delete Article</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-500">
+            <AlertDialogTitle className="text-foreground">Delete Article</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground/80">
               Are you sure you want to delete "{postToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200" data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-border text-foreground hover:bg-muted/70" data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               className="bg-red-500 text-white hover:bg-red-600"
@@ -1937,15 +1937,15 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </AlertDialog>
 
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">Delete {selectedPosts.size} Article{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-500">
+            <AlertDialogTitle className="text-foreground">Delete {selectedPosts.size} Article{selectedPosts.size > 1 ? "s" : ""}</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground/80">
               Are you sure you want to delete {selectedPosts.size} selected article{selectedPosts.size > 1 ? "s" : ""}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200" data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-border text-foreground hover:bg-muted/70" data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleBulkDelete} 
               className="bg-red-500 text-white hover:bg-red-600"
@@ -1958,20 +1958,20 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
       </AlertDialog>
 
       <Dialog open={csvImportOpen} onOpenChange={(open) => !open && closeCsvImport()}>
-        <DialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <DialogContent className="max-w-lg bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-gray-900">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
               <FileSpreadsheet className="w-5 h-5" />
               Import Articles from CSV
             </DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogDescription className="text-muted-foreground/80">
               Upload a CSV file with your articles. Required columns: title, description. Optional: tags.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
                 <Download className="w-4 h-4" />
                 <span>Need a template?</span>
               </div>
@@ -1979,7 +1979,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                 variant="ghost" 
                 size="sm" 
                 onClick={downloadCsvTemplate}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 data-testid="button-download-template"
               >
                 Download Template
@@ -1987,18 +1987,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="csv-file" className="text-gray-600">Select CSV File</Label>
+              <Label htmlFor="csv-file" className="text-muted-foreground/80">Select CSV File</Label>
               <Input
                 id="csv-file"
                 type="file"
                 accept=".csv,text/csv"
                 onChange={handleCsvFileSelect}
                 disabled={csvImporting}
-                className="bg-white border-gray-200 text-gray-900 file:bg-gray-100 file:text-gray-700 file:border-0"
+                className="bg-white border-border text-foreground file:bg-muted file:text-foreground file:border-0"
                 data-testid="input-csv-file"
               />
               {csvContent && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground/80">
                   File loaded: {csvContent.split('\n').length - 1} data row(s) detected
                 </p>
               )}
@@ -2019,21 +2019,21 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                   )}
                   <div className="space-y-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-foreground">
                       {csvResult.imported > 0 
                         ? `Successfully imported ${csvResult.imported} article${csvResult.imported > 1 ? 's' : ''}`
                         : "No articles imported"
                       }
                     </p>
                     {csvResult.skipped > 0 && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground/80">
                         {csvResult.skipped} row{csvResult.skipped > 1 ? 's' : ''} skipped
                       </p>
                     )}
                     {csvResult.errors.length > 0 && (
                       <div className="mt-2 text-sm space-y-1">
-                        <p className="text-gray-500 font-medium">Issues:</p>
-                        <ul className="list-disc list-inside text-gray-500">
+                        <p className="text-muted-foreground/80 font-medium">Issues:</p>
+                        <ul className="list-disc list-inside text-muted-foreground/80">
                           {csvResult.errors.slice(0, 5).map((err, i) => (
                             <li key={i}>{err}</li>
                           ))}
@@ -2054,7 +2054,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               variant="ghost" 
               onClick={closeCsvImport}
               disabled={csvImporting}
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted"
               data-testid="button-cancel-csv-import"
             >
               {csvResult?.imported ? "Close" : "Cancel"}

@@ -105,7 +105,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f5f5f7] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
@@ -139,11 +139,11 @@ export default function AdminLogin() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Login Card */}
-        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-gray-200/60 shadow-xl overflow-hidden">
+        <div className="rounded-3xl bg-white/95 backdrop-blur-2xl border border-border shadow-xl overflow-hidden">
           <div className="p-8 space-y-8">
             {/* Logo & Header */}
             <motion.div variants={itemVariants} className="text-center space-y-4">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/60 border border-border">
                 <svg 
                   width="32" 
                   height="32" 
@@ -163,12 +163,12 @@ export default function AdminLogin() {
               </div>
               <div>
                 <h1 
-                  className="text-2xl font-semibold tracking-tight text-gray-900"
+                  className="text-2xl font-semibold tracking-tight text-foreground"
                   data-testid="text-login-title"
                 >
                   Welcome back
                 </h1>
-                <p className="text-gray-500 mt-1">
+                <p className="text-muted-foreground/80 mt-1">
                   Sign in to Blog Autopilot
                 </p>
               </div>
@@ -177,7 +177,7 @@ export default function AdminLogin() {
             {/* Login Form */}
             <motion.form variants={itemVariants} onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="username" className="text-sm font-medium text-muted-foreground/80">
                   Username
                 </Label>
                 <Input
@@ -187,12 +187,12 @@ export default function AdminLogin() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                  className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-600">
+                <Label htmlFor="password" className="text-sm font-medium text-muted-foreground/80">
                   Password
                 </Label>
                 <Input
@@ -203,7 +203,7 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className="h-12 text-base rounded-xl bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300 focus:ring-gray-200"
+                  className="h-12 text-base rounded-xl bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40 focus:ring-primary/20"
                 />
               </div>
 
@@ -231,9 +231,9 @@ export default function AdminLogin() {
           {/* Footer */}
           <motion.div 
             variants={itemVariants}
-            className="px-8 py-4 border-t border-gray-100 bg-gray-50/50"
+            className="px-8 py-4 border-t border-border bg-muted/30"
           >
-            <p className="text-center text-xs text-gray-400">
+            <p className="text-center text-xs text-muted-foreground/70">
               Blog Autopilot CMS
             </p>
           </motion.div>

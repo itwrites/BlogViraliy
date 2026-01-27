@@ -220,9 +220,9 @@ export default function UserManagement() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
-        <div className="rounded-2xl bg-white border border-gray-200/60 shadow-sm p-6">
-          <p className="text-center text-gray-500">
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="rounded-2xl bg-white border border-border shadow-sm p-6">
+          <p className="text-center text-muted-foreground/80">
             You don't have permission to access this page.
           </p>
           <Button 
@@ -237,7 +237,7 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
@@ -256,7 +256,7 @@ export default function UserManagement() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-xl"
+          className="sticky top-0 z-50 border-b border-border bg-sidebar backdrop-blur-xl"
         >
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -264,18 +264,18 @@ export default function UserManagement() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLocation("/admin/dashboard")}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-muted-foreground/80 hover:text-foreground hover:bg-muted"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-gray-700" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-muted/70 to-muted/30 border border-border flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold tracking-tight text-gray-900" data-testid="text-page-title">User Management</h1>
-                  <p className="text-xs text-gray-500">Manage users and permissions</p>
+                  <h1 className="text-lg font-semibold tracking-tight text-foreground" data-testid="text-page-title">User Management</h1>
+                  <p className="text-xs text-muted-foreground/80">Manage users and permissions</p>
                 </div>
               </div>
             </div>
@@ -291,13 +291,13 @@ export default function UserManagement() {
         </motion.header>
 
         <main className="max-w-7xl mx-auto px-6 py-8">
-          <div className="rounded-2xl bg-white border border-gray-200/60 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
+          <div className="rounded-2xl bg-white border border-border shadow-sm">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Users</h2>
+                <Users className="h-5 w-5 text-muted-foreground/80" />
+                <h2 className="text-lg font-semibold text-foreground">Users</h2>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground/80 mt-1">
                 All registered admin and editor users
               </p>
             </div>
@@ -305,38 +305,38 @@ export default function UserManagement() {
               {usersLoading ? (
                 <div className="space-y-2">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                    <div key={i} className="h-12 bg-muted rounded-xl animate-pulse" />
                   ))}
                 </div>
               ) : users && users.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Username</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Email</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Role</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground/80">Username</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground/80">Email</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground/80">Role</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground/80">Status</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground/80">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((user) => (
-                        <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-testid={`row-user-${user.id}`}>
+                        <tr key={user.id} className="border-b border-border hover:bg-muted/40 transition-colors" data-testid={`row-user-${user.id}`}>
                           <td className="py-4 px-4" data-testid={`text-username-${user.id}`}>
-                            <span className="font-medium text-gray-900">{user.username}</span>
+                            <span className="font-medium text-foreground">{user.username}</span>
                             {user.id === currentUser?.id && (
-                              <Badge className="ml-2 bg-gray-100 text-gray-600 border border-gray-200">You</Badge>
+                              <Badge className="ml-2 bg-muted text-muted-foreground/80 border border-border">You</Badge>
                             )}
                           </td>
                           <td className="py-4 px-4" data-testid={`text-email-${user.id}`}>
-                            <span className="text-gray-600">{user.email || <span className="text-gray-400">-</span>}</span>
+                            <span className="text-muted-foreground/80">{user.email || <span className="text-muted-foreground/70">-</span>}</span>
                           </td>
                           <td className="py-4 px-4">
                             <Badge 
                               className={user.role === "admin" 
                                 ? "bg-violet-50 text-violet-700 border border-violet-200" 
-                                : "bg-blue-50 text-blue-700 border border-blue-200"
+                                : "bg-primary/10 text-primary border border-primary/20"
                               }
                               data-testid={`badge-role-${user.id}`}
                             >
@@ -347,7 +347,7 @@ export default function UserManagement() {
                             <Badge 
                               className={user.status === "active"
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-gray-100 text-gray-600 border border-gray-200"
+                                : "bg-muted text-muted-foreground/80 border border-border"
                               }
                               data-testid={`badge-status-${user.id}`}
                             >
@@ -361,7 +361,7 @@ export default function UserManagement() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => openSitesDialog(user)}
-                                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                  className="text-muted-foreground/80 hover:text-foreground hover:bg-muted"
                                   data-testid={`button-sites-${user.id}`}
                                 >
                                   <Globe className="h-4 w-4 mr-1" />
@@ -372,7 +372,7 @@ export default function UserManagement() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => openEditDialog(user)}
-                                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                className="text-muted-foreground/80 hover:text-foreground hover:bg-muted"
                                 data-testid={`button-edit-${user.id}`}
                               >
                                 <Edit className="h-4 w-4" />
@@ -401,7 +401,7 @@ export default function UserManagement() {
               ) : (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No users found</p>
+                  <p className="text-muted-foreground/80">No users found</p>
                 </div>
               )}
             </div>
@@ -410,62 +410,62 @@ export default function UserManagement() {
       </div>
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-gray-900" data-testid="text-create-dialog-title">Create New User</DialogTitle>
-            <DialogDescription className="text-gray-500">Add a new admin or editor user</DialogDescription>
+            <DialogTitle className="text-foreground" data-testid="text-create-dialog-title">Create New User</DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">Add a new admin or editor user</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-600">Username</Label>
+              <Label htmlFor="username" className="text-muted-foreground/80">Username</Label>
               <Input
                 id="username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-create-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-600">Email (optional)</Label>
+              <Label htmlFor="email" className="text-muted-foreground/80">Email (optional)</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-create-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-600">Password</Label>
+              <Label htmlFor="password" className="text-muted-foreground/80">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-create-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role" className="text-gray-600">Role</Label>
+              <Label htmlFor="role" className="text-muted-foreground/80">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-create-role">
+                <SelectTrigger className="bg-white border-border text-foreground" data-testid="select-create-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200">
-                  <SelectItem value="editor" className="text-gray-900 focus:bg-gray-100">Editor</SelectItem>
-                  <SelectItem value="admin" className="text-gray-900 focus:bg-gray-100">Admin</SelectItem>
+                <SelectContent className="bg-white border-border">
+                  <SelectItem value="editor" className="text-foreground focus:bg-muted">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-foreground focus:bg-muted">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowCreateDialog(false)} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+            <Button variant="ghost" onClick={() => setShowCreateDialog(false)} className="text-muted-foreground hover:text-foreground hover:bg-muted">
               Cancel
             </Button>
             <Button
@@ -480,78 +480,78 @@ export default function UserManagement() {
       </Dialog>
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-gray-900" data-testid="text-edit-dialog-title">Edit User</DialogTitle>
-            <DialogDescription className="text-gray-500">Update user details</DialogDescription>
+            <DialogTitle className="text-foreground" data-testid="text-edit-dialog-title">Edit User</DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">Update user details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-username" className="text-gray-600">Username</Label>
+              <Label htmlFor="edit-username" className="text-muted-foreground/80">Username</Label>
               <Input
                 id="edit-username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-edit-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email" className="text-gray-600">Email (optional)</Label>
+              <Label htmlFor="edit-email" className="text-muted-foreground/80">Email (optional)</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-edit-email"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password" className="text-gray-600">New Password (leave blank to keep current)</Label>
+              <Label htmlFor="edit-password" className="text-muted-foreground/80">New Password (leave blank to keep current)</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-gray-300"
+                className="bg-white border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary/40"
                 data-testid="input-edit-password"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role" className="text-gray-600">Role</Label>
+              <Label htmlFor="edit-role" className="text-muted-foreground/80">Role</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value: "admin" | "editor") => setFormData({ ...formData, role: value })}
               >
-                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-edit-role">
+                <SelectTrigger className="bg-white border-border text-foreground" data-testid="select-edit-role">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200">
-                  <SelectItem value="editor" className="text-gray-900 focus:bg-gray-100">Editor</SelectItem>
-                  <SelectItem value="admin" className="text-gray-900 focus:bg-gray-100">Admin</SelectItem>
+                <SelectContent className="bg-white border-border">
+                  <SelectItem value="editor" className="text-foreground focus:bg-muted">Editor</SelectItem>
+                  <SelectItem value="admin" className="text-foreground focus:bg-muted">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-status" className="text-gray-600">Status</Label>
+              <Label htmlFor="edit-status" className="text-muted-foreground/80">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value })}
               >
-                <SelectTrigger className="bg-white border-gray-200 text-gray-900" data-testid="select-edit-status">
+                <SelectTrigger className="bg-white border-border text-foreground" data-testid="select-edit-status">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-gray-200">
-                  <SelectItem value="active" className="text-gray-900 focus:bg-gray-100">Active</SelectItem>
-                  <SelectItem value="inactive" className="text-gray-900 focus:bg-gray-100">Inactive</SelectItem>
-                  <SelectItem value="pending" className="text-gray-900 focus:bg-gray-100">Pending</SelectItem>
+                <SelectContent className="bg-white border-border">
+                  <SelectItem value="active" className="text-foreground focus:bg-muted">Active</SelectItem>
+                  <SelectItem value="inactive" className="text-foreground focus:bg-muted">Inactive</SelectItem>
+                  <SelectItem value="pending" className="text-foreground focus:bg-muted">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+            <Button variant="ghost" onClick={() => setShowEditDialog(false)} className="text-muted-foreground hover:text-foreground hover:bg-muted">
               Cancel
             </Button>
             <Button
@@ -579,16 +579,16 @@ export default function UserManagement() {
       </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200">
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">Delete User?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-500">
+            <AlertDialogTitle className="text-foreground">Delete User?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground/80">
               This action cannot be undone. This will permanently delete{" "}
-              <strong className="text-gray-900">{selectedUser?.username}</strong> and remove all their site assignments.
+              <strong className="text-foreground">{selectedUser?.username}</strong> and remove all their site assignments.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-100 border-gray-200 text-gray-700 hover:bg-gray-200">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-border text-foreground hover:bg-muted/70">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedUser && deleteUserMutation.mutate(selectedUser.id)}
               className="bg-red-500 text-white hover:bg-red-600"
@@ -600,24 +600,24 @@ export default function UserManagement() {
       </AlertDialog>
 
       <Dialog open={showSitesDialog} onOpenChange={setShowSitesDialog}>
-        <DialogContent className="bg-white/95 backdrop-blur-xl border border-gray-200 text-gray-900 max-w-2xl">
+        <DialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-gray-900">Manage Sites for {selectedUser?.username}</DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogTitle className="text-foreground">Manage Sites for {selectedUser?.username}</DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">
               Assign sites and set permissions for this user
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto">
             {userSites && userSites.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-900">Assigned Sites</h4>
+                <h4 className="text-sm font-medium text-foreground">Assigned Sites</h4>
                 {userSites.map((userSite) => {
                   const site = sites?.find(s => s.id === userSite.siteId);
                   return (
-                    <div key={userSite.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
+                    <div key={userSite.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border">
                       <div className="flex items-center gap-3">
-                        <Globe className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium text-gray-900">{site?.title || "Unknown Site"}</span>
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">{site?.title || "Unknown Site"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Select
@@ -630,14 +630,14 @@ export default function UserManagement() {
                             })
                           }
                         >
-                          <SelectTrigger className="w-32 h-8 bg-white border-gray-200 text-gray-900">
+                          <SelectTrigger className="w-32 h-8 bg-white border-border text-foreground">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-white border-gray-200">
-                            <SelectItem value="view" className="text-gray-900">View Only</SelectItem>
-                            <SelectItem value="posts_only" className="text-gray-900">Articles Only</SelectItem>
-                            <SelectItem value="edit" className="text-gray-900">Editor</SelectItem>
-                            <SelectItem value="manage" className="text-gray-900">Manager</SelectItem>
+                          <SelectContent className="bg-white border-border">
+                            <SelectItem value="view" className="text-foreground">View Only</SelectItem>
+                            <SelectItem value="posts_only" className="text-foreground">Articles Only</SelectItem>
+                            <SelectItem value="edit" className="text-foreground">Editor</SelectItem>
+                            <SelectItem value="manage" className="text-foreground">Manager</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -662,12 +662,12 @@ export default function UserManagement() {
 
             {availableSites.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-900">Available Sites</h4>
+                <h4 className="text-sm font-medium text-foreground">Available Sites</h4>
                 {availableSites.map((site) => (
-                  <div key={site.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                  <div key={site.id} className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/40 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Globe className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-700">{site.title}</span>
+                      <Globe className="h-4 w-4 text-muted-foreground/70" />
+                      <span className="text-foreground">{site.title}</span>
                     </div>
                     <Button
                       size="sm"
@@ -679,7 +679,7 @@ export default function UserManagement() {
                           permission: "view",
                         })
                       }
-                      className="border-gray-200 text-gray-700 hover:bg-gray-100"
+                      className="border-border text-foreground hover:bg-muted"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Assign
@@ -690,7 +690,7 @@ export default function UserManagement() {
             )}
 
             {!userSites?.length && !availableSites.length && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground/80">
                 No sites available to assign
               </div>
             )}

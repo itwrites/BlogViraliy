@@ -227,7 +227,7 @@ export function PostsManager({ siteId }: PostsManagerProps) {
       </Card>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <DialogHeader>
             <DialogTitle>{currentPost ? "Edit Article" : "Create New Article"}</DialogTitle>
             <DialogDescription>
@@ -365,7 +365,7 @@ export function PostsManager({ siteId }: PostsManagerProps) {
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Article</AlertDialogTitle>
             <AlertDialogDescription>

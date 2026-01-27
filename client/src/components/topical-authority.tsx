@@ -71,9 +71,9 @@ interface TopicalAuthorityProps {
 }
 
 const statusColors: Record<string, string> = {
-  draft: "bg-gray-500",
-  mapping: "bg-blue-500",
-  mapped: "bg-purple-500",
+  draft: "bg-muted-foreground/60",
+  mapping: "bg-primary/70",
+  mapped: "bg-primary",
   generating: "bg-yellow-500",
   completed: "bg-green-500",
   paused: "bg-orange-500",
@@ -82,7 +82,7 @@ const statusColors: Record<string, string> = {
 
 const articleStatusIcons: Record<string, JSX.Element> = {
   pending: <Clock className="h-3 w-3 text-muted-foreground" />,
-  generating: <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />,
+  generating: <Loader2 className="h-3 w-3 text-primary animate-spin" />,
   completed: <CheckCircle className="h-3 w-3 text-green-500" />,
   failed: <XCircle className="h-3 w-3 text-red-500" />,
   skipped: <XCircle className="h-3 w-3 text-muted-foreground" />,
@@ -321,7 +321,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
       label: "Assets in queue",
       value: formatCount(totalPending),
       tone: "text-muted-foreground",
-      dot: "bg-blue-500",
+      dot: "bg-primary",
     } : null,
     totalFailed > 0 || hasIssues ? {
       label: "Attention needed",
@@ -353,7 +353,7 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
               New Authority Topic
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-border text-foreground">
             <DialogHeader>
               <DialogTitle>Create Authority Topic</DialogTitle>
               <DialogDescription>
@@ -552,8 +552,8 @@ export function TopicalAuthority({ siteId, onPaywallRequired }: TopicalAuthority
               <Card>
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Play className="h-4 w-4 text-blue-500" />
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Play className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-[11px] uppercase tracking-wide text-muted-foreground/80">In Automation</p>
