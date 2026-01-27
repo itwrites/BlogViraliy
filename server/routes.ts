@@ -3506,10 +3506,24 @@ Sitemap: ${sitemapUrl}
       }
 
       // Validate URL format
+      let parsedUrl: URL;
       try {
-        new URL(url);
+        parsedUrl = new URL(url);
       } catch {
         return res.status(400).json({ error: "Invalid URL format" });
+      }
+
+      // Extract domain from URL and check if blog subdomain is already in use
+      const siteId = req.params.id;
+      const hostname = parsedUrl.hostname.toLowerCase().replace(/^www\./, "");
+      const blogSubdomain = `blog.${hostname}`;
+      const existingSiteWithDomain = await storage.getSiteByDomain(blogSubdomain);
+      if (existingSiteWithDomain && existingSiteWithDomain.id !== siteId) {
+        return res.status(400).json({ 
+          error: "Domain already in use",
+          code: "DOMAIN_EXISTS",
+          message: `The domain "${blogSubdomain}" is already registered to another site. Please use a different website URL or enter your details manually.`
+        });
       }
 
       // Check if Firecrawl API key is configured
@@ -3549,10 +3563,8 @@ Sitemap: ${sitemapUrl}
       const fallbackFavicon = normalizeFaviconUrl("/favicon.ico", url);
       const favicon = faviconFromMetadata || faviconFromHtml || fallbackFavicon;
       
-      // Extract domain from URL and suggest blog subdomain
-      const parsedUrl = new URL(url);
-      const hostname = parsedUrl.hostname.replace(/^www\./, ""); // Remove www. prefix
-      const suggestedDomain = `blog.${hostname}`;
+      // Use the already-extracted hostname to create blog subdomain for response
+      const blogDomain = `blog.${hostname}`;
 
       console.log(`[Onboarding] Scraped content length: ${scrapedContent.length} chars`);
       console.log(`[Onboarding] Page title: ${pageTitle}`);
@@ -3624,7 +3636,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
 
       console.log(`[Onboarding] Successfully analyzed website: ${url}`);
       console.log(`[Onboarding] Parsed result:`, JSON.stringify(analysisResult, null, 2));
-      console.log(`[Onboarding] Suggested domain: ${suggestedDomain}`);
+      console.log(`[Onboarding] Suggested domain: ${blogDomain}`);
       console.log(`[Onboarding] Favicon: ${favicon}`);
       res.json({
         businessDescription: pick(analysisResult.businessDescription, fallback.businessDescription),
@@ -3636,7 +3648,7 @@ Remember: Provide your best inference for EVERY field - do not leave any empty.`
         suggestedTitle: pick(analysisResult.suggestedTitle, fallback.suggestedTitle),
         suggestedMetaDescription: pick(analysisResult.suggestedMetaDescription, fallback.suggestedMetaDescription),
         favicon,
-        suggestedDomain,
+        suggestedDomain: blogDomain,
       });
     } catch (error) {
       console.error("[Onboarding] Error scraping website:", error);

@@ -91,8 +91,17 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
 
   const scrapeMutation = useMutation({
     mutationFn: async (url: string) => {
-      const response = await apiRequest("POST", `/api/sites/${siteId}/onboarding/scrape`, { url });
+      const response = await fetch(`/bv_api/sites/${siteId}/onboarding/scrape`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+        credentials: "include",
+      });
       const data = await response.json();
+      if (!response.ok) {
+        // Throw with the server's message for better error display
+        throw new Error(data.message || data.error || "Failed to analyze website");
+      }
       console.log("[Onboarding] Scrape response:", data);
       return data;
     },
