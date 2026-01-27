@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SiteEmblem } from "@/components/site-emblem";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useSiteContext } from "@/components/base-path-provider";
 import {
@@ -21,6 +27,8 @@ import {
   ExternalLink,
   LogOut,
   ChevronRight,
+  Settings,
+  Globe,
 } from "lucide-react";
 import type { Site, Post } from "@shared/schema";
 import {
@@ -272,15 +280,6 @@ export default function EditorAnalytics() {
           </div>
 
           <div className="p-4 border-t space-y-3">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-background/60">
-              <SiteEmblem title={site?.title} favicon={site?.favicon} />
-              <div className="flex-1 min-w-0">
-                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
-                  {site?.title || "Loading..."}
-                </h1>
-                <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
-              </div>
-            </div>
             {!hasSiteContext && (
               <Button
                 variant="ghost"
@@ -292,26 +291,51 @@ export default function EditorAnalytics() {
                 Back to Sites
               </Button>
             )}
-            {site && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3"
-                onClick={() => window.open(`https://${site.domain}`, "_blank")}
-                data-testid="button-view-site"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View Live Site
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4" />
-              Log Out
-            </Button>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-background/60">
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                  {site?.title || "Loading..."}
+                </h1>
+                <p className="text-xs text-muted-foreground truncate">{site?.domain}</p>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                    data-testid="button-site-settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
+                    data-testid="menu-blog-settings"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Blog Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setLocation("/admin")}
+                    data-testid="menu-plan-center"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Plan Center
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="text-destructive focus:text-destructive"
+                    data-testid="menu-logout"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </motion.aside>
 

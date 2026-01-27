@@ -14,7 +14,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2, Wrench, ImageIcon, Replace, Wand2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Plus, X, Save, Palette, Search, Type, Layout, Globe, Settings, Menu, ExternalLink, GripVertical, Trash2, Link, Check, ChevronsUpDown, Rss, Sparkles, FileText, BookOpen, Users, Key, Copy, Eye, EyeOff, RefreshCw, AlertTriangle, Building2, Wrench, ImageIcon, Replace, Wand2, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1011,7 +1017,12 @@ export default function SiteConfig() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { isOwner, isLoading: authLoading } = useAuth();
+  const { isOwner, isLoading: authLoading, logout } = useAuth();
+  
+  const handleLogout = async () => {
+    await logout();
+    setLocation("/");
+  };
   const isNewSite = id === "new";
   
 
@@ -1540,18 +1551,8 @@ export default function SiteConfig() {
             ))}
           </div>
 
-          {/* Site Info and Save Button at Bottom */}
+          {/* Save Button and Site Info at Bottom */}
           <div className="p-4 border-t border-border bg-muted/30 space-y-3">
-            {!isNewSite && (
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
-                    {site?.title || "Loading..."}
-                  </h1>
-                  <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
-                </div>
-              </div>
-            )}
             <Button 
               onClick={handleSave} 
               size="lg"
@@ -1561,6 +1562,61 @@ export default function SiteConfig() {
               <Save className="h-4 w-4" />
               Save Changes
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/admin")}
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Sites
+            </Button>
+            {!isNewSite && (
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                    {site?.title || "Loading..."}
+                  </h1>
+                  <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                      data-testid="button-site-settings"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={() => setLocation(`/admin/sites/${id}/posts`)}
+                      data-testid="menu-articles"
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Articles
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setLocation("/admin")}
+                      data-testid="menu-plan-center"
+                    >
+                      <Globe className="w-4 h-4 mr-2" />
+                      Plan Center
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      className="text-destructive focus:text-destructive"
+                      data-testid="menu-logout"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
           </div>
         </motion.aside>
 

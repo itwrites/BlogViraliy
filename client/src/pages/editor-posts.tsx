@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useSiteContext } from "@/components/base-path-provider";
@@ -780,66 +786,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </div>
             </div>
 
-            {activeTab === "posts" && (
-              <div className="pt-4">
-                <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider px-3 mb-3">
-                  Filter by Source
-                </p>
-                <div className="space-y-1">
-                  {[
-                    { value: "all", label: "All Articles", icon: LayoutGrid, count: stats.total },
-                    { value: "manual", label: "Manual", icon: PenLine, count: stats.manual },
-                    { value: "ai", label: "AI Generated", icon: Bot, count: stats.ai },
-                    { value: "rss", label: "RSS Imports", icon: Rss, count: stats.rss },
-                  ].map((item) => (
-                    <button
-                      key={item.value}
-                      onClick={() => {
-                        setSourceFilter(item.value as SourceFilter);
-                        setCurrentPage(1);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                        sourceFilter === item.value
-                          ? "bg-primary/10 text-primary shadow-sm"
-                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                      }`}
-                      data-testid={`filter-${item.value}`}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      <span className="flex-1 text-left">{item.label}</span>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        sourceFilter === item.value
-                          ? "bg-primary/15 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}>
-                        {item.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="p-4 border-t border-border space-y-3 bg-muted/30">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
-              <SiteEmblem title={site?.title} favicon={site?.favicon} />
-              <div className="flex-1 min-w-0">
-                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
-                  {site?.title || "Loading..."}
-                </h1>
-                <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                data-testid="button-site-settings"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
             {!hasSiteContext && (
               <Button
                 variant="ghost"
@@ -852,24 +801,49 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </Button>
             )}
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </span>
-              </div>
+              <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-foreground">{user?.username}</p>
-                <p className="text-xs text-muted-foreground/80 capitalize">{user?.role}</p>
+                <h1 className="text-sm font-semibold truncate text-foreground" data-testid="text-site-title">
+                  {site?.title || "Loading..."}
+                </h1>
+                <p className="text-xs text-muted-foreground/80 truncate">{site?.domain}</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted"
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                    data-testid="button-site-settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => setLocation(`/admin/sites/${siteId}/settings`)}
+                    data-testid="menu-blog-settings"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Blog Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setLocation("/admin")}
+                    data-testid="menu-plan-center"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Plan Center
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="text-destructive focus:text-destructive"
+                    data-testid="menu-logout"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </motion.aside>
