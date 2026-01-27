@@ -109,7 +109,7 @@ export default function AdminLogin() {
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-600/25 via-indigo-500/20 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [0, 360],
             scale: [1, 1.1, 1],
@@ -120,7 +120,7 @@ export default function AdminLogin() {
           }}
         />
         <motion.div 
-          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-purple-400/20 via-pink-400/20 to-transparent rounded-full blur-3xl"
+          className="absolute -bottom-1/3 -left-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-600/20 via-blue-400/15 to-transparent rounded-full blur-3xl"
           animate={{ 
             rotate: [360, 0],
             scale: [1, 1.15, 1],
@@ -130,7 +130,7 @@ export default function AdminLogin() {
             scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/15 to-pink-500/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-indigo-500/15 to-slate-400/10" />
       </div>
 
       <motion.div

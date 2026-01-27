@@ -715,7 +715,25 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl [&>button]:hidden"
-        overlayClassName="relative bg-zinc-900 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-purple-500/30 before:via-blue-500/20 before:to-pink-500/30"
+        overlayClassName="relative bg-zinc-900 overflow-hidden"
+        overlayChildren={
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-indigo-500/25 to-slate-500/15"
+            animate={{
+              background: [
+                "linear-gradient(135deg, rgba(37,99,235,0.3) 0%, rgba(99,102,241,0.25) 50%, rgba(100,116,139,0.15) 100%)",
+                "linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(37,99,235,0.25) 50%, rgba(148,163,184,0.15) 100%)",
+                "linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(79,70,229,0.25) 50%, rgba(100,116,139,0.15) 100%)",
+                "linear-gradient(135deg, rgba(37,99,235,0.3) 0%, rgba(99,102,241,0.25) 50%, rgba(100,116,139,0.15) 100%)",
+              ],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        }
       >
         <VisuallyHidden>
           <DialogTitle>Site Onboarding</DialogTitle>
