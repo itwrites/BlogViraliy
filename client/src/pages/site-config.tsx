@@ -1704,6 +1704,7 @@ export default function SiteConfig() {
           onOpenChange={() => {}}
           siteId={id}
           siteName={site.title}
+          onComplete={() => setLocation(`/admin/sites/${id}/articles`)}
         />
       )}
 
