@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -88,6 +88,77 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     favicon: "",
     suggestedDomain: "",
   });
+  const [isGeneratingArticles, setIsGeneratingArticles] = useState(false);
+  const [articleCount, setArticleCount] = useState(0);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingStartTimeRef = useRef<number | null>(null);
+
+  const pollForArticles = useCallback(async () => {
+    const MAX_POLLING_TIME = 5 * 60 * 1000; // 5 minutes max
+    const EXPECTED_ARTICLES = 4;
+
+    try {
+      const response = await fetch(`/bv_api/editor/sites/${siteId}/posts`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const posts = await response.json();
+        const count = Array.isArray(posts) ? posts.length : 0;
+        setArticleCount(count);
+        
+        if (count >= EXPECTED_ARTICLES) {
+          // All articles generated
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          setIsGeneratingArticles(false);
+          queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+          toast({
+            title: "You're all set!",
+            description: `Your site is ready with ${count} starter articles.`,
+          });
+          onOpenChange(false);
+          if (onComplete) {
+            onComplete();
+          }
+          return;
+        }
+
+        // Check timeout
+        if (pollingStartTimeRef.current && Date.now() - pollingStartTimeRef.current > MAX_POLLING_TIME) {
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+          }
+          setIsGeneratingArticles(false);
+          queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
+          queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+          toast({
+            title: "Setup complete",
+            description: `Your site is ready. ${count} articles were generated.`,
+          });
+          onOpenChange(false);
+          if (onComplete) {
+            onComplete();
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[Onboarding] Error polling for articles:", error);
+    }
+  }, [siteId, toast, onOpenChange, onComplete]);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   const scrapeMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -147,16 +218,15 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sites", siteId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sites"] });
-      toast({
-        title: "You're all set!",
-        description: "Your site is configured and ready to create amazing content.",
-      });
-      onOpenChange(false);
-      if (onComplete) {
-        onComplete();
-      }
+      // Start polling for articles instead of immediately closing
+      setIsGeneratingArticles(true);
+      setArticleCount(0);
+      pollingStartTimeRef.current = Date.now();
+      
+      // Start polling every 3 seconds
+      pollingRef.current = setInterval(pollForArticles, 3000);
+      // Also poll immediately
+      pollForArticles();
     },
     onError: (error: Error) => {
       toast({
@@ -670,15 +740,20 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="pt-4">
+      <motion.div variants={itemVariants} className="pt-4 space-y-3">
         <Button 
           onClick={handleComplete} 
-          disabled={completeMutation.isPending}
+          disabled={completeMutation.isPending || isGeneratingArticles}
           size="lg"
           className="w-full h-14 rounded-xl text-base font-medium"
           data-testid="button-complete-onboarding"
         >
-          {completeMutation.isPending ? (
+          {isGeneratingArticles ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Generating articles... ({articleCount}/4)
+            </>
+          ) : completeMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Setting up...
@@ -690,6 +765,11 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
             </>
           )}
         </Button>
+        {isGeneratingArticles && (
+          <p className="text-sm text-center text-muted-foreground">
+            This could take a few minutes. Please don't close this window.
+          </p>
+        )}
       </motion.div>
     </motion.div>
   );
