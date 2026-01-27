@@ -715,7 +715,8 @@ export function OnboardingModal({ open, onOpenChange, siteId, siteName, onComple
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="max-w-3xl max-h-[85vh] p-0 gap-0 flex flex-col bg-background/95 backdrop-blur-xl border border-border/50 shadow-2xl [&>button]:hidden"
-        overlayClassName="relative bg-zinc-900 overflow-hidden"
+        overlayClassName="overflow-hidden"
+        overlayStyle={{ backgroundColor: '#18181b' }}
         overlayChildren={
           <motion.div
             className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-indigo-500/25 to-slate-500/15"

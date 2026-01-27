@@ -36,15 +36,16 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
   overlayClassName?: string;
+  overlayStyle?: React.CSSProperties;
   overlayChildren?: React.ReactNode;
 }
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, overlayClassName, overlayChildren, ...props }, ref) => (
+>(({ className, children, overlayClassName, overlayStyle, overlayChildren, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay className={overlayClassName} useCustomBg={!!overlayClassName} />
+    <DialogOverlay className={overlayClassName} style={overlayStyle} useCustomBg={!!(overlayClassName || overlayStyle)} />
     {overlayChildren && (
       <div className="fixed inset-0 z-50 pointer-events-none">
         {overlayChildren}
