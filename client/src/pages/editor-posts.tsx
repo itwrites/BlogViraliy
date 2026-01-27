@@ -215,6 +215,8 @@ export default function EditorPosts() {
     errors: string[];
     totalErrors: number;
   } | null>(null);
+  const [publishNowDialogOpen, setPublishNowDialogOpen] = useState(false);
+  const [postToPublish, setPostToPublish] = useState<Post | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -492,6 +494,28 @@ export default function EditorPosts() {
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete article", variant: "destructive" });
     }
+  };
+
+  const handlePublishNow = async () => {
+    if (!postToPublish) return;
+
+    try {
+      await apiRequest("PUT", `/api/editor/posts/${postToPublish.id}`, {
+        status: "published",
+        scheduledPublishDate: null,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+      toast({ title: "Published", description: "Article published successfully" });
+      setPublishNowDialogOpen(false);
+      setPostToPublish(null);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to publish article", variant: "destructive" });
+    }
+  };
+
+  const openPublishNowDialog = (post: Post) => {
+    setPostToPublish(post);
+    setPublishNowDialogOpen(true);
   };
 
   const togglePostSelection = (postId: string) => {
@@ -1125,6 +1149,21 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                                 </div>
                                 {!bulkMode && !post.isLocked && (
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    {post.status === "draft" && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openPublishNowDialog(post);
+                                        }}
+                                        className="text-muted-foreground hover:text-primary"
+                                        data-testid={`button-publish-${post.id}`}
+                                        title="Publish now"
+                                      >
+                                        <Globe className="w-4 h-4" />
+                                      </Button>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -1923,6 +1962,31 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               data-testid="button-confirm-bulk-delete"
             >
               Delete {selectedPosts.size} Article{selectedPosts.size > 1 ? "s" : ""}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={publishNowDialogOpen} onOpenChange={setPublishNowDialogOpen}>
+        <AlertDialogContent className="bg-white/95 backdrop-blur-xl border border-border text-foreground">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Publish Now?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground/80">
+              Our system schedules articles strategically to maximize SEO impact. Publishing immediately may reduce search engine visibility.
+              <br /><br />
+              Are you sure you want to publish "{postToPublish?.title}" now?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border text-foreground hover:bg-muted/70" data-testid="button-cancel-publish">
+              Keep Schedule
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handlePublishNow} 
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              data-testid="button-confirm-publish"
+            >
+              Publish Now
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

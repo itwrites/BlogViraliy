@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { storage } from "./storage";
 import { searchPexelsImage } from "./pexels";
 import { buildLanguageDirective, getLanguageForPrompt } from "./language-utils";
-import { generateInitialPillars } from "./monthly-content-engine";
+import { generateInitialPillars, calculatePublishSchedule } from "./monthly-content-engine";
 import type { Site, Pillar } from "@shared/schema";
 
 let openai: OpenAI | null = null;
@@ -299,6 +299,9 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     const defaultAuthor = await storage.getDefaultAuthor(siteId);
     const createdPosts: string[] = [];
     const articleTitles = plan.articles.map(a => a.title);
+    
+    // Calculate scheduled publish dates for new articles (spread over 2 weeks for initial content)
+    const publishDates = calculatePublishSchedule(articlesToCreate, new Date());
 
     const pillarCounts: Record<string, number> = {};
     
@@ -351,6 +354,7 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           status: "draft",
           isLocked,
           pillarId,
+          scheduledPublishDate: publishDates[articlesCreatedCount],
         });
 
         createdPosts.push(post.id);
@@ -377,6 +381,17 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     });
 
     console.log(`[Initial Articles] Completed for site ${siteId}. Created ${createdPillars.length} pillars and ${createdPosts.length} articles.`);
+
+    // Clean up duplicate images after generating all articles
+    try {
+      const { cleanDuplicateImagesForSite } = await import("./duplicate-image-cleaner");
+      const cleanupResult = await cleanDuplicateImagesForSite(siteId);
+      if (cleanupResult.updated > 0) {
+        console.log(`[Initial Articles] Cleaned up ${cleanupResult.updated} duplicate images for site ${siteId}`);
+      }
+    } catch (cleanupError) {
+      console.error(`[Initial Articles] Failed to clean duplicate images:`, cleanupError);
+    }
 
     // Release lock
     generationLocks.delete(siteId);

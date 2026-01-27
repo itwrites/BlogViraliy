@@ -276,7 +276,7 @@ export async function generateArticleContent(
   };
 }
 
-function calculatePublishSchedule(
+export function calculatePublishSchedule(
   articleCount: number,
   startDate: Date = new Date()
 ): Date[] {
@@ -566,6 +566,17 @@ export async function generateMonthlyContentForSite(
     }
 
     console.log(`[Monthly Content] Completed for site ${siteId}. Created ${createdCount}/${limitedPlans.length} articles across ${pillars.length} pillars.`);
+
+    // Clean up duplicate images after generating all articles
+    try {
+      const { cleanDuplicateImagesForSite } = await import("./duplicate-image-cleaner");
+      const cleanupResult = await cleanDuplicateImagesForSite(siteId);
+      if (cleanupResult.updated > 0) {
+        console.log(`[Monthly Content] Cleaned up ${cleanupResult.updated} duplicate images for site ${siteId}`);
+      }
+    } catch (cleanupError) {
+      console.error(`[Monthly Content] Failed to clean duplicate images:`, cleanupError);
+    }
 
     return {
       success: true,
