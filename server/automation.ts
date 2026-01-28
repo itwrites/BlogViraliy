@@ -5,6 +5,7 @@ import { generateAIPost, rewriteArticle, generateFromPrompt, type BusinessContex
 import { processNextPillarArticle } from "./topical-authority";
 import { buildRoleSpecificPrompt, detectRoleFromKeyword } from "./role-prompts";
 import { publishScheduledPosts } from "./scheduled-publisher";
+import { triggerMonthlyContentGeneration } from "./monthly-content-engine";
 import type { Site, ArticleRole } from "@shared/schema";
 
 const parser = new Parser();
@@ -516,6 +517,83 @@ async function processPillarGeneration() {
   }
 }
 
+// Catch-up generation for paid users who have no autopilot articles
+// Uses atomic claim to prevent double generation
+let isCatchupRunning = false;
+
+async function processCatchupGeneration() {
+  if (isCatchupRunning) {
+    return;
+  }
+  
+  isCatchupRunning = true;
+  
+  try {
+    // Find paid users who might need generation
+    const paidUsers = await storage.getPaidUsersNeedingGeneration();
+    
+    for (const user of paidUsers) {
+      try {
+        // Check if user has any onboarded sites
+        const sites = await storage.getSitesByOwnerId(user.id);
+        const onboardedSites = sites.filter(s => s.isOnboarded && s.businessDescription);
+        
+        if (onboardedSites.length === 0) {
+          continue; // No onboarded sites yet
+        }
+        
+        // Check if user has any autopilot articles
+        const autopilotCount = await storage.getAutopilotArticleCountForUser(user.id);
+        
+        if (autopilotCount > 0) {
+          // User has autopilot articles, mark generation as done
+          await storage.completeFirstPaymentGeneration(user.id);
+          console.log(`[Catchup] User ${user.id}: Has ${autopilotCount} autopilot articles, marked as done`);
+          continue;
+        }
+        
+        // Multi-site users need allocation set before generation
+        if (onboardedSites.length > 1) {
+          const allocation = await storage.getArticleAllocation(user.id);
+          if (!allocation) {
+            console.log(`[Catchup] User ${user.id}: Multi-site user needs allocation first, skipping`);
+            continue;
+          }
+        }
+        
+        // Try to claim generation (atomic)
+        const claimResult = await storage.claimFirstPaymentGeneration(user.id);
+        
+        if (!claimResult.claimed) {
+          console.log(`[Catchup] User ${user.id}: Could not claim - ${claimResult.reason}`);
+          continue;
+        }
+        
+        console.log(`[Catchup] User ${user.id}: Triggering content generation...`);
+        
+        const result = await triggerMonthlyContentGeneration(user.id);
+        
+        if (result.success && result.totalArticles > 0) {
+          await storage.completeFirstPaymentGeneration(user.id);
+          console.log(`[Catchup] User ${user.id}: Generated ${result.totalArticles} articles`);
+        } else {
+          await storage.clearFirstPaymentGenerationStarted(user.id);
+          console.log(`[Catchup] User ${user.id}: Generation failed or no articles, cleared for retry`);
+        }
+        
+      } catch (userError) {
+        console.error(`[Catchup] Error processing user ${user.id}:`, userError);
+        // Clear started flag on error to allow retry
+        await storage.clearFirstPaymentGenerationStarted(user.id);
+      }
+    }
+  } catch (error) {
+    console.error("[Catchup] Error in catch-up generation:", error);
+  } finally {
+    isCatchupRunning = false;
+  }
+}
+
 export function startAutomationSchedulers() {
   // AI Content Generation - runs multiple times per day based on site configs
   cron.schedule("0 */8 * * *", processAIAutomation);
@@ -531,6 +609,9 @@ export function startAutomationSchedulers() {
 
   // Scheduled Publishing - runs every minute to publish posts with past scheduled dates
   cron.schedule("* * * * *", publishScheduledPosts);
+  
+  // Catch-up generation - runs every 2 minutes to find paid users missing autopilot articles
+  cron.schedule("*/2 * * * *", processCatchupGeneration);
 
   console.log("[Automation] Schedulers started");
 }

@@ -67,6 +67,10 @@ export interface IStorage {
   claimFirstPaymentGeneration(userId: string): Promise<{ claimed: boolean; reason?: string }>;
   completeFirstPaymentGeneration(userId: string): Promise<void>;
   clearFirstPaymentGenerationStarted(userId: string): Promise<void>;
+  setArticleAllocation(userId: string, allocation: Record<string, number>): Promise<void>;
+  getArticleAllocation(userId: string): Promise<Record<string, number> | null>;
+  getPaidUsersNeedingGeneration(): Promise<User[]>;
+  getAutopilotArticleCountForUser(userId: string): Promise<number>;
   deleteUser(id: string): Promise<void>;
 
   // User-Site permissions
@@ -309,6 +313,41 @@ export class DatabaseStorage implements IStorage {
   async getArticleAllocation(userId: string): Promise<Record<string, number> | null> {
     const user = await this.getUser(userId);
     return (user?.articleAllocation as Record<string, number>) || null;
+  }
+  
+  async getPaidUsersNeedingGeneration(): Promise<User[]> {
+    // Find all users with active subscriptions who haven't completed first payment generation
+    return await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.subscriptionStatus, "active"),
+        eq(users.firstPaymentGenerationDone, false),
+        eq(users.role, "owner")
+      ));
+  }
+  
+  async getAutopilotArticleCountForUser(userId: string): Promise<number> {
+    // Get all sites owned by this user
+    const userSites = await this.getSitesByOwnerId(userId);
+    if (userSites.length === 0) return 0;
+    
+    const siteIds = userSites.map(s => s.id);
+    
+    // Count posts with autopilot sources across all sites
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(posts)
+      .where(and(
+        inArray(posts.siteId, siteIds),
+        or(
+          eq(posts.source, "ai"),
+          eq(posts.source, "ai-bulk"),
+          eq(posts.source, "topical-authority")
+        )
+      ));
+    
+    return result[0]?.count || 0;
   }
 
   async deleteUser(id: string): Promise<void> {
