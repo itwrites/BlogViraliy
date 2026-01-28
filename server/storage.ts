@@ -50,7 +50,7 @@ import {
   type InsertTopicSuggestion,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, inArray, asc } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, asc, or, isNull, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -64,6 +64,9 @@ export interface IStorage {
   getSitesByOwnerId(ownerId: string): Promise<Site[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
+  claimFirstPaymentGeneration(userId: string): Promise<{ claimed: boolean; reason?: string }>;
+  completeFirstPaymentGeneration(userId: string): Promise<void>;
+  clearFirstPaymentGenerationStarted(userId: string): Promise<void>;
   deleteUser(id: string): Promise<void>;
 
   // User-Site permissions
@@ -239,6 +242,61 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  async claimFirstPaymentGeneration(userId: string): Promise<{ claimed: boolean; reason?: string }> {
+    const now = new Date();
+    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    
+    // Truly atomic claim with all conditions in the UPDATE WHERE clause
+    // This prevents race conditions by only updating if:
+    // 1. User exists
+    // 2. Generation not already done
+    // 3. Either never started OR started more than 10 minutes ago (stale lock)
+    const [updated] = await db
+      .update(users)
+      .set({ firstPaymentGenerationStarted: now, updatedAt: now })
+      .where(and(
+        eq(users.id, userId), 
+        eq(users.firstPaymentGenerationDone, false),
+        or(
+          isNull(users.firstPaymentGenerationStarted),
+          lt(users.firstPaymentGenerationStarted, tenMinutesAgo)
+        )
+      ))
+      .returning();
+    
+    if (updated) {
+      return { claimed: true };
+    }
+    
+    // If update failed, determine the reason
+    const user = await this.getUser(userId);
+    if (!user) {
+      return { claimed: false, reason: "user_not_found" };
+    }
+    if (user.firstPaymentGenerationDone) {
+      return { claimed: false, reason: "already_done" };
+    }
+    if (user.firstPaymentGenerationStarted) {
+      return { claimed: false, reason: "in_progress" };
+    }
+    
+    return { claimed: false, reason: "unknown" };
+  }
+  
+  async completeFirstPaymentGeneration(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ firstPaymentGenerationDone: true, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+  
+  async clearFirstPaymentGenerationStarted(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ firstPaymentGenerationStarted: null, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   async deleteUser(id: string): Promise<void> {

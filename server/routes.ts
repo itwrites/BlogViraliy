@@ -811,6 +811,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Trigger first-payment article generation (failsafe for webhook timing)
+  // Uses atomic database claim to prevent duplicate generation across all entry points
+  app.post("/api/trigger-first-payment-generation", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if (user.subscriptionStatus !== "active" || !user.subscriptionPlan) {
+        return res.status(400).json({ error: "No active subscription" });
+      }
+      
+      // Get all sites for this user to check if any have been onboarded but not generated
+      const sites = await storage.getSitesByOwnerId(userId);
+      const sitesNeedingGeneration = sites.filter(s => 
+        s.isOnboarded && 
+        s.businessDescription && 
+        !s.initialArticlesGenerated
+      );
+      
+      if (sitesNeedingGeneration.length === 0) {
+        console.log(`[First Payment] User ${userId}: No sites need generation`);
+        return res.json({ 
+          success: true, 
+          message: "No sites need content generation",
+          totalArticles: 0,
+          sitesProcessed: 0 
+        });
+      }
+      
+      // Two-phase atomic claim - prevents duplicate generation across all entry points
+      // Phase 1: Set "started" timestamp (allows retry after 10 min timeout)
+      const claimResult = await storage.claimFirstPaymentGeneration(userId);
+      
+      if (!claimResult.claimed) {
+        console.log(`[First Payment] User ${userId}: Could not claim - ${claimResult.reason}`);
+        return res.json({ 
+          success: true, 
+          message: claimResult.reason === "already_done" 
+            ? "First payment generation already completed"
+            : claimResult.reason === "in_progress"
+              ? "Generation already in progress"
+              : "Could not start generation",
+          totalArticles: 0,
+          sitesProcessed: 0,
+          skipped: true,
+          reason: claimResult.reason
+        });
+      }
+      
+      console.log(`[First Payment] User ${userId}: Claimed generation, processing ${sitesNeedingGeneration.length} sites`);
+      
+      try {
+        // Import and trigger the monthly content engine
+        const { triggerMonthlyContentGeneration } = await import("./monthly-content-engine");
+        const result = await triggerMonthlyContentGeneration(userId);
+        
+        console.log(`[First Payment] Result: ${result.totalArticles} articles for ${result.sitesProcessed} sites`);
+        
+        // Phase 2: Mark as completed if successful
+        if (result.success && result.totalArticles > 0) {
+          await storage.completeFirstPaymentGeneration(userId);
+          console.log(`[First Payment] User ${userId}: Marked generation as completed`);
+        } else {
+          // Clear started flag to allow retry
+          await storage.clearFirstPaymentGenerationStarted(userId);
+          console.log(`[First Payment] User ${userId}: Cleared started flag (no articles generated)`);
+        }
+        
+        res.json({
+          success: result.success,
+          totalArticles: result.totalArticles,
+          sitesProcessed: result.sitesProcessed,
+          errors: result.errors,
+        });
+      } catch (genError: any) {
+        // On error, clear started flag to allow retry
+        await storage.clearFirstPaymentGenerationStarted(userId);
+        console.error(`[First Payment] User ${userId}: Generation failed, cleared started flag`);
+        throw genError;
+      }
+    } catch (error: any) {
+      console.error("[First Payment] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to trigger content generation" });
+    }
+  });
+
   // === USER MANAGEMENT ROUTES (Admin only) ===
 
   app.get("/api/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {

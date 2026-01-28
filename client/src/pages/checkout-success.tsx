@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight, Zap, Globe, FileText } from "lucide-react";
+import { CheckCircle, Loader2, FileText, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { PLAN_LIMITS } from "@shared/schema";
+import type { Site } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 interface SubscriptionResponse {
   subscription: {
@@ -45,6 +46,8 @@ const itemVariants = {
 export default function CheckoutSuccess() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const [hasTriggeredGeneration, setHasTriggeredGeneration] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -64,9 +67,64 @@ export default function CheckoutSuccess() {
     refetchIntervalInBackground: false,
   });
 
+  const { data: sites, isLoading: sitesLoading } = useQuery<Site[]>({
+    queryKey: ["/bv_api/owner/sites"],
+    queryFn: async () => {
+      const res = await fetch("/bv_api/owner/sites", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch sites");
+      return res.json();
+    },
+    enabled: isAuthenticated && subscriptionData?.status === 'active',
+  });
+
+  const triggerGenerationMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/bv_api/trigger-first-payment-generation");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      console.log("[CheckoutSuccess] First payment generation triggered:", data);
+    },
+    onError: (error) => {
+      console.error("[CheckoutSuccess] Failed to trigger generation:", error);
+    }
+  });
+
   const planKey = subscriptionData?.plan as keyof typeof PLAN_LIMITS | null;
   const planDetails = planKey ? PLAN_LIMITS[planKey] : null;
   const isActive = subscriptionData?.status === 'active';
+
+  useEffect(() => {
+    if (isActive && !hasTriggeredGeneration) {
+      setHasTriggeredGeneration(true);
+      triggerGenerationMutation.mutate();
+    }
+  }, [isActive, hasTriggeredGeneration]);
+
+  useEffect(() => {
+    if (isActive && !redirecting) {
+      // If we have sites, redirect to articles page
+      if (sites && sites.length > 0) {
+        setRedirecting(true);
+        
+        const timer = setTimeout(() => {
+          // Find a site that has been onboarded, or use the first one
+          const onboardedSite = sites.find(s => s.isOnboarded && s.businessDescription);
+          const targetSite = onboardedSite || sites[0];
+          setLocation(`/owner/sites/${targetSite.id}/articles`);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      } else if (!sitesLoading) {
+        // No sites exist - redirect to dashboard to create one
+        setRedirecting(true);
+        const timer = setTimeout(() => {
+          setLocation("/owner");
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isActive, sites, sitesLoading, redirecting, setLocation]);
 
   if (authLoading || subscriptionLoading) {
     return (
@@ -125,75 +183,75 @@ export default function CheckoutSuccess() {
               <motion.h1 
                 variants={itemVariants}
                 className="text-3xl font-bold tracking-tight text-foreground mb-3"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
               >
-                Welcome to Blog Autopilot!
+                Payment Successful!
               </motion.h1>
 
               <motion.p 
                 variants={itemVariants}
                 className="text-muted-foreground/80 mb-8"
+                style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
               >
-                Your subscription is now active. You're ready to start creating amazing content.
+                {planDetails ? (
+                  <>Your <span className="font-semibold text-foreground">{planDetails.name}</span> plan is now active.</>
+                ) : (
+                  <>Your subscription is now active.</>
+                )}
               </motion.p>
 
-              {planDetails && (
-                <motion.div 
-                  variants={itemVariants}
-                  className="bg-gradient-to-br from-muted/40 to-muted/10 rounded-2xl p-6 mb-8 border border-border"
-                >
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <Zap className="w-5 h-5 text-primary" />
-                    <span className="text-lg font-semibold text-foreground">
-                      {planDetails.name} Plan
-                    </span>
-                  </div>
+              <motion.div 
+                variants={itemVariants}
+                className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-6 border border-primary/20"
+              >
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span 
+                    className="text-lg font-medium text-foreground"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
+                  >
+                    Crafting Your Articles
+                  </span>
+                </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
+                <p 
+                  className="text-muted-foreground/70 text-sm mb-4"
+                  style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
+                >
+                  We're generating your first month of articles based on your business profile. This will only take a moment.
+                </p>
+
+                <div className="flex items-center justify-center gap-2 text-primary">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm font-medium">
+                    {sitesLoading 
+                      ? "Loading..." 
+                      : sites && sites.length > 0
+                        ? "Redirecting to your articles..."
+                        : "Redirecting to your dashboard..."
+                    }
+                  </span>
+                </div>
+
+                {planDetails && (
+                  <div className="mt-4 pt-4 border-t border-primary/10">
+                    <div className="flex items-center justify-center gap-4 text-sm">
+                      <div className="flex items-center gap-1.5">
                         <FileText className="w-4 h-4 text-muted-foreground/70" />
+                        <span className="text-foreground font-medium">{planDetails.postsPerMonth}</span>
+                        <span className="text-muted-foreground/70">articles/mo</span>
                       </div>
-                      <p className="text-2xl font-bold text-foreground">{planDetails.postsPerMonth}</p>
-                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Articles/mo</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <Globe className="w-4 h-4 text-muted-foreground/70" />
-                      </div>
-                      <p className="text-2xl font-bold text-foreground">
-                        {planDetails.maxSites === -1 ? '∞' : planDetails.maxSites}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Sites</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-1 mb-1">
-                        <span className="text-muted-foreground/70 font-medium">$</span>
-                      </div>
-                      <p className="text-2xl font-bold text-foreground">
-                        {(planDetails.price / 100).toFixed(0)}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/70 uppercase font-medium">Per Month</p>
                     </div>
                   </div>
-                </motion.div>
-              )}
-
-              <motion.div variants={itemVariants}>
-                <Button
-                  onClick={() => setLocation("/owner")}
-                  className="w-full h-12 rounded-xl font-medium shadow-lg"
-                  data-testid="button-go-to-dashboard"
-                >
-                  Go to Dashboard
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                )}
               </motion.div>
             </div>
           </div>
 
           <motion.p 
             variants={itemVariants}
-            className="text-center text-[13px] text-muted-foreground/80 mt-6"
+            className="text-center text-[13px] text-muted-foreground/60 mt-6"
+            style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
           >
             A confirmation email has been sent to your inbox.
           </motion.p>

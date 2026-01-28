@@ -241,6 +241,22 @@ export default function EditorPosts() {
     enabled: !!siteId,
   });
   
+  // Fetch subscription data to know if user is paid (for loading message)
+  const { data: subscriptionData } = useQuery<{
+    status: string;
+    plan: string | null;
+    postsLimit: number;
+  }>({
+    queryKey: ["/bv_api/subscription"],
+    queryFn: async () => {
+      const res = await fetch("/bv_api/subscription", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch subscription");
+      return res.json();
+    },
+  });
+  
+  const isPaidUser = subscriptionData?.status === 'active' && subscriptionData?.plan;
+  
   // Check if site is onboarded but initial articles haven't finished generating yet
   // Use the initialArticlesGenerated flag which is only set true when ALL articles are created
   const realArticleCount = posts?.filter(p => !p.isLocked)?.length || 0;
@@ -1336,15 +1352,25 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           className="text-2xl font-light mb-3 text-foreground tracking-tight"
                           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif' }}
                         >
-                          Creating Your First Articles
+                          {isPaidUser ? "Crafting Your Monthly Articles" : "Creating Your First Articles"}
                         </h3>
                         <p 
                           className="text-muted-foreground/70 max-w-sm mx-auto mb-8 text-center"
                           style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif' }}
                         >
-                          We're generating personalized articles based on your business profile.
-                          <br />
-                          <span className="text-muted-foreground/50">This may take a few minutes the first time.</span>
+                          {isPaidUser ? (
+                            <>
+                              We're generating all your articles for the month based on your business profile.
+                              <br />
+                              <span className="text-muted-foreground/50">This may take a few minutes.</span>
+                            </>
+                          ) : (
+                            <>
+                              We're generating personalized articles based on your business profile.
+                              <br />
+                              <span className="text-muted-foreground/50">This may take a few minutes the first time.</span>
+                            </>
+                          )}
                         </p>
                         {/* macOS-style progress bar */}
                         <div className="w-64 h-1 bg-muted/50 rounded-full overflow-hidden">
@@ -1361,7 +1387,10 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                           />
                         </div>
                         <p className="text-xs text-muted-foreground/50 mt-4">
-                          {realArticleCount} of 2 articles created
+                          {isPaidUser 
+                            ? `${realArticleCount} articles created so far...` 
+                            : `${realArticleCount} of 2 articles created`
+                          }
                         </p>
                       </div>
                     </>

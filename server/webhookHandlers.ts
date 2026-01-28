@@ -169,6 +169,38 @@ export class WebhookHandlers {
     });
     
     console.log(`[Stripe Webhook] User ${user.id} subscribed to ${planId} plan`);
+    
+    // Two-phase atomic claim for content generation
+    // This prevents duplicate generation if webhook + client failsafe race
+    const claimResult = await storage.claimFirstPaymentGeneration(user.id);
+    
+    if (claimResult.claimed) {
+      try {
+        console.log(`[Stripe Webhook] Claimed first-payment generation for user ${user.id}`);
+        const result = await triggerMonthlyContentGeneration(user.id);
+        console.log(`[Stripe Webhook] First-payment generation: ${result.totalArticles} articles for ${result.sitesProcessed} sites`);
+        
+        // Phase 2: Mark as completed if successful
+        if (result.success && result.totalArticles > 0) {
+          await storage.completeFirstPaymentGeneration(user.id);
+          console.log(`[Stripe Webhook] User ${user.id}: Marked generation as completed`);
+        } else {
+          // Clear started flag to allow retry (e.g., no sites onboarded yet)
+          await storage.clearFirstPaymentGenerationStarted(user.id);
+          console.log(`[Stripe Webhook] User ${user.id}: Cleared started flag (no articles generated)`);
+        }
+        
+        if (result.errors.length > 0) {
+          console.warn(`[Stripe Webhook] First-payment generation warnings:`, result.errors);
+        }
+      } catch (error) {
+        // On error, clear started flag to allow retry via client failsafe
+        await storage.clearFirstPaymentGenerationStarted(user.id);
+        console.error(`[Stripe Webhook] Failed to trigger first-payment content generation:`, error);
+      }
+    } else {
+      console.log(`[Stripe Webhook] User ${user.id}: Could not claim - ${claimResult.reason}`);
+    }
   }
   
   static async handleSubscriptionChange(subscription: Stripe.Subscription): Promise<void> {

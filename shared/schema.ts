@@ -158,6 +158,8 @@ export const users = pgTable("users", {
   subscriptionStatus: text("subscription_status").default("none"), // 'active', 'past_due', 'canceled', etc.
   postsUsedThisMonth: integer("posts_used_this_month").default(0),
   postsResetDate: timestamp("posts_reset_date"),
+  firstPaymentGenerationStarted: timestamp("first_payment_generation_started"),
+  firstPaymentGenerationDone: boolean("first_payment_generation_done").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
