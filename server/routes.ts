@@ -969,9 +969,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
       const totalAllocated = Object.values(allocation).reduce((sum: number, val) => sum + (val as number), 0);
       
-      if (totalAllocated > planLimits.postsPerMonth) {
+      if (totalAllocated !== planLimits.postsPerMonth) {
         return res.status(400).json({ 
-          error: `Total allocation (${totalAllocated}) exceeds plan limit (${planLimits.postsPerMonth})`
+          error: `Total allocation (${totalAllocated}) must equal plan limit (${planLimits.postsPerMonth})`
         });
       }
       

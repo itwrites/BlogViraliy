@@ -74,10 +74,10 @@ export function ArticleAllocationModal({
   };
 
   const handleSubmit = async () => {
-    if (totalAllocated === 0) {
+    if (totalAllocated !== totalQuota) {
       toast({
         title: "Invalid Allocation",
-        description: "Please allocate at least some articles to your sites.",
+        description: `Please allocate all ${totalQuota} articles. Currently allocated: ${totalAllocated}`,
         variant: "destructive",
       });
       return;
@@ -158,7 +158,7 @@ export function ArticleAllocationModal({
         <DialogFooter>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || totalAllocated === 0}
+            disabled={isSubmitting || totalAllocated !== totalQuota}
             data-testid="button-start-generation"
           >
             {isSubmitting ? (

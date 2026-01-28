@@ -222,6 +222,7 @@ export default function EditorPosts() {
   const [allocationModalOpen, setAllocationModalOpen] = useState(false);
   const [allocationSites, setAllocationSites] = useState<{id: string; title: string}[]>([]);
   const [allocationQuota, setAllocationQuota] = useState(30);
+  const [existingAllocation, setExistingAllocation] = useState<Record<string, number> | null>(null);
   const [generationCheckDone, setGenerationCheckDone] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -312,7 +313,10 @@ export default function EditorPosts() {
           if (data.needsAllocation && data.sites.length > 1) {
             setAllocationSites(data.sites);
             setAllocationQuota(data.totalQuota);
+            setExistingAllocation(data.existingAllocation || null);
             setAllocationModalOpen(true);
+            // Don't set generationCheckDone - allow re-check on next visit if modal is dismissed
+            return;
           } else {
             const genRes = await fetch("/api/trigger-first-payment-generation", {
               method: "POST",
@@ -2238,6 +2242,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         onOpenChange={setAllocationModalOpen}
         sites={allocationSites}
         totalQuota={allocationQuota}
+        existingAllocation={existingAllocation}
         onAllocationComplete={handleAllocationComplete}
       />
 
