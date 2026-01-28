@@ -159,7 +159,7 @@ function MarkdownContent({ content }: { content: string }) {
                   </div>
                 )}
                 <CopyButton text={codeString} />
-                <pre className="bg-muted/40 border border-border rounded-lg p-4 pt-8 overflow-x-auto">
+                <pre className="bg-muted/60 border border-border/80 rounded-lg p-4 pt-8 overflow-x-auto">
                   <code className="text-sm font-mono text-foreground leading-relaxed">
                     {children}
                   </code>
@@ -169,21 +169,21 @@ function MarkdownContent({ content }: { content: string }) {
           }
 
           return (
-            <code className="px-1.5 py-0.5 bg-muted rounded-md text-sm font-mono text-foreground">
+            <code className="px-1.5 py-0.5 bg-muted/70 border border-border/80 rounded-md text-sm font-mono text-foreground">
               {children}
             </code>
           );
         },
         pre: ({ children }) => <>{children}</>,
         table: ({ children }) => (
-          <div className="my-4 overflow-x-auto rounded-lg border border-border">
+          <div className="my-4 overflow-x-auto rounded-lg border border-border/80 bg-white">
             <table className="w-full text-sm">{children}</table>
           </div>
         ),
         thead: ({ children }) => (
-          <thead className="bg-muted/40 border-b border-border">{children}</thead>
+          <thead className="bg-muted/60 border-b border-border/80">{children}</thead>
         ),
-        tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
+        tbody: ({ children }) => <tbody className="divide-y divide-border/80">{children}</tbody>,
         tr: ({ children }) => <tr className="hover:bg-muted/40 transition-colors">{children}</tr>,
         th: ({ children }) => (
           <th className="px-4 py-3 text-left font-semibold text-foreground">{children}</th>
