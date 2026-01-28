@@ -382,6 +382,7 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
     ];
     const placeholderContent = `<p>This premium article is available to subscribers.</p><p>Upgrade your plan to unlock exclusive content, advanced strategies, and expert insights tailored to your business needs.</p>`;
     
+    let placeholderCreatedCount = 0;
     for (let i = 0; i < placeholdersToCreate; i++) {
       const placeholderIndex = existingLockedPlaceholders.length + i;
       const data = placeholderData[placeholderIndex] || { title: `Premium Article ${placeholderIndex + 1}`, imageQuery: "premium content" };
@@ -413,6 +414,7 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           // No scheduled publish date - won't show in calendar
         });
         createdPosts.push(post.id);
+        placeholderCreatedCount++;
         console.log(`[Initial Articles] Created placeholder locked post: "${data.title}"`);
       } catch (placeholderError) {
         console.error(`[Initial Articles] Failed to create placeholder post:`, placeholderError);
@@ -425,9 +427,21 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
       });
     }
 
-    await storage.updateSite(siteId, {
-      initialArticlesGenerated: true,
-    });
+    const finalRealCount = existingRealArticles.length + articlesCreatedCount;
+    const finalLockedCount = existingLockedPlaceholders.length + placeholderCreatedCount;
+    const initialComplete = finalRealCount >= TARGET_REAL_ARTICLES && finalLockedCount >= TARGET_PLACEHOLDER_ARTICLES;
+
+    if (initialComplete) {
+      await storage.updateSite(siteId, {
+        initialArticlesGenerated: true,
+      });
+    } else {
+      console.log(
+        `[Initial Articles] Incomplete for site ${siteId}: ` +
+          `${finalRealCount}/${TARGET_REAL_ARTICLES} real, ` +
+          `${finalLockedCount}/${TARGET_PLACEHOLDER_ARTICLES} locked.`
+      );
+    }
 
     console.log(`[Initial Articles] Completed for site ${siteId}. Created ${createdPillars.length} pillars and ${createdPosts.length} articles.`);
 

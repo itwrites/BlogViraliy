@@ -26,7 +26,8 @@ interface PaywallModalProps {
 type PlanId = "launch" | "growth" | "scale";
 
 interface CheckoutResponse {
-  checkoutUrl: string;
+  checkoutUrl?: string;
+  url?: string;
 }
 
 const PLAN_ICONS: Record<PlanId, React.ReactNode> = {
@@ -54,8 +55,9 @@ export function PaywallModal({ open, onOpenChange, feature }: PaywallModalProps)
 
       const data: CheckoutResponse = await response.json();
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      const redirectUrl = data.checkoutUrl || data.url;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         toast({
           title: "Error",

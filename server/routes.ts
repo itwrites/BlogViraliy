@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `${baseUrl}/pricing`
       );
       
-      res.json({ url: session.url });
+      res.json({ url: session.url, checkoutUrl: session.url });
     } catch (error: any) {
       console.error("Checkout error:", error);
       res.status(500).json({ error: error.message || "Failed to create checkout session" });

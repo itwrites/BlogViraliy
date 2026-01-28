@@ -13,7 +13,8 @@ import { useQuery } from "@tanstack/react-query";
 type PlanId = "launch" | "growth" | "scale";
 
 interface CheckoutResponse {
-  checkoutUrl: string;
+  checkoutUrl?: string;
+  url?: string;
 }
 
 const COMMON_FEATURES = [
@@ -77,9 +78,10 @@ export default function Pricing() {
 
       const data: CheckoutResponse = await response.json();
 
-      if (data.checkoutUrl) {
+      const redirectUrl = data.checkoutUrl || data.url;
+      if (redirectUrl) {
         // Redirect to Stripe checkout
-        window.location.href = data.checkoutUrl;
+        window.location.href = redirectUrl;
       } else {
         toast({
           title: "Error",
