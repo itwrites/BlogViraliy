@@ -224,12 +224,7 @@ export default function CheckoutSuccess() {
                 <div className="flex items-center justify-center gap-2 text-primary">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-medium">
-                    {sitesLoading 
-                      ? "Loading..." 
-                      : sites && sites.length > 0
-                        ? "Redirecting to your articles..."
-                        : "Redirecting to your dashboard..."
-                    }
+                    Redirecting to your articles...
                   </span>
                 </div>
 
