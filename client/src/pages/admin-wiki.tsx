@@ -26,6 +26,7 @@ import {
 import type { WikiData, WikiSection } from "@shared/admin-wiki";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import remarkGfm from "remark-gfm";
 
 const sectionIcons: Record<string, typeof BookOpen> = {
   overview: BookOpen,
@@ -121,6 +122,7 @@ function TableOfContents({
 function MarkdownContent({ content }: { content: string }) {
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
         h1: ({ children }) => (
           <h1 className="text-2xl font-bold tracking-tight mb-4 text-foreground">{children}</h1>
@@ -327,7 +329,7 @@ export default function AdminWikiPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div 
           className="absolute -top-1/3 -right-1/4 w-[800px] h-[800px] bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-transparent rounded-full blur-3xl"
@@ -361,8 +363,8 @@ export default function AdminWikiPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-72 border-r border-border bg-white/50 flex flex-col shrink-0 hidden md:flex">
+        <div className="flex-1 flex">
+          <div className="w-72 border-r border-border bg-white/50 flex flex-col shrink-0 hidden md:flex sticky top-[84px] h-[calc(100vh-84px)] self-start">
             <div className="p-4 border-b border-border bg-white/30">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
