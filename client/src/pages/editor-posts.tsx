@@ -27,6 +27,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useSiteContext } from "@/components/base-path-provider";
 import { PaywallModal } from "@/components/paywall-modal";
 import { OnboardingModal } from "@/components/onboarding-modal";
+import { ArticleAllocationModal } from "@/components/ArticleAllocationModal";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
@@ -218,6 +219,10 @@ export default function EditorPosts() {
   } | null>(null);
   const [publishNowDialogOpen, setPublishNowDialogOpen] = useState(false);
   const [postToPublish, setPostToPublish] = useState<Post | null>(null);
+  const [allocationModalOpen, setAllocationModalOpen] = useState(false);
+  const [allocationSites, setAllocationSites] = useState<{id: string; title: string}[]>([]);
+  const [allocationQuota, setAllocationQuota] = useState(30);
+  const [generationCheckDone, setGenerationCheckDone] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -291,6 +296,63 @@ export default function EditorPosts() {
   });
   
   const isLoading = isLoadingPosts;
+  
+  // Login-based failsafe: Check if paid user needs first-payment generation
+  useEffect(() => {
+    if (generationCheckDone || !isPaidUser || !site?.isOnboarded) return;
+    
+    const checkGenerationNeeds = async () => {
+      try {
+        const res = await fetch("/api/check-generation-needs", { credentials: "include" });
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        
+        if (data.needsGeneration) {
+          if (data.needsAllocation && data.sites.length > 1) {
+            setAllocationSites(data.sites);
+            setAllocationQuota(data.totalQuota);
+            setAllocationModalOpen(true);
+          } else {
+            const genRes = await fetch("/api/trigger-first-payment-generation", {
+              method: "POST",
+              credentials: "include",
+            });
+            if (genRes.ok) {
+              queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+            }
+          }
+        }
+        
+        setGenerationCheckDone(true);
+      } catch (error) {
+        console.error("Failed to check generation needs:", error);
+        setGenerationCheckDone(true);
+      }
+    };
+    
+    checkGenerationNeeds();
+  }, [isPaidUser, site?.isOnboarded, generationCheckDone, siteId]);
+  
+  const handleAllocationComplete = async () => {
+    setAllocationModalOpen(false);
+    try {
+      const res = await fetch("/api/trigger-first-payment-generation", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast({
+          title: "Content Generation Started",
+          description: "Your articles are being created. This may take a few minutes.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId, "posts"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/editor/sites", siteId] });
+      }
+    } catch (error) {
+      console.error("Failed to trigger generation:", error);
+    }
+  };
 
   const { data: authors } = useQuery<SiteAuthor[]>({
     queryKey: ["/api/sites", siteId, "authors"],
@@ -2169,6 +2231,14 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         open={paywallOpen} 
         onOpenChange={setPaywallOpen}
         feature={paywallFeature}
+      />
+
+      <ArticleAllocationModal
+        open={allocationModalOpen}
+        onOpenChange={setAllocationModalOpen}
+        sites={allocationSites}
+        totalQuota={allocationQuota}
+        onAllocationComplete={handleAllocationComplete}
       />
 
       {site && !site.isOnboarded && siteId && (

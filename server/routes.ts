@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User } from "@shared/schema";
+import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User, PLAN_LIMITS } from "@shared/schema";
 import { startAutomationSchedulers } from "./automation";
 import { generateSitemap, invalidateSitemapCache, getSitemapStats } from "./sitemap";
 import { normalizeBasePath } from "./utils";
