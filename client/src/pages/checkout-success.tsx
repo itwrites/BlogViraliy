@@ -47,13 +47,40 @@ export default function CheckoutSuccess() {
   const [, setLocation] = useLocation();
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const [hasTriggeredGeneration, setHasTriggeredGeneration] = useState(false);
+  const [hasTriggeredSync, setHasTriggeredSync] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+
+  // Get session_id from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionId = urlParams.get('session_id');
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       setLocation("/");
     }
   }, [authLoading, isAuthenticated, setLocation]);
+  
+  // Sync subscription from Stripe (fallback when webhook hasn't fired)
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/bv_api/subscription/sync", { sessionId });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      console.log("[CheckoutSuccess] Subscription sync result:", data);
+    },
+    onError: (error) => {
+      console.error("[CheckoutSuccess] Sync failed:", error);
+    }
+  });
+  
+  // Trigger sync immediately when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !hasTriggeredSync && sessionId) {
+      setHasTriggeredSync(true);
+      syncMutation.mutate();
+    }
+  }, [isAuthenticated, hasTriggeredSync, sessionId]);
 
   const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery<SubscriptionResponse>({
     queryKey: ["/bv_api/subscription"],

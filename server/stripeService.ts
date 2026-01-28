@@ -4,6 +4,10 @@ export class StripeService {
   async isAvailable(): Promise<boolean> {
     return await isStripeConfigured();
   }
+  
+  async getStripeClient() {
+    return await getUncachableStripeClient();
+  }
 
   async createCustomer(email: string, userId: string) {
     const stripe = await getUncachableStripeClient();

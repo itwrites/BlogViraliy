@@ -811,6 +811,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sync subscription from Stripe - fallback when webhook hasn't fired yet
+  app.post("/api/subscription/sync", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { sessionId } = req.body;
+      const user = await storage.getUser(req.user!.id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // If already active, no need to sync
+      if (user.subscriptionStatus === 'active' && user.stripeSubscriptionId) {
+        return res.json({ 
+          synced: false, 
+          message: "Already active",
+          status: user.subscriptionStatus,
+          plan: user.subscriptionPlan
+        });
+      }
+      
+      const { stripeService } = await import("./stripeService");
+      const stripe = await stripeService.getStripeClient();
+      
+      if (!stripe) {
+        return res.status(500).json({ error: "Stripe not configured" });
+      }
+      
+      // Try to get session details from Stripe
+      if (sessionId) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sessionId, {
+            expand: ['subscription', 'subscription.items.data.price.product']
+          });
+          
+          if (session.payment_status === 'paid' && session.subscription) {
+            const subscription = session.subscription as any;
+            const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
+            const subscriptionId = typeof subscription === 'string' ? subscription : subscription.id;
+            
+            // Get full subscription details
+            const fullSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const productId = fullSubscription.items.data[0]?.price.product as string;
+            const product = await stripe.products.retrieve(productId);
+            const planId = product.metadata?.plan_id || 'launch';
+            
+            // Update user with subscription info
+            await storage.updateUser(user.id, {
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId,
+              subscriptionPlan: planId,
+              subscriptionStatus: fullSubscription.status,
+              postsUsedThisMonth: 0,
+              postsResetDate: new Date(),
+            });
+            
+            console.log(`[Subscription Sync] User ${user.id} synced to ${planId} plan (status: ${fullSubscription.status})`);
+            
+            return res.json({
+              synced: true,
+              status: fullSubscription.status,
+              plan: planId
+            });
+          }
+        } catch (error: any) {
+          console.error("[Subscription Sync] Session retrieval error:", error.message);
+        }
+      }
+      
+      // Fallback: check if user has customer ID and look for active subscriptions
+      if (user.stripeCustomerId) {
+        try {
+          const subscriptions = await stripe.subscriptions.list({
+            customer: user.stripeCustomerId,
+            status: 'active',
+            limit: 1
+          });
+          
+          if (subscriptions.data.length > 0) {
+            const subscription = subscriptions.data[0];
+            const productId = subscription.items.data[0]?.price.product as string;
+            const product = await stripe.products.retrieve(productId);
+            const planId = product.metadata?.plan_id || 'launch';
+            
+            await storage.updateUser(user.id, {
+              stripeSubscriptionId: subscription.id,
+              subscriptionPlan: planId,
+              subscriptionStatus: subscription.status,
+            });
+            
+            console.log(`[Subscription Sync] User ${user.id} synced via customer lookup to ${planId} plan`);
+            
+            return res.json({
+              synced: true,
+              status: subscription.status,
+              plan: planId
+            });
+          }
+        } catch (error: any) {
+          console.error("[Subscription Sync] Customer subscription lookup error:", error.message);
+        }
+      }
+      
+      return res.json({ synced: false, message: "No active subscription found" });
+    } catch (error: any) {
+      console.error("Subscription sync error:", error);
+      res.status(500).json({ error: error.message || "Failed to sync subscription" });
+    }
+  });
+
   // Trigger first-payment article generation (failsafe for webhook timing)
   // Uses atomic database claim to prevent duplicate generation across all entry points
   app.post("/api/trigger-first-payment-generation", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
