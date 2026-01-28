@@ -160,6 +160,7 @@ export const users = pgTable("users", {
   postsResetDate: timestamp("posts_reset_date"),
   firstPaymentGenerationStarted: timestamp("first_payment_generation_started"),
   firstPaymentGenerationDone: boolean("first_payment_generation_done").notNull().default(false),
+  articleAllocation: jsonb("article_allocation"), // { siteId: numberOfArticles, ... }
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

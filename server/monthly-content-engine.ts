@@ -458,7 +458,8 @@ async function checkAndRotatePillars(site: Site, pillars: Pillar[]): Promise<Pil
 
 export async function generateMonthlyContentForSite(
   siteId: string,
-  owner: User
+  owner: User,
+  articleCountOverride?: number
 ): Promise<{
   success: boolean;
   articlesCreated: number;
@@ -479,11 +480,16 @@ export async function generateMonthlyContentForSite(
       return { success: false, articlesCreated: 0, error: "Invalid subscription plan" };
     }
 
-    const ownerSites = await storage.getSitesByOwnerId(owner.id);
-    const sitesCount = ownerSites.length;
-    const postsPerSite = Math.floor(planLimits.postsPerMonth / sitesCount);
+    let totalArticleCount: number;
     
-    const totalArticleCount = Math.max(4, Math.min(postsPerSite, 40));
+    if (articleCountOverride !== undefined && articleCountOverride > 0) {
+      totalArticleCount = Math.max(4, Math.min(articleCountOverride, 100));
+    } else {
+      const ownerSites = await storage.getSitesByOwnerId(owner.id);
+      const sitesCount = ownerSites.length;
+      const postsPerSite = Math.floor(planLimits.postsPerMonth / sitesCount);
+      totalArticleCount = Math.max(4, Math.min(postsPerSite, 40));
+    }
 
     let pillars = await getOrCreateAutomationPillars(site);
     
@@ -612,6 +618,8 @@ export async function triggerMonthlyContentGeneration(userId: string): Promise<{
     const errors: string[] = [];
     let totalArticles = 0;
     let sitesProcessed = 0;
+    
+    const allocation = await storage.getArticleAllocation(userId);
 
     for (const site of sites) {
       if (!site.businessDescription) {
@@ -619,7 +627,8 @@ export async function triggerMonthlyContentGeneration(userId: string): Promise<{
         continue;
       }
 
-      const result = await generateMonthlyContentForSite(site.id, owner);
+      const articleCount = allocation?.[site.id];
+      const result = await generateMonthlyContentForSite(site.id, owner, articleCount);
       
       if (result.success) {
         totalArticles += result.articlesCreated;

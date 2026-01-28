@@ -901,6 +901,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if user needs generation and whether allocation is required
+  app.get("/api/check-generation-needs", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
+      const generationDone = user.firstPaymentGenerationDone;
+      
+      if (!isSubscribed || generationDone) {
+        return res.json({ 
+          needsGeneration: false,
+          reason: !isSubscribed ? "no_subscription" : "already_done"
+        });
+      }
+      
+      const sites = await storage.getSitesByOwnerId(userId);
+      const onboardedSites = sites.filter(s => s.isOnboarded && s.businessDescription);
+      
+      if (onboardedSites.length === 0) {
+        return res.json({
+          needsGeneration: false,
+          reason: "no_onboarded_sites"
+        });
+      }
+      
+      const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+      const existingAllocation = await storage.getArticleAllocation(userId);
+      
+      res.json({
+        needsGeneration: true,
+        needsAllocation: onboardedSites.length > 1 && !existingAllocation,
+        sites: onboardedSites.map(s => ({ id: s.id, title: s.title })),
+        totalQuota: planLimits?.postsPerMonth || 30,
+        existingAllocation
+      });
+    } catch (error: any) {
+      console.error("[Check Generation] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to check generation needs" });
+    }
+  });
+
+  // Save article allocation for multi-site users
+  app.post("/api/article-allocation", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const { allocation } = req.body;
+      
+      if (!allocation || typeof allocation !== "object") {
+        return res.status(400).json({ error: "Invalid allocation format" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if (user.subscriptionStatus !== "active" || !user.subscriptionPlan) {
+        return res.status(400).json({ error: "No active subscription" });
+      }
+      
+      const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+      const totalAllocated = Object.values(allocation).reduce((sum: number, val) => sum + (val as number), 0);
+      
+      if (totalAllocated > planLimits.postsPerMonth) {
+        return res.status(400).json({ 
+          error: `Total allocation (${totalAllocated}) exceeds plan limit (${planLimits.postsPerMonth})`
+        });
+      }
+      
+      await storage.setArticleAllocation(userId, allocation);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Article Allocation] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to save allocation" });
+    }
+  });
+
   // === USER MANAGEMENT ROUTES (Admin only) ===
 
   app.get("/api/users", requireAuth, requireAdmin, async (req: Request, res: Response) => {

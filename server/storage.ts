@@ -298,6 +298,18 @@ export class DatabaseStorage implements IStorage {
       .set({ firstPaymentGenerationStarted: null, updatedAt: new Date() })
       .where(eq(users.id, userId));
   }
+  
+  async setArticleAllocation(userId: string, allocation: Record<string, number>): Promise<void> {
+    await db
+      .update(users)
+      .set({ articleAllocation: allocation, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  }
+  
+  async getArticleAllocation(userId: string): Promise<Record<string, number> | null> {
+    const user = await this.getUser(userId);
+    return (user?.articleAllocation as Record<string, number>) || null;
+  }
 
   async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
