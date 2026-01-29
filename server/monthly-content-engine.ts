@@ -191,34 +191,45 @@ Respond with valid JSON:
   });
 
   const result = JSON.parse(response.choices[0].message.content || "{}");
-  
-  if (!result.articles || result.articles.length === 0) {
+
+  const expectedTotal = pillars.length * articlesPerPillar;
+  const validPillarIds = new Set(pillars.map(p => p.id));
+  let articles: ArticlePlan[] = Array.isArray(result.articles) ? result.articles : [];
+
+  if (articles.length === 0) {
+    console.log("[Monthly Content] AI returned no articles; using defaults.");
+  } else if (articles.length < expectedTotal) {
+    console.log(`[Monthly Content] AI returned ${articles.length}/${expectedTotal} articles; padding with defaults.`);
+  }
+
+  // Pad missing articles with deterministic defaults to reach expected count
+  if (articles.length < expectedTotal) {
+    const missingCount = expectedTotal - articles.length;
     const defaultArticles: ArticlePlan[] = [];
-    for (let i = 0; i < pillars.length * articlesPerPillar; i++) {
-      const pillarIndex = i % pillars.length;
-      const role = selectRoleForArticle(roleDistribution, i);
+    for (let i = 0; i < missingCount; i++) {
+      const index = articles.length + i;
+      const pillarIndex = index % pillars.length;
+      const role = selectRoleForArticle(roleDistribution, index);
       defaultArticles.push({
-        title: `${pillars[pillarIndex].name} Guide ${i + 1}`,
+        title: `${pillars[pillarIndex].name} Guide ${index + 1}`,
         keywords: [site.industry || "business", "guide"],
         role,
         pillarId: pillars[pillarIndex].id,
       });
     }
-    return defaultArticles;
+    articles = articles.concat(defaultArticles);
   }
-  
-  const validPillarIds = new Set(pillars.map(p => p.id));
-  
-  return result.articles.map((a: ArticlePlan, i: number) => {
+
+  return articles.map((a: ArticlePlan, i: number) => {
     let pillarId = a.pillarId;
-    
+
     if (!pillarId || !validPillarIds.has(pillarId)) {
       pillarId = pillars[i % pillars.length].id;
       if (a.pillarId) {
         console.log(`[Monthly Content] Invalid pillarId "${a.pillarId}" from AI, assigning to "${pillars[i % pillars.length].name}" instead`);
       }
     }
-    
+
     return {
       ...a,
       pillarId,
@@ -480,6 +491,10 @@ export async function generateMonthlyContentForSite(
       return { success: false, articlesCreated: 0, error: "Invalid subscription plan" };
     }
 
+    // Refresh owner to get latest usage for limit enforcement
+    const latestOwner = await storage.getUser(owner.id);
+    const postsUsedThisMonth = latestOwner?.postsUsedThisMonth ?? owner.postsUsedThisMonth ?? 0;
+
     let totalArticleCount: number;
     
     if (articleCountOverride !== undefined && articleCountOverride > 0) {
@@ -499,9 +514,16 @@ export async function generateMonthlyContentForSite(
       return { success: false, articlesCreated: 0, error: "No active pillars available" };
     }
 
-    const articlesPerPillar = Math.ceil(totalArticleCount / pillars.length);
+    const remainingQuota = Math.max(0, planLimits.postsPerMonth - postsUsedThisMonth);
+    const targetArticleCount = Math.min(totalArticleCount, remainingQuota);
+
+    if (targetArticleCount <= 0) {
+      return { success: false, articlesCreated: 0, error: "Post limit reached" };
+    }
+
+    const articlesPerPillar = Math.ceil(targetArticleCount / pillars.length);
     
-    console.log(`[Monthly Content] Generating ${totalArticleCount} articles across ${pillars.length} pillars for site ${siteId}`);
+    console.log(`[Monthly Content] Generating ${targetArticleCount} articles across ${pillars.length} pillars for site ${siteId}`);
 
     const articlePlans = await generateArticlesForPillars(pillars, site, articlesPerPillar);
     
@@ -509,17 +531,37 @@ export async function generateMonthlyContentForSite(
       return { success: false, articlesCreated: 0, error: "Failed to generate article plans" };
     }
 
-    const limitedPlans = articlePlans.slice(0, totalArticleCount);
-    
     const defaultAuthor = await storage.getDefaultAuthor(siteId);
-    const publishDates = calculatePublishSchedule(limitedPlans.length);
-    const articleTitles = limitedPlans.map(a => a.title);
+    const publishDates = calculatePublishSchedule(targetArticleCount);
+    const articleTitles = articlePlans.map(a => a.title);
     
     let createdCount = 0;
     const pillarCounts: Record<string, number> = {};
 
-    for (let i = 0; i < limitedPlans.length; i++) {
-      const articlePlan = limitedPlans[i];
+    const packDef = PACK_DEFINITIONS["authority"];
+    const roleDistribution = getPackRoleDistribution(packDef.defaultRoleDistribution);
+    const retryBuffer = targetArticleCount; // allow up to 2x attempts to reach target
+    const plannedArticles = articlePlans.slice();
+
+    // Ensure we have enough fallback plans for retries
+    const desiredPlanCount = targetArticleCount + retryBuffer;
+    if (plannedArticles.length < desiredPlanCount) {
+      const missing = desiredPlanCount - plannedArticles.length;
+      for (let i = 0; i < missing; i++) {
+        const index = plannedArticles.length + i;
+        const pillarIndex = index % pillars.length;
+        const role = selectRoleForArticle(roleDistribution, index);
+        plannedArticles.push({
+          title: `${pillars[pillarIndex].name} Insights ${index + 1}`,
+          keywords: [site.industry || "business", "insights"],
+          role,
+          pillarId: pillars[pillarIndex].id,
+        });
+      }
+    }
+
+    for (let i = 0; i < plannedArticles.length && createdCount < targetArticleCount; i++) {
+      const articlePlan = plannedArticles[i];
       const pillar = pillars.find(p => p.id === articlePlan.pillarId) || pillars[0];
       const siblingTitles = articleTitles.filter((_, idx) => idx !== i);
       
@@ -551,7 +593,7 @@ export async function generateMonthlyContentForSite(
           }
         }
 
-        const post = await storage.createPost({
+        const createResult = await storage.createPostWithLimitCheck({
           siteId,
           authorId: defaultAuthor?.id || null,
           title: article.title,
@@ -565,9 +607,19 @@ export async function generateMonthlyContentForSite(
           articleRole: article.articleRole,
           status: "draft",
           isLocked: false,
-          scheduledPublishDate: publishDates[i],
+          scheduledPublishDate: publishDates[createdCount],
           pillarId: pillar.id,
         });
+
+        if (createResult.error) {
+          console.log(`[Monthly Content] Skipped article due to limit/error: ${createResult.error} (${createResult.code})`);
+          if (createResult.code === "POST_LIMIT_REACHED") {
+            break;
+          }
+          continue;
+        }
+
+        const post = createResult.post!;
 
         // Post-creation photo check: if still no image, schedule a retry update
         if (!imageUrl) {
@@ -591,11 +643,7 @@ export async function generateMonthlyContentForSite(
         createdCount++;
         pillarCounts[pillar.id] = (pillarCounts[pillar.id] || 0) + 1;
         
-        console.log(`[Monthly Content] Created article ${i + 1}/${limitedPlans.length}: "${article.title}" (Pillar: ${pillar.name})${imageUrl ? "" : " (no image)"}`);
-        
-        await storage.updateUser(owner.id, {
-          postsUsedThisMonth: (owner.postsUsedThisMonth || 0) + 1,
-        });
+        console.log(`[Monthly Content] Created article ${createdCount}/${targetArticleCount}: "${article.title}" (Pillar: ${pillar.name})${imageUrl ? "" : " (no image)"}`);
       } catch (articleError) {
         console.error(`[Monthly Content] Failed to generate article ${i + 1}:`, articleError);
       }
@@ -610,7 +658,7 @@ export async function generateMonthlyContentForSite(
       }
     }
 
-    console.log(`[Monthly Content] Completed for site ${siteId}. Created ${createdCount}/${limitedPlans.length} articles across ${pillars.length} pillars.`);
+    console.log(`[Monthly Content] Completed for site ${siteId}. Created ${createdCount}/${targetArticleCount} articles across ${pillars.length} pillars.`);
 
     // Clean up duplicate images after generating all articles
     try {

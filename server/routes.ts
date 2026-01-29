@@ -776,14 +776,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { stripeService } = await import("./stripeService");
       const subscription = await stripeService.getSubscription(user.stripeSubscriptionId);
       
-      res.json({
-        subscription,
-        plan: user.subscriptionPlan,
-        status: user.subscriptionStatus,
-        postsUsedThisMonth: user.postsUsedThisMonth || 0,
-        postsResetDate: user.postsResetDate,
-      });
-    } catch (error: any) {
+        const planLimits = user.subscriptionPlan
+          ? PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS]
+          : null;
+        const postsUsedThisMonth = user.postsUsedThisMonth || 0;
+        const postsLimit = planLimits?.postsPerMonth || 0;
+        const sitesLimit = planLimits?.maxSites ?? 0;
+        const sitesUsed = user.role === "owner" ? (await storage.getSitesByOwnerId(user.id)).length : 0;
+
+        res.json({
+          subscription,
+          plan: user.subscriptionPlan,
+          status: user.subscriptionStatus,
+          postsUsedThisMonth,
+          postsUsed: postsUsedThisMonth,
+          postsLimit,
+          sitesUsed,
+          sitesLimit,
+          postsResetDate: user.postsResetDate,
+        });
+      } catch (error: any) {
       console.error("Get subscription error:", error);
       res.status(500).json({ error: error.message || "Failed to get subscription" });
     }
@@ -1039,9 +1051,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const posts = await storage.getPostsBySiteId(siteId);
       const realArticleCount = posts.filter((p: any) => !p.isLocked).length;
       
-      // Get expected target based on plan
+      // Get expected target based on plan + allocation (if any)
       const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
-      const expectedCount = planLimits?.postsPerMonth || 30;
+      const sites = await storage.getSitesByOwnerId(user.id);
+      const sitesCount = sites.length;
+      const allocation = await storage.getArticleAllocation(user.id);
+      const allocationForSite = allocation?.[siteId];
+
+      let expectedCount = planLimits?.postsPerMonth || 30;
+      if (allocationForSite && allocationForSite > 0) {
+        expectedCount = Math.max(4, Math.min(allocationForSite, 100));
+      } else {
+        const perSite = sitesCount > 0 ? Math.floor(planLimits.postsPerMonth / sitesCount) : planLimits.postsPerMonth;
+        expectedCount = Math.max(4, Math.min(perSite, 40));
+      }
       
       // Show generation indicator when:
       // 1. Site is onboarded with business profile
@@ -1064,9 +1087,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[Generation Status] Error:", error);
       res.status(500).json({ error: error.message });
     }
-  });
+    });
 
-  // Fix missing feature images on articles for a site
+  // Get monthly target & remaining quota for a specific site (autopilot)
+  app.get("/api/sites/:siteId/monthly-target", requireAuth, requireSiteAccess("siteId", "view"), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { siteId } = req.params;
+      const site = await storage.getSiteById(siteId);
+
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+
+      const user = await storage.getUser(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
+      const planLimits = user.subscriptionPlan
+        ? PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS]
+        : null;
+
+      const sites = await storage.getSitesByOwnerId(user.id);
+      const sitesCount = sites.length;
+      const allocation = await storage.getArticleAllocation(user.id);
+      const allocationForSite = allocation?.[siteId];
+
+      let targetForSite = 0;
+      let targetSource: "allocation" | "plan_split" | "none" = "none";
+
+      if (planLimits) {
+        if (allocationForSite && allocationForSite > 0) {
+          targetForSite = Math.max(4, Math.min(allocationForSite, 100));
+          targetSource = "allocation";
+        } else {
+          const perSite = sitesCount > 0 ? Math.floor(planLimits.postsPerMonth / sitesCount) : planLimits.postsPerMonth;
+          targetForSite = Math.max(4, Math.min(perSite, 40));
+          targetSource = "plan_split";
+        }
+      }
+
+      const postsUsedThisMonth = user.postsUsedThisMonth || 0;
+      const remainingPlanQuota = planLimits ? Math.max(0, planLimits.postsPerMonth - postsUsedThisMonth) : 0;
+      const effectiveTarget = Math.min(targetForSite, remainingPlanQuota);
+
+      res.json({
+        siteId,
+        isSubscribed: Boolean(isSubscribed),
+        plan: user.subscriptionPlan,
+        planLimit: planLimits?.postsPerMonth || 0,
+        sitesCount,
+        allocation: allocation || null,
+        allocationForSite: allocationForSite ?? null,
+        targetForSite,
+        targetSource,
+        postsUsedThisMonth,
+        remainingPlanQuota,
+        effectiveTarget,
+        postsResetDate: user.postsResetDate,
+      });
+    } catch (error: any) {
+      console.error("[Monthly Target] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch monthly target" });
+    }
+  });
+  
+    // Fix missing feature images on articles for a site
   app.post("/api/sites/:siteId/fix-missing-images", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { siteId } = req.params;

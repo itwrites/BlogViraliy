@@ -699,22 +699,40 @@ export class DatabaseStorage implements IStorage {
       // Check post limits
       const { PLAN_LIMITS } = await import("@shared/schema");
       const planLimits = PLAN_LIMITS[owner.subscriptionPlan as keyof typeof PLAN_LIMITS];
-      if (planLimits && owner.postsUsedThisMonth !== null && 
-          owner.postsUsedThisMonth >= planLimits.postsPerMonth) {
+      const postsUsed = owner.postsUsedThisMonth ?? 0;
+      if (planLimits && postsUsed >= planLimits.postsPerMonth) {
         return { 
           error: `Monthly post limit of ${planLimits.postsPerMonth} reached. Please upgrade your plan.`,
           code: "POST_LIMIT_REACHED" 
         };
       }
       
-      // Create the post
+      // Create the post first, then atomically increment usage with a limit check.
+      // If the limit is exceeded between creation and increment, delete the post.
       const newPost = await this.createPost(post);
-      
-      // Increment the owner's post count
-      await this.updateUser(owner.id, {
-        postsUsedThisMonth: (owner.postsUsedThisMonth || 0) + 1,
-      });
-      
+
+      if (planLimits) {
+        const [updated] = await db
+          .update(users)
+          .set({
+            postsUsedThisMonth: sql`COALESCE(${users.postsUsedThisMonth}, 0) + 1`,
+            updatedAt: new Date(),
+          })
+          .where(and(
+            eq(users.id, owner.id),
+            sql`COALESCE(${users.postsUsedThisMonth}, 0) < ${planLimits.postsPerMonth}`
+          ))
+          .returning();
+
+        if (!updated) {
+          await this.deletePost(newPost.id);
+          return { 
+            error: `Monthly post limit of ${planLimits.postsPerMonth} reached. Please upgrade your plan.`,
+            code: "POST_LIMIT_REACHED" 
+          };
+        }
+      }
+
       return { post: newPost };
     }
     

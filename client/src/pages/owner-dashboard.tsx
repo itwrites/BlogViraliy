@@ -35,10 +35,11 @@ interface SubscriptionResponse {
   } | null;
   plan: string | null;
   status: string;
-  postsUsed: number;
-  postsLimit: number;
-  sitesUsed: number;
-  sitesLimit: number;
+  postsUsedThisMonth?: number;
+  postsUsed?: number;
+  postsLimit?: number;
+  sitesUsed?: number;
+  sitesLimit?: number;
 }
 
 const sidebarVariants = {
@@ -183,7 +184,7 @@ export default function OwnerDashboard() {
 
   const planKey = subscriptionData?.plan as keyof typeof PLAN_LIMITS | null;
   const planDetails = planKey ? PLAN_LIMITS[planKey] : null;
-  const postsUsed = subscriptionData?.postsUsed || 0;
+  const postsUsed = subscriptionData?.postsUsedThisMonth ?? subscriptionData?.postsUsed ?? 0;
   const postsLimit = planDetails?.postsPerMonth || 0;
   const postsPercentage = postsLimit > 0 ? Math.min((postsUsed / postsLimit) * 100, 100) : 0;
   const sitesUsed = sites?.length || 0;
