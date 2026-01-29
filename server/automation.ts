@@ -5,7 +5,7 @@ import { generateAIPost, rewriteArticle, generateFromPrompt, type BusinessContex
 import { processNextPillarArticle } from "./topical-authority";
 import { buildRoleSpecificPrompt, detectRoleFromKeyword } from "./role-prompts";
 import { publishScheduledPosts } from "./scheduled-publisher";
-import { triggerMonthlyContentGeneration } from "./monthly-content-engine";
+import { triggerMonthlyContentGeneration, runMonthlyBackfillForUser } from "./monthly-content-engine";
 import type { Site, ArticleRole } from "@shared/schema";
 
 const parser = new Parser();
@@ -594,6 +594,29 @@ async function processCatchupGeneration() {
   }
 }
 
+// Monthly backfill to reach targets (failsafe for partial generation)
+async function processMonthlyBackfill() {
+  console.log("[Backfill] Running monthly autopilot backfill...");
+
+  try {
+    const users = await storage.getActivePaidOwners();
+    for (const user of users) {
+      try {
+        const result = await runMonthlyBackfillForUser(user.id);
+        if (result.totalArticles > 0) {
+          console.log(`[Backfill] User ${user.id}: Created ${result.totalArticles} articles across ${result.sitesProcessed} site(s)`);
+        } else if (result.errors.length > 0) {
+          console.log(`[Backfill] User ${user.id}: ${result.errors.join("; ")}`);
+        }
+      } catch (userError) {
+        console.error(`[Backfill] Error processing user ${user.id}:`, userError);
+      }
+    }
+  } catch (error) {
+    console.error("[Backfill] Error running monthly backfill:", error);
+  }
+}
+
 export function startAutomationSchedulers() {
   // AI Content Generation - runs multiple times per day based on site configs
   cron.schedule("0 */8 * * *", processAIAutomation);
@@ -612,6 +635,9 @@ export function startAutomationSchedulers() {
   
   // Catch-up generation - runs every 2 minutes to find paid users missing autopilot articles
   cron.schedule("*/2 * * * *", processCatchupGeneration);
+
+  // Monthly backfill - runs every 6 hours to fill missing autopilot articles
+  cron.schedule("0 */6 * * *", processMonthlyBackfill);
 
   console.log("[Automation] Schedulers started");
 }

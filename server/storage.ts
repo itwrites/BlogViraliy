@@ -50,7 +50,7 @@ import {
   type InsertTopicSuggestion,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, inArray, asc, or, isNull, lt } from "drizzle-orm";
+import { eq, desc, and, sql, inArray, asc, or, isNull, lt, gte, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -59,6 +59,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByStripeCustomerId(stripeCustomerId: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
+  getActivePaidOwners(): Promise<User[]>;
   
   // Site ownership
   getSitesByOwnerId(ownerId: string): Promise<Site[]>;
@@ -71,6 +72,7 @@ export interface IStorage {
   getArticleAllocation(userId: string): Promise<Record<string, number> | null>;
   getPaidUsersNeedingGeneration(): Promise<User[]>;
   getAutopilotArticleCountForUser(userId: string): Promise<number>;
+  countPostsBySiteSince(siteId: string, since: Date, source?: string): Promise<number>;
   deleteUser(id: string): Promise<void>;
 
   // User-Site permissions
@@ -229,6 +231,17 @@ export class DatabaseStorage implements IStorage {
   async getUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
+
+  async getActivePaidOwners(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.role, "owner"),
+        eq(users.subscriptionStatus, "active"),
+        isNotNull(users.subscriptionPlan)
+      ));
+  }
   
   async getSitesByOwnerId(ownerId: string): Promise<Site[]> {
     return await db.select().from(sites).where(eq(sites.ownerId, ownerId)).orderBy(desc(sites.createdAt));
@@ -347,6 +360,23 @@ export class DatabaseStorage implements IStorage {
         )
       ));
     
+    return result[0]?.count || 0;
+  }
+
+  async countPostsBySiteSince(siteId: string, since: Date, source?: string): Promise<number> {
+    const conditions = [
+      eq(posts.siteId, siteId),
+      gte(posts.createdAt, since),
+    ];
+    if (source) {
+      conditions.push(eq(posts.source, source));
+    }
+
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(posts)
+      .where(and(...conditions));
+
     return result[0]?.count || 0;
   }
 

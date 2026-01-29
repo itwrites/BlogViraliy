@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SiteEmblem } from "@/components/site-emblem";
-import { Plus, Trash2, Globe, Users, LogOut, LayoutGrid, ChevronRight, BookOpen } from "lucide-react";
+import { Plus, Trash2, Globe, Users, LogOut, LayoutGrid, ChevronRight, BookOpen, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -198,6 +198,17 @@ export default function AdminDashboard() {
                 >
                   <Users className="w-4 h-4" />
                   <span className="flex-1 text-left">Users</span>
+                </button>
+              )}
+
+              {isAdmin && (
+                <button
+                  onClick={() => setLocation("/admin/autopilot")}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 text-muted-foreground/80 hover:bg-muted/40 hover:text-foreground"
+                  data-testid="nav-autopilot"
+                >
+                  <Activity className="w-4 h-4" />
+                  <span className="flex-1 text-left">Autopilot Health</span>
                 </button>
               )}
 

@@ -33,6 +33,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { TopicalAuthority } from "@/components/topical-authority";
+import { StrategyView } from "@/components/strategy-view";
 import { BulkGeneration } from "@/components/bulk-generation";
 import { SiteEmblem } from "@/components/site-emblem";
 import {
@@ -73,9 +74,10 @@ import {
   Loader2,
   Users,
   Lock,
+  Layers,
 } from "lucide-react";
 
-type ActiveTab = "posts" | "topical" | "bulk" | "ai" | "authors" | "calendar";
+type ActiveTab = "posts" | "topical" | "bulk" | "ai" | "authors" | "calendar" | "strategy";
 import {
   Dialog,
   DialogContent,
@@ -870,28 +872,38 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   {stats.total}
                 </span>
               </button>
-              <button
-                onClick={() => setActiveTab("calendar")}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                  activeTab === "calendar" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-                data-testid="nav-calendar"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="flex-1 text-left">Calendar</span>
-                {scheduledPosts && scheduledPosts.length > 0 && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    activeTab === "calendar" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-                  }`}>
-                    {scheduledPosts.length}
-                  </span>
-                )}
-              </button>
-              {user?.role === "admin" && (
                 <button
-                  onClick={() => setActiveTab("topical")}
+                  onClick={() => setActiveTab("calendar")}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                    activeTab === "topical" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    activeTab === "calendar" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                  data-testid="nav-calendar"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span className="flex-1 text-left">Calendar</span>
+                  {scheduledPosts && scheduledPosts.length > 0 && (
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      activeTab === "calendar" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {scheduledPosts.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab("strategy")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                    activeTab === "strategy" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                  data-testid="nav-strategy"
+                >
+                  <Layers className="w-4 h-4" />
+                  <span className="flex-1 text-left">Strategy View</span>
+                </button>
+                {user?.role === "admin" && (
+                  <button
+                    onClick={() => setActiveTab("topical")}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                      activeTab === "topical" ? "bg-primary/10 text-primary shadow-sm" : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   }`}
                   data-testid="nav-topical"
                 >
@@ -1039,7 +1051,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
 
         <main className="flex-1 ml-72 bg-background">
           {activeTab === "posts" && (
-          <>
+            <>
           <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1643,7 +1655,11 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
               </motion.div>
             )}
           </div>
-          </>
+            </>
+          )}
+
+          {activeTab === "strategy" && siteId && (
+            <StrategyView siteId={siteId} />
           )}
 
           {activeTab === "topical" && siteId && (

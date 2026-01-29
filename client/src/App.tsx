@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import SiteConfig from "@/pages/site-config";
 import UserManagement from "@/pages/user-management";
 import AdminWiki from "@/pages/admin-wiki";
+import AdminAutopilot from "@/pages/admin-autopilot";
 import OwnerWiki from "@/pages/owner-wiki";
 import EditorDashboard from "@/pages/editor-dashboard";
 import EditorPosts from "@/pages/editor-posts";
@@ -40,6 +41,7 @@ function AdminRouter() {
       <Route path="/admin/sites/:id/posts" component={EditorPosts} />
       <Route path="/admin/sites/:id/analytics" component={EditorAnalytics} />
       <Route path="/admin/users" component={UserManagement} />
+      <Route path="/admin/autopilot" component={AdminAutopilot} />
       <Route path="/admin/wiki" component={AdminWiki} />
       <Route component={NotFound} />
     </Switch>
@@ -70,6 +72,7 @@ function SiteContextAdminRouter({ site }: { site: Site }) {
           <Route path="/admin/sites/:id/settings" component={SiteConfig} />
           <Route path="/admin/sites/:id/posts" component={EditorPosts} />
           <Route path="/admin/sites/:id/analytics" component={EditorAnalytics} />
+          <Route path="/admin/autopilot" component={AdminAutopilot} />
           <Route component={NotFound} />
         </Switch>
       </Router>

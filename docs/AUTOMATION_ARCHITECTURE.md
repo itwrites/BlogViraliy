@@ -1,547 +1,352 @@
 # Blog Autopilot - Automation & Scheduling Architecture
 
-This document details the automated content generation system, scheduled publishing, and all background job infrastructure.
+This document is the source of truth for how Autopilot content creation works, including triggers, targets, failure handling, scheduling, and limits.
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Cron Job Schedulers](#cron-job-schedulers)
-3. [Content Generation Flows](#content-generation-flows)
-4. [Scheduled Publishing System](#scheduled-publishing-system)
-5. [Catch-Up Generation Failsafe](#catch-up-generation-failsafe)
-6. [Photo Retry & Image Handling](#photo-retry--image-handling)
-7. [Idempotency & Atomic Operations](#idempotency--atomic-operations)
-8. [Error Handling & Recovery](#error-handling--recovery)
+1. Overview
+2. Triggers (When creation runs)
+3. Targets (How many articles are created)
+4. Autopilot Creation Flow (Monthly Content Engine)
+5. Failure Handling and Retry Behavior
+6. Limit Enforcement (Plan usage)
+7. Publish Date Assignment
+8. Catch-Up Generation Failsafe
+9. API Endpoints (Status, Targets)
+10. Data Fields and Sources
+11. Monitoring and Debugging
 
 ---
 
 ## Overview
 
-Blog Autopilot uses `node-cron` to run background automation tasks. All schedulers are initialized in `server/automation.ts` via `startAutomationSchedulers()` which is called on server startup.
+Autopilot is the subscription-driven monthly content engine. It creates a batch of draft posts and assigns scheduled publish dates across the month. The system is designed to:
 
-**Key Design Principles:**
-- **Atomic Operations**: All generation processes use locking mechanisms to prevent duplicate execution
-- **Failsafe Recovery**: Catch-up jobs detect and complete interrupted operations
-- **Idempotency Guards**: Database flags prevent double-processing of payments/subscriptions
-- **Graceful Degradation**: Errors in one site don't block processing of others
+- Respect plan limits (posts per month)
+- Avoid double runs (atomic claims and locks)
+- Recover from interruptions (catch-up job)
+- Continue past transient failures by retrying within a run
 
----
-
-## Cron Job Schedulers
-
-All schedulers are registered in `server/automation.ts`:
-
-| Job Name | Schedule | Cron Expression | Description |
-|----------|----------|-----------------|-------------|
-| **AI Content Generation** | Every 8 hours | `0 */8 * * *` | Generates articles from configured keywords |
-| **RSS Feed Processing** | Every 6 hours | `0 */6 * * *` | Rewrites RSS feed content as unique articles |
-| **Keyword Batch Processing** | Every minute | `* * * * *` | Processes queued keyword generation jobs |
-| **Pillar Content Generation** | Every minute | `* * * * *` | Generates topical authority pillar articles |
-| **Scheduled Publishing** | Every minute | `* * * * *` | Publishes draft posts with past scheduled dates |
-| **Catch-Up Generation** | Every 2 minutes | `*/2 * * * *` | Recovers interrupted paid-user article generation |
-
-### Scheduler Implementation
-
-```typescript
-export function startAutomationSchedulers() {
-  cron.schedule("0 */8 * * *", processAIAutomation);     // AI generation
-  cron.schedule("0 */6 * * *", processRSSAutomation);    // RSS rewriting
-  cron.schedule("* * * * *", processKeywordBatches);     // Keyword batches
-  cron.schedule("* * * * *", processPillarGeneration);   // Pillar articles
-  cron.schedule("* * * * *", publishScheduledPosts);     // Scheduled publishing
-  cron.schedule("*/2 * * * *", processCatchupGeneration);// Catch-up failsafe
-  console.log("[Automation] Schedulers started");
-}
-```
+Core files:
+- `server/monthly-content-engine.ts`
+- `server/automation.ts`
+- `server/webhookHandlers.ts`
+- `server/routes.ts`
+- `server/storage.ts`
 
 ---
 
-## Content Generation Flows
+## Triggers (When creation runs)
 
-### 1. Initial Article Generation (Post-Onboarding)
+Autopilot creation can be triggered from multiple entry points. All are guarded by atomic claims to avoid duplicate runs.
 
-**Trigger**: Site completes onboarding with a Business Profile  
-**File**: `server/initial-article-generator.ts`
+1) Checkout success (first payment)
+- Stripe webhook `checkout.session.completed`
+- Code: `server/webhookHandlers.ts -> handleCheckoutComplete()`
+- Calls `triggerMonthlyContentGeneration(userId)` if claim succeeds
 
-**Flow:**
-1. Onboarding completes → triggers `generateInitialArticlesForSite(siteId)`
-2. Generates 4 starter articles (mini-pillar cluster):
-   - 1 comprehensive pillar article
-   - 3 supporting cluster articles
-3. For free users: 2 articles unlocked, 2 locked as paywall preview
-4. For paid users: All 4 articles unlocked
+2) Monthly billing cycle (invoice paid)
+- Stripe webhook `invoice.paid`
+- Code: `server/webhookHandlers.ts -> handleInvoicePaid()`
+- Resets `postsUsedThisMonth` and triggers `triggerMonthlyContentGeneration(userId)`
 
-**Lock Mechanism:**
-```typescript
-const generationLocks = new Set<string>();
+3) Client failsafe (manual recovery)
+- Endpoint: `POST /api/trigger-first-payment-generation`
+- Code: `server/routes.ts`
+- Used when webhook was delayed or missed
 
-export function isGenerating(siteId: string): boolean {
-  return generationLocks.has(siteId);
-}
-```
+4) Catch-up scheduler (background failsafe)
+- Cron: every 2 minutes
+- Code: `server/automation.ts -> processCatchupGeneration()`
+- Detects paid users where `firstPaymentGenerationDone = false` and retries generation
 
-### 2. Monthly Content Engine (Subscription-Based)
+5) Monthly backfill scheduler (target recovery)
+- Cron: every 6 hours
+- Code: `server/automation.ts -> processMonthlyBackfill()`
+- Ensures each site reaches its monthly target by filling missing articles
 
-**Trigger**: Stripe `invoice.paid` webhook OR first subscription payment  
-**File**: `server/monthly-content-engine.ts`
-
-**Plan Quotas:**
-| Plan | Monthly Articles | Sites Allowed |
-|------|-----------------|---------------|
-| Launch | 30 | 1 |
-| Growth | 120 | 3 |
-| Scale | 500 | 10 |
-
-**Flow:**
-1. Payment webhook → `triggerMonthlyContentGeneration(ownerId)`
-2. For multi-site plans: User allocates quota across sites via UI modal
-3. For each site's allocation:
-   - Creates content pillars (1 per ~25 articles)
-   - Generates cluster articles with role distribution
-   - Schedules publish dates across the month
-4. Articles created with `scheduledPublishDate` for drip release
-
-**Topic Rotation:**
-- `currentTopicIndex` tracks which pillar topic to use next
-- Prevents repetition across consecutive months
-- Rotates through business-relevant topics
-
-### 3. AI Keyword Automation
-
-**Trigger**: Every 8 hours (configurable per site)  
-**File**: `server/automation.ts` → `processAIAutomation()`
-
-**Requirements:**
-- Site must have valid Business Profile
-- AI Config must be enabled with keywords
-- At least one keyword in the rotation list
-
-**Flow:**
-1. Iterates through all sites with enabled AI config
-2. Selects next keyword from rotation (via `lastKeywordIndex`)
-3. Generates article with business context injection
-4. Rotates to next keyword for future runs
-
-### 4. Keyword Batch Generation
-
-**Trigger**: Every minute (processes pending queue)  
-**File**: `server/automation.ts` → `processKeywordBatches()`
-
-**Flow:**
-1. User submits batch of keywords via UI
-2. Keywords stored as "pending" in database
-3. Every minute, cron picks next pending batch
-4. Generates 1-3 articles per batch run (rate limited)
-5. Updates batch status: `pending` → `processing` → `completed`
-
-### 5. RSS Feed Rewriting
-
-**Trigger**: Every 6 hours  
-**File**: `server/automation.ts` → `processRSSAutomation()`
-
-**Requirements:**
-- Site must have valid Business Profile
-- RSS Config must be enabled with feed URLs
-- Feed must return valid RSS/Atom entries
-
-**Flow:**
-1. Fetches latest RSS entries from configured feeds
-2. Checks for already-processed URLs (deduplication)
-3. Rewrites each article using AI for uniqueness
-4. Injects business context for brand alignment
-5. Creates posts with `source: "rss"`
-
-### 6. Topical Authority / Pillar Generation
-
-**Trigger**: Every minute  
-**File**: `server/topical-authority.ts` → `processNextPillarArticle()`
-
-**Flow:**
-1. User creates topic pack via Topical Authority UI
-2. System generates topical map with pillar + clusters
-3. Cron processes one article at a time per pillar
-4. Articles interlink automatically based on role structure
-5. Pillar marked complete when all articles generated
-
-**Pack Types:**
-- `starter` (10 articles): 1 pillar, 3 category, 6 cluster
-- `foundation` (25 articles): 1 pillar, 5 category, 19 cluster
-- `authority` (50 articles): 1 pillar, 7 category, 42 cluster
-- `domination` (100 articles): 1 pillar, 10 category, 89 cluster
-- `custom`: User-defined distribution
+Important gating conditions:
+- Site must be onboarded and have business profile (`site.isOnboarded` and `site.businessDescription`)
+- User must have `subscriptionStatus = active` and a valid plan
+- For multi-site users, article allocation must exist before Autopilot runs
 
 ---
 
-## Scheduled Publishing System
+## Targets (How many articles are created)
 
-**File**: `server/scheduled-publisher.ts`
+Autopilot is a per-site target computed at runtime.
 
-### How It Works
+### Inputs
+- Plan limit: `PLAN_LIMITS[plan].postsPerMonth` (in `shared/schema.ts`)
+- Number of owned sites
+- Optional per-site allocation (`users.articleAllocation`)
+- Remaining quota this month (`postsPerMonth - postsUsedThisMonth`)
 
-1. Articles can be created with `status: "draft"` and `scheduledPublishDate`
-2. Every minute, cron checks all sites for due posts
-3. Posts where `scheduledPublishDate <= now` get `status` updated to `"published"`
-4. Published posts immediately appear on public site
+### Target rules
 
-### Code Flow
+If allocation exists for the site:
+- target = clamp(allocation[siteId], min 4, max 100)
 
-```typescript
-export async function publishScheduledPosts(): Promise<{
-  publishedCount: number;
-  errors: string[];
-}> {
-  const now = new Date();
-  const allSites = await storage.getSites();
-  
-  for (const site of allSites) {
-    const posts = await storage.getPostsBySiteId(site.id);
-    const scheduledPosts = posts.filter(
-      (post) =>
-        post.status === "draft" &&
-        post.scheduledPublishDate &&
-        new Date(post.scheduledPublishDate) <= now
-    );
+Else (no allocation):
+- perSite = floor(plan.postsPerMonth / sitesCount)
+- target = clamp(perSite, min 4, max 40)
 
-    for (const post of scheduledPosts) {
-      await storage.updatePost(post.id, { status: "published" });
-    }
-  }
-}
-```
+Finally, Autopilot enforces plan usage:
+- effectiveTarget = min(target, remainingPlanQuota)
 
-### Monthly Content Scheduling
+Notes:
+- Remaining plan quota is shared across all sites for the owner
+- Autopilot never creates more than the remaining quota
 
-When monthly content is generated, articles are distributed across the month:
+---
 
-```typescript
-export function calculatePublishSchedule(
-  articleCount: number,
-  daysInMonth: number
-): Date[] {
+## Autopilot Creation Flow (Monthly Content Engine)
+
+File: `server/monthly-content-engine.ts`
+
+High-level flow per site:
+
+1) Validate eligibility
+- Subscription active
+- Site exists and has business profile
+
+2) Compute target count
+- Uses rules above (allocation or plan split)
+- Applies remaining plan quota
+
+3) Get or create automation pillars
+- `getOrCreateAutomationPillars()`
+- Uses 4 automation pillars by default
+
+4) Build article plans
+- `generateArticlesForPillars()` generates a plan list using AI
+- If AI returns fewer than expected, the list is padded with deterministic defaults
+
+5) Generate articles
+- Loop through planned list until `createdCount == effectiveTarget`
+- Each article is generated with role-based prompts
+- Feature image attempted with fallbacks
+
+6) Create posts with limit enforcement
+- Uses `storage.createPostWithLimitCheck()`
+- If limit is reached mid-run, creation stops immediately
+
+7) Schedule publishing
+- Each created post is `draft` with `scheduledPublishDate`
+
+8) Result
+- Returns created count per site, used by webhook/failsafe to mark generation done
+
+---
+
+## Failure Handling and Retry Behavior
+
+Autopilot failures are handled at the per-article level to avoid aborting the entire run.
+
+Per-article failure handling:
+- Errors in content generation or image search are caught
+- The engine skips the failed plan and tries the next one
+- A retry buffer is used so the run can still hit the target count
+
+Limit-related failures:
+- `createPostWithLimitCheck()` returns `POST_LIMIT_REACHED`
+- When this happens, the monthly run stops immediately
+
+Non-limit failures:
+- Logged and skipped, engine continues
+
+Important:
+- Autopilot does not persist a "failed" record for monthly articles; it simply continues to the next plan
+
+## Monthly Backfill (Target Recovery)
+
+File: `server/automation.ts -> processMonthlyBackfill()` and `server/monthly-content-engine.ts -> runMonthlyBackfillForUser()`
+
+Purpose:
+- Ensures that each site reaches its monthly target even if the original run partially failed
+
+How it works:
+1) For each active paid owner, compute the billing cycle start (`postsResetDate` or month start)
+2) For each eligible site, compute the target
+3) Count already-created Autopilot posts for the cycle (`source = "monthly-automation"`)
+4) Generate only the missing count
+5) Respect remaining plan quota (limit enforcement still applies)
+
+If the plan limit has already been used by other processes, backfill will stop early.
+
+## Advisory Locking (Cross-Process Safety)
+
+Autopilot uses DB advisory locks to prevent multiple runs for the same owner and billing period across different app instances.
+
+Lock key:
+- `pg_try_advisory_lock(hashtext(userId), hashtext(billingPeriodKey))`
+- `billingPeriodKey` is derived from `postsResetDate` (or current month if absent)
+
+This ensures only one monthly generation or backfill runs at a time per owner.
+
+---
+
+## Limit Enforcement (Plan usage)
+
+Plan usage is enforced centrally in `storage.createPostWithLimitCheck()`:
+
+- Checks the owner plan limit before creation
+- Creates the post
+- Atomically increments `users.postsUsedThisMonth`
+- If the increment fails (limit crossed by another process), the post is deleted and the call returns `POST_LIMIT_REACHED`
+
+This ensures all creation paths respect the plan, including:
+- Autopilot monthly engine
+- AI keyword automation
+- RSS rewriting
+- Keyword batches
+- Topical authority generation
+
+---
+
+## Publish Date Assignment
+
+Publish dates are assigned by `calculatePublishSchedule()` in `server/monthly-content-engine.ts`:
+
+```ts
+export function calculatePublishSchedule(articleCount: number, startDate = new Date()): Date[] {
+  const daysInMonth = 30;
+  const interval = Math.max(1, Math.floor(daysInMonth / articleCount));
   const dates: Date[] = [];
-  const today = new Date();
-  const articlesPerDay = Math.max(1, Math.ceil(articleCount / daysInMonth));
-  
+  let currentDate = new Date(startDate);
+
   for (let i = 0; i < articleCount; i++) {
-    const dayOffset = Math.floor(i / articlesPerDay);
-    const publishDate = new Date(today);
-    publishDate.setDate(today.getDate() + dayOffset);
-    dates.push(publishDate);
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + interval);
   }
+
   return dates;
 }
 ```
+
+- Autopilot posts are created as `draft`
+- `scheduledPublishDate` is assigned from the schedule
+- The scheduled publisher (`server/scheduled-publisher.ts`) publishes when the date is in the past
 
 ---
 
 ## Catch-Up Generation Failsafe
 
-**File**: `server/automation.ts` → `processCatchupGeneration()`
+File: `server/automation.ts -> processCatchupGeneration()`
 
-### Purpose
+Purpose:
+- If generation was interrupted (server restart, webhook delay, etc.), the catch-up job completes it
 
-Detects and recovers from interrupted article generation. If a user pays but the server restarts or generation fails mid-process, this job ensures articles are eventually created.
+Eligibility:
+- User is active and owner
+- `firstPaymentGenerationDone` is false
+- At least one onboarded site with business profile exists
+- If multi-site and allocation is missing, the job skips until allocation is set
 
-### Detection Logic
-
-Users are eligible for catch-up when:
-1. `subscriptionStatus === "active"` (paid)
-2. `firstPaymentGenerationDone === false` (not completed)
-3. `firstPaymentGenerationStarted === false` (not currently running)
-4. User has at least one onboarded site
-
-### Recovery Flow
-
-```typescript
-async function processCatchupGeneration() {
-  const users = await storage.getActiveSubscriptionUsersNeedingGeneration();
-  
-  for (const user of users) {
-    // Mark as started (prevents other instances picking it up)
-    await storage.markFirstPaymentGenerationStarted(user.id);
-    
-    // Check if articles already exist
-    const existingCount = await countExistingArticles(user.id);
-    const targetCount = PLAN_LIMITS[user.plan].articles;
-    
-    if (existingCount >= targetCount) {
-      // Already complete, just mark done
-      await storage.completeFirstPaymentGeneration(user.id);
-      continue;
-    }
-    
-    // Generate remaining articles
-    const result = await triggerMonthlyContentGeneration(user.id);
-    
-    if (result.success) {
-      await storage.completeFirstPaymentGeneration(user.id);
-    } else {
-      // Clear started flag to allow retry on next run
-      await storage.clearFirstPaymentGenerationStarted(user.id);
-    }
-  }
-}
-```
-
-### Database Flags
-
-| Column | Type | Purpose |
-|--------|------|---------|
-| `firstPaymentGenerationStarted` | boolean | Locks user during generation |
-| `firstPaymentGenerationDone` | boolean | Prevents re-generation |
-| `subscriptionStatus` | string | Tracks active/cancelled/past_due |
+Flow:
+1) Claim generation atomically (`claimFirstPaymentGeneration`)
+2) If user already has any autopilot articles, mark done
+3) Otherwise run `triggerMonthlyContentGeneration`
+4) Mark done if successful, else clear started flag for retry next run
 
 ---
 
-## Photo Retry & Image Handling
+## API Endpoints (Status, Targets)
 
-**File**: `server/pexels.ts`
+1) Per-site monthly target
+- `GET /bv_api/sites/:siteId/monthly-target`
+- Returns target, allocation, remaining quota, and effective target
 
-### Retry Strategy
+2) Generation status (progress)
+- `GET /bv_api/sites/:siteId/generation-status`
+- Returns `articlesCreated`, `expectedCount`, `isGenerating`
+- Expected count respects allocation or plan split
 
-The image search implements multiple fallback layers:
-
-```typescript
-export async function searchPexelsImage(
-  query: string,
-  fallbackQueries?: string[],
-  excludeUrls?: Set<string>
-): Promise<string | null> {
-  // Layer 1: Random page offset for variety
-  const randomPage = Math.floor(Math.random() * 3) + 1;
-  let photos = await fetchPexelsImages(apiKey, query, 15, randomPage);
-
-  // Layer 2: Fall back to page 1 if few results
-  if (photos.length < 5 && randomPage > 1) {
-    photos = await fetchPexelsImages(apiKey, query, 15, 1);
-  }
-
-  // Layer 3: Try fallback queries (tags, title words, industry)
-  if (photos.length < 3 && fallbackQueries?.length > 0) {
-    for (const fallback of fallbackQueries) {
-      const fallbackPhotos = await fetchPexelsImages(apiKey, fallback, 15, 1);
-      if (fallbackPhotos.length >= 3) {
-        photos = fallbackPhotos;
-        break;
-      }
-    }
-  }
-
-  // Layer 4: Extract generic keywords (first 2 words)
-  if (photos.length < 2) {
-    const genericQuery = query.split(/\s+/).slice(0, 2).join(" ");
-    const genericPhotos = await fetchPexelsImages(apiKey, genericQuery, 15, 1);
-    if (genericPhotos.length > photos.length) {
-      photos = genericPhotos;
-    }
-  }
-
-  // Layer 5: Filter out already-used URLs
-  if (excludeUrls?.size > 0) {
-    photos = photos.filter(p => !excludeUrls.has(p.src.large2x));
-  }
-
-  // Random selection from available pool
-  return photos[Math.floor(Math.random() * photos.length)]?.src.large2x || null;
-}
-```
-
-### Fallback Query Examples
-
-When generating an article about "Best React Testing Libraries 2024":
-
-1. Primary: `"best react testing libraries 2024"`
-2. Fallback 1: Tags - `["react", "javascript", "programming"]`
-3. Fallback 2: Title words - `["testing", "libraries"]`
-4. Fallback 3: Industry - `"software development"`
-5. Fallback 4: Generic - `"computer code"`
-
-### Missing Image Recovery
-
-Endpoint: `POST /api/sites/:siteId/fix-missing-images`
-
-Retroactively adds images to articles that failed initial photo lookup:
-
-```typescript
-app.post("/api/sites/:siteId/fix-missing-images", async (req, res) => {
-  const posts = await storage.getPostsBySiteId(siteId);
-  const postsWithoutImages = posts.filter(p => !p.imageUrl && !p.isLocked);
-  
-  for (const post of postsWithoutImages) {
-    const fallbackQueries = [
-      ...(post.tags || []),
-      post.title.split(" ").slice(0, 3).join(" "),
-      site.industry || "business"
-    ];
-    
-    const imageUrl = await searchPexelsImage(post.title, fallbackQueries);
-    if (imageUrl) {
-      await storage.updatePost(post.id, { imageUrl });
-    }
-  }
-});
-```
+3) Subscription usage
+- `GET /bv_api/subscription`
+- Returns `postsUsedThisMonth`, `postsLimit`, `sitesUsed`, `sitesLimit`
 
 ---
 
-## Idempotency & Atomic Operations
+## Data Fields and Sources
 
-### Webhook Idempotency
+Relevant columns:
+- `users.subscriptionPlan`
+- `users.subscriptionStatus`
+- `users.postsUsedThisMonth`
+- `users.postsResetDate`
+- `users.firstPaymentGenerationStarted` (timestamp lock)
+- `users.firstPaymentGenerationDone`
+- `users.articleAllocation` (JSON map: siteId -> target)
 
-All Stripe webhooks use database-level idempotency:
-
-```typescript
-// Check if already processed
-const existingEvent = await storage.getStripeEvent(event.id);
-if (existingEvent) {
-  return res.json({ received: true, already_processed: true });
-}
-
-// Process webhook...
-
-// Mark as processed
-await storage.recordStripeEvent(event.id, event.type);
-```
-
-### Generation Locks
-
-Prevents concurrent generation for the same site:
-
-```typescript
-const generationLocks = new Set<string>();
-
-async function generateArticles(siteId: string) {
-  if (generationLocks.has(siteId)) {
-    console.log(`[Generation] Already running for ${siteId}, skipping`);
-    return;
-  }
-  
-  generationLocks.add(siteId);
-  try {
-    // ... generation logic
-  } finally {
-    generationLocks.delete(siteId);
-  }
-}
-```
-
-### Database Transaction Guards
-
-Critical operations use transactional consistency:
-
-```typescript
-// Atomic: Check limit and create in one operation
-const result = await storage.createPostWithLimitCheck({
-  siteId,
-  title,
-  content,
-  ...
-});
-
-if (result.error === "LIMIT_REACHED") {
-  // Don't process more for this site
-  return;
-}
-```
+Post sources:
+- Autopilot monthly: `source = "monthly-automation"`
+- Onboarding: `source = "onboarding"`
+- AI keyword: `source = "ai"`
+- Keyword batch: `source = "ai-bulk"`
+- RSS: `source = "rss"`
+- Topical authority: `source = "topical-authority"`
 
 ---
 
-## Error Handling & Recovery
+## Monitoring and Debugging
 
-### Per-Site Error Isolation
+Useful log prefixes:
+- `[Monthly Content]` (autopilot)
+- `[Stripe Webhook]` (billing triggers)
+- `[Catchup]` (failsafe)
+- `[Backfill]` (monthly target recovery)
 
-Errors in one site don't block others:
-
-```typescript
-for (const site of sites) {
-  try {
-    await processAIForSite(site);
-  } catch (error) {
-    console.error(`[AI] Error for ${site.domain}:`, error);
-    // Continue to next site
-  }
-}
-```
-
-### Logging Convention
-
-All automation uses prefixed logging:
-
-| Prefix | Component |
-|--------|-----------|
-| `[Automation]` | Main scheduler |
-| `[AI]` | AI content generation |
-| `[RSS]` | RSS feed processing |
-| `[Keyword]` | Keyword batch processing |
-| `[Pillar]` | Topical authority |
-| `[Scheduled Publisher]` | Scheduled publishing |
-| `[Catchup]` | Catch-up generation |
-| `[Pexels]` | Image search |
-
-### Retry Behavior
-
-| Job Type | Retry Strategy |
-|----------|----------------|
-| AI Generation | Fails silently, retries next scheduled run |
-| RSS Rewriting | Fails silently, retries next scheduled run |
-| Keyword Batches | Marked as failed, can be manually retried |
-| Pillar Generation | Pillar status updated, article retried next run |
-| Scheduled Publishing | Retried every minute until successful |
-| Catch-Up | Clears lock, retried every 2 minutes |
-
----
-
-## Monitoring & Debugging
-
-### Log Analysis
-
-Check automation activity via server logs:
-
-```bash
-# Filter for specific component
-grep "\[AI\]" logs/server.log
-grep "\[Catchup\]" logs/server.log
-
-# Check generation activity for a site
-grep "site_id_here" logs/server.log
-```
-
-### Database Queries
+Key queries:
 
 ```sql
--- Check user generation status
-SELECT id, email, subscription_status, 
-       first_payment_generation_started,
-       first_payment_generation_done
-FROM owners
-WHERE subscription_status = 'active';
+-- Posts created this month for a site
+select count(*)
+from posts
+where site_id = '<SITE_ID>'
+  and created_at >= date_trunc('month', now() at time zone 'utc');
 
--- Check pending keyword batches
-SELECT * FROM keyword_batches WHERE status = 'pending';
-
--- Check pillars in progress
-SELECT * FROM pillars WHERE status = 'generating';
-
--- Check scheduled posts
-SELECT id, title, scheduled_publish_date, status
-FROM posts
-WHERE scheduled_publish_date IS NOT NULL
-ORDER BY scheduled_publish_date;
+-- Monthly usage for owner
+select id, subscription_plan, posts_used_this_month, posts_reset_date
+from users
+where id = '<USER_ID>';
 ```
+
+---
+
+## Notes on Initial (Onboarding) Articles
+
+Initial onboarding articles are separate from Autopilot:
+- Triggered on onboarding completion
+- Generates 2 real drafts + 2 locked placeholders
+- Source: `onboarding`
+- Uses `calculatePublishSchedule()` for draft publish dates
+
+File: `server/initial-article-generator.ts`
+
+---
+
+## Plan Limits (Current)
+
+From `shared/schema.ts`:
+
+| Plan  | Posts per Month | Max Sites |
+|-------|------------------|----------|
+| Launch | 30 | 1 |
+| Growth | 120 | 3 |
+| Scale  | 400 | unlimited |
 
 ---
 
 ## Summary
 
-The Blog Autopilot automation system provides:
+Autopilot is a monthly, plan-driven batch generator that:
+- Is triggered by Stripe events, client failsafe, and catch-up cron
+- Computes per-site targets from plan + allocation + remaining quota
+- Uses role-based generation, scheduled publishing, and strict limit enforcement
+- Retries within a run to hit the target count, without exceeding plan limits
+- Uses monthly backfill + DB advisory locks to recover missed articles and prevent concurrent runs
 
-1. **Reliable Content Generation**: Multiple cron jobs ensure continuous content creation
-2. **Failsafe Recovery**: Catch-up job detects and completes interrupted operations
-3. **Idempotent Processing**: Webhook and lock mechanisms prevent duplicate work
-4. **Graceful Image Handling**: Multi-layer retry ensures articles have images
-5. **Scheduled Publishing**: Drip-feed content release for consistent engagement
-6. **Error Isolation**: Individual failures don't cascade to other sites
-
-All components work together to provide a hands-off content automation experience for subscribers.
+This document should be used as the canonical reference for Autopilot behavior.

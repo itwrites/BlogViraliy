@@ -1152,6 +1152,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: error.message || "Failed to fetch monthly target" });
     }
   });
+
+  // Read-only strategy view: pillars, article counts, and recent growth
+  app.get("/api/sites/:id/strategy-view", requireAuth, requireSiteAccess("id", "view"), async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id: siteId } = req.params;
+      const site = await storage.getSiteById(siteId);
+
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+
+      const pillars = await storage.getPillarsBySiteId(siteId);
+      const posts = await storage.getPostsBySiteId(siteId);
+
+      const postsByPillar = new Map<string, any[]>();
+      for (const post of posts) {
+        if (!post.pillarId) continue;
+        const list = postsByPillar.get(post.pillarId) || [];
+        list.push(post);
+        postsByPillar.set(post.pillarId, list);
+      }
+
+      const now = new Date();
+      const recentCutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      let totalArticles = 0;
+      let totalRecent = 0;
+
+      const pillarSummaries = await Promise.all(
+        pillars.map(async (pillar) => {
+          const pillarArticles = await storage.getPillarArticlesByPillarId(pillar.id);
+          const hasPillarMap = pillarArticles.length > 0;
+
+          let articles: Array<{
+            title: string;
+            status: string | null;
+            createdAt: Date | null;
+            source: string;
+          }> = [];
+          let articleCount = 0;
+          let recentCount = 0;
+
+          if (hasPillarMap) {
+            articles = pillarArticles.map((a) => ({
+              title: a.title,
+              status: a.status || null,
+              createdAt: a.generatedAt || a.createdAt || null,
+              source: "pillar-map",
+            }));
+
+            articleCount = pillarArticles.length;
+            recentCount = pillarArticles.filter(
+              (a) => a.generatedAt && new Date(a.generatedAt) >= recentCutoff
+            ).length;
+          } else {
+            const pillarPosts = postsByPillar.get(pillar.id) || [];
+            articles = pillarPosts.map((p) => ({
+              title: p.title,
+              status: p.status || null,
+              createdAt: p.createdAt || null,
+              source: p.source || "manual",
+            }));
+            articleCount = pillarPosts.length;
+            recentCount = pillarPosts.filter(
+              (p) => p.createdAt && new Date(p.createdAt) >= recentCutoff
+            ).length;
+          }
+
+          totalArticles += articleCount;
+          totalRecent += recentCount;
+
+          return {
+            id: pillar.id,
+            name: pillar.name,
+            description: pillar.description,
+            status: pillar.status,
+            isAutomation: Boolean(pillar.isAutomation),
+            targetArticleCount: pillar.targetArticleCount || null,
+            generatedCount: pillar.generatedCount || 0,
+            articleCount,
+            recentCount,
+            articles,
+          };
+        })
+      );
+
+      res.json({
+        siteId,
+        generatedAt: now,
+        totals: {
+          pillars: pillars.length,
+          articles: totalArticles,
+          recent: totalRecent,
+        },
+        pillars: pillarSummaries,
+      });
+    } catch (error: any) {
+      console.error("[Strategy View] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch strategy view" });
+    }
+  });
   
     // Fix missing feature images on articles for a site
   app.post("/api/sites/:siteId/fix-missing-images", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -1996,16 +2097,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === ADMIN WIKI ===
 
-  app.get("/api/admin/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const { adminWikiData } = await import("@shared/admin-wiki");
-      res.json(adminWikiData);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to load documentation" });
-    }
-  });
+    app.get("/api/admin/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { adminWikiData } = await import("@shared/admin-wiki");
+        res.json(adminWikiData);
+      } catch (error) {
+        res.status(500).json({ error: "Failed to load documentation" });
+      }
+    });
 
-  // === OWNER WIKI ===
+    // Admin autopilot status overview
+    app.get("/api/admin/autopilot-status", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const owners = await storage.getActivePaidOwners();
+        const rows: Array<{
+          ownerId: string;
+          ownerEmail: string | null;
+          ownerPlan: string | null;
+          subscriptionStatus: string | null;
+          postsUsedThisMonth: number;
+          remainingPlanQuota: number;
+          postsResetDate: Date | null;
+          siteId: string;
+          siteTitle: string;
+          siteDomain: string | null;
+          siteOnboarded: boolean;
+          hasBusinessProfile: boolean;
+          sitesCount: number;
+          allocationForSite: number | null;
+          targetForSite: number;
+          createdAutopilotThisCycle: number;
+          missingToTarget: number;
+          cycleStart: Date;
+        }> = [];
+
+        const now = new Date();
+
+        for (const owner of owners) {
+          const planLimits = owner.subscriptionPlan
+            ? PLAN_LIMITS[owner.subscriptionPlan as keyof typeof PLAN_LIMITS]
+            : null;
+
+          if (!planLimits) continue;
+
+          const postsUsedThisMonth = owner.postsUsedThisMonth || 0;
+          const remainingPlanQuota = Math.max(0, planLimits.postsPerMonth - postsUsedThisMonth);
+          const cycleStart = owner.postsResetDate
+            ? new Date(owner.postsResetDate)
+            : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+
+          const sites = await storage.getSitesByOwnerId(owner.id);
+          const sitesCount = sites.length || 1;
+          const allocation = await storage.getArticleAllocation(owner.id);
+
+          for (const site of sites) {
+            const allocationForSite = allocation?.[site.id] ?? null;
+            let targetForSite = 0;
+
+            if (allocationForSite && allocationForSite > 0) {
+              targetForSite = Math.max(4, Math.min(allocationForSite, 100));
+            } else {
+              const perSite = Math.floor(planLimits.postsPerMonth / sitesCount);
+              targetForSite = Math.max(4, Math.min(perSite, 40));
+            }
+
+            const createdAutopilotThisCycle = await storage.countPostsBySiteSince(
+              site.id,
+              cycleStart,
+              "monthly-automation"
+            );
+
+            const missingToTarget = Math.max(0, targetForSite - createdAutopilotThisCycle);
+
+            rows.push({
+              ownerId: owner.id,
+              ownerEmail: owner.email,
+              ownerPlan: owner.subscriptionPlan,
+              subscriptionStatus: owner.subscriptionStatus,
+              postsUsedThisMonth,
+              remainingPlanQuota,
+              postsResetDate: owner.postsResetDate || null,
+              siteId: site.id,
+              siteTitle: site.title,
+              siteDomain: site.domain || null,
+              siteOnboarded: site.isOnboarded,
+              hasBusinessProfile: Boolean(site.businessDescription && site.businessDescription.trim().length > 0),
+              sitesCount,
+              allocationForSite,
+              targetForSite,
+              createdAutopilotThisCycle,
+              missingToTarget,
+              cycleStart,
+            });
+          }
+        }
+
+        res.json({
+          generatedAt: now,
+          rows,
+        });
+      } catch (error) {
+        console.error("[Admin Autopilot] Error:", error);
+        res.status(500).json({ error: "Failed to fetch autopilot status" });
+      }
+    });
+  
+    // === OWNER WIKI ===
 
   app.get("/api/owner/wiki", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {

@@ -7,6 +7,7 @@ import type { BusinessContext } from "./openai";
 import type { Site, Post, ArticleRole, User, Pillar } from "@shared/schema";
 import { PLAN_LIMITS } from "@shared/schema";
 import { PACK_DEFINITIONS, type PackType, getPackRoleDistribution, selectRoleForArticle } from "@shared/pack-definitions";
+import { pool } from "./db";
 
 let openai: OpenAI | null = null;
 
@@ -66,6 +67,36 @@ interface GeneratedArticle {
 
 const MAX_ARTICLES_PER_PILLAR = 100;
 const INITIAL_PILLAR_COUNT = 4;
+
+function getBillingPeriodStart(owner: User): Date {
+  if (owner.postsResetDate) {
+    return new Date(owner.postsResetDate);
+  }
+
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+}
+
+function getBillingPeriodKey(owner: User): string {
+  const start = getBillingPeriodStart(owner);
+  return start.toISOString().slice(0, 10);
+}
+
+async function tryAcquireMonthlyLock(owner: User): Promise<{ acquired: boolean; key: string }> {
+  const key = getBillingPeriodKey(owner);
+  const result = await pool.query(
+    "select pg_try_advisory_lock(hashtext($1), hashtext($2)) as locked",
+    [owner.id, key]
+  );
+  return { acquired: Boolean(result.rows?.[0]?.locked), key };
+}
+
+async function releaseMonthlyLock(owner: User, key: string): Promise<void> {
+  await pool.query(
+    "select pg_advisory_unlock(hashtext($1), hashtext($2))",
+    [owner.id, key]
+  );
+}
 
 export async function generateInitialPillars(site: Site): Promise<PillarPlan[]> {
   const lang = getLanguageForPrompt(site.displayLanguage || "en");
@@ -691,6 +722,10 @@ export async function triggerMonthlyContentGeneration(userId: string): Promise<{
   sitesProcessed: number;
   errors: string[];
 }> {
+  let lockKey: string | null = null;
+  let lockOwner: User | null = null;
+  let lockAcquired = false;
+
   try {
     const owner = await storage.getUser(userId);
     if (!owner || owner.role !== "owner") {
@@ -699,6 +734,14 @@ export async function triggerMonthlyContentGeneration(userId: string): Promise<{
 
     if (!owner.subscriptionPlan || owner.subscriptionStatus !== "active") {
       return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["No active subscription"] };
+    }
+
+    const lock = await tryAcquireMonthlyLock(owner);
+    lockKey = lock.key;
+    lockOwner = owner;
+    lockAcquired = lock.acquired;
+    if (!lock.acquired) {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["Generation already in progress"] };
     }
 
     const sites = await storage.getSitesByOwnerId(userId);
@@ -739,5 +782,116 @@ export async function triggerMonthlyContentGeneration(userId: string): Promise<{
       sitesProcessed: 0,
       errors: [error instanceof Error ? error.message : "Unknown error"],
     };
+  } finally {
+    if (lockAcquired && lockOwner && lockKey) {
+      try {
+        await releaseMonthlyLock(lockOwner, lockKey);
+      } catch (releaseError) {
+        console.error("[Monthly Content] Failed to release monthly lock:", releaseError);
+      }
+    }
+  }
+}
+
+export async function runMonthlyBackfillForUser(userId: string): Promise<{
+  success: boolean;
+  totalArticles: number;
+  sitesProcessed: number;
+  errors: string[];
+}> {
+  let lockKey: string | null = null;
+  let lockOwner: User | null = null;
+  let lockAcquired = false;
+
+  try {
+    const owner = await storage.getUser(userId);
+    if (!owner || owner.role !== "owner") {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["User not found or not an owner"] };
+    }
+
+    if (!owner.subscriptionPlan || owner.subscriptionStatus !== "active") {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["No active subscription"] };
+    }
+
+    const lock = await tryAcquireMonthlyLock(owner);
+    lockKey = lock.key;
+    lockOwner = owner;
+    lockAcquired = lock.acquired;
+    if (!lock.acquired) {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["Generation already in progress"] };
+    }
+
+    const planLimits = PLAN_LIMITS[owner.subscriptionPlan as keyof typeof PLAN_LIMITS];
+    if (!planLimits) {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["Invalid subscription plan"] };
+    }
+
+    const sites = await storage.getSitesByOwnerId(userId);
+    const errors: string[] = [];
+    let totalArticles = 0;
+    let sitesProcessed = 0;
+
+    const allocation = await storage.getArticleAllocation(userId);
+    if (sites.length > 1 && !allocation) {
+      return { success: false, totalArticles: 0, sitesProcessed: 0, errors: ["Missing allocation for multi-site user"] };
+    }
+
+    const cycleStart = getBillingPeriodStart(owner);
+    const sitesCount = sites.length || 1;
+
+    for (const site of sites) {
+      if (!site.isOnboarded || !site.businessDescription) {
+        errors.push(`Site \"${site.title}\" skipped: onboarding/business profile incomplete`);
+        continue;
+      }
+
+      let targetForSite = 0;
+      if (allocation?.[site.id]) {
+        targetForSite = Math.max(4, Math.min(allocation[site.id], 100));
+      } else {
+        const perSite = Math.floor(planLimits.postsPerMonth / sitesCount);
+        targetForSite = Math.max(4, Math.min(perSite, 40));
+      }
+
+      const createdThisCycle = await storage.countPostsBySiteSince(site.id, cycleStart, "monthly-automation");
+      const missing = targetForSite - createdThisCycle;
+
+      if (missing <= 0) {
+        continue;
+      }
+
+      const result = await generateMonthlyContentForSite(site.id, owner, missing);
+      if (result.success) {
+        totalArticles += result.articlesCreated;
+        if (result.articlesCreated > 0) {
+          sitesProcessed++;
+        }
+      } else {
+        errors.push(`Site \"${site.title}\": ${result.error}`);
+      }
+    }
+
+    return {
+      success: sitesProcessed > 0,
+      totalArticles,
+      sitesProcessed,
+      errors,
+    };
+  } catch (error) {
+    console.error("[Monthly Backfill] Error:", error);
+    return {
+      success: false,
+      totalArticles: 0,
+      sitesProcessed: 0,
+      errors: [error instanceof Error ? error.message : "Unknown error"],
+    };
+  } finally {
+    if (lockAcquired && lockOwner && lockKey) {
+      try {
+        await releaseMonthlyLock(lockOwner, lockKey);
+      } catch (releaseError) {
+        console.error("[Monthly Backfill] Failed to release monthly lock:", releaseError);
+      }
+    }
   }
 }
