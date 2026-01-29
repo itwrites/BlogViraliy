@@ -932,6 +932,61 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           </div>
 
           <div className="p-4 border-t border-border space-y-3 bg-muted/30">
+            {/* macOS-style generation progress indicator - above site name */}
+            <AnimatePresence>
+              {isGeneratingInitialArticles && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 12 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                  data-testid="sidebar-generation-indicator"
+                >
+                  <div 
+                    className="rounded-xl bg-white p-3"
+                    style={{ 
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-700">Building Articles</span>
+                      <span className="text-[10px] text-gray-400 tabular-nums">
+                        {realArticleCount}/{expectedArticleCount}
+                      </span>
+                    </div>
+                    {/* macOS-style progress bar */}
+                    <div className="relative w-full h-[5px] bg-gray-100 rounded-full overflow-hidden">
+                      <motion.div
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{ 
+                          background: 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%)',
+                        }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((realArticleCount / expectedArticleCount) * 100, 100)}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                      {/* Subtle shimmer */}
+                      <motion.div
+                        className="absolute inset-y-0"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
+                          width: '40%'
+                        }}
+                        animate={{ x: ['-100%', '300%'] }}
+                        transition={{ 
+                          duration: 1.8, 
+                          repeat: Infinity, 
+                          ease: "easeInOut",
+                          repeatDelay: 0.3
+                        }}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white card-elevate">
               <SiteEmblem title={site?.title} favicon={site?.favicon} />
               <div className="flex-1 min-w-0">
@@ -2283,95 +2338,6 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
         />
       )}
 
-      {/* Floating macOS-style progress indicator - shows during generation without blocking the list */}
-      <AnimatePresence>
-        {isGeneratingInitialArticles && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50"
-            data-testid="floating-generation-indicator"
-          >
-            <div 
-              className="bg-white/90 backdrop-blur-2xl rounded-2xl p-4 min-w-[300px]"
-              style={{ 
-                boxShadow: '0 10px 40px rgba(0,0,0,0.15), 0 2px 10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                WebkitFontSmoothing: 'antialiased'
-              }}
-            >
-              {/* macOS-style header with icon */}
-              <div className="flex items-center gap-3 mb-3">
-                <div 
-                  className="w-11 h-11 rounded-xl flex items-center justify-center relative overflow-hidden"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
-                  }}
-                >
-                  <Sparkles className="w-5 h-5 text-white" />
-                  {/* Animated glow */}
-                  <motion.div
-                    className="absolute inset-0 bg-white/20"
-                    animate={{ opacity: [0.2, 0.4, 0.2] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 tracking-tight">
-                    Generating Articles
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {realArticleCount} of {expectedArticleCount} created
-                  </p>
-                </div>
-              </div>
-              
-              {/* Progress bar with macOS styling */}
-              <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                {/* Determinate progress */}
-                <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full"
-                  style={{ 
-                    background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
-                    width: `${Math.min((realArticleCount / expectedArticleCount) * 100, 100)}%`
-                  }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((realArticleCount / expectedArticleCount) * 100, 100)}%` }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                />
-                {/* Shimmer effect on top of progress */}
-                <motion.div
-                  className="absolute inset-y-0 left-0 w-full"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-                    width: '30%'
-                  }}
-                  animate={{ x: ['-100%', '400%'] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity, 
-                    ease: "easeInOut",
-                    repeatDelay: 0.5
-                  }}
-                />
-              </div>
-              
-              {/* Subtle working status */}
-              <div className="flex items-center gap-1.5 mt-2">
-                <motion.div
-                  className="w-1.5 h-1.5 rounded-full bg-green-500"
-                  animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <span className="text-[11px] text-gray-400">AI is writing content...</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
