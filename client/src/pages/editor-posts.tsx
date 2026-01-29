@@ -950,9 +950,9 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-700">Building Articles</span>
-                      <span className="text-[10px] text-gray-400 tabular-nums">
-                        {realArticleCount}/{expectedArticleCount}
+                      <span className="text-xs font-medium text-gray-700">Crafting articles...</span>
+                      <span className="text-[10px] text-gray-500 tabular-nums font-medium">
+                        {realArticleCount} of {expectedArticleCount}
                       </span>
                     </div>
                     {/* macOS-style progress bar */}

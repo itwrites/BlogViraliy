@@ -1014,7 +1014,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/sites/:siteId/generation-status", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { siteId } = req.params;
-      const site = await storage.getSite(siteId);
+      const site = await storage.getSiteById(siteId);
       
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
@@ -1030,34 +1030,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
       
-      // Get current article count for progress display
-      const posts = await storage.getPosts(siteId);
-      const realArticleCount = posts.filter(p => !p.isLocked).length;
-      
-      // Get expected target based on subscription status
-      let expectedCount = 4; // Default for free tier initial articles
-      if (isSubscribed && user.subscriptionPlan) {
-        const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
-        expectedCount = planLimits?.postsPerMonth || 30;
+      // Only show indicator for paid users
+      if (!isSubscribed) {
+        return res.json({ isGenerating: false, articlesCreated: 0, expectedCount: 0, isPaidUser: false });
       }
+      
+      // Get current article count for progress display
+      const posts = await storage.getPostsBySiteId(siteId);
+      const realArticleCount = posts.filter((p: any) => !p.isLocked).length;
+      
+      // Get expected target based on plan
+      const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+      const expectedCount = planLimits?.postsPerMonth || 30;
       
       // Show generation indicator when:
       // 1. Site is onboarded with business profile
-      // 2. Current article count is less than expected target
-      // 3. Generation process hasn't been marked complete (for paid users)
+      // 2. User is paid subscriber
+      // 3. Current article count is less than expected target (still more to create)
+      // 4. First payment generation not yet complete
       const hasBusinessProfile = site.isOnboarded && site.businessDescription;
-      const stillGenerating = realArticleCount < expectedCount;
-      const generationNotComplete = isSubscribed 
-        ? !user.firstPaymentGenerationDone 
-        : !site.initialArticlesGenerated;
+      const stillMoreToCreate = realArticleCount < expectedCount;
+      const generationInProgress = !user.firstPaymentGenerationDone;
       
-      const isGenerating = hasBusinessProfile && stillGenerating && generationNotComplete;
+      const isGenerating = hasBusinessProfile && stillMoreToCreate && generationInProgress;
       
       res.json({
         isGenerating,
         articlesCreated: realArticleCount,
         expectedCount,
-        isPaidUser: isSubscribed
+        isPaidUser: true
       });
     } catch (error: any) {
       console.error("[Generation Status] Error:", error);
@@ -1069,15 +1070,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sites/:siteId/fix-missing-images", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { siteId } = req.params;
-      const site = await storage.getSite(siteId);
+      const site = await storage.getSiteById(siteId);
       
       if (!site) {
         return res.status(404).json({ error: "Site not found" });
       }
       
       // Get all posts without images
-      const posts = await storage.getPosts(siteId);
-      const postsWithoutImages = posts.filter(p => !p.isLocked && !p.imageUrl);
+      const posts = await storage.getPostsBySiteId(siteId);
+      const postsWithoutImages = posts.filter((p: any) => !p.isLocked && !p.imageUrl);
       
       if (postsWithoutImages.length === 0) {
         return res.json({ message: "All articles have images", fixed: 0 });
