@@ -6,7 +6,7 @@ import { CheckCircle, Loader2, FileText, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { PLAN_LIMITS } from "@shared/schema";
 import type { Site } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface SubscriptionResponse {
   subscription: {
@@ -68,6 +68,10 @@ export default function CheckoutSuccess() {
     },
     onSuccess: (data) => {
       console.log("[CheckoutSuccess] Subscription sync result:", data);
+      // Force refetch subscription status after sync
+      if (data.synced) {
+        queryClient.invalidateQueries({ queryKey: ["/bv_api/subscription"] });
+      }
     },
     onError: (error) => {
       console.error("[CheckoutSuccess] Sync failed:", error);

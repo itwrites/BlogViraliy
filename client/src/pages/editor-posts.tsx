@@ -417,20 +417,29 @@ export default function EditorPosts() {
   }, [posts, searchQuery, sourceFilter]);
   
   // Separate unlocked and locked articles for grouped display
+  // For paid users (hasActiveSubscription), treat ALL posts as unlocked
   const unlockedPosts = useMemo(() => {
-    const unlocked = filteredPosts.filter(p => !p.isLocked);
+    const unlocked = hasActiveSubscription 
+      ? filteredPosts  // Paid users see all posts as unlocked
+      : filteredPosts.filter(p => !p.isLocked);
     return unlocked.slice(
       (currentPage - 1) * POSTS_PER_PAGE,
       Math.min(currentPage * POSTS_PER_PAGE, unlocked.length)
     );
-  }, [filteredPosts, currentPage]);
+  }, [filteredPosts, currentPage, hasActiveSubscription]);
   
   const lockedPosts = useMemo(() => {
+    // Paid users have NO locked posts - they can see everything
+    if (hasActiveSubscription) return [];
     return filteredPosts.filter(p => p.isLocked);
-  }, [filteredPosts]);
+  }, [filteredPosts, hasActiveSubscription]);
 
   // Pagination is based on unlocked posts only - locked posts are always shown at bottom
-  const allUnlockedPosts = useMemo(() => filteredPosts.filter(p => !p.isLocked), [filteredPosts]);
+  const allUnlockedPosts = useMemo(() => {
+    return hasActiveSubscription 
+      ? filteredPosts 
+      : filteredPosts.filter(p => !p.isLocked);
+  }, [filteredPosts, hasActiveSubscription]);
   const totalPages = Math.ceil(allUnlockedPosts.length / POSTS_PER_PAGE);
   
   // Check if there are any posts to display (used for showing content vs empty state)
@@ -2257,6 +2266,55 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           }}
         />
       )}
+
+      {/* Floating macOS-style progress indicator - shows during generation without blocking the list */}
+      <AnimatePresence>
+        {isGeneratingInitialArticles && hasPostsToShow && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 right-6 z-50"
+            data-testid="floating-generation-indicator"
+          >
+            <div 
+              className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 p-4 min-w-[280px]"
+              style={{ 
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    Generating Articles
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {realArticleCount} created so far...
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-primary rounded-full"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "100%" }}
+                  transition={{ 
+                    duration: 1.2, 
+                    repeat: Infinity, 
+                    ease: "easeInOut"
+                  }}
+                  style={{ width: "35%" }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
