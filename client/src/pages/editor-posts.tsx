@@ -463,12 +463,14 @@ export default function EditorPosts() {
 
   const stats = useMemo(() => {
     if (!posts) return { total: 0, manual: 0, ai: 0, rss: 0, totalViews: 0 };
+    // Only count real articles (exclude locked placeholder articles)
+    const realPosts = posts.filter(p => !p.isLocked);
     return {
-      total: posts.length,
-      manual: posts.filter(p => p.source === "manual").length,
-      ai: posts.filter(p => isAiSource(p.source)).length,
-      rss: posts.filter(p => p.source === "rss").length,
-      totalViews: posts.reduce((sum, p) => sum + (p.viewCount || 0), 0),
+      total: realPosts.length,
+      manual: realPosts.filter(p => p.source === "manual").length,
+      ai: realPosts.filter(p => isAiSource(p.source)).length,
+      rss: realPosts.filter(p => p.source === "rss").length,
+      totalViews: realPosts.reduce((sum, p) => sum + (p.viewCount || 0), 0),
     };
   }, [posts]);
 
