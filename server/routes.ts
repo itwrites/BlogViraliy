@@ -1025,29 +1025,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isOwner = user?.role === "owner" && site.ownerId === user.id;
       
       if (!isOwner) {
-        return res.json({ isGenerating: false });
+        return res.json({ isGenerating: false, articlesCreated: 0, expectedCount: 0, isPaidUser: false });
       }
       
-      // Check for active generation:
-      // 1. Site is onboarded but initialArticlesGenerated is false
-      // 2. User is subscribed but firstPaymentGenerationDone is false
       const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
-      
-      const isGenerating = (
-        (site.isOnboarded && site.businessDescription && !site.initialArticlesGenerated) ||
-        (isSubscribed && !user.firstPaymentGenerationDone)
-      );
       
       // Get current article count for progress display
       const posts = await storage.getPosts(siteId);
       const realArticleCount = posts.filter(p => !p.isLocked).length;
       
-      // Get expected target (for paid users, use plan limits)
+      // Get expected target based on subscription status
       let expectedCount = 4; // Default for free tier initial articles
       if (isSubscribed && user.subscriptionPlan) {
         const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
         expectedCount = planLimits?.postsPerMonth || 30;
       }
+      
+      // Show generation indicator when:
+      // 1. Site is onboarded with business profile
+      // 2. Current article count is less than expected target
+      // 3. Generation process hasn't been marked complete (for paid users)
+      const hasBusinessProfile = site.isOnboarded && site.businessDescription;
+      const stillGenerating = realArticleCount < expectedCount;
+      const generationNotComplete = isSubscribed 
+        ? !user.firstPaymentGenerationDone 
+        : !site.initialArticlesGenerated;
+      
+      const isGenerating = hasBusinessProfile && stillGenerating && generationNotComplete;
       
       res.json({
         isGenerating,
