@@ -442,7 +442,7 @@ export async function processNextPillarArticle(pillar: Pillar): Promise<{
       await storage.updatePillarArticle(article.id, {
         status: "failed",
       });
-      return null;
+      return { success: false, error: createResult.error };
     }
 
     const post = createResult.post!;

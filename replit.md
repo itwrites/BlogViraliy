@@ -90,3 +90,8 @@ Create products in Stripe dashboard with `plan_id` in metadata:
 - Product with `metadata.plan_id = "scale"`
 
 Each product should have an active monthly recurring price attached.
+
+## Documentation
+
+For detailed technical documentation, see:
+- **[Automation Architecture](docs/AUTOMATION_ARCHITECTURE.md)**: Complete guide to the automation system including cron job schedules, content generation flows, scheduled publishing, catch-up failsafes, image retry logic, and idempotency guards.
