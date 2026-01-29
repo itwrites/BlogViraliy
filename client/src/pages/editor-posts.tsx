@@ -417,29 +417,29 @@ export default function EditorPosts() {
   }, [posts, searchQuery, sourceFilter]);
   
   // Separate unlocked and locked articles for grouped display
-  // For paid users (hasActiveSubscription), treat ALL posts as unlocked
+  // For paid users: COMPLETELY HIDE locked articles (they are fake placeholders)
+  // For free users: Show unlocked articles normally, show locked at bottom with blur
   const unlockedPosts = useMemo(() => {
-    const unlocked = hasActiveSubscription 
-      ? filteredPosts  // Paid users see all posts as unlocked
-      : filteredPosts.filter(p => !p.isLocked);
+    // For paid users, filter OUT all locked posts entirely (they're fake)
+    // For free users, only show non-locked posts in the main list
+    const unlocked = filteredPosts.filter(p => !p.isLocked);
     return unlocked.slice(
       (currentPage - 1) * POSTS_PER_PAGE,
       Math.min(currentPage * POSTS_PER_PAGE, unlocked.length)
     );
-  }, [filteredPosts, currentPage, hasActiveSubscription]);
+  }, [filteredPosts, currentPage]);
   
   const lockedPosts = useMemo(() => {
-    // Paid users have NO locked posts - they can see everything
+    // Paid users should NEVER see locked posts - they are fake placeholders
     if (hasActiveSubscription) return [];
+    // Free users see locked posts at the bottom with blur/paywall
     return filteredPosts.filter(p => p.isLocked);
   }, [filteredPosts, hasActiveSubscription]);
 
-  // Pagination is based on unlocked posts only - locked posts are always shown at bottom
+  // Pagination is based on real (non-locked) posts only
   const allUnlockedPosts = useMemo(() => {
-    return hasActiveSubscription 
-      ? filteredPosts 
-      : filteredPosts.filter(p => !p.isLocked);
-  }, [filteredPosts, hasActiveSubscription]);
+    return filteredPosts.filter(p => !p.isLocked);
+  }, [filteredPosts]);
   const totalPages = Math.ceil(allUnlockedPosts.length / POSTS_PER_PAGE);
   
   // Check if there are any posts to display (used for showing content vs empty state)
@@ -2269,7 +2269,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
 
       {/* Floating macOS-style progress indicator - shows during generation without blocking the list */}
       <AnimatePresence>
-        {isGeneratingInitialArticles && hasPostsToShow && (
+        {isGeneratingInitialArticles && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
