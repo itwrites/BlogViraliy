@@ -73,6 +73,7 @@ export interface IStorage {
   getPaidUsersNeedingGeneration(): Promise<User[]>;
   getAutopilotArticleCountForUser(userId: string): Promise<number>;
   countPostsBySiteSince(siteId: string, since: Date, source?: string): Promise<number>;
+  countPostsByOwnerSince(ownerId: string, since: Date, includeLocked?: boolean): Promise<number>;
   deleteUser(id: string): Promise<void>;
 
   // User-Site permissions
@@ -370,6 +371,30 @@ export class DatabaseStorage implements IStorage {
     ];
     if (source) {
       conditions.push(eq(posts.source, source));
+    }
+
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(posts)
+      .where(and(...conditions));
+
+    return result[0]?.count || 0;
+  }
+
+  async countPostsByOwnerSince(ownerId: string, since: Date, includeLocked = false): Promise<number> {
+    const ownedSites = await this.getSitesByOwnerId(ownerId);
+    const userSitesList = await this.getSitesForUser(ownerId);
+    const siteIds = Array.from(new Set([
+      ...ownedSites.map((site) => site.id),
+      ...userSitesList.map((site) => site.id),
+    ]));
+    if (siteIds.length === 0) return 0;
+    const conditions = [
+      inArray(posts.siteId, siteIds),
+      gte(posts.createdAt, since),
+    ];
+    if (!includeLocked) {
+      conditions.push(eq(posts.isLocked, false));
     }
 
     const result = await db

@@ -783,13 +783,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const postsLimit = planLimits?.postsPerMonth || 0;
         const sitesLimit = planLimits?.maxSites ?? 0;
         const sitesUsed = user.role === "owner" ? (await storage.getSitesByOwnerId(user.id)).length : 0;
+        const now = new Date();
+        const billingStart = user.postsResetDate
+          ? new Date(user.postsResetDate)
+          : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+        const postsCreatedThisMonth = user.role === "owner"
+          ? await storage.countPostsByOwnerSince(user.id, billingStart, false)
+          : 0;
+        const effectivePostsUsedThisMonth = Math.max(postsUsedThisMonth, postsCreatedThisMonth);
+
+        if (effectivePostsUsedThisMonth !== postsUsedThisMonth) {
+          await storage.updateUser(user.id, { postsUsedThisMonth: effectivePostsUsedThisMonth });
+        }
 
         res.json({
           subscription,
           plan: user.subscriptionPlan,
           status: user.subscriptionStatus,
-          postsUsedThisMonth,
-          postsUsed: postsUsedThisMonth,
+          postsUsedThisMonth: effectivePostsUsedThisMonth,
+          postsUsed: effectivePostsUsedThisMonth,
+          postsCreatedThisMonth,
           postsLimit,
           sitesUsed,
           sitesLimit,
@@ -1041,15 +1054,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
-      
-      // Only show indicator for paid users
+
+      const posts = await storage.getPostsBySiteId(siteId);
+      const realArticleCount = posts.filter((p: any) => !p.isLocked).length;
+
       if (!isSubscribed) {
-        return res.json({ isGenerating: false, articlesCreated: 0, expectedCount: 0, isPaidUser: false });
+        const shouldGenerateInitial = Boolean(site.isOnboarded && !site.initialArticlesGenerated);
+        if (shouldGenerateInitial) {
+          const { generateInitialArticlesForSite, isGenerating } = await import("./initial-article-generator");
+          if (!isGenerating(siteId)) {
+            generateInitialArticlesForSite(siteId).catch((err) => {
+              console.error(`[Generation Status] Failed to trigger initial generation for site ${siteId}:`, err);
+            });
+          }
+        }
+        return res.json({
+          isGenerating: shouldGenerateInitial,
+          articlesCreated: realArticleCount,
+          expectedCount: 4,
+          isPaidUser: false,
+        });
       }
       
       // Get current article count for progress display
-      const posts = await storage.getPostsBySiteId(siteId);
-      const realArticleCount = posts.filter((p: any) => !p.isLocked).length;
       
       // Get expected target based on plan + allocation (if any)
       const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
@@ -1238,15 +1265,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
+      const visiblePillars = pillarSummaries.filter((pillar) => pillar.articleCount > 0);
+      const visibleTotals = {
+        pillars: visiblePillars.length,
+        articles: visiblePillars.reduce((sum, pillar) => sum + pillar.articleCount, 0),
+        recent: visiblePillars.reduce((sum, pillar) => sum + pillar.recentCount, 0),
+      };
+
       res.json({
         siteId,
         generatedAt: now,
         totals: {
-          pillars: pillars.length,
-          articles: totalArticles,
-          recent: totalRecent,
+          pillars: visibleTotals.pillars,
+          articles: visibleTotals.articles,
+          recent: visibleTotals.recent,
         },
-        pillars: pillarSummaries,
+        pillars: visiblePillars,
       });
     } catch (error: any) {
       console.error("[Strategy View] Error:", error);
@@ -1534,7 +1568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If site is onboarded with business info but initialArticlesGenerated is false, trigger generation
       const site = await storage.getSiteById(siteId);
-      if (site && site.isOnboarded && site.businessDescription && !site.initialArticlesGenerated) {
+      if (site && site.isOnboarded && !site.initialArticlesGenerated) {
         const { generateInitialArticlesForSite, isGenerating } = await import("./initial-article-generator");
         // Only trigger if not already generating
         if (!isGenerating(siteId)) {

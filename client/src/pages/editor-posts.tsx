@@ -185,7 +185,7 @@ const getReadingTime = (content: string) => {
 
 export default function EditorPosts() {
   const { id: siteId } = useParams();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, logout, isOwner: authIsOwner, isLoading: authLoading } = useAuth();
   const { hasActiveSubscription, isOwner } = useSubscription();
@@ -204,6 +204,8 @@ export default function EditorPosts() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [pillarFilter, setPillarFilter] = useState<string | null>(null);
+  const [pillarFilterLabel, setPillarFilterLabel] = useState<string | null>(null);
   const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [csvContent, setCsvContent] = useState("");
   const [csvImporting, setCsvImporting] = useState(false);
@@ -285,7 +287,26 @@ export default function EditorPosts() {
   const isGeneratingInitialArticles = generationStatus?.isGenerating ?? false;
   const realArticleCount = generationStatus?.articlesCreated ?? posts?.filter(p => !p.isLocked)?.length ?? 0;
   const expectedArticleCount = generationStatus?.expectedCount ?? 4;
-  
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.split("?")[1] ?? "");
+    const tabParam = params.get("tab") as ActiveTab | null;
+    const pillarParam = params.get("pillarId");
+    const topicParam = params.get("topic");
+
+    if (tabParam && ["posts", "topical", "bulk", "ai", "authors", "calendar", "strategy"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+
+    if (pillarParam) {
+      setPillarFilter(pillarParam);
+      setPillarFilterLabel(topicParam || null);
+    } else {
+      setPillarFilter(null);
+      setPillarFilterLabel(null);
+    }
+  }, [location]);
+
   // Auto-refresh posts when articles are being generated
   useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts", "refresh"],
@@ -423,8 +444,10 @@ export default function EditorPosts() {
       const matchesSource = sourceFilter === "all" 
         || (sourceFilter === "ai" && isAiSource(post.source))
         || post.source === sourceFilter;
+
+      const matchesPillar = !pillarFilter || post.pillarId === pillarFilter;
       
-      return matchesSearch && matchesSource;
+      return matchesSearch && matchesSource && matchesPillar;
     });
     
     // Sort: unlocked articles first, locked articles at bottom
@@ -432,7 +455,7 @@ export default function EditorPosts() {
       if (a.isLocked === b.isLocked) return 0;
       return a.isLocked ? 1 : -1;
     });
-  }, [posts, searchQuery, sourceFilter]);
+  }, [posts, searchQuery, sourceFilter, pillarFilter]);
   
   // Separate unlocked and locked articles for grouped display
   // For paid users: COMPLETELY HIDE locked articles (they are fake placeholders)
@@ -488,6 +511,12 @@ export default function EditorPosts() {
       return true;
     }
     return false;
+  };
+
+  const clearPillarFilter = () => {
+    setPillarFilter(null);
+    setPillarFilterLabel(null);
+    setLocation(location.split("?")[0]);
   };
 
   const openEditor = (post?: Post) => {
@@ -897,7 +926,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                   data-testid="nav-strategy"
                 >
                   <Layers className="w-4 h-4" />
-                  <span className="flex-1 text-left">Strategy View</span>
+                  <span className="flex-1 text-left">Content Map</span>
                 </button>
                 {user?.role === "admin" && (
                   <button
@@ -1059,7 +1088,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
           >
             <div className="px-8 py-4">
               <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="flex flex-col gap-2 flex-1 min-w-0">
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                     <Input
@@ -1081,6 +1110,18 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                       </button>
                     )}
                   </div>
+                  {pillarFilterLabel && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-3 py-1 text-xs text-muted-foreground w-fit">
+                      <span>Topic: {pillarFilterLabel}</span>
+                      <button
+                        onClick={clearPillarFilter}
+                        className="text-muted-foreground/70 hover:text-foreground transition-colors"
+                        type="button"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {bulkMode ? (

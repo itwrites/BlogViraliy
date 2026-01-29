@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Layers, Leaf } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Layers, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface StrategyArticle {
   title: string;
@@ -43,13 +45,13 @@ const container = {
     transition: {
       staggerChildren: 0.06,
       delayChildren: 0.05,
-    }
-  }
+    },
+  },
 };
 
 const item = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } }
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
 };
 
 export function StrategyView({ siteId }: { siteId: string }) {
@@ -57,120 +59,110 @@ export function StrategyView({ siteId }: { siteId: string }) {
     queryKey: ["/api/sites", siteId, "strategy-view"],
     enabled: Boolean(siteId),
   });
+  const [, setLocation] = useLocation();
 
-  const totals = data?.totals;
+  const [activePillarId, setActivePillarId] = useState<string | null>(null);
+  const displayPillars = useMemo(
+    () => (data?.pillars || []).filter((pillar) => pillar.articleCount > 0),
+    [data]
+  );
+  const activePillar = useMemo(
+    () => displayPillars.find((pillar) => pillar.id === activePillarId) ?? null,
+    [displayPillars, activePillarId]
+  );
+
+  const goToArticles = (pillarId: string, pillarName: string) => {
+    const params = new URLSearchParams({
+      tab: "posts",
+      pillarId,
+      topic: pillarName,
+    });
+    setLocation(`/admin/sites/${siteId}?${params.toString()}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="px-8 py-10">
+        <div className="space-y-6 w-full">
+          <div className="space-y-3">
+            <div className="h-6 w-40 rounded-md bg-white border border-border/70 animate-pulse" />
+            <div className="h-4 w-72 rounded-md bg-white border border-border/70 animate-pulse" />
+          </div>
+
+          <div className="space-y-5 2xl:grid 2xl:grid-cols-2 2xl:gap-6 2xl:space-y-0 2xl:items-start">
+            {[0, 1, 2].map((index) => (
+              <div
+                key={`pillar-skeleton-${index}`}
+                className="h-40 rounded-3xl border border-border/70 bg-white animate-pulse card-elevate"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-10">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
+        className="space-y-8 w-full"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-[22px] font-semibold text-foreground">Strategy View</h2>
+            <h2 className="text-[22px] font-semibold text-foreground">Content Map</h2>
             <p className="text-sm text-muted-foreground/80 mt-1">
-              Your content is organized into clear pillars. Growth happens automatically behind the scenes.
+              A simple view of how your topics are organized.
             </p>
           </div>
-          <Badge variant="secondary" className="h-7 px-3 text-xs">Read-only</Badge>
+          <Badge variant="secondary" className="h-7 px-3 text-xs">Auto-growing</Badge>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="card-elevate">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
-                <Layers className="w-4 h-4" />
-                Pillars
-              </div>
-              <div className="text-2xl font-semibold mt-2 text-foreground">{totals?.pillars ?? 0}</div>
-            </CardContent>
-          </Card>
-          <Card className="card-elevate">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
-                <Sparkles className="w-4 h-4" />
-                Articles in pillars
-              </div>
-              <div className="text-2xl font-semibold mt-2 text-foreground">{totals?.articles ?? 0}</div>
-            </CardContent>
-          </Card>
-          <Card className="card-elevate">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground/70">
-                <Leaf className="w-4 h-4" />
-                New (30 days)
-              </div>
-              <div className="text-2xl font-semibold mt-2 text-foreground">{totals?.recent ?? 0}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <motion.div variants={container} initial="hidden" animate="show" className="space-y-4">
-          {isLoading && (
-            <Card className="card-elevate">
-              <CardContent className="p-6 text-sm text-muted-foreground">Loading strategy…</CardContent>
-            </Card>
-          )}
-
-          {!isLoading && data?.pillars?.length === 0 && (
-            <Card className="card-elevate">
-              <CardContent className="p-6 text-sm text-muted-foreground">
-                No pillars yet. Once Autopilot or Topical Authority creates them, they will appear here.
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="space-y-5 2xl:grid 2xl:grid-cols-2 2xl:gap-6 2xl:space-y-0 2xl:items-start"
+        >
+          {displayPillars.length === 0 && (
+            <Card className="rounded-3xl border border-border/70 bg-white/80 shadow-sm card-elevate xl:col-span-2">
+              <CardContent className="p-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-muted/60 border border-border flex items-center justify-center mx-auto mb-4">
+                  <Layers className="w-6 h-6 text-muted-foreground/70" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  No topics yet. Once your first posts are created, they will appear here.
+                </p>
               </CardContent>
             </Card>
           )}
 
-          {!isLoading && data?.pillars?.map((pillar) => {
-            const list = pillar.articles.slice(0, 8);
-            const remaining = Math.max(0, pillar.articles.length - list.length);
-            const target = pillar.targetArticleCount || 0;
-            const progress = target > 0 ? Math.min((pillar.articleCount / target) * 100, 100) : 0;
-
+          {displayPillars.map((pillar) => {
             return (
               <motion.div key={pillar.id} variants={item}>
-                <Card className="card-elevate">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-semibold text-foreground">{pillar.name}</h3>
-                          {pillar.isAutomation && (
-                            <Badge variant="outline" className="text-xs">Auto</Badge>
-                          )}
-                        </div>
+                <Card className="rounded-3xl border border-border/70 bg-white/85 shadow-sm card-elevate">
+                  <CardContent className="p-6 flex flex-col min-h-[140px]">
+                    <button
+                      onClick={() => setActivePillarId(pillar.id)}
+                      type="button"
+                      className="w-full flex items-start justify-between gap-4 text-left"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-foreground">{pillar.name}</h3>
                         {pillar.description && (
-                          <p className="text-sm text-muted-foreground/80 mt-1">{pillar.description}</p>
+                          <p className="text-sm text-muted-foreground/80 mt-1 line-clamp-3 leading-snug min-h-[3.6rem]">
+                            {pillar.description}
+                          </p>
                         )}
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm text-muted-foreground/70">Articles</div>
-                        <div className="text-xl font-semibold text-foreground">{pillar.articleCount}</div>
-                        <div className="text-xs text-muted-foreground/70">+{pillar.recentCount} in 30 days</div>
+                      <div className="flex items-center gap-3 text-muted-foreground/70">
+                        <span className="text-xs">{pillar.articleCount} articles</span>
+                        <ChevronRight className="w-4 h-4" />
                       </div>
-                    </div>
-
-                    {target > 0 && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground/70 mb-2">
-                          <span>Coverage</span>
-                          <span>{pillar.articleCount}/{target}</span>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                      </div>
-                    )}
-
-                    <div className="mt-4">
-                      <div className="text-xs uppercase tracking-wide text-muted-foreground/70 mb-2">Articles in this pillar</div>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground/80">
-                        {list.map((article) => (
-                          <li key={`${pillar.id}-${article.title}`} className="truncate">• {article.title}</li>
-                        ))}
-                        {remaining > 0 && (
-                          <li className="text-xs text-muted-foreground/60">…and {remaining} more</li>
-                        )}
-                      </ul>
+                    </button>
+                    <div className="mt-4 text-xs text-muted-foreground/60">
+                      Tap to see recent articles
                     </div>
                   </CardContent>
                 </Card>
@@ -179,6 +171,50 @@ export function StrategyView({ siteId }: { siteId: string }) {
           })}
         </motion.div>
       </motion.div>
+
+      <Dialog open={Boolean(activePillar)} onOpenChange={(open) => !open && setActivePillarId(null)}>
+        <DialogContent className="max-w-xl bg-white/95 backdrop-blur-xl border border-border text-foreground max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-lg text-foreground">
+              {activePillar?.name ?? "Topic"}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground/80">
+              {activePillar?.description || "Recent articles in this topic."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {activePillar && (
+            <div className="space-y-4 overflow-auto">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground/70 mb-2">
+                  Recent articles
+                </div>
+                <div className="relative rounded-2xl border border-border/70 bg-muted/30 p-4">
+                  <div className="space-y-2">
+                    {activePillar.articles.slice(0, 5).map((article) => (
+                      <div
+                        key={`${activePillar.id}-${article.title}`}
+                        className="text-sm text-muted-foreground/80 truncate"
+                        title={article.title}
+                      >
+                        {article.title}
+                      </div>
+                    ))}
+                  </div>
+                  {activePillar.articles.length > 5 && (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-muted/70 via-muted/40 to-transparent" />
+                  )}
+                </div>
+              </div>
+              {activePillar.articles.length > 5 && (
+                <span className="text-xs text-muted-foreground/60">
+                  More articles are available.
+                </span>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

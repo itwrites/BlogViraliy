@@ -1,3 +1,12 @@
+import { config as loadEnv } from "dotenv";
+import { existsSync } from "fs";
+
+loadEnv();
+const sharedEnvPath = "shared/.env";
+if (existsSync(sharedEnvPath)) {
+  loadEnv({ path: sharedEnvPath, override: process.env.NODE_ENV !== "production" });
+}
+
 // Referenced from javascript_database blueprint
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
