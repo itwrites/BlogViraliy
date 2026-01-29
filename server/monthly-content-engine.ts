@@ -526,12 +526,32 @@ export async function generateMonthlyContentForSite(
       try {
         const article = await generateArticleContent(articlePlan, site, pillar, siblingTitles);
         
-        const imageUrl = await searchPexelsImage(
+        // Attempt to fetch feature photo with retry logic
+        let imageUrl = await searchPexelsImage(
           articlePlan.keywords[0] || article.title,
           [article.tags[0], article.title].filter(Boolean)
         );
 
-        await storage.createPost({
+        // If no image found, retry with different fallback queries
+        if (!imageUrl) {
+          console.log(`[Monthly Content] No image for "${article.title}", retrying with fallbacks...`);
+          const fallbackQueries = [
+            article.tags[0] || "",
+            article.title.split(" ").slice(0, 3).join(" "),
+            site.industry || "business professional",
+            "professional modern blog"
+          ].filter(q => q && q.length > 2);
+          
+          for (const fallbackQuery of fallbackQueries) {
+            imageUrl = await searchPexelsImage(fallbackQuery);
+            if (imageUrl) {
+              console.log(`[Monthly Content] Found image using fallback: "${fallbackQuery}"`);
+              break;
+            }
+          }
+        }
+
+        const post = await storage.createPost({
           siteId,
           authorId: defaultAuthor?.id || null,
           title: article.title,
@@ -549,10 +569,29 @@ export async function generateMonthlyContentForSite(
           pillarId: pillar.id,
         });
 
+        // Post-creation photo check: if still no image, schedule a retry update
+        if (!imageUrl) {
+          console.log(`[Monthly Content] Article "${article.title}" created without image, will retry...`);
+          setTimeout(async () => {
+            try {
+              const finalImageUrl = await searchPexelsImage(
+                site.industry || site.title || "professional business",
+                ["modern office", "professional team", "business success"]
+              );
+              if (finalImageUrl) {
+                await storage.updatePost(post.id, { imageUrl: finalImageUrl });
+                console.log(`[Monthly Content] Updated "${article.title}" with fallback image`);
+              }
+            } catch (updateError) {
+              console.error(`[Monthly Content] Failed to update image for "${article.title}":`, updateError);
+            }
+          }, 2000);
+        }
+
         createdCount++;
         pillarCounts[pillar.id] = (pillarCounts[pillar.id] || 0) + 1;
         
-        console.log(`[Monthly Content] Created article ${i + 1}/${limitedPlans.length}: "${article.title}" (Pillar: ${pillar.name})`);
+        console.log(`[Monthly Content] Created article ${i + 1}/${limitedPlans.length}: "${article.title}" (Pillar: ${pillar.name})${imageUrl ? "" : " (no image)"}`);
         
         await storage.updateUser(owner.id, {
           postsUsedThisMonth: (owner.postsUsedThisMonth || 0) + 1,

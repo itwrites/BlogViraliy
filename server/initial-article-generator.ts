@@ -335,10 +335,30 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           continue;
         }
         
-        const imageUrl = await searchPexelsImage(
+        // Attempt to fetch feature photo with retry logic
+        let imageUrl = await searchPexelsImage(
           article.imageQuery,
           [article.tags[0], article.title].filter(Boolean)
         );
+
+        // If no image found, retry with different fallback queries
+        if (!imageUrl) {
+          console.log(`[Initial Articles] No image for "${article.title}", retrying with fallbacks...`);
+          const fallbackQueries = [
+            article.tags[0] || "",
+            article.title.split(" ").slice(0, 3).join(" "),
+            site.industry || "business professional",
+            "professional modern blog"
+          ].filter(q => q && q.length > 2);
+          
+          for (const fallbackQuery of fallbackQueries) {
+            imageUrl = await searchPexelsImage(fallbackQuery);
+            if (imageUrl) {
+              console.log(`[Initial Articles] Found image using fallback: "${fallbackQuery}"`);
+              break;
+            }
+          }
+        }
 
         // Real articles are never locked - they're the unlocked ones
         const pillarIndex = createdPillars.length > 0 ? articlesCreatedCount % createdPillars.length : -1;
@@ -362,6 +382,26 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
           scheduledPublishDate: publishDates[articlesCreatedCount],
         });
 
+        // Post-creation photo check: if still no image, schedule a retry update
+        if (!imageUrl) {
+          console.log(`[Initial Articles] Article "${article.title}" created without image, will retry...`);
+          // Attempt one final generic search and update the post
+          setTimeout(async () => {
+            try {
+              const finalImageUrl = await searchPexelsImage(
+                site.industry || site.title || "professional business",
+                ["modern office", "professional team", "business success"]
+              );
+              if (finalImageUrl) {
+                await storage.updatePost(post.id, { imageUrl: finalImageUrl });
+                console.log(`[Initial Articles] Updated "${article.title}" with fallback image`);
+              }
+            } catch (updateError) {
+              console.error(`[Initial Articles] Failed to update image for "${article.title}":`, updateError);
+            }
+          }, 2000);
+        }
+
         createdPosts.push(post.id);
         existingTitles.add(article.title.toLowerCase());
         articlesCreatedCount++;
@@ -369,7 +409,8 @@ export async function generateInitialArticlesForSite(siteId: string): Promise<{
         if (pillarId) {
           pillarCounts[pillarId] = (pillarCounts[pillarId] || 0) + 1;
         }
-        console.log(`[Initial Articles] Created real article ${articlesCreatedCount}/${TARGET_REAL_ARTICLES}: "${article.title}"`);
+        console.log(`[Initial Articles] Created real article ${articlesCreatedCount}/${TARGET_REAL_ARTICLES}: "${article.title}"${imageUrl ? "" : " (no image)"}`);
+
       } catch (articleError) {
         console.error(`[Initial Articles] Failed to generate article ${i + 1}:`, articleError);
       }

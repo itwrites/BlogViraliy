@@ -1010,6 +1010,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current generation status for a site (used for floating progress indicator)
+  app.get("/api/sites/:siteId/generation-status", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { siteId } = req.params;
+      const site = await storage.getSite(siteId);
+      
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      // Check if user is owner
+      const user = await storage.getUser(req.user!.id);
+      const isOwner = user?.role === "owner" && site.ownerId === user.id;
+      
+      if (!isOwner) {
+        return res.json({ isGenerating: false });
+      }
+      
+      // Check for active generation:
+      // 1. Site is onboarded but initialArticlesGenerated is false
+      // 2. User is subscribed but firstPaymentGenerationDone is false
+      const isSubscribed = user.subscriptionStatus === "active" && user.subscriptionPlan;
+      
+      const isGenerating = (
+        (site.isOnboarded && site.businessDescription && !site.initialArticlesGenerated) ||
+        (isSubscribed && !user.firstPaymentGenerationDone)
+      );
+      
+      // Get current article count for progress display
+      const posts = await storage.getPosts(siteId);
+      const realArticleCount = posts.filter(p => !p.isLocked).length;
+      
+      // Get expected target (for paid users, use plan limits)
+      let expectedCount = 4; // Default for free tier initial articles
+      if (isSubscribed && user.subscriptionPlan) {
+        const planLimits = PLAN_LIMITS[user.subscriptionPlan as keyof typeof PLAN_LIMITS];
+        expectedCount = planLimits?.postsPerMonth || 30;
+      }
+      
+      res.json({
+        isGenerating,
+        articlesCreated: realArticleCount,
+        expectedCount,
+        isPaidUser: isSubscribed
+      });
+    } catch (error: any) {
+      console.error("[Generation Status] Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Fix missing feature images on articles for a site
+  app.post("/api/sites/:siteId/fix-missing-images", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { siteId } = req.params;
+      const site = await storage.getSite(siteId);
+      
+      if (!site) {
+        return res.status(404).json({ error: "Site not found" });
+      }
+      
+      // Get all posts without images
+      const posts = await storage.getPosts(siteId);
+      const postsWithoutImages = posts.filter(p => !p.isLocked && !p.imageUrl);
+      
+      if (postsWithoutImages.length === 0) {
+        return res.json({ message: "All articles have images", fixed: 0 });
+      }
+      
+      console.log(`[Fix Images] Found ${postsWithoutImages.length} articles without images for site ${siteId}`);
+      
+      let fixed = 0;
+      for (const post of postsWithoutImages) {
+        try {
+          // Try to find an image using various fallback queries
+          const fallbackQueries = [
+            post.tags?.[0] || "",
+            post.title.split(" ").slice(0, 3).join(" "),
+            site.industry || "",
+            site.title || "",
+            "professional business blog"
+          ].filter(q => q && q.length > 2);
+          
+          let imageUrl: string | null = null;
+          for (const query of fallbackQueries) {
+            imageUrl = await searchPexelsImage(query);
+            if (imageUrl) break;
+          }
+          
+          if (imageUrl) {
+            await storage.updatePost(post.id, { imageUrl });
+            fixed++;
+            console.log(`[Fix Images] Added image to "${post.title}"`);
+          }
+        } catch (err) {
+          console.error(`[Fix Images] Failed to fix image for post ${post.id}:`, err);
+        }
+      }
+      
+      res.json({ 
+        message: `Fixed ${fixed} of ${postsWithoutImages.length} articles`,
+        fixed,
+        total: postsWithoutImages.length
+      });
+    } catch (error: any) {
+      console.error("[Fix Images] Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Check if user needs generation and whether allocation is required
   app.get("/api/check-generation-needs", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {

@@ -263,12 +263,28 @@ export default function EditorPosts() {
   
   const isPaidUser = subscriptionData?.status === 'active' && subscriptionData?.plan;
   
-  // Check if site is onboarded but initial articles haven't finished generating yet
-  // Use the initialArticlesGenerated flag which is only set true when ALL articles are created
-  const realArticleCount = posts?.filter(p => !p.isLocked)?.length || 0;
-  const isGeneratingInitialArticles = site?.isOnboarded && site?.businessDescription && !site?.initialArticlesGenerated;
+  // Query generation status from dedicated endpoint (more reliable than checking flags)
+  const { data: generationStatus } = useQuery<{
+    isGenerating: boolean;
+    articlesCreated: number;
+    expectedCount: number;
+    isPaidUser: boolean;
+  }>({
+    queryKey: ["/api/sites", siteId, "generation-status"],
+    queryFn: async () => {
+      const res = await fetch(`/bv_api/sites/${siteId}/generation-status`, { credentials: "include" });
+      if (!res.ok) return { isGenerating: false, articlesCreated: 0, expectedCount: 0, isPaidUser: false };
+      return res.json();
+    },
+    enabled: !!siteId,
+    refetchInterval: 3000, // Poll every 3 seconds to check generation status
+  });
   
-  // Auto-refresh posts and site data when articles are being generated
+  const isGeneratingInitialArticles = generationStatus?.isGenerating ?? false;
+  const realArticleCount = generationStatus?.articlesCreated ?? posts?.filter(p => !p.isLocked)?.length ?? 0;
+  const expectedArticleCount = generationStatus?.expectedCount ?? 4;
+  
+  // Auto-refresh posts when articles are being generated
   useQuery<Post[]>({
     queryKey: ["/api/editor/sites", siteId, "posts", "refresh"],
     queryFn: async () => {
@@ -278,11 +294,11 @@ export default function EditorPosts() {
       queryClient.setQueryData(["/api/editor/sites", siteId, "posts"], data);
       return data;
     },
-    enabled: !!siteId && !!isGeneratingInitialArticles,
-    refetchInterval: isGeneratingInitialArticles ? 5000 : false,
+    enabled: !!siteId && isGeneratingInitialArticles,
+    refetchInterval: isGeneratingInitialArticles ? 4000 : false,
   });
   
-  // Also refresh site data to check when initialArticlesGenerated becomes true
+  // Also refresh site data to check when generation completes
   useQuery({
     queryKey: ["/api/editor/sites", siteId, "refresh"],
     queryFn: async () => {
@@ -292,8 +308,8 @@ export default function EditorPosts() {
       queryClient.setQueryData([`/bv_api/editor/sites/${siteId}`], data);
       return data;
     },
-    enabled: !!siteId && !!isGeneratingInitialArticles,
-    refetchInterval: isGeneratingInitialArticles ? 5000 : false,
+    enabled: !!siteId && isGeneratingInitialArticles,
+    refetchInterval: isGeneratingInitialArticles ? 4000 : false,
   });
   
   const isLoading = isLoadingPosts;
@@ -2279,37 +2295,78 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
             data-testid="floating-generation-indicator"
           >
             <div 
-              className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/50 p-4 min-w-[280px]"
+              className="bg-white/90 backdrop-blur-2xl rounded-2xl p-4 min-w-[300px]"
               style={{ 
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+                boxShadow: '0 10px 40px rgba(0,0,0,0.15), 0 2px 10px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+                WebkitFontSmoothing: 'antialiased'
               }}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+              {/* macOS-style header with icon */}
+              <div className="flex items-center gap-3 mb-3">
+                <div 
+                  className="w-11 h-11 rounded-xl flex items-center justify-center relative overflow-hidden"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                  }}
+                >
+                  <Sparkles className="w-5 h-5 text-white" />
+                  {/* Animated glow */}
+                  <motion.div
+                    className="absolute inset-0 bg-white/20"
+                    animate={{ opacity: [0.2, 0.4, 0.2] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 tracking-tight">
                     Generating Articles
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {realArticleCount} created so far...
+                    {realArticleCount} of {expectedArticleCount} created
                   </p>
                 </div>
               </div>
-              <div className="mt-3 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+              
+              {/* Progress bar with macOS styling */}
+              <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                {/* Determinate progress */}
                 <motion.div
-                  className="h-full bg-primary rounded-full"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ 
-                    duration: 1.2, 
-                    repeat: Infinity, 
-                    ease: "easeInOut"
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{ 
+                    background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
+                    width: `${Math.min((realArticleCount / expectedArticleCount) * 100, 100)}%`
                   }}
-                  style={{ width: "35%" }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((realArticleCount / expectedArticleCount) * 100, 100)}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 />
+                {/* Shimmer effect on top of progress */}
+                <motion.div
+                  className="absolute inset-y-0 left-0 w-full"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                    width: '30%'
+                  }}
+                  animate={{ x: ['-100%', '400%'] }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity, 
+                    ease: "easeInOut",
+                    repeatDelay: 0.5
+                  }}
+                />
+              </div>
+              
+              {/* Subtle working status */}
+              <div className="flex items-center gap-1.5 mt-2">
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-green-500"
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <span className="text-[11px] text-gray-400">AI is writing content...</span>
               </div>
             </div>
           </motion.div>
