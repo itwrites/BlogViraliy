@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useSiteContext } from "@/components/base-path-provider";
+import { useBasePath, useSiteContext } from "@/components/base-path-provider";
 import { motion, useReducedMotion } from "framer-motion";
 import { Loader2, LogIn } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,6 +14,7 @@ export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isAdmin, isOwner, isLoading: authLoading } = useAuth();
+  const { prefixPath } = useBasePath();
   const siteContext = useSiteContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -224,7 +225,14 @@ export default function AdminLogin() {
             className="px-8 py-4 border-t border-border bg-muted/30"
           >
             <p className="text-center text-xs text-muted-foreground/70">
-              Blog Autopilot CMS
+              Don&apos;t have an account?{" "}
+              <a
+                href={prefixPath("/signup")}
+                data-testid="link-signup"
+                className="font-medium text-foreground hover:text-muted-foreground transition-colors"
+              >
+                Sign up
+              </a>
             </p>
           </motion.div>
         </div>
