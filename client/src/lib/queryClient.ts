@@ -16,17 +16,64 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+let csrfToken: string | null = null;
+let csrfTokenPromise: Promise<string | null> | null = null;
+
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const res = await fetch(toProxyApiUrl("/api/auth/csrf"), {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      return null;
+    }
+    const tokenFromHeader = res.headers.get("x-csrf-token");
+    const data = await res.json().catch(() => null);
+    const token = tokenFromHeader || (data && data.csrfToken) || null;
+    if (token) {
+      csrfToken = token;
+    }
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  if (csrfToken) return csrfToken;
+  if (!csrfTokenPromise) {
+    csrfTokenPromise = fetchCsrfToken().finally(() => {
+      csrfTokenPromise = null;
+    });
+  }
+  return csrfTokenPromise;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const upperMethod = method.toUpperCase();
+  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  if (!["GET", "HEAD", "OPTIONS"].includes(upperMethod)) {
+    const token = await ensureCsrfToken();
+    if (token) {
+      headers["X-CSRF-Token"] = token;
+    }
+  }
+
   const res = await fetch(toProxyApiUrl(url), {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    method: upperMethod,
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
+
+  const tokenFromHeader = res.headers.get("x-csrf-token");
+  if (tokenFromHeader) {
+    csrfToken = tokenFromHeader;
+  }
 
   // Handle 401 globally - redirect to login
   if (res.status === 401) {

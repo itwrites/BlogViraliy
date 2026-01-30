@@ -5,6 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { insertSiteSchema, insertPostSchema, insertUserSchema, insertPillarSchema, type User, PLAN_LIMITS } from "@shared/schema";
@@ -60,6 +61,94 @@ const viewTrackingLimiter = rateLimit({
   // The X-Forwarded-For is automatically used when trust proxy is set
 });
 
+// Auth rate limits and lockout tracking
+const authLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Max login attempts per IP per window
+  message: { error: "Too many login attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authRegisterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Max registrations per IP per window
+  message: { error: "Too many registration attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const AUTH_FAILURE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const AUTH_MAX_FAILURES = 5;
+const AUTH_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+const AUTH_CLEANUP_INTERVAL_MS = 60 * 1000;
+
+type AuthFailureState = {
+  count: number;
+  firstAttemptAt: number;
+  lockedUntil?: number;
+};
+
+const authFailureTracker = new Map<string, AuthFailureState>();
+
+const getAuthKey = (req: Request, email?: string): string => {
+  const ip = req.ip || "unknown";
+  const normalizedEmail = email?.trim().toLowerCase();
+  return normalizedEmail ? `${ip}|${normalizedEmail}` : `ip:${ip}`;
+};
+
+const checkAuthLockout = (key: string): { locked: boolean; retryAfterMs: number } => {
+  const entry = authFailureTracker.get(key);
+  if (!entry) return { locked: false, retryAfterMs: 0 };
+  const now = Date.now();
+  if (entry.lockedUntil && entry.lockedUntil > now) {
+    return { locked: true, retryAfterMs: entry.lockedUntil - now };
+  }
+  if (now - entry.firstAttemptAt > AUTH_FAILURE_WINDOW_MS) {
+    authFailureTracker.delete(key);
+  }
+  return { locked: false, retryAfterMs: 0 };
+};
+
+const recordAuthFailure = (key: string): { locked: boolean; retryAfterMs: number } => {
+  const now = Date.now();
+  let entry = authFailureTracker.get(key);
+  if (!entry || now - entry.firstAttemptAt > AUTH_FAILURE_WINDOW_MS) {
+    entry = { count: 0, firstAttemptAt: now };
+  }
+
+  entry.count += 1;
+  if (entry.count >= AUTH_MAX_FAILURES) {
+    entry.lockedUntil = now + AUTH_LOCKOUT_MS;
+  }
+
+  authFailureTracker.set(key, entry);
+  return checkAuthLockout(key);
+};
+
+const clearAuthFailures = (key: string) => {
+  authFailureTracker.delete(key);
+};
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of authFailureTracker.entries()) {
+    const windowExpired = now - entry.firstAttemptAt > AUTH_FAILURE_WINDOW_MS;
+    const lockExpired = entry.lockedUntil ? entry.lockedUntil <= now : true;
+    if (windowExpired && lockExpired) {
+      authFailureTracker.delete(key);
+    }
+  }
+}, AUTH_CLEANUP_INTERVAL_MS);
+
+const ensureCsrfToken = (req: Request): string | null => {
+  if (!req.session) return null;
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(32).toString("hex");
+  }
+  return req.session.csrfToken;
+};
+
 const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN || "localhost";
 
 // Trusted proxy hosts that can use X-BV-Visitor-Host for site lookup
@@ -106,6 +195,7 @@ declare module "express-session" {
   interface SessionData {
     userId?: string;
     userRole?: string;
+    csrfToken?: string;
   }
 }
 
@@ -163,6 +253,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[bv_api rewrite] ${originalPath} -> ${req.url}`);
     }
     next();
+  });
+
+  // CSRF token endpoint (used by the SPA to fetch a token)
+  app.get("/api/auth/csrf", (req: Request, res: Response) => {
+    const token = ensureCsrfToken(req);
+    if (!token) {
+      return res.status(500).json({ error: "CSRF token unavailable" });
+    }
+    res.setHeader("x-csrf-token", token);
+    res.json({ csrfToken: token });
+  });
+
+  // CSRF protection for session-authenticated state-changing requests
+  const csrfSafeMethods = new Set(["GET", "HEAD", "OPTIONS"]);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (csrfSafeMethods.has(req.method)) return next();
+    if (!req.session?.userId) return next();
+
+    const path = req.path;
+    if (path === "/api/auth/login" || path === "/api/auth/register" || path === "/api/auth/csrf") {
+      return next();
+    }
+
+    const sentToken = req.get("x-csrf-token");
+    const sessionToken = ensureCsrfToken(req);
+    if (!sessionToken || !sentToken || sentToken !== sessionToken) {
+      return res.status(403).json({ error: "Invalid CSRF token" });
+    }
+
+    return next();
   });
 
   // Domain detection middleware
@@ -520,16 +640,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === AUTH ROUTES ===
 
-  app.post("/api/auth/login", async (req: Request, res: Response) => {
+  app.post("/api/auth/login", authLoginLimiter, async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-      const user = await storage.getUserByEmail(email);
+      const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+      if (!normalizedEmail || !password) {
+        return res.status(400).json({ success: false, message: "Email and password are required" });
+      }
+
+      const authKey = getAuthKey(req, normalizedEmail);
+      const lockout = checkAuthLockout(authKey);
+      if (lockout.locked) {
+        const retryAfterSeconds = Math.ceil(lockout.retryAfterMs / 1000);
+        res.setHeader("Retry-After", String(retryAfterSeconds));
+        return res.status(429).json({ success: false, message: "Too many failed login attempts. Please try again later." });
+      }
+
+      const user = await storage.getUserByEmail(normalizedEmail);
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
+        const failure = recordAuthFailure(authKey);
+        if (failure.locked) {
+          const retryAfterSeconds = Math.ceil(failure.retryAfterMs / 1000);
+          res.setHeader("Retry-After", String(retryAfterSeconds));
+          return res.status(429).json({ success: false, message: "Too many failed login attempts. Please try again later." });
+        }
         return res.status(401).json({ success: false, message: "Invalid credentials" });
       }
 
       if (user.status !== "active") {
+        const failure = recordAuthFailure(authKey);
+        if (failure.locked) {
+          const retryAfterSeconds = Math.ceil(failure.retryAfterMs / 1000);
+          res.setHeader("Retry-After", String(retryAfterSeconds));
+          return res.status(429).json({ success: false, message: "Too many failed login attempts. Please try again later." });
+        }
         return res.status(401).json({ success: false, message: "Account is not active" });
       }
 
@@ -568,13 +714,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         req.session.userId = user.id;
         req.session.userRole = user.role;
+        const csrfToken = ensureCsrfToken(req);
         
         // Explicitly save the session before responding
         req.session.save((saveErr) => {
           if (saveErr) {
             return res.status(500).json({ error: "Failed to save session" });
           }
-          
+          clearAuthFailures(authKey);
+
+          if (csrfToken) {
+            res.setHeader("x-csrf-token", csrfToken);
+          }
+
           res.json({ 
             success: true,
             user: {
@@ -584,6 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               role: user.role,
             },
             site: userSite ? { id: userSite.id, isOnboarded: userSite.isOnboarded } : null,
+            csrfToken: csrfToken || undefined,
           });
         });
       });
@@ -612,18 +765,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.post("/api/auth/register", async (req: Request, res: Response) => {
+  app.post("/api/auth/register", authRegisterLimiter, async (req: Request, res: Response) => {
     try {
       const { email, username, password, confirmPassword } = req.body;
+      const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
 
       // Validate required fields
-      if (!email || !username || !password || !confirmPassword) {
+      if (!normalizedEmail || !username || !password || !confirmPassword) {
         return res.status(400).json({ error: "All fields are required" });
       }
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!emailRegex.test(normalizedEmail)) {
         return res.status(400).json({ error: "Invalid email format" });
       }
 
@@ -644,7 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check for duplicate email
-      const existingEmail = await storage.getUserByEmail(email);
+      const existingEmail = await storage.getUserByEmail(normalizedEmail);
       if (existingEmail) {
         return res.status(400).json({ error: "Email already exists" });
       }
@@ -653,7 +807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await storage.createUser({
         username,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role: "owner",
         status: "active",
@@ -679,10 +833,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         req.session.userId = user.id;
         req.session.userRole = user.role;
+        const csrfToken = ensureCsrfToken(req);
 
         req.session.save((saveErr) => {
           if (saveErr) {
             return res.status(500).json({ error: "Failed to save session" });
+          }
+
+          if (csrfToken) {
+            res.setHeader("x-csrf-token", csrfToken);
           }
 
           res.json({
@@ -699,6 +858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               domain: starterSite.domain,
               title: starterSite.title,
             },
+            csrfToken: csrfToken || undefined,
           });
         });
       });
