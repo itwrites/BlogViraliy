@@ -1062,7 +1062,7 @@ HTML or plain text are both supported.","tag1, tag2, tag3","/my-first-post","htt
                     data-testid="menu-plan-center"
                   >
                     <Globe className="w-4 h-4 mr-2" />
-                    Plan Center
+                    Membership/Plan..
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleLogout}

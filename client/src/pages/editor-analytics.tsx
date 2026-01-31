@@ -318,13 +318,13 @@ export default function EditorAnalytics() {
                     <Settings className="w-4 h-4 mr-2" />
                     Blog Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setLocation("/admin")}
-                    data-testid="menu-plan-center"
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Plan Center
-                  </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setLocation("/admin")}
+                      data-testid="menu-plan-center"
+                    >
+                      <Globe className="w-4 h-4 mr-2" />
+                      Membership/Plan..
+                    </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive"
